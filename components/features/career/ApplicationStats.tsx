@@ -1,6 +1,8 @@
 'use client';
 
 import { Application, ApplicationStatus } from '@/lib/schemas/application.schema';
+import { motion } from 'framer-motion';
+import { TrendingUp, Briefcase, CheckCircle, BarChart3 } from 'lucide-react';
 
 interface ApplicationStatsProps {
   applications: Application[];
@@ -22,49 +24,87 @@ export default function ApplicationStats({ applications }: ApplicationStatsProps
         )
       : 0;
 
+  const offerRate =
+    stats.total > 0
+      ? Math.round((stats.offer / stats.total) * 100)
+      : 0;
+
   const statCards = [
     {
       label: 'Total Applications',
       value: stats.total,
-      color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
-      icon: '📊',
+      icon: BarChart3,
+      gradient: 'from-info/20 to-info/10',
+      color: 'text-info',
+      borderColor: 'border-info/30',
     },
     {
       label: 'Active Interviews',
       value: stats.interview,
-      color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
-      icon: '💼',
+      icon: Briefcase,
+      gradient: 'from-warning/20 to-warning/10',
+      color: 'text-warning',
+      borderColor: 'border-warning/30',
     },
     {
       label: 'Offers Received',
       value: stats.offer,
-      color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
-      icon: '✅',
+      icon: CheckCircle,
+      gradient: 'from-success/20 to-success/10',
+      color: 'text-success',
+      borderColor: 'border-success/30',
     },
     {
-      label: 'Response Rate',
-      value: `${responseRate}%`,
-      color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400',
-      icon: '📈',
+      label: 'Success Rate',
+      value: `${offerRate}%`,
+      icon: TrendingUp,
+      gradient: 'from-primary/20 to-primary/10',
+      color: 'text-primary',
+      borderColor: 'border-primary/30',
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      {statCards.map((stat) => (
-        <div
-          key={stat.label}
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</p>
-              <p className={`text-2xl font-bold mt-1 ${stat.color}`}>{stat.value}</p>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 }}
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+    >
+      {statCards.map((stat, index) => {
+        const Icon = stat.icon;
+        
+        return (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 + index * 0.05 }}
+            className={`relative overflow-hidden bg-gradient-to-br ${stat.gradient} backdrop-blur-sm border ${stat.borderColor} rounded-lg p-6 group`}
+            whileHover={{ y: -2 }}
+          >
+            {/* Animated background glow */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+            
+            <div className="relative z-10">
+              <div className="flex items-start justify-between mb-4">
+                <div className={`p-2 rounded-lg ${stat.gradient} border ${stat.borderColor}`}>
+                  <Icon className={`w-5 h-5 ${stat.color}`} />
+                </div>
+              </div>
+              
+              <div>
+                <div className={`text-3xl font-bold ${stat.color} mb-1`}>
+                  {stat.value}
+                </div>
+                <div className="text-sm text-text-tertiary">
+                  {stat.label}
+                </div>
+              </div>
             </div>
-            <span className="text-3xl">{stat.icon}</span>
-          </div>
-        </div>
-      ))}
-    </div>
+          </motion.div>
+        );
+      })}
+    </motion.div>
   );
 }
