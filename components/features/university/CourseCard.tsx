@@ -165,20 +165,27 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
 
         {/* Progress Bar */}
         <div className="mb-4">
-          <div className="flex items-center justify-between text-xs text-text-tertiary mb-2">
-            <span className="font-mono">{progressPercent}% Complete</span>
-            <span>{completedCount} of {totalCount}</span>
+          <div className="flex items-center justify-between text-xs mb-2">
+            <span className="font-mono font-semibold text-text-primary">{progressPercent}% Complete</span>
+            <span className="text-text-secondary">{completedCount} of {totalCount}</span>
           </div>
-          <div className="relative w-full h-3 bg-surface-hover rounded-full overflow-hidden border border-border">
+          <div className="relative w-full h-4 bg-gray-800/80 rounded-full overflow-hidden border-2 border-gray-700/50">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-university-accent via-success to-primary-light rounded-full shadow-glow"
+              className="absolute top-0 left-0 h-full bg-gradient-to-r from-emerald-500 via-green-400 to-lime-400 rounded-full"
               style={{
-                boxShadow: progressPercent > 0 ? '0 0 10px rgba(16, 185, 129, 0.5)' : 'none'
+                boxShadow: progressPercent > 0 ? '0 0 20px rgba(16, 185, 129, 0.8), inset 0 1px 0 rgba(255,255,255,0.3)' : 'none'
               }}
             />
+            {/* Shine effect */}
+            {progressPercent > 0 && (
+              <div 
+                className="absolute top-0 left-0 h-full w-full bg-gradient-to-b from-white/30 via-transparent to-transparent rounded-full pointer-events-none"
+                style={{ width: `${progressPercent}%` }}
+              />
+            )}
           </div>
         </div>
 
