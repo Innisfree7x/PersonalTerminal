@@ -11,8 +11,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Bloomberg Personal",
-  description: "Personal productivity system for managing goals, career, and studies",
+  title: "Prism - Personal Productivity System",
+  description: "Modern productivity system for managing goals, career applications, university courses, and daily tasks",
 };
 
 export default function RootLayout({

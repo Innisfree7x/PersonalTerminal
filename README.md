@@ -1,6 +1,6 @@
-# 📊 Bloomberg Personal
+# 🔮 Prism
 
-> A comprehensive productivity system for managing goals, career applications, university courses, and daily tasks — all in one place.
+> A modern, comprehensive productivity system for managing goals, career applications, university courses, and daily tasks — all in one place.
 
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript)](https://www.typescriptlang.org/)
@@ -93,7 +93,7 @@ graph LR
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/bloomberg-personal.git
+   git clone https://github.com/Innisfree7x/PersonalTerminal.git
    cd bloomberg-personal
    ```
 
@@ -170,7 +170,7 @@ graph LR
 ## 📂 Project Structure
 
 ```
-bloomberg-personal/
+prism/
 ├── app/
 │   ├── (dashboard)/          # Dashboard routes (grouped layout)
 │   │   ├── today/            # Main dashboard page

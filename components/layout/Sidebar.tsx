@@ -94,9 +94,9 @@ export default function Sidebar() {
                 className="flex items-center gap-2"
               >
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">PT</span>
+                  <span className="text-white font-bold text-base">P</span>
                 </div>
-                <span className="font-semibold text-text-primary">Personal Terminal</span>
+                <span className="font-semibold text-text-primary">Prism</span>
               </motion.div>
             )}
             

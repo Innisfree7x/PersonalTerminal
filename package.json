@@ -1,5 +1,5 @@
 {
-  "name": "bloomberg-personal",
+  "name": "prism",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -37,7 +37,10 @@
     "react-hook-form": "^7.71.1",
     "react-hot-toast": "^2.6.0",
     "recharts": "^3.7.0",
-    "zod": "^3"
+    "zod": "^3",
+    "clsx": "^2.1.0",
+    "tailwind-merge": "^2.5.0",
+    "class-variance-authority": "^0.7.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6",
