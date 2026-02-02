@@ -4,11 +4,13 @@ import { CalendarEvent } from '@/lib/data/mockEvents';
 import { format } from 'date-fns';
 import { useMemo, useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import FocusTasks from '@/components/features/dashboard/FocusTasks';
 import ScheduleColumn from '@/components/features/dashboard/ScheduleColumn';
 import StatusDashboard from '@/components/features/dashboard/StatusDashboard';
 import QuickNotes from '@/components/features/dashboard/QuickNotes';
+import { Zap, TrendingUp, Clock } from 'lucide-react';
 
 /**
  * Check if user is connected to Google Calendar
@@ -168,41 +170,105 @@ export default function TodayPage() {
   }, [success]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Error/Success Messages */}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error"
+        >
           {error}
-        </div>
+        </motion.div>
       )}
 
       {success && (
-        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-900/50 dark:bg-green-900/20 dark:text-green-300">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success"
+        >
           {success}
-        </div>
+        </motion.div>
       )}
 
-      {/* Current Time Display - Compact */}
+      {/* Hero Section - Current Time Display */}
       {isMounted && currentTime && (
-        <div className="flex items-center gap-4 text-sm text-gray-400 dark:text-gray-400">
-          <div className="font-mono font-semibold">
-            {format(currentTime, 'HH:mm:ss')}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 p-8"
+        >
+          {/* Animated background glow */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-50" />
+          
+          <div className="relative z-10">
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <motion.div 
+                  className="text-5xl font-bold bg-gradient-to-r from-text-primary to-text-secondary bg-clip-text text-transparent"
+                  initial={{ scale: 0.95 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {format(currentTime, 'HH:mm:ss')}
+                </motion.div>
+                <div className="text-lg text-text-secondary">
+                  {format(currentTime, 'EEEE, MMMM d, yyyy')}
+                </div>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="hidden md:flex items-center gap-6">
+                <div className="text-center">
+                  <div className="flex items-center gap-2 text-primary mb-1">
+                    <Zap className="w-5 h-5" />
+                    <span className="text-2xl font-bold">{events.length}</span>
+                  </div>
+                  <div className="text-xs text-text-tertiary">Events Today</div>
+                </div>
+                <div className="w-px h-12 bg-border" />
+                <div className="text-center">
+                  <div className="flex items-center gap-2 text-success mb-1">
+                    <TrendingUp className="w-5 h-5" />
+                    <span className="text-2xl font-bold">85%</span>
+                  </div>
+                  <div className="text-xs text-text-tertiary">Productivity</div>
+                </div>
+                <div className="w-px h-12 bg-border" />
+                <div className="text-center">
+                  <div className="flex items-center gap-2 text-warning mb-1">
+                    <Clock className="w-5 h-5" />
+                    <span className="text-2xl font-bold">6h</span>
+                  </div>
+                  <div className="text-xs text-text-tertiary">Focus Time</div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="text-gray-500 dark:text-gray-500">
-            {format(currentTime, 'EEEE, MMMM d, yyyy')}
-          </div>
-        </div>
+        </motion.div>
       )}
 
       {/* 3-Column Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* LEFT COLUMN - Focus Tasks */}
-        <div className="order-1 lg:order-1">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
+          className="order-1 lg:order-1"
+        >
           <FocusTasks />
-        </div>
+        </motion.div>
 
         {/* MIDDLE COLUMN - Schedule */}
-        <div className="order-2 lg:order-2">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="order-2 lg:order-2"
+        >
           <ScheduleColumn
             events={events}
             currentTime={currentTime}
@@ -214,24 +280,34 @@ export default function TodayPage() {
             isRefreshing={false}
             isDisconnecting={disconnectMutation.isPending}
           />
-        </div>
+        </motion.div>
 
         {/* RIGHT COLUMN - Status Dashboard */}
-        <div className="order-3 lg:order-3">
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3 }}
+          className="order-3 lg:order-3"
+        >
           <StatusDashboard />
-        </div>
+        </motion.div>
       </div>
 
       {/* Footer: Link to Calendar Page */}
       {isConnected === true && !isLoading && (
-        <div className="text-center pt-4 border-t border-gray-800 dark:border-gray-700">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="text-center pt-4 border-t border-border"
+        >
           <Link
             href="/calendar"
-            className="inline-flex items-center gap-2 text-xs text-blue-400 dark:text-blue-400 hover:text-blue-300 dark:hover:text-blue-300 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary-hover transition-colors"
           >
             View full week →
           </Link>
-        </div>
+        </motion.div>
       )}
 
       {/* Quick Notes Floating Input */}

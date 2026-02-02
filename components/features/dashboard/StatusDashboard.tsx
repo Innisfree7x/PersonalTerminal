@@ -3,6 +3,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Briefcase, Target, GraduationCap, TrendingUp, AlertCircle, Zap, Clock } from 'lucide-react';
 
 interface DashboardStats {
   career: {
@@ -44,176 +48,260 @@ export default function StatusDashboard() {
   if (isLoading || !stats) {
     return (
       <div className="space-y-4">
-        <div className="bg-gray-900/50 dark:bg-gray-800/50 rounded-lg border border-gray-700 dark:border-gray-700 p-4">
-          <p className="text-sm text-gray-400">Loading stats...</p>
+        <div className="bg-surface/50 backdrop-blur-sm rounded-lg border border-border p-6 animate-pulse">
+          <div className="h-4 bg-surface-hover rounded w-1/2 mb-4" />
+          <div className="space-y-3">
+            <div className="h-3 bg-surface-hover rounded" />
+            <div className="h-3 bg-surface-hover rounded w-3/4" />
+          </div>
         </div>
       </div>
     );
   }
 
   const weekProgressPercent = Math.round((stats.metrics.weekProgress.day / stats.metrics.weekProgress.total) * 100);
+  const goalsProgressPercent = stats.goals.weeklyProgress.total > 0 
+    ? Math.round((stats.goals.weeklyProgress.onTrack / stats.goals.weeklyProgress.total) * 100)
+    : 0;
 
   return (
     <div className="space-y-4">
-      {/* Career Stats Card */}
-      <div className="bg-gray-900/50 dark:bg-gray-800/50 rounded-lg border border-gray-700 dark:border-gray-700 p-4">
-        <h3 className="text-sm font-semibold text-gray-200 dark:text-gray-200 mb-3 pb-2 border-b border-gray-800 dark:border-gray-700">
-          📊 Career Stats
-        </h3>
-        <div className="space-y-2 text-xs">
-          <div className="flex justify-between items-center">
-            <span className="text-gray-400 dark:text-gray-400">Active Interviews:</span>
-            <span className="font-mono font-semibold text-blue-400 dark:text-blue-400">
-              {stats.career.activeInterviews}
-            </span>
-          </div>
-          {stats.career.nextInterview && (
-            <div className="text-gray-400 dark:text-gray-400">
-              Next: <span className="font-mono text-yellow-400 dark:text-yellow-400">
-                {format(new Date(stats.career.nextInterview.date), 'EEE d')}
-              </span>{' '}
-              {stats.career.nextInterview.company}
-            </div>
-          )}
-          <div className="flex justify-between items-center">
-            <span className="text-gray-400 dark:text-gray-400">Applications Pending:</span>
-            <span className="font-mono font-semibold text-gray-300 dark:text-gray-300">
-              {stats.career.applicationsPending}
-            </span>
-          </div>
-          {stats.career.pendingDays > 0 && (
-            <div className="text-gray-400 dark:text-gray-400">
-              Oldest: <span className="font-mono text-gray-300 dark:text-gray-300">{stats.career.pendingDays}d</span> ago
-            </div>
-          )}
-          {stats.career.followUpNeeded > 0 && (
-            <div className="flex justify-between items-center pt-2 border-t border-gray-800 dark:border-gray-700">
-              <span className="text-yellow-400 dark:text-yellow-400">⚠️ Follow-up Needed:</span>
-              <span className="font-mono font-semibold text-red-400 dark:text-red-400">
-                {stats.career.followUpNeeded}
-              </span>
-            </div>
-          )}
-          <Link
-            href="/career"
-            className="block mt-3 px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 text-center"
-          >
-            Apply to new role
-          </Link>
-        </div>
-      </div>
-
-      {/* Goals Progress Card */}
-      <div className="bg-gray-900/50 dark:bg-gray-800/50 rounded-lg border border-gray-700 dark:border-gray-700 p-4">
-        <h3 className="text-sm font-semibold text-gray-200 dark:text-gray-200 mb-3 pb-2 border-b border-gray-800 dark:border-gray-700">
-          🎯 Goals Progress
-        </h3>
-        <div className="space-y-2 text-xs">
-          <div>
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-gray-400 dark:text-gray-400">This Week:</span>
-              <span className="font-mono font-semibold text-green-400 dark:text-green-400">
-                {stats.goals.weeklyProgress.onTrack}/{stats.goals.weeklyProgress.total}
-              </span>
-            </div>
-            <div className="w-full bg-gray-800 dark:bg-gray-900 rounded-full h-1.5">
-              <div
-                className="bg-green-500 h-1.5 rounded-full transition-all"
-                style={{
-                  width: `${stats.goals.weeklyProgress.total > 0 ? (stats.goals.weeklyProgress.onTrack / stats.goals.weeklyProgress.total) * 100 : 0}%`,
-                }}
-              />
-            </div>
-          </div>
-          <div className="pt-2 border-t border-gray-800 dark:border-gray-700">
-            <div className="text-gray-400 dark:text-gray-400 mb-1">By Category:</div>
-            {Object.entries(stats.goals.byCategory).map(([category, count]) => (
-              <div key={category} className="flex justify-between text-xs text-gray-500 dark:text-gray-500">
-                <span className="capitalize">{category}:</span>
-                <span className="font-mono">{count}</span>
-              </div>
-            ))}
-          </div>
-          {stats.goals.overdue > 0 && (
-            <div className="pt-2 border-t border-gray-800 dark:border-gray-700">
-              <span className="text-red-400 dark:text-red-400">
-                ⚠️ {stats.goals.overdue} overdue goal{stats.goals.overdue > 1 ? 's' : ''}
-              </span>
-            </div>
-          )}
-
-          {/* Study Progress Subsection */}
-          <div className="pt-3 border-t border-gray-800 dark:border-gray-700">
-            <div className="text-gray-300 dark:text-gray-300 font-semibold mb-2">
-              📚 Study Progress
-            </div>
-            <div className="space-y-1.5 text-xs">
-              <div className="flex justify-between">
-                <span className="text-gray-400 dark:text-gray-400">This Week:</span>
-                <span className="font-mono text-blue-400 dark:text-blue-400">
-                  {stats.study.weekCompleted} exercises
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400 dark:text-gray-400">Semester:</span>
-                <span className="font-mono text-purple-400 dark:text-purple-400">
-                  {stats.study.semesterPercent}% complete
-                </span>
-              </div>
-              {stats.study.nextExam && (
-                <div className="flex justify-between">
-                  <span className="text-gray-400 dark:text-gray-400">Next:</span>
-                  <span className="font-mono text-yellow-400 dark:text-yellow-400">
-                    {stats.study.nextExam.courseName} in {stats.study.nextExam.daysUntil}d
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Quick Metrics Card */}
-      <div className="bg-gray-900/50 dark:bg-gray-800/50 rounded-lg border border-gray-700 dark:border-gray-700 p-4">
-        <h3 className="text-sm font-semibold text-gray-200 dark:text-gray-200 mb-3 pb-2 border-b border-gray-800 dark:border-gray-700">
-          ⚡ Quick Metrics
-        </h3>
-        <div className="space-y-3 text-xs">
-          <div>
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-gray-400 dark:text-gray-400">Today Completion:</span>
-              <span className="font-mono font-semibold text-blue-400 dark:text-blue-400">
-                {stats.metrics.todayCompletion}%
-              </span>
-            </div>
-            <div className="relative w-full h-1.5 bg-gray-800 dark:bg-gray-900 rounded-full">
-              <div
-                className="absolute top-0 left-0 h-1.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all"
-                style={{ width: `${stats.metrics.todayCompletion}%` }}
-              />
-            </div>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/30 rounded-xl p-6"
+      >
+        {/* Animated background glow */}
+        <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl" />
+        
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-4">
+            <Zap className="w-5 h-5 text-primary" />
+            <h3 className="text-sm font-semibold text-text-primary">Today's Progress</h3>
           </div>
-          <div>
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-gray-400 dark:text-gray-400">Week Progress:</span>
-              <span className="font-mono font-semibold text-purple-400 dark:text-purple-400">
+
+          {/* Large Completion Number */}
+          <div className="mb-4">
+            <div className="text-5xl font-bold bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
+              {stats.metrics.todayCompletion}%
+            </div>
+            <div className="text-xs text-text-tertiary mt-1">Completion Rate</div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="relative w-full h-2 bg-surface rounded-full overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${stats.metrics.todayCompletion}%` }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-primary-light rounded-full"
+            />
+          </div>
+
+          {/* Week Progress */}
+          <div className="mt-4 pt-4 border-t border-border/50">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-text-secondary">Week Progress</span>
+              <span className="text-primary font-semibold">
                 Day {stats.metrics.weekProgress.day}/{stats.metrics.weekProgress.total}
               </span>
             </div>
-            <div className="w-full bg-gray-800 dark:bg-gray-900 rounded-full h-1.5">
-              <div
-                className="bg-purple-500 h-1.5 rounded-full transition-all"
-                style={{ width: `${weekProgressPercent}%` }}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Career Stats Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-surface/50 backdrop-blur-sm rounded-lg border border-border p-6"
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <Briefcase className="w-5 h-5 text-career-accent" />
+          <h3 className="text-sm font-semibold text-text-primary">Career</h3>
+        </div>
+
+        <div className="space-y-4">
+          {/* Active Interviews */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-text-secondary">Active Interviews</span>
+            <Badge variant="info" size="sm">
+              {stats.career.activeInterviews}
+            </Badge>
+          </div>
+
+          {/* Next Interview */}
+          {stats.career.nextInterview && (
+            <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg">
+              <div className="flex items-center gap-2 mb-1">
+                <Clock className="w-3 h-3 text-warning" />
+                <span className="text-xs font-medium text-warning">Next Interview</span>
+              </div>
+              <div className="text-sm text-text-primary font-medium">
+                {stats.career.nextInterview.company}
+              </div>
+              <div className="text-xs text-text-secondary">
+                {format(new Date(stats.career.nextInterview.date), 'EEE, MMM d')}
+              </div>
+            </div>
+          )}
+
+          {/* Applications Pending */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-text-secondary">Pending</span>
+            <span className="text-sm font-mono text-text-primary">
+              {stats.career.applicationsPending}
+            </span>
+          </div>
+
+          {/* Follow-up Needed */}
+          {stats.career.followUpNeeded > 0 && (
+            <div className="flex items-center gap-2 p-2 bg-error/10 border border-error/30 rounded-lg">
+              <AlertCircle className="w-4 h-4 text-error" />
+              <span className="text-xs text-error font-medium">
+                {stats.career.followUpNeeded} need follow-up
+              </span>
+            </div>
+          )}
+
+          <Link href="/career" className="block">
+            <Button variant="secondary" size="sm" className="w-full">
+              Apply to New Role
+            </Button>
+          </Link>
+        </div>
+      </motion.div>
+
+      {/* Goals Progress Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="bg-surface/50 backdrop-blur-sm rounded-lg border border-border p-6"
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <Target className="w-5 h-5 text-goals-accent" />
+          <h3 className="text-sm font-semibold text-text-primary">Goals</h3>
+        </div>
+
+        <div className="space-y-4">
+          {/* Weekly Progress */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-text-secondary">This Week</span>
+              <span className="text-sm font-semibold text-success">
+                {stats.goals.weeklyProgress.onTrack}/{stats.goals.weeklyProgress.total}
+              </span>
+            </div>
+            <div className="relative w-full h-2 bg-surface rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${goalsProgressPercent}%` }}
+                transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
+                className="absolute top-0 left-0 h-full bg-gradient-to-r from-success to-success/70 rounded-full"
               />
             </div>
           </div>
-          <div className="pt-2 border-t border-gray-800 dark:border-gray-700">
-            <div className="text-gray-400 dark:text-gray-400 font-mono text-xs">
-              💡 {stats.metrics.focusTime}
+
+          {/* By Category */}
+          <div className="space-y-2">
+            <div className="text-xs text-text-tertiary mb-2">By Category</div>
+            {Object.entries(stats.goals.byCategory).map(([category, count]) => (
+              <div key={category} className="flex items-center justify-between text-xs">
+                <span className="text-text-secondary capitalize">{category}</span>
+                <Badge variant="default" size="sm">{count}</Badge>
+              </div>
+            ))}
+          </div>
+
+          {/* Overdue Warning */}
+          {stats.goals.overdue > 0 && (
+            <div className="flex items-center gap-2 p-2 bg-error/10 border border-error/30 rounded-lg">
+              <AlertCircle className="w-4 h-4 text-error" />
+              <span className="text-xs text-error font-medium">
+                {stats.goals.overdue} overdue
+              </span>
+            </div>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Study Progress Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="bg-surface/50 backdrop-blur-sm rounded-lg border border-border p-6"
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <GraduationCap className="w-5 h-5 text-university-accent" />
+          <h3 className="text-sm font-semibold text-text-primary">Study</h3>
+        </div>
+
+        <div className="space-y-4">
+          {/* This Week */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-text-secondary">This Week</span>
+            <Badge variant="info" size="sm">
+              {stats.study.weekCompleted} exercises
+            </Badge>
+          </div>
+
+          {/* Semester Progress */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-text-secondary">Semester</span>
+              <span className="text-sm font-semibold text-primary">
+                {stats.study.semesterPercent}%
+              </span>
+            </div>
+            <div className="relative w-full h-2 bg-surface rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${stats.study.semesterPercent}%` }}
+                transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
+                className="absolute top-0 left-0 h-full bg-gradient-to-r from-university-accent to-university-accent/70 rounded-full"
+              />
+            </div>
+          </div>
+
+          {/* Next Exam */}
+          {stats.study.nextExam && (
+            <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg">
+              <div className="flex items-center gap-2 mb-1">
+                <TrendingUp className="w-3 h-3 text-warning" />
+                <span className="text-xs font-medium text-warning">Next Exam</span>
+              </div>
+              <div className="text-sm text-text-primary font-medium">
+                {stats.study.nextExam.courseName}
+              </div>
+              <div className="text-xs text-text-secondary">
+                in {stats.study.nextExam.daysUntil} days
+              </div>
+            </div>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Focus Time Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="bg-gradient-to-br from-info/10 to-transparent border border-info/30 rounded-lg p-4"
+      >
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-info" />
+          <div className="flex-1">
+            <div className="text-xs text-text-tertiary mb-1">Focus Time Today</div>
+            <div className="text-lg font-bold text-info font-mono">
+              {stats.metrics.focusTime}
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
