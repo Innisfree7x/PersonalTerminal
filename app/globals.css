@@ -53,7 +53,7 @@
   /* Smooth transitions for theme changes */
   html,
   body {
-    @apply transition-colors duration-slow;
+    @apply transition-colors duration-300;
   }
 }
 
@@ -104,7 +104,7 @@
   /* Card base */
   .card {
     @apply bg-surface border border-border rounded-lg p-4;
-    @apply transition-all duration-base;
+    @apply transition-all duration-200;
   }
 
   .card-hover {
@@ -116,7 +116,7 @@
     @apply inline-flex items-center justify-center;
     @apply rounded-md px-4 py-2;
     @apply font-medium text-sm;
-    @apply transition-all duration-fast;
+    @apply transition-all duration-150;
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
     @apply disabled:opacity-50 disabled:pointer-events-none;
   }
@@ -142,7 +142,7 @@
     @apply bg-surface border border-border rounded-md;
     @apply px-3 py-2 text-sm text-text-primary;
     @apply placeholder:text-text-tertiary;
-    @apply transition-all duration-fast;
+    @apply transition-all duration-150;
     @apply focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20;
   }
 
