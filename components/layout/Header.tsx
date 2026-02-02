@@ -1,7 +1,10 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { format } from 'date-fns';
+import { motion } from 'framer-motion';
+import { Search, Bell, Plus, Command } from 'lucide-react';
+import { useState } from 'react';
 
 interface DashboardStats {
   career: {
@@ -29,7 +32,18 @@ async function fetchStats(): Promise<DashboardStats> {
   return response.json();
 }
 
+const routeTitles: Record<string, string> = {
+  '/today': 'Today',
+  '/calendar': 'Calendar',
+  '/goals': 'Goals',
+  '/university': 'University',
+  '/career': 'Career',
+};
+
 export default function Header() {
+  const pathname = usePathname();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  
   const { data: stats } = useQuery({
     queryKey: ['dashboard', 'stats'],
     queryFn: fetchStats,
@@ -37,8 +51,7 @@ export default function Header() {
   });
 
   const todayCompletion = stats?.metrics.todayCompletion || 0;
-  const weekProgress = stats?.metrics.weekProgress || { day: 1, total: 7 };
-
+  
   // Check for urgent items (notification badge)
   const hasUrgent =
     (stats?.career.nextInterview &&
@@ -46,63 +59,99 @@ export default function Header() {
     (stats?.goals.overdue && stats.goals.overdue > 0) ||
     false;
 
+  const currentTitle = routeTitles[pathname] || 'Dashboard';
+
   return (
-    <>
-      <header className="sticky top-0 z-30 bg-gray-900 dark:bg-gray-950 border-b border-gray-800 dark:border-gray-800">
-        <div className="flex items-center h-14 px-4 lg:pl-72">
-          {/* Left: Dashboard Title */}
-          <h1 className="text-xl font-semibold text-gray-100 dark:text-gray-100 mr-8">
-            Dashboard
+    <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
+      <div className="flex items-center justify-between h-14 px-6">
+        {/* Left: Page Title & Breadcrumb */}
+        <div className="flex items-center gap-3">
+          <h1 className="text-lg font-semibold text-text-primary">
+            {currentTitle}
           </h1>
-
-          {/* Center: Completion Progress */}
-          <div className="flex-1 flex items-center justify-center gap-4 text-xs text-gray-400 dark:text-gray-400">
-            <div className="flex items-center gap-2 font-mono">
-              <span>Today:</span>
-              <span className="font-semibold text-blue-400 dark:text-blue-400">
-                {todayCompletion}%
+          
+          {todayCompletion > 0 && pathname === '/today' && (
+            <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-primary/10">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-xs font-medium text-primary">
+                {todayCompletion}% complete
               </span>
             </div>
-            <div className="text-gray-600 dark:text-gray-600">|</div>
-            <div className="flex items-center gap-2 font-mono">
-              <span>Week:</span>
-              <span className="font-semibold text-purple-400 dark:text-purple-400">
-                {weekProgress.day}/{weekProgress.total} days
-              </span>
-            </div>
-          </div>
+          )}
+        </div>
 
-          {/* Right: Notification Bell */}
-          <div className="relative ml-4">
-            <button className="p-2 text-gray-400 hover:text-gray-300 transition-colors">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
-              </svg>
-            </button>
-            {hasUrgent && (
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2">
+          {/* Search / Command Palette Trigger */}
+          <motion.button
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface border border-border text-text-tertiary hover:text-text-primary hover:border-primary transition-colors"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              // TODO: Open command palette
+              console.log('Open command palette');
+            }}
+          >
+            <Search className="w-4 h-4" />
+            <span className="hidden sm:inline text-xs">Search</span>
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] bg-surface-hover border border-border">
+              <Command className="w-2.5 h-2.5" />
+              K
+            </kbd>
+          </motion.button>
+
+          {/* Quick Add Button */}
+          <motion.button
+            className="p-2 rounded-lg bg-primary text-white hover:bg-primary-hover transition-colors shadow-glow"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              // TODO: Open quick add modal
+              console.log('Quick add');
+            }}
+            aria-label="Quick add"
+          >
+            <Plus className="w-4 h-4" />
+          </motion.button>
+
+          {/* Notifications */}
+          <div className="relative">
+            <motion.button
+              className="p-2 rounded-lg bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-primary transition-colors relative"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setNotificationsOpen(!notificationsOpen)}
+              aria-label="Notifications"
+            >
+              <Bell className="w-4 h-4" />
+              {hasUrgent && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full ring-2 ring-background" />
+              )}
+            </motion.button>
+
+            {/* Notification Dropdown (placeholder) */}
+            {notificationsOpen && (
+              <div className="absolute top-full right-0 mt-2 w-80 bg-surface border border-border rounded-lg shadow-lg p-3">
+                <div className="text-xs text-text-tertiary text-center py-4">
+                  No new notifications
+                </div>
+              </div>
             )}
           </div>
         </div>
+      </div>
 
-        {/* Progress Bar */}
-        <div className="h-0.5 bg-gray-800 dark:bg-gray-800">
-          <div
-            className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500"
-            style={{ width: `${todayCompletion}%` }}
+      {/* Progress Bar (for Today page) */}
+      {pathname === '/today' && todayCompletion > 0 && (
+        <div className="h-0.5 bg-surface">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${todayCompletion}%` }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="h-full bg-gradient-to-r from-primary to-primary-light"
           />
         </div>
-      </header>
-    </>
+      )}
+    </header>
   );
 }
