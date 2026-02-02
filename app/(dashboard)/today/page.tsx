@@ -10,7 +10,15 @@ import FocusTasks from '@/components/features/dashboard/FocusTasks';
 import ScheduleColumn from '@/components/features/dashboard/ScheduleColumn';
 import StatusDashboard from '@/components/features/dashboard/StatusDashboard';
 import QuickNotes from '@/components/features/dashboard/QuickNotes';
-import { Zap, TrendingUp, Clock } from 'lucide-react';
+import QuickStatsBar from '@/components/features/dashboard/QuickStatsBar';
+import CircularProgress from '@/components/features/dashboard/CircularProgress';
+import QuickActionsWidget from '@/components/features/dashboard/QuickActionsWidget';
+import ActivityFeed from '@/components/features/dashboard/ActivityFeed';
+import TimeBlockVisualizer from '@/components/features/dashboard/TimeBlockVisualizer';
+import MoodTracker from '@/components/features/dashboard/MoodTracker';
+import PomodoroTimer from '@/components/features/dashboard/PomodoroTimer';
+import WeekOverview from '@/components/features/dashboard/WeekOverview';
+import { Clock } from 'lucide-react';
 
 /**
  * Check if user is connected to Google Calendar
@@ -18,7 +26,7 @@ import { Zap, TrendingUp, Clock } from 'lucide-react';
 async function checkConnection(): Promise<boolean> {
   try {
     const response = await fetch('/api/calendar/today');
-    return response.status !== 401; // 401 = not authenticated
+    return response.status !== 401;
   } catch {
     return false;
   }
@@ -38,7 +46,6 @@ async function fetchTodayEvents(): Promise<CalendarEvent[]> {
   }
 
   const data = await response.json();
-  // Convert date strings to Date objects
   return data.map((event: any) => ({
     ...event,
     startTime: new Date(event.startTime),
@@ -84,9 +91,7 @@ export default function TodayPage() {
 
     if (successParam === 'connected') {
       setSuccess('Successfully connected to Google Calendar!');
-      // Clear URL params
       window.history.replaceState({}, '', '/today');
-      // Refresh connection status
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['calendar', 'today'] });
         checkConnection().then(setIsConnected);
@@ -105,7 +110,7 @@ export default function TodayPage() {
 
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 1000); // Update every second
+    }, 1000);
 
     return () => clearInterval(timer);
   }, []);
@@ -169,6 +174,9 @@ export default function TodayPage() {
     }
   }, [success]);
 
+  // Check if schedule is empty (no events or not connected)
+  const hasEvents = events.length > 0;
+
   return (
     <div className="space-y-6">
       {/* Error/Success Messages */}
@@ -192,82 +200,63 @@ export default function TodayPage() {
         </motion.div>
       )}
 
-      {/* Hero Section - Current Time Display */}
+      {/* QUICK STATS BAR - Horizontal Top */}
+      <QuickStatsBar
+        eventsToday={events.length}
+        productivity={85}
+        focusTime={6}
+        streak={7}
+        goalsThisWeek={{ completed: 2, total: 5 }}
+        exercisesThisWeek={12}
+      />
+
+      {/* Hero Section - Compact Clock */}
       {isMounted && currentTime && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 p-8"
+          className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 p-6"
         >
-          {/* Animated background glow */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-50" />
           
-          <div className="relative z-10">
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <motion.div 
-                  className="text-5xl font-bold bg-gradient-to-r from-text-primary to-text-secondary bg-clip-text text-transparent"
-                  initial={{ scale: 0.95 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {format(currentTime, 'HH:mm:ss')}
-                </motion.div>
-                <div className="text-lg text-text-secondary">
-                  {format(currentTime, 'EEEE, MMMM d, yyyy')}
-                </div>
-              </div>
-
-              {/* Quick Stats */}
-              <div className="hidden md:flex items-center gap-6">
-                <div className="text-center">
-                  <div className="flex items-center gap-2 text-primary mb-1">
-                    <Zap className="w-5 h-5" />
-                    <span className="text-2xl font-bold">{events.length}</span>
-                  </div>
-                  <div className="text-xs text-text-tertiary">Events Today</div>
-                </div>
-                <div className="w-px h-12 bg-border" />
-                <div className="text-center">
-                  <div className="flex items-center gap-2 text-success mb-1">
-                    <TrendingUp className="w-5 h-5" />
-                    <span className="text-2xl font-bold">85%</span>
-                  </div>
-                  <div className="text-xs text-text-tertiary">Productivity</div>
-                </div>
-                <div className="w-px h-12 bg-border" />
-                <div className="text-center">
-                  <div className="flex items-center gap-2 text-warning mb-1">
-                    <Clock className="w-5 h-5" />
-                    <span className="text-2xl font-bold">6h</span>
-                  </div>
-                  <div className="text-xs text-text-tertiary">Focus Time</div>
-                </div>
+          <div className="relative z-10 flex items-center gap-4">
+            <Clock className="w-10 h-10 text-primary" />
+            <div>
+              <motion.div 
+                className="text-3xl font-bold bg-gradient-to-r from-text-primary to-text-secondary bg-clip-text text-transparent"
+                initial={{ scale: 0.95 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                {format(currentTime, 'HH:mm:ss')}
+              </motion.div>
+              <div className="text-sm text-text-secondary">
+                {format(currentTime, 'EEEE, MMMM d, yyyy')}
               </div>
             </div>
           </div>
         </motion.div>
       )}
 
-      {/* 3-Column Grid Layout */}
+      {/* SMART GRID LAYOUT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* LEFT COLUMN - Focus Tasks */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
-          className="order-1 lg:order-1"
+          className="space-y-6"
         >
           <FocusTasks />
         </motion.div>
 
-        {/* MIDDLE COLUMN - Schedule */}
+        {/* MIDDLE COLUMN - Schedule OR Widgets (if empty) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="order-2 lg:order-2"
+          className="space-y-6"
         >
           <ScheduleColumn
             events={events}
@@ -280,16 +269,55 @@ export default function TodayPage() {
             isRefreshing={false}
             isDisconnecting={disconnectMutation.isPending}
           />
+
+          {/* Show widgets here if schedule is empty */}
+          {!hasEvents && (
+            <>
+              <TimeBlockVisualizer
+                morningProgress={50}
+                afternoonProgress={0}
+                eveningProgress={0}
+              />
+              <WeekOverview />
+            </>
+          )}
         </motion.div>
 
-        {/* RIGHT COLUMN - Status Dashboard */}
+        {/* RIGHT COLUMN - Status + New Widgets */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
-          className="order-3 lg:order-3"
+          className="space-y-6"
         >
-          <StatusDashboard />
+          {/* Circular Progress instead of old StatusDashboard */}
+          <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-6 flex flex-col items-center">
+            <CircularProgress percentage={85} label="Today's Completion" />
+          </div>
+
+          {/* Quick Actions */}
+          <QuickActionsWidget />
+
+          {/* Pomodoro Timer */}
+          <PomodoroTimer />
+
+          {/* Mood Tracker */}
+          <MoodTracker />
+
+          {/* Activity Feed */}
+          <ActivityFeed />
+
+          {/* Show TimeBlock & Week here if schedule HAS events */}
+          {hasEvents && (
+            <>
+              <TimeBlockVisualizer
+                morningProgress={50}
+                afternoonProgress={0}
+                eveningProgress={0}
+              />
+              <WeekOverview />
+            </>
+          )}
         </motion.div>
       </div>
 

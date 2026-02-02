@@ -1,0 +1,185 @@
+'use client';
+
+import { motion, AnimatePresence } from 'framer-motion';
+import { Play, Pause, RotateCcw, Coffee } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+
+interface PomodoroTimerProps {
+  workDuration?: number; // in minutes
+  breakDuration?: number; // in minutes
+}
+
+export default function PomodoroTimer({ 
+  workDuration = 25, 
+  breakDuration = 5 
+}: PomodoroTimerProps) {
+  const [isRunning, setIsRunning] = useState(false);
+  const [isBreak, setIsBreak] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(workDuration * 60); // in seconds
+  const [completedPomodoros, setCompletedPomodoros] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const totalTime = isBreak ? breakDuration * 60 : workDuration * 60;
+  const progress = ((totalTime - timeLeft) / totalTime) * 100;
+
+  useEffect(() => {
+    if (isRunning && timeLeft > 0) {
+      intervalRef.current = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0) {
+      // Timer finished
+      if (!isBreak) {
+        setCompletedPomodoros((prev) => prev + 1);
+      }
+      setIsRunning(false);
+      // Auto-switch to break or work
+      setIsBreak(!isBreak);
+      setTimeLeft(isBreak ? workDuration * 60 : breakDuration * 60);
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [isRunning, timeLeft, isBreak, workDuration, breakDuration]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handlePlayPause = () => {
+    setIsRunning(!isRunning);
+  };
+
+  const handleReset = () => {
+    setIsRunning(false);
+    setTimeLeft(isBreak ? breakDuration * 60 : workDuration * 60);
+  };
+
+  const handleToggleMode = () => {
+    setIsRunning(false);
+    setIsBreak(!isBreak);
+    setTimeLeft(isBreak ? workDuration * 60 : breakDuration * 60);
+  };
+
+  return (
+    <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Coffee className="w-5 h-5 text-warning" />
+          <h3 className="text-base font-semibold text-text-primary">Pomodoro</h3>
+        </div>
+        <button
+          onClick={handleToggleMode}
+          className="text-xs px-2 py-1 rounded-md bg-surface-hover hover:bg-primary/20 text-text-secondary hover:text-primary transition-colors"
+        >
+          {isBreak ? '☕ Break' : '🍅 Work'}
+        </button>
+      </div>
+
+      {/* Timer display */}
+      <div className="relative mb-6">
+        {/* Background circle */}
+        <svg className="w-full h-32" viewBox="0 0 100 100">
+          <circle
+            cx="50"
+            cy="50"
+            r="45"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            className="text-surface-hover"
+          />
+          {/* Progress circle */}
+          <motion.circle
+            cx="50"
+            cy="50"
+            r="45"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            className={isBreak ? 'text-success' : 'text-primary'}
+            style={{
+              strokeDasharray: `${2 * Math.PI * 45}`,
+              strokeDashoffset: `${2 * Math.PI * 45 * (1 - progress / 100)}`,
+              transform: 'rotate(-90deg)',
+              transformOrigin: '50% 50%',
+            }}
+            initial={false}
+            animate={{
+              strokeDashoffset: `${2 * Math.PI * 45 * (1 - progress / 100)}`,
+            }}
+            transition={{ duration: 0.3 }}
+          />
+        </svg>
+
+        {/* Time text */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <motion.span
+            className="text-3xl font-bold text-text-primary font-mono"
+            key={timeLeft}
+            initial={{ scale: 1.1 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.2 }}
+          >
+            {formatTime(timeLeft)}
+          </motion.span>
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="flex items-center justify-center gap-2 mb-4">
+        <motion.button
+          onClick={handlePlayPause}
+          className={`p-3 rounded-full ${
+            isRunning ? 'bg-warning/20 text-warning' : 'bg-success/20 text-success'
+          } hover:scale-110 transition-all`}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {isRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
+        </motion.button>
+
+        <motion.button
+          onClick={handleReset}
+          className="p-3 rounded-full bg-surface-hover text-text-secondary hover:bg-error/20 hover:text-error transition-all"
+          whileHover={{ scale: 1.1, rotate: 180 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <RotateCcw className="w-5 h-5" />
+        </motion.button>
+      </div>
+
+      {/* Completed pomodoros */}
+      <div className="flex items-center justify-center gap-1 pb-2">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <motion.div
+            key={index}
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-lg ${
+              index < completedPomodoros
+                ? 'bg-primary/20 border-2 border-primary'
+                : 'bg-surface-hover border-2 border-border'
+            }`}
+            initial={false}
+            animate={
+              index === completedPomodoros - 1
+                ? { scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }
+                : {}
+            }
+            transition={{ duration: 0.5 }}
+          >
+            {index < completedPomodoros ? '🍅' : ''}
+          </motion.div>
+        ))}
+      </div>
+      <p className="text-xs text-center text-text-tertiary">
+        {completedPomodoros}/4 sessions today
+      </p>
+    </div>
+  );
+}
