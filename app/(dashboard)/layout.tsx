@@ -2,6 +2,7 @@
 
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
+import { SidebarProvider, useSidebar } from '@/components/layout/SidebarProvider';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 
@@ -26,19 +27,24 @@ const pageTransition = {
   damping: 30,
 };
 
-export default function DashboardLayout({
+function DashboardLayoutInner({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { isCollapsed } = useSidebar();
 
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
       
-      {/* Main content area - adjusted for sidebar */}
-      <div className="lg:pl-[240px] min-h-screen">
+      {/* Main content area - dynamically adjusted for sidebar */}
+      <div 
+        className={`min-h-screen transition-all duration-300 ease-in-out ${
+          isCollapsed ? 'lg:pl-20' : 'lg:pl-60'
+        }`}
+      >
         <Header />
         
         {/* Main content with max-width and centered */}
@@ -64,5 +70,17 @@ export default function DashboardLayout({
         </main>
       </div>
     </div>
+  );
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <SidebarProvider>
+      <DashboardLayoutInner>{children}</DashboardLayoutInner>
+    </SidebarProvider>
   );
 }

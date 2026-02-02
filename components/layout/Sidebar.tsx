@@ -15,6 +15,7 @@ import {
   Settings,
   LogOut
 } from 'lucide-react';
+import { useSidebar } from './SidebarProvider';
 
 const navigation = [
   { name: 'Today', href: '/today', icon: LayoutDashboard },
@@ -27,7 +28,7 @@ const navigation = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { isCollapsed, setIsCollapsed } = useSidebar();
 
   return (
     <>
