@@ -77,7 +77,6 @@ export default function Sidebar() {
         initial={false}
         animate={{
           width: isCollapsed ? '80px' : '240px',
-          x: isOpen || !isCollapsed ? 0 : '-100%'
         }}
         className={`fixed top-0 left-0 z-40 h-screen transition-all ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
