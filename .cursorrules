@@ -1,0 +1,39 @@
+You are building a personal productivity command center with Next.js 14.
+
+ARCHITECTURE:
+- app/ for routes, components/ for reusable UI, lib/ for utilities
+- Server Components by default, 'use client' only when necessary
+- Zod for all data validation, TypeScript strict mode
+- React Query for data fetching, no useState for server data
+
+CODE STYLE:
+- Functional components only, no classes
+- Explicit return types for functions
+- No 'any' types, use 'unknown' if needed
+- Error handling: try/catch with typed errors
+- Keep components under 200 lines, extract to subcomponents
+
+TESTING:
+- Write tests BEFORE implementing features (TDD)
+- Test file naming: ComponentName.test.tsx
+- Cover: happy path, edge cases, error states
+- Use Testing Library queries (getByRole, getByText)
+
+DATA FLOW:
+- Props drilling max 2 levels, then use Context/Zustand
+- All external data through React Query
+- Form state with controlled components + Zod validation
+
+DEPENDENCIES:
+- Prefer standard libraries over bloat
+- Check bundle size before adding (use bundlephobia)
+- Document WHY each dependency exists
+
+When I say "implement X", you:
+1. Ask clarifying questions about edge cases
+2. Suggest the data structure/types first
+3. Write the test cases
+4. Then implement
+5. Suggest refactoring opportunities
+
+Be opinionated. Challenge my decisions if they create tech debt.
