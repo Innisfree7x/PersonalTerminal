@@ -86,7 +86,7 @@ export default function Sidebar() {
         <div className="h-full flex flex-col">
           {/* Logo / Brand */}
           <div className="h-16 flex items-center justify-between px-6 border-b border-border">
-            {!isCollapsed && (
+            {!isCollapsed ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -98,19 +98,43 @@ export default function Sidebar() {
                 </div>
                 <span className="font-semibold text-text-primary">Prism</span>
               </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center justify-center w-full"
+              >
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center">
+                  <span className="text-white font-bold text-base">P</span>
+                </div>
+              </motion.div>
             )}
             
-            {/* Collapse button (desktop only) */}
-            <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="hidden lg:flex p-1.5 rounded-md hover:bg-surface-hover text-text-secondary hover:text-text-primary transition-colors"
-              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              <ChevronLeft 
-                className={`w-4 h-4 transition-transform ${isCollapsed ? 'rotate-180' : ''}`}
-              />
-            </button>
+            {/* Collapse button (desktop only) - Always visible */}
+            {!isCollapsed && (
+              <button
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="hidden lg:flex p-1.5 rounded-md hover:bg-surface-hover text-text-secondary hover:text-text-primary transition-colors"
+                aria-label="Collapse sidebar"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            )}
           </div>
+
+          {/* Expand button when collapsed */}
+          {isCollapsed && (
+            <div className="hidden lg:flex justify-center py-2 border-b border-border">
+              <button
+                onClick={() => setIsCollapsed(false)}
+                className="p-1.5 rounded-md hover:bg-surface-hover text-text-secondary hover:text-text-primary transition-colors"
+                aria-label="Expand sidebar"
+              >
+                <ChevronLeft className="w-4 h-4 rotate-180" />
+              </button>
+            </div>
+          )}
 
           {/* Navigation */}
           <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
