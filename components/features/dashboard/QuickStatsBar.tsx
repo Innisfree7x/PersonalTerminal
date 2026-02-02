@@ -88,7 +88,13 @@ export default function QuickStatsBar({
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8"
+      className="relative overflow-hidden rounded-2xl mb-8 p-4 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/20"
+    >
+      {/* Background glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-50" />
+      
+      {/* Stats Grid */}
+      <div className="relative z-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3"
     >
       {stats.map((stat, index) => {
         const Icon = stat.icon;
@@ -127,8 +133,9 @@ export default function QuickStatsBar({
               </motion.div>
             )}
           </motion.div>
-        );
-      })}
+          );
+        })}
+      </div>
     </motion.div>
   );
 }

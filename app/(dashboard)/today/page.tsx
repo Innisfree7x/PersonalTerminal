@@ -1,8 +1,7 @@
 'use client';
 
 import { CalendarEvent } from '@/lib/data/mockEvents';
-import { format } from 'date-fns';
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
@@ -18,7 +17,6 @@ import TimeBlockVisualizer from '@/components/features/dashboard/TimeBlockVisual
 import MoodTracker from '@/components/features/dashboard/MoodTracker';
 import PomodoroTimer from '@/components/features/dashboard/PomodoroTimer';
 import WeekOverview from '@/components/features/dashboard/WeekOverview';
-import { Clock } from 'lucide-react';
 
 /**
  * Check if user is connected to Google Calendar
@@ -65,8 +63,6 @@ async function disconnectGoogle(): Promise<void> {
 
 export default function TodayPage() {
   const queryClient = useQueryClient();
-  const [currentTime, setCurrentTime] = useState<Date | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -102,17 +98,6 @@ export default function TodayPage() {
   // Check connection status on mount
   useEffect(() => {
     checkConnection().then(setIsConnected);
-  }, []);
-
-  useEffect(() => {
-    setIsMounted(true);
-    setCurrentTime(new Date());
-
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
   }, []);
 
   // Fetch events if connected
@@ -200,7 +185,7 @@ export default function TodayPage() {
         </motion.div>
       )}
 
-      {/* QUICK STATS BAR - Horizontal Top */}
+      {/* QUICK STATS BAR - With Purple Background */}
       <QuickStatsBar
         eventsToday={events.length}
         productivity={85}
@@ -209,35 +194,6 @@ export default function TodayPage() {
         goalsThisWeek={{ completed: 2, total: 5 }}
         exercisesThisWeek={12}
       />
-
-      {/* Hero Section - Compact Clock */}
-      {isMounted && currentTime && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 p-6"
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-50" />
-          
-          <div className="relative z-10 flex items-center gap-4">
-            <Clock className="w-10 h-10 text-primary" />
-            <div>
-              <motion.div 
-                className="text-3xl font-bold bg-gradient-to-r from-text-primary to-text-secondary bg-clip-text text-transparent"
-                initial={{ scale: 0.95 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                {format(currentTime, 'HH:mm:ss')}
-              </motion.div>
-              <div className="text-sm text-text-secondary">
-                {format(currentTime, 'EEEE, MMMM d, yyyy')}
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
 
       {/* SMART GRID LAYOUT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -260,7 +216,7 @@ export default function TodayPage() {
         >
           <ScheduleColumn
             events={events}
-            currentTime={currentTime}
+            currentTime={new Date()}
             isConnected={isConnected}
             isLoading={isLoading}
             onConnect={handleConnect}

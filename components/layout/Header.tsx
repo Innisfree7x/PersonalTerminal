@@ -4,8 +4,9 @@ import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Search, Bell, Plus, Command } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCommandPalette } from '@/components/shared/CommandPaletteProvider';
+import { format } from 'date-fns';
 
 interface DashboardStats {
   career: {
@@ -45,12 +46,22 @@ export default function Header() {
   const pathname = usePathname();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const { open: openCommandPalette } = useCommandPalette();
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
   
   const { data: stats } = useQuery({
     queryKey: ['dashboard', 'stats'],
     queryFn: fetchStats,
     refetchInterval: 60000, // Refetch every minute
   });
+
+  // Update time every second
+  useEffect(() => {
+    setCurrentTime(new Date());
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const todayCompletion = stats?.metrics.todayCompletion || 0;
   
@@ -65,19 +76,35 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
-      <div className="flex items-center justify-between h-14 px-6">
-        {/* Left: Page Title & Breadcrumb */}
-        <div className="flex items-center gap-3">
-          <h1 className="text-lg font-semibold text-text-primary">
-            {currentTitle}
-          </h1>
-          
-          {todayCompletion > 0 && pathname === '/today' && (
-            <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-primary/10">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              <span className="text-xs font-medium text-primary">
-                {todayCompletion}% complete
-              </span>
+      <div className="flex items-center justify-between h-16 px-6">
+        {/* Left: Page Title + Date & Time */}
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
+            <h1 className="text-lg font-semibold text-text-primary">
+              {currentTitle}
+            </h1>
+            
+            {todayCompletion > 0 && pathname === '/today' && (
+              <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-primary/10">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                <span className="text-xs font-medium text-primary">
+                  {todayCompletion}% complete
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Date & Time */}
+          {currentTime && (
+            <div className="hidden md:flex items-center gap-3 px-4 py-1.5 rounded-lg bg-surface/50 border border-border">
+              <div className="flex flex-col">
+                <span className="text-xs text-text-tertiary">
+                  {format(currentTime, 'EEEE, MMMM d, yyyy')}
+                </span>
+                <span className="text-lg font-bold text-text-primary font-mono">
+                  {format(currentTime, 'HH:mm:ss')}
+                </span>
+              </div>
             </div>
           )}
         </div>
