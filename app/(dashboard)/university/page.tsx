@@ -197,8 +197,17 @@ export default function UniversityPage() {
               <div className="text-3xl font-bold text-primary mb-1">
                 {completionPercent}%
               </div>
-              <div className="text-sm text-text-tertiary">
+              <div className="text-sm text-text-tertiary mb-3">
                 {completedExercises}/{totalExercises} Exercises
+              </div>
+              {/* Mini Progress Bar */}
+              <div className="relative w-full h-2 bg-surface-hover rounded-full overflow-hidden border border-border">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${completionPercent}%` }}
+                  transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-primary-light rounded-full"
+                />
               </div>
             </div>
           </div>

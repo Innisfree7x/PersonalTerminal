@@ -169,12 +169,15 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
             <span className="font-mono">{progressPercent}% Complete</span>
             <span>{completedCount} of {totalCount}</span>
           </div>
-          <div className="relative w-full h-2 bg-surface rounded-full overflow-hidden">
+          <div className="relative w-full h-3 bg-surface-hover rounded-full overflow-hidden border border-border">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-university-accent to-university-accent/70 rounded-full"
+              className="absolute top-0 left-0 h-full bg-gradient-to-r from-university-accent via-success to-primary-light rounded-full shadow-glow"
+              style={{
+                boxShadow: progressPercent > 0 ? '0 0 10px rgba(16, 185, 129, 0.5)' : 'none'
+              }}
             />
           </div>
         </div>
