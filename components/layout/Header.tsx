@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Search, Bell, Plus, Command } from 'lucide-react';
 import { useState } from 'react';
+import { useCommandPalette } from '@/components/shared/CommandPaletteProvider';
 
 interface DashboardStats {
   career: {
@@ -43,6 +44,7 @@ const routeTitles: Record<string, string> = {
 export default function Header() {
   const pathname = usePathname();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const { open: openCommandPalette } = useCommandPalette();
   
   const { data: stats } = useQuery({
     queryKey: ['dashboard', 'stats'],
@@ -87,10 +89,7 @@ export default function Header() {
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface border border-border text-text-tertiary hover:text-text-primary hover:border-primary transition-colors"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => {
-              // TODO: Open command palette
-              console.log('Open command palette');
-            }}
+            onClick={openCommandPalette}
           >
             <Search className="w-4 h-4" />
             <span className="hidden sm:inline text-xs">Search</span>
