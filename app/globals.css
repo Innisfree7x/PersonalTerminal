@@ -2,26 +2,192 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+/* Design System - CSS Variables */
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Base Colors */
+    --background-primary: #0A0A0A;
+    --background-secondary: #141414;
+    --background-tertiary: #1A1A1A;
+    
+    --surface: #141414;
+    --surface-hover: #1A1A1A;
+    
+    --border-primary: #262626;
+    --border-secondary: #333333;
+    --border-tertiary: #404040;
+    
+    /* Text Colors */
+    --text-primary: #EDEDED;
+    --text-secondary: #A1A1A1;
+    --text-tertiary: #6B6B6B;
+    
+    /* Primary Purple */
+    --primary: #8B5CF6;
+    --primary-hover: #7C3AED;
+    --primary-light: #A78BFA;
+    --primary-dark: #6D28D9;
+    
+    /* Status Colors */
+    --success: #10B981;
+    --warning: #F59E0B;
+    --error: #EF4444;
+    --info: #3B82F6;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-background text-text-primary;
+    @apply font-sans antialiased;
+    @apply text-base;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Smooth transitions for theme changes */
+  html,
+  body {
+    @apply transition-colors duration-slow;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
+/* Custom Scrollbar */
 @layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-secondary) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: var(--border-secondary);
+    border-radius: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: var(--border-tertiary);
+  }
+
+  /* Text utilities */
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Gradient text */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent;
+  }
+
+  /* Blur effects */
+  .backdrop-blur-glass {
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+  }
+}
+
+/* Component Styles */
+@layer components {
+  /* Card base */
+  .card {
+    @apply bg-surface border border-border rounded-lg p-4;
+    @apply transition-all duration-base;
+  }
+
+  .card-hover {
+    @apply hover:border-primary hover:shadow-glow hover:-translate-y-0.5;
+  }
+
+  /* Button base */
+  .btn {
+    @apply inline-flex items-center justify-center;
+    @apply rounded-md px-4 py-2;
+    @apply font-medium text-sm;
+    @apply transition-all duration-fast;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+    @apply disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white;
+    @apply hover:bg-primary-hover hover:shadow-glow hover:-translate-y-0.5;
+    @apply active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply bg-surface-hover border border-border;
+    @apply hover:border-primary hover:bg-primary/10;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-text-secondary;
+    @apply hover:bg-surface-hover hover:text-text-primary;
+  }
+
+  /* Input base */
+  .input {
+    @apply bg-surface border border-border rounded-md;
+    @apply px-3 py-2 text-sm text-text-primary;
+    @apply placeholder:text-text-tertiary;
+    @apply transition-all duration-fast;
+    @apply focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center;
+    @apply rounded-full px-2 py-0.5;
+    @apply text-xs font-medium;
+  }
+
+  .badge-primary {
+    @apply bg-primary/10 text-primary-light;
+  }
+
+  .badge-success {
+    @apply bg-success/10 text-success;
+  }
+
+  .badge-warning {
+    @apply bg-warning/10 text-warning;
+  }
+
+  .badge-error {
+    @apply bg-error/10 text-error;
+  }
+
+  /* Skeleton loading */
+  .skeleton {
+    @apply bg-surface-hover animate-shimmer;
+    background-image: linear-gradient(
+      90deg,
+      var(--background-secondary) 0%,
+      var(--surface-hover) 50%,
+      var(--background-secondary) 100%
+    );
+    background-size: 200% 100%;
+  }
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
   }
 }
