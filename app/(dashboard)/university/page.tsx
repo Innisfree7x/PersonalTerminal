@@ -2,10 +2,14 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { format, startOfDay } from 'date-fns';
+import { format, startOfDay, differenceInDays } from 'date-fns';
+import { motion } from 'framer-motion';
 import type { CourseWithExercises, CreateCourseInput } from '@/lib/schemas/course.schema';
 import CourseCard from '@/components/features/university/CourseCard';
 import CourseModal from '@/components/features/university/CourseModal';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Plus, GraduationCap, BookOpen, Calendar, TrendingUp } from 'lucide-react';
 
 async function fetchCourses(): Promise<CourseWithExercises[]> {
   const response = await fetch('/api/courses');
@@ -84,6 +88,9 @@ export default function UniversityPage() {
       return a.examDate.getTime() - b.examDate.getTime();
     });
   const nextExam = upcomingExams[0];
+  const daysUntilNextExam = nextExam?.examDate 
+    ? differenceInDays(nextExam.examDate, today)
+    : null;
 
   const handleAddCourse = (data: CreateCourseInput) => {
     createMutation.mutate(data);
@@ -105,95 +112,198 @@ export default function UniversityPage() {
     setEditingCourse(null);
   };
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-surface rounded w-1/4" />
+          <div className="h-20 bg-surface rounded" />
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-32 bg-surface rounded-lg" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-100 dark:text-gray-100">
-          📚 My Courses - WS 2024/25
-        </h1>
-      </div>
-
-      {/* Stats Card */}
-      <div className="bg-gray-900/50 dark:bg-gray-800/50 rounded-lg border border-gray-700 dark:border-gray-700 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Total ECTS */}
-          <div>
-            <div className="text-sm text-gray-400 dark:text-gray-400 mb-1">Total ECTS</div>
-            <div className="text-3xl font-mono font-bold text-blue-400 dark:text-blue-400">
-              {totalECTS}
-            </div>
-          </div>
-
-          {/* Completion */}
-          <div>
-            <div className="text-sm text-gray-400 dark:text-gray-400 mb-1">Completion</div>
-            <div className="text-3xl font-mono font-bold text-purple-400 dark:text-purple-400">
-              {completedExercises}/{totalExercises}
-            </div>
-            <div className="text-xs text-gray-500 dark:text-gray-500 font-mono">
-              ({completionPercent}%)
-            </div>
-          </div>
-
-          {/* Next Exam */}
-          <div>
-            <div className="text-sm text-gray-400 dark:text-gray-400 mb-1">Next Exam</div>
-            {nextExam && nextExam.examDate ? (
-              <>
-                <div className="text-lg font-semibold text-green-400 dark:text-green-400">
-                  {nextExam.name}
-                </div>
-                <div className="text-sm text-gray-400 dark:text-gray-400 font-mono">
-                  {format(nextExam.examDate, 'dd.MM.yyyy')}
-                </div>
-              </>
-            ) : (
-              <div className="text-lg text-gray-500 dark:text-gray-500">No upcoming exams</div>
-            )}
-          </div>
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between"
+      >
+        <div>
+          <h1 className="text-3xl font-bold text-text-primary flex items-center gap-3 mb-2">
+            <GraduationCap className="w-8 h-8 text-university-accent" />
+            University
+          </h1>
+          <p className="text-text-secondary">
+            WS 2024/25 · Track courses and exercise progress
+          </p>
         </div>
-      </div>
-
-      {/* Loading State */}
-      {isLoading && (
-        <div className="text-center py-12 text-gray-400 dark:text-gray-400">
-          Loading courses...
-        </div>
-      )}
-
-      {/* Course Cards */}
-      {!isLoading && (
-        <div className="space-y-4">
-          {courses.length === 0 ? (
-            <div className="text-center py-12 text-gray-500 dark:text-gray-500">
-              No courses yet. Add your first course to get started!
-            </div>
-          ) : (
-            courses.map((course) => (
-              <CourseCard
-                key={course.id}
-                course={course}
-                onEdit={() => handleEditCourse(course)}
-                onDelete={() => handleDeleteCourse(course.id)}
-              />
-            ))
-          )}
-        </div>
-      )}
-
-      {/* Add Course Button */}
-      <div className="flex justify-center pt-4">
-        <button
+        <Button
           onClick={() => {
             setEditingCourse(null);
             setIsModalOpen(true);
           }}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+          variant="primary"
+          className="shadow-glow"
         >
-          + Add Course
-        </button>
-      </div>
+          <Plus className="w-4 h-4 mr-2" />
+          Add Course
+        </Button>
+      </motion.div>
+
+      {/* Stats Dashboard */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      >
+        {/* Total ECTS */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-university-accent/20 to-university-accent/10 backdrop-blur-sm border border-university-accent/30 rounded-lg p-6 group">
+          <div className="absolute inset-0 bg-gradient-to-br from-university-accent/20 to-university-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="relative z-10">
+            <div className="flex items-start justify-between mb-4">
+              <div className="p-2 rounded-lg bg-university-accent/20 border border-university-accent/30">
+                <BookOpen className="w-5 h-5 text-university-accent" />
+              </div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-university-accent mb-1">
+                {totalECTS}
+              </div>
+              <div className="text-sm text-text-tertiary">Total ECTS</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Completion Rate */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur-sm border border-primary/30 rounded-lg p-6 group">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="relative z-10">
+            <div className="flex items-start justify-between mb-4">
+              <div className="p-2 rounded-lg bg-primary/20 border border-primary/30">
+                <TrendingUp className="w-5 h-5 text-primary" />
+              </div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-primary mb-1">
+                {completionPercent}%
+              </div>
+              <div className="text-sm text-text-tertiary">
+                {completedExercises}/{totalExercises} Exercises
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Next Exam */}
+        <div className={`relative overflow-hidden bg-gradient-to-br ${
+          daysUntilNextExam !== null && daysUntilNextExam < 45 
+            ? 'from-error/20 to-error/10 border-error/30' 
+            : 'from-warning/20 to-warning/10 border-warning/30'
+        } backdrop-blur-sm border rounded-lg p-6 group col-span-1 sm:col-span-2 lg:col-span-2`}>
+          <div className="absolute inset-0 bg-gradient-to-br from-warning/20 to-warning/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="relative z-10">
+            <div className="flex items-start justify-between mb-4">
+              <div className={`p-2 rounded-lg ${
+                daysUntilNextExam !== null && daysUntilNextExam < 45 
+                  ? 'bg-error/20 border-error/30' 
+                  : 'bg-warning/20 border-warning/30'
+              } border`}>
+                <Calendar className={`w-5 h-5 ${
+                  daysUntilNextExam !== null && daysUntilNextExam < 45 
+                    ? 'text-error' 
+                    : 'text-warning'
+                }`} />
+              </div>
+              {daysUntilNextExam !== null && (
+                <Badge 
+                  variant={daysUntilNextExam < 45 ? 'error' : 'warning'}
+                  size="sm"
+                >
+                  {daysUntilNextExam}d left
+                </Badge>
+              )}
+            </div>
+            {nextExam && nextExam.examDate ? (
+              <div>
+                <div className={`text-2xl font-bold mb-1 ${
+                  daysUntilNextExam !== null && daysUntilNextExam < 45 
+                    ? 'text-error' 
+                    : 'text-warning'
+                }`}>
+                  {nextExam.name}
+                </div>
+                <div className="text-sm text-text-tertiary">
+                  Exam: {format(nextExam.examDate, 'dd.MM.yyyy')}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="text-2xl font-bold text-text-tertiary mb-1">
+                  No upcoming exams
+                </div>
+                <div className="text-sm text-text-tertiary">
+                  You're all caught up! 🎉
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Course Cards */}
+      {courses.length === 0 ? (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-center py-20 bg-surface/50 backdrop-blur-sm border border-border rounded-lg"
+        >
+          <div className="text-6xl mb-4">🎓</div>
+          <h3 className="text-xl font-semibold text-text-primary mb-2">
+            No courses yet
+          </h3>
+          <p className="text-text-tertiary mb-6">
+            Add your first course to start tracking your semester progress
+          </p>
+          <Button
+            onClick={() => {
+              setEditingCourse(null);
+              setIsModalOpen(true);
+            }}
+            variant="primary"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add First Course
+          </Button>
+        </motion.div>
+      ) : (
+        <div className="space-y-4">
+          {courses.map((course, index) => (
+            <motion.div
+              key={course.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 + index * 0.05 }}
+            >
+              <CourseCard
+                course={course}
+                onEdit={() => handleEditCourse(course)}
+                onDelete={() => handleDeleteCourse(course.id)}
+              />
+            </motion.div>
+          ))}
+        </div>
+      )}
 
       {/* Course Modal */}
       <CourseModal
