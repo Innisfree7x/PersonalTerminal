@@ -358,8 +358,8 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ## 📧 Contact
 
 For questions or feedback, open an issue on GitHub or reach out via:
-- **GitHub:** [@yourusername](https://github.com/yourusername)
-- **Email:** your.email@example.com
+- **GitHub:** https://github.com/Innisfree7x/
+- **Email:** vietdobusiness@gmail.com
 
 ---
 
