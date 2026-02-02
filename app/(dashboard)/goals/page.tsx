@@ -2,14 +2,26 @@
 
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Goal, CreateGoalInput, GoalCategory } from '@/lib/schemas/goal.schema';
 import { calculateProgress, goalToCreateInput } from '@/lib/utils/goalUtils';
 import { fetchGoals, createGoal, updateGoal, deleteGoal } from '@/lib/api/goals';
 import GoalsList from '@/components/features/goals/GoalsList';
 import GoalModal from '@/components/features/goals/GoalModal';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Plus, Target, TrendingUp, Calendar, Filter } from 'lucide-react';
 
 type SortOption = 'date' | 'progress' | 'title';
 type FilterOption = GoalCategory | 'all';
+
+const categoryConfig: Record<FilterOption, { label: string; icon: string; color: string }> = {
+  all: { label: 'All Goals', icon: '🎯', color: 'primary' },
+  fitness: { label: 'Fitness', icon: '💪', color: 'error' },
+  career: { label: 'Career', icon: '💼', color: 'career-accent' },
+  learning: { label: 'Learning', icon: '📚', color: 'primary' },
+  finance: { label: 'Finance', icon: '💰', color: 'success' },
+};
 
 export default function GoalsPage() {
   const queryClient = useQueryClient();
@@ -101,7 +113,7 @@ export default function GoalsPage() {
         case 'progress':
           const progressA = a.metrics ? calculateProgress(a.metrics) : 0;
           const progressB = b.metrics ? calculateProgress(b.metrics) : 0;
-          return progressB - progressA; // Descending (highest first)
+          return progressB - progressA;
         case 'title':
           return a.title.localeCompare(b.title);
         default:
@@ -111,6 +123,25 @@ export default function GoalsPage() {
 
     return sorted;
   }, [goals, filterBy, sortBy]);
+
+  // Calculate stats
+  const stats = useMemo(() => {
+    const total = goals.length;
+    const byCategory = goals.reduce((acc, goal) => {
+      acc[goal.category] = (acc[goal.category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const completed = goals.filter(g => 
+      g.metrics && (g.metrics.current / g.metrics.target) >= 1
+    ).length;
+    
+    const overdue = goals.filter(g => 
+      g.targetDate < new Date()
+    ).length;
+
+    return { total, byCategory, completed, overdue };
+  }, [goals]);
 
   const isEditMode = editingGoal !== null;
   const initialData = editingGoal ? goalToCreateInput(editingGoal) : undefined;
@@ -123,8 +154,16 @@ export default function GoalsPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-gray-500 dark:text-gray-400">Loading goals...</div>
+      <div className="space-y-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-surface rounded w-1/4" />
+          <div className="h-12 bg-surface rounded" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-48 bg-surface rounded-lg" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -132,95 +171,182 @@ export default function GoalsPage() {
   // Error state
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-red-600 dark:text-red-400">
-          Error loading goals: {error instanceof Error ? error.message : 'Unknown error'}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex flex-col items-center justify-center min-h-[400px] space-y-4"
+      >
+        <div className="text-4xl">⚠️</div>
+        <div className="text-error text-center">
+          <div className="font-semibold mb-1">Failed to load goals</div>
+          <div className="text-sm text-text-tertiary">
+            {error instanceof Error ? error.message : 'Unknown error'}
+          </div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div>
-      {/* Header with Add Button */}
-      <div className="mb-6 flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between"
+      >
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          <h1 className="text-3xl font-bold text-text-primary flex items-center gap-3 mb-2">
+            <Target className="w-8 h-8 text-primary" />
             Goals
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-text-secondary">
             Track your goals and monitor your progress
           </p>
         </div>
-        <button
+        <Button
           onClick={() => {
             setEditingGoal(null);
             setIsModalOpen(true);
           }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+          variant="primary"
+          className="shadow-glow"
         >
-          + Add Goal
-        </button>
-      </div>
+          <Plus className="w-4 h-4 mr-2" />
+          Add Goal
+        </Button>
+      </motion.div>
 
-      {/* Filters and Sort */}
-      <div className="mb-6 flex flex-wrap gap-4 items-center">
-        {/* Filter by Category */}
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Filter:
-          </label>
-          <select
-            value={filterBy}
-            onChange={(e) => setFilterBy(e.target.value as FilterOption)}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="all">All</option>
-            <option value="fitness">Fitness</option>
-            <option value="career">Career</option>
-            <option value="learning">Learning</option>
-            <option value="finance">Finance</option>
-          </select>
+      {/* Stats Bar */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="grid grid-cols-2 md:grid-cols-4 gap-4"
+      >
+        <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-lg p-4">
+          <div className="text-2xl font-bold text-text-primary">{stats.total}</div>
+          <div className="text-xs text-text-tertiary">Total Goals</div>
+        </div>
+        <div className="bg-success/10 border border-success/30 rounded-lg p-4">
+          <div className="text-2xl font-bold text-success">{stats.completed}</div>
+          <div className="text-xs text-text-tertiary">Completed</div>
+        </div>
+        <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
+          <div className="text-2xl font-bold text-primary">
+            {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%
+          </div>
+          <div className="text-xs text-text-tertiary">Success Rate</div>
+        </div>
+        {stats.overdue > 0 && (
+          <div className="bg-error/10 border border-error/30 rounded-lg p-4">
+            <div className="text-2xl font-bold text-error">{stats.overdue}</div>
+            <div className="text-xs text-text-tertiary">Overdue</div>
+          </div>
+        )}
+      </motion.div>
+
+      {/* Pill Tabs + Sort */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="flex flex-wrap items-center gap-4"
+      >
+        {/* Category Pills */}
+        <div className="flex flex-wrap items-center gap-2">
+          {(Object.keys(categoryConfig) as FilterOption[]).map((category) => {
+            const config = categoryConfig[category];
+            const count = category === 'all' ? stats.total : (stats.byCategory[category] || 0);
+            const isActive = filterBy === category;
+            
+            return (
+              <motion.button
+                key={category}
+                onClick={() => setFilterBy(category)}
+                className={`relative px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  isActive
+                    ? 'bg-primary text-white shadow-glow'
+                    : 'bg-surface hover:bg-surface-hover text-text-secondary hover:text-text-primary border border-border'
+                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span className="mr-2">{config.icon}</span>
+                {config.label}
+                {count > 0 && (
+                  <Badge
+                    variant={isActive ? 'default' : 'default'}
+                    size="sm"
+                    className="ml-2"
+                  >
+                    {count}
+                  </Badge>
+                )}
+              </motion.button>
+            );
+          })}
         </div>
 
-        {/* Sort */}
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Sort by:
-          </label>
+        {/* Sort Dropdown */}
+        <div className="ml-auto flex items-center gap-2">
+          <Filter className="w-4 h-4 text-text-tertiary" />
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-3 py-2 bg-surface border border-border rounded-lg text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
           >
             <option value="date">Target Date</option>
             <option value="progress">Progress</option>
             <option value="title">Title</option>
           </select>
         </div>
-
-        {/* Results count */}
-        <div className="ml-auto text-sm text-gray-600 dark:text-gray-400">
-          {filteredAndSortedGoals.length} {filteredAndSortedGoals.length === 1 ? 'goal' : 'goals'}
-        </div>
-      </div>
+      </motion.div>
 
       {/* Goals Grid */}
-      {filteredAndSortedGoals.length > 0 ? (
-        <GoalsList
-          goals={filteredAndSortedGoals}
-          onGoalClick={handleGoalClick}
-          onDelete={handleDeleteGoal}
-        />
-      ) : (
-        <div className="text-center py-12">
-          <p className="text-gray-500 dark:text-gray-400">
-            {filterBy !== 'all'
-              ? `No ${filterBy} goals found. Create your first ${filterBy} goal!`
-              : 'No goals yet. Create your first goal to get started!'}
-          </p>
-        </div>
-      )}
+      <AnimatePresence mode="wait">
+        {filteredAndSortedGoals.length > 0 ? (
+          <motion.div
+            key="goals-list"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <GoalsList
+              goals={filteredAndSortedGoals}
+              onGoalClick={handleGoalClick}
+              onDelete={handleDeleteGoal}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="empty-state"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="text-center py-20"
+          >
+            <div className="text-6xl mb-4">{categoryConfig[filterBy].icon}</div>
+            <h3 className="text-xl font-semibold text-text-primary mb-2">
+              No {filterBy !== 'all' ? filterBy : ''} goals yet
+            </h3>
+            <p className="text-text-tertiary mb-6">
+              Create your first {filterBy !== 'all' ? filterBy : ''} goal to get started!
+            </p>
+            <Button
+              onClick={() => {
+                setEditingGoal(null);
+                setIsModalOpen(true);
+              }}
+              variant="primary"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Goal
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Goal Modal */}
       <GoalModal
