@@ -73,10 +73,12 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
         queryClient.setQueryData(['courses'], context.previousCourses);
       }
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['courses'] });
-      queryClient.invalidateQueries({ queryKey: ['study-tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    onSettled: async () => {
+      // CRITICAL: Use refetchQueries to force immediate refetch
+      // invalidateQueries only marks as stale, doesn't refetch if component unmounted!
+      await queryClient.refetchQueries({ queryKey: ['courses'] });
+      await queryClient.refetchQueries({ queryKey: ['study-tasks'] });
+      await queryClient.refetchQueries({ queryKey: ['dashboard'] });
     },
   });
 

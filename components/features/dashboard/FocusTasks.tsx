@@ -157,34 +157,7 @@ export default function FocusTasks() {
     },
   });
 
-  const completeGoalMutation = useMutation({
-    mutationFn: async (goalId: string) => {
-      const response = await fetch(`/api/goals/${goalId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'completed' }),
-      });
-      if (!response.ok) throw new Error('Failed to complete goal');
-      return response.json();
-    },
-    onSuccess: async () => {
-      // CRITICAL: Wait for refetch to complete BEFORE clearing hiddenIds!
-      await queryClient.refetchQueries({ queryKey: ['dashboard', 'today'] });
-      await queryClient.refetchQueries({ queryKey: ['goals'] });
-      // Clear hidden IDs only after successful refetch
-      setHiddenIds(new Set());
-    },
-    onError: (error, goalId) => {
-      // Remove from hidden if mutation failed
-      const taskId = `goal-${goalId}`;
-      setHiddenIds((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(taskId);
-        return newSet;
-      });
-      console.error('Failed to complete goal:', error);
-    },
-  });
+  // REMOVED: completeGoalMutation - Goals no longer auto-added to dashboard
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim()) return;
@@ -218,17 +191,8 @@ export default function FocusTasks() {
     });
   });
 
-  // Add goals due today
-  priorities?.goalsDueToday.forEach((goal) => {
-    allTasks.push({
-      id: `goal-${goal.id}`,
-      title: goal.title,
-      completed: false,
-      timeEstimate: undefined,
-      urgency: 'urgent',
-      source: 'goal',
-    });
-  });
+  // REMOVED: Goals due today - user will add manually as daily tasks
+  // User requested to remove auto-added goals from dashboard
 
   // Add upcoming interviews
   priorities?.upcomingInterviews.forEach((interview) => {
@@ -319,14 +283,6 @@ export default function FocusTasks() {
                     exerciseNumber: studyTask.exerciseNumber,
                     completed: checked,
                   });
-                }
-              } else if (task.id.startsWith('goal-')) {
-                // GOAL TASK - Mark the actual goal as completed using mutation!
-                const goalId = task.id.replace('goal-', '');
-                
-                if (checked) {
-                  // Use mutation for proper async handling and refetch coordination
-                  completeGoalMutation.mutate(goalId);
                 }
               } else if (task.id.startsWith('interview-')) {
                 // INTERVIEW TASK - Create a daily task (interviews can't be "completed")
