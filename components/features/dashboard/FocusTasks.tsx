@@ -220,20 +220,8 @@ export default function FocusTasks() {
 
   // REMOVED: Goals due today - user will add manually as daily tasks
   // REMOVED: Upcoming interviews - user will add manually as daily tasks
-
-  // Add study tasks (synced with University tab!)
-  studyTasks.forEach((studyTask) => {
-    const countdown = studyTask.daysUntilExam !== null ? `Exam in ${studyTask.daysUntilExam}d` : 'No exam date';
-    allTasks.push({
-      id: `study-${studyTask.id}`,
-      title: `${studyTask.courseName}: Blatt ${studyTask.exerciseNumber}`,
-      completed: false,
-      timeEstimate: countdown,
-      urgency: studyTask.urgency,
-      source: 'study',
-      examDays: studyTask.daysUntilExam,
-    });
-  });
+  // REMOVED: Study tasks - too complex to sync, user adds manually
+  // User has FULL MANUAL CONTROL - clean, simple, no bugs!
 
   // Filter and sort
   const visibleTasks = allTasks.filter((task) => !hiddenIds.has(task.id) && !task.completed);
