@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, RotateCcw, Coffee } from 'lucide-react';
-import { useState, useEffect, useRef, memo } from 'react';
+import { useState, useEffect, useRef, memo, useCallback } from 'react';
 import { SkeletonCircle, Skeleton } from '@/components/ui';
 
 interface PomodoroTimerProps {
@@ -80,20 +80,21 @@ const PomodoroTimer = memo(function PomodoroTimer({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handlePlayPause = () => {
-    setIsRunning(!isRunning);
-  };
+  // Memoized event handlers (prevents function recreation on every render)
+  const handlePlayPause = useCallback(() => {
+    setIsRunning((prev) => !prev);
+  }, []);
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setIsRunning(false);
     setTimeLeft(isBreak ? breakDuration * 60 : workDuration * 60);
-  };
+  }, [isBreak, breakDuration, workDuration]);
 
-  const handleToggleMode = () => {
+  const handleToggleMode = useCallback(() => {
     setIsRunning(false);
-    setIsBreak(!isBreak);
+    setIsBreak((prev) => !prev);
     setTimeLeft(isBreak ? workDuration * 60 : breakDuration * 60);
-  };
+  }, [isBreak, workDuration, breakDuration]);
 
   return (
     <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">

@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useEffect, useState, memo } from 'react';
+import { useEffect, useState, memo, useMemo } from 'react';
 import { SkeletonCircle, Skeleton } from '@/components/ui';
 
 interface CircularProgressProps {
@@ -33,9 +33,13 @@ const CircularProgress = memo(function CircularProgress({
     );
   }
   
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const offset = circumference - (displayPercentage / 100) * circumference;
+  // Memoized calculations (prevents recalculation on every render)
+  const radius = useMemo(() => (size - strokeWidth) / 2, [size, strokeWidth]);
+  const circumference = useMemo(() => radius * 2 * Math.PI, [radius]);
+  const offset = useMemo(
+    () => circumference - (displayPercentage / 100) * circumference,
+    [circumference, displayPercentage]
+  );
 
   // Animate percentage counting up
   useEffect(() => {
@@ -57,20 +61,20 @@ const CircularProgress = memo(function CircularProgress({
     return () => clearInterval(timer);
   }, [percentage]);
 
-  // Color based on percentage
-  const getColor = () => {
+  // Memoized color calculations
+  const color = useMemo(() => {
     if (displayPercentage >= 80) return 'stroke-success';
     if (displayPercentage >= 50) return 'stroke-info';
     if (displayPercentage >= 25) return 'stroke-warning';
     return 'stroke-error';
-  };
+  }, [displayPercentage]);
 
-  const getGlowColor = () => {
+  const glowColor = useMemo(() => {
     if (displayPercentage >= 80) return 'drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]';
     if (displayPercentage >= 50) return 'drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]';
     if (displayPercentage >= 25) return 'drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]';
     return 'drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]';
-  };
+  }, [displayPercentage]);
 
   return (
     <div className="flex flex-col items-center gap-3">
@@ -100,7 +104,7 @@ const CircularProgress = memo(function CircularProgress({
             strokeWidth={strokeWidth}
             fill="none"
             strokeLinecap="round"
-            className={`${getColor()} ${getGlowColor()} transition-all duration-300`}
+            className={`${color} ${glowColor} transition-all duration-300`}
             initial={{ strokeDashoffset: circumference }}
             animate={{ strokeDashoffset: offset }}
             transition={{

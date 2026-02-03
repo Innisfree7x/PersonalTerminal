@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Smile, Battery } from 'lucide-react';
-import { useState, memo } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { Skeleton } from '@/components/ui';
 
 type Mood = 'exhausted' | 'tired' | 'okay' | 'good' | 'energized';
@@ -47,12 +47,13 @@ const MoodTracker = memo(function MoodTracker({ onMoodSelect, isLoading = false 
     { value: 'energized', emoji: '🚀', label: 'Energized', color: 'hover:bg-success/20 hover:border-success' },
   ];
 
-  const handleMoodClick = (mood: Mood) => {
+  // Memoized event handler
+  const handleMoodClick = useCallback((mood: Mood) => {
     setSelectedMood(mood);
     if (onMoodSelect) {
       onMoodSelect(mood);
     }
-  };
+  }, [onMoodSelect]);
 
   return (
     <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">

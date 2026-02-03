@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, addDays, startOfWeek, isSameDay, isToday } from 'date-fns';
-import { useState, memo } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { Skeleton } from '@/components/ui';
 
 interface DayEvent {
@@ -91,6 +91,15 @@ const WeekOverview = memo(function WeekOverview({ events = [], isLoading = false
     }
   };
 
+  // Memoized navigation handlers
+  const handlePrevWeek = useCallback(() => {
+    setWeekOffset((prev) => prev - 1);
+  }, []);
+
+  const handleNextWeek = useCallback(() => {
+    setWeekOffset((prev) => prev + 1);
+  }, []);
+
   return (
     <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
       {/* Header */}
@@ -101,7 +110,7 @@ const WeekOverview = memo(function WeekOverview({ events = [], isLoading = false
         </div>
         <div className="flex items-center gap-1">
           <motion.button
-            onClick={() => setWeekOffset((prev) => prev - 1)}
+            onClick={handlePrevWeek}
             className="p-1 rounded hover:bg-surface-hover text-text-secondary hover:text-text-primary transition-colors"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -109,7 +118,7 @@ const WeekOverview = memo(function WeekOverview({ events = [], isLoading = false
             <ChevronLeft className="w-4 h-4" />
           </motion.button>
           <motion.button
-            onClick={() => setWeekOffset((prev) => prev + 1)}
+            onClick={handleNextWeek}
             className="p-1 rounded hover:bg-surface-hover text-text-secondary hover:text-text-primary transition-colors"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
