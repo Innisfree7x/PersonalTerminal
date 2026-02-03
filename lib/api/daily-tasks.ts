@@ -15,7 +15,7 @@ export interface DailyTask {
 
 export interface CreateTaskInput {
   title: string;
-  date: Date;
+  date: string; // ISO date string (YYYY-MM-DD)
   timeEstimate?: string;
   source?: string;
   sourceId?: string;
@@ -26,9 +26,8 @@ const API_BASE = '/api/daily-tasks';
 /**
  * Fetch daily tasks for a specific date
  */
-export async function fetchDailyTasks(date: Date): Promise<DailyTask[]> {
-  const dateStr = date.toISOString().split('T')[0];
-  const response = await fetch(`${API_BASE}?date=${dateStr}`);
+export async function fetchDailyTasks(date: string): Promise<DailyTask[]> {
+  const response = await fetch(`${API_BASE}?date=${date}`);
 
   if (!response.ok) {
     throw new Error(`Failed to fetch daily tasks: ${response.statusText}`);
@@ -53,7 +52,8 @@ export async function createTask(task: CreateTaskInput): Promise<DailyTask> {
     },
     body: JSON.stringify({
       ...task,
-      date: task.date.toISOString(),
+      source: task.source || 'manual',
+      completed: false,
     }),
   });
 

@@ -72,46 +72,6 @@ async function fetchStudyTasks(): Promise<StudyTask[]> {
   return response.json();
 }
 
-async function toggleExercise(courseId: string, exerciseNumber: number, completed: boolean): Promise<void> {
-  const response = await fetch(`/api/courses/${courseId}/exercises/${exerciseNumber}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ completed }),
-  });
-  if (!response.ok) throw new Error('Failed to toggle exercise');
-}
-
-async function createTask(task: {
-  title: string;
-  date: string;
-  source?: string;
-  sourceId?: string;
-  timeEstimate?: string | null;
-}): Promise<DailyTask> {
-  const response = await fetch('/api/daily-tasks', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      ...task,
-      source: task.source || 'manual',
-      completed: false,
-      timeEstimate: task.timeEstimate || null,
-    }),
-  });
-  if (!response.ok) throw new Error('Failed to create task');
-  return response.json();
-}
-
-async function updateTask(id: string, completed: boolean): Promise<DailyTask> {
-  const response = await fetch(`/api/daily-tasks/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ completed }),
-  });
-  if (!response.ok) throw new Error('Failed to update task');
-  return response.json();
-}
-
 export default function FocusTasks() {
   const queryClient = useQueryClient();
   const today = new Date().toISOString().split('T')[0];
