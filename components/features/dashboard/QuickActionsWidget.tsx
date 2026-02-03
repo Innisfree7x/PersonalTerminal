@@ -134,6 +134,7 @@ const QuickActionsWidget = memo(function QuickActionsWidget({ isLoading = false 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
+              aria-label={`${action.label} - Opens dialog to create new ${action.label.toLowerCase()}`}
             >
               <Icon className={`w-5 h-5 ${action.color}`} />
               <span className="text-xs font-medium text-text-secondary">{action.label}</span>

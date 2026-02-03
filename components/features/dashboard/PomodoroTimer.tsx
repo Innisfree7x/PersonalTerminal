@@ -148,15 +148,21 @@ const PomodoroTimer = memo(function PomodoroTimer({
         <button
           onClick={handleToggleMode}
           className="text-xs px-2 py-1 rounded-md bg-surface-hover hover:bg-primary/20 text-text-secondary hover:text-primary transition-colors"
+          aria-label={`Switch to ${isBreak ? 'work' : 'break'} mode`}
         >
           {isBreak ? '☕ Break' : '🍅 Work'}
         </button>
       </div>
 
       {/* Timer display */}
-      <div className="relative mb-6">
+      <div 
+        className="relative mb-6"
+        role="timer"
+        aria-label={`${isBreak ? 'Break' : 'Work'} timer: ${formatTime(timeLeft)} remaining`}
+        aria-live="polite"
+      >
         {/* Background circle */}
-        <svg className="w-full h-32" viewBox="0 0 100 100">
+        <svg className="w-full h-32" viewBox="0 0 100 100" aria-hidden="true">
           <circle
             cx="50"
             cy="50"
@@ -213,6 +219,7 @@ const PomodoroTimer = memo(function PomodoroTimer({
           } hover:scale-110 transition-all`}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
+          aria-label={isRunning ? 'Pause timer' : 'Start timer'}
         >
           {isRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
         </motion.button>
@@ -222,6 +229,7 @@ const PomodoroTimer = memo(function PomodoroTimer({
           className="p-3 rounded-full bg-surface-hover text-text-secondary hover:bg-error/20 hover:text-error transition-all"
           whileHover={{ scale: 1.1, rotate: 180 }}
           whileTap={{ scale: 0.95 }}
+          aria-label="Reset timer to initial duration"
         >
           <RotateCcw className="w-5 h-5" />
         </motion.button>

@@ -86,11 +86,20 @@ const CircularProgress = memo(function CircularProgress({
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="relative" style={{ width: size, height: size }}>
+      <div 
+        className="relative" 
+        style={{ width: size, height: size }}
+        role="progressbar"
+        aria-label={label || 'Completion progress'}
+        aria-valuenow={displayPercentage}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
         <svg
           width={size}
           height={size}
           className="transform -rotate-90"
+          aria-hidden="true"
         >
           {/* Background circle */}
           <circle

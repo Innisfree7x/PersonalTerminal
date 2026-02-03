@@ -134,6 +134,8 @@ const TimeBlockVisualizer = memo(function TimeBlockVisualizer({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               whileHover={{ scale: 1.02 }}
+              role="listitem"
+              aria-label={`${block.label} (${block.hours})${isCurrent ? ' - Current period' : ''}: ${block.progress}% complete`}
             >
               {/* Header */}
               <div className="flex items-center justify-between mb-2">
@@ -150,7 +152,14 @@ const TimeBlockVisualizer = memo(function TimeBlockVisualizer({
               </div>
 
               {/* Progress bar */}
-              <div className="relative h-2 bg-background rounded-full overflow-hidden">
+              <div 
+                className="relative h-2 bg-background rounded-full overflow-hidden"
+                role="progressbar"
+                aria-valuenow={block.progress}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`${block.label} progress`}
+              >
                 <motion.div
                   className={`absolute inset-y-0 left-0 ${block.bgColor} rounded-full`}
                   initial={{ width: 0 }}

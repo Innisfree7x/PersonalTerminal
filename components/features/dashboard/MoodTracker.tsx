@@ -80,10 +80,17 @@ const MoodTracker = memo(function MoodTracker({ onMoodSelect, isLoading = false 
         <h3 className="text-base font-semibold text-text-primary">Energy Level</h3>
       </div>
 
-      <p className="text-sm text-text-secondary mb-4">How are you feeling right now?</p>
+      <p className="text-sm text-text-secondary mb-4" id="mood-tracker-description">
+        How are you feeling right now?
+      </p>
 
       {/* Mood selector */}
-      <div className="grid grid-cols-5 gap-2 mb-4">
+      <div 
+        className="grid grid-cols-5 gap-2 mb-4"
+        role="radiogroup"
+        aria-labelledby="mood-tracker-description"
+        aria-label="Select your current energy level"
+      >
         {moods.map((mood, index) => (
           <motion.button
             key={mood.value}
@@ -98,6 +105,9 @@ const MoodTracker = memo(function MoodTracker({ onMoodSelect, isLoading = false 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
+            role="radio"
+            aria-checked={selectedMood === mood.value}
+            aria-label={`${mood.label} - ${mood.emoji}`}
           >
             <span className="text-2xl">{mood.emoji}</span>
             <span className="text-[10px] font-medium text-text-secondary">{mood.label}</span>

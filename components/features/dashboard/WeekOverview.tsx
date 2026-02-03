@@ -107,6 +107,7 @@ const WeekOverview = memo(function WeekOverview({ events = [], isLoading = false
             className="p-1 rounded hover:bg-surface-hover text-text-secondary hover:text-text-primary transition-colors"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
+            aria-label="View previous week"
           >
             <ChevronLeft className="w-4 h-4" />
           </motion.button>
@@ -115,6 +116,7 @@ const WeekOverview = memo(function WeekOverview({ events = [], isLoading = false
             className="p-1 rounded hover:bg-surface-hover text-text-secondary hover:text-text-primary transition-colors"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
+            aria-label="View next week"
           >
             <ChevronRight className="w-4 h-4" />
           </motion.button>
@@ -122,7 +124,11 @@ const WeekOverview = memo(function WeekOverview({ events = [], isLoading = false
       </div>
 
       {/* Week grid */}
-      <div className="grid grid-cols-7 gap-2">
+      <div 
+        className="grid grid-cols-7 gap-2"
+        role="list"
+        aria-label="Week overview calendar"
+      >
         {weekDays.map((day, index) => {
           const eventType = getEventType(day);
           const eventDot = getEventDensityEmoji(eventType);
@@ -140,6 +146,8 @@ const WeekOverview = memo(function WeekOverview({ events = [], isLoading = false
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
               whileHover={{ scale: 1.05, y: -2 }}
+              role="listitem"
+              aria-label={`${format(day, 'EEEE, MMMM d')}${today ? ' (Today)' : ''}: ${getEventCount(day)} event${getEventCount(day) !== 1 ? 's' : ''}`}
             >
               {/* Day name */}
               <span className="text-[10px] font-medium text-text-tertiary uppercase">
