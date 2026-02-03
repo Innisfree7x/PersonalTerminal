@@ -115,33 +115,7 @@ export default function FocusTasks() {
     queryFn: () => fetchDailyTasks(today),
   });
 
-  const { data: studyTasks = [] } = useQuery({
-    queryKey: ['study-tasks'],
-    queryFn: fetchStudyTasks,
-  });
-
-  // NEW: Find E-Tech 1 course ID from studyTasks
-  const eTech1Task = studyTasks.find((task) => task.courseName === 'E-Tech 1');
-  const eTech1CourseId = eTech1Task?.courseId;
-  
-  console.log('🔍 [FocusTasks] Debug:', {
-    studyTasksCount: studyTasks.length,
-    eTech1Task,
-    eTech1CourseId,
-    enabled: !!eTech1CourseId,
-  });
-
-  // NEW: Fetch E-Tech 1 course with ALL exercises for client-side filtering
-  const { data: eTech1Course } = useQuery({
-    queryKey: ['course', eTech1CourseId],
-    queryFn: () => {
-      console.log('🔄 [FocusTasks] Fetching course:', eTech1CourseId);
-      return fetchCourse(eTech1CourseId!);
-    },
-    enabled: !!eTech1CourseId, // Only fetch if we have the course ID
-  });
-  
-  console.log('📦 [FocusTasks] eTech1Course:', eTech1Course);
+  // REMOVED: Study Tasks - too complex to sync, user will add manually if needed
 
   const createMutation = useMutation({
     mutationFn: createTask,
@@ -177,31 +151,6 @@ export default function FocusTasks() {
         return newSet;
       });
       console.error('Failed to update task:', error);
-    },
-  });
-
-  const toggleExerciseMutation = useMutation({
-    mutationFn: ({ courseId, exerciseNumber, completed }: { courseId: string; exerciseNumber: number; completed: boolean }) =>
-      toggleExercise(courseId, exerciseNumber, completed),
-    onSuccess: async () => {
-      // CRITICAL: Refetch E-Tech 1 course to get updated exercises!
-      await queryClient.refetchQueries({ queryKey: ['course', 'E-Tech-1'] });
-      await queryClient.refetchQueries({ queryKey: ['study-tasks'] });
-      await queryClient.refetchQueries({ queryKey: ['courses'] });
-      await queryClient.refetchQueries({ queryKey: ['dashboard', 'stats'] });
-      await queryClient.refetchQueries({ queryKey: ['dashboard', 'today'] });
-      // Clear hidden IDs after successful refetch
-      setHiddenIds(new Set());
-    },
-    onError: (error, variables) => {
-      // Remove from hidden if mutation failed
-      const taskId = `study-${variables.courseId}-${variables.exerciseNumber}`;
-      setHiddenIds((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(taskId);
-        return newSet;
-      });
-      console.error('Failed to toggle exercise:', error);
     },
   });
 
@@ -266,60 +215,8 @@ export default function FocusTasks() {
     });
   });
 
-  // REMOVED: Goals due today - user will add manually as daily tasks
-  // REMOVED: Upcoming interviews - user will add manually as daily tasks
-
-  // NEW: Add E-Tech 1 study task using CLIENT-SIDE filtering (ROBUST!)
-  if (eTech1Course) {
-    console.log('📚 [FocusTasks] E-Tech 1 Course:', {
-      name: eTech1Course.name,
-      totalExercises: eTech1Course.exercises.length,
-      exercises: eTech1Course.exercises.map(ex => ({
-        number: ex.exerciseNumber,
-        completed: ex.completed,
-      })),
-    });
-
-    // Find FIRST incomplete exercise
-    const nextIncompleteExercise = eTech1Course.exercises
-      .filter((ex) => !ex.completed)
-      .sort((a, b) => a.exerciseNumber - b.exerciseNumber)[0];
-
-    console.log('🎯 [FocusTasks] Next incomplete exercise:', nextIncompleteExercise);
-
-    if (nextIncompleteExercise) {
-      const daysUntilExam = eTech1Course.examDate
-        ? Math.ceil((new Date(eTech1Course.examDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-        : null;
-      
-      const countdown = daysUntilExam !== null ? `Exam in ${daysUntilExam}d` : 'No exam date';
-      
-      // Determine urgency based on days until exam
-      let urgency: 'urgent' | 'important' | 'normal' = 'normal';
-      if (daysUntilExam !== null) {
-        if (daysUntilExam < 45) urgency = 'urgent';
-        else if (daysUntilExam <= 60) urgency = 'important';
-      }
-
-      allTasks.push({
-        id: `study-${nextIncompleteExercise.id}`,
-        title: `${eTech1Course.name}: Blatt ${nextIncompleteExercise.exerciseNumber}`,
-        completed: false,
-        timeEstimate: countdown,
-        urgency,
-        source: 'study',
-        examDays: daysUntilExam,
-      });
-
-      console.log('✅ [FocusTasks] Added study task:', {
-        title: `${eTech1Course.name}: Blatt ${nextIncompleteExercise.exerciseNumber}`,
-        urgency,
-        daysUntilExam,
-      });
-    } else {
-      console.log('🎉 [FocusTasks] All E-Tech 1 exercises completed!');
-    }
-  }
+  // REMOVED: Goals, Interviews, Study Tasks
+  // User will add tasks manually using "Add Quick Task" button
 
   // Filter and sort
   const visibleTasks = allTasks.filter((task) => !hiddenIds.has(task.id) && !task.completed);
@@ -374,32 +271,7 @@ export default function FocusTasks() {
               // Hide task immediately (optimistic update)
               setHiddenIds((prev) => new Set(prev).add(task.id));
 
-              if (task.id.startsWith('study-')) {
-                // NEW: Extract exercise ID from task, find it in eTech1Course
-                const exerciseId = task.id.replace(/^study-/, '');
-                
-                if (eTech1Course) {
-                  const exercise = eTech1Course.exercises.find((ex) => ex.id === exerciseId);
-                  
-                  if (exercise) {
-                    console.log('🔄 [FocusTasks] Toggling exercise:', {
-                      courseId: exercise.courseId,
-                      exerciseNumber: exercise.exerciseNumber,
-                      completed: checked,
-                    });
-                    
-                    toggleExerciseMutation.mutate({
-                      courseId: exercise.courseId,
-                      exerciseNumber: exercise.exerciseNumber,
-                      completed: checked,
-                    });
-                  } else {
-                    console.error('❌ [FocusTasks] Exercise not found:', exerciseId);
-                  }
-                } else {
-                  console.error('❌ [FocusTasks] E-Tech 1 course not loaded!');
-                }
-              } else if (task.id.startsWith('goal-')) {
+              if (task.id.startsWith('goal-')) {
                 // GOAL TASK - Mark the actual goal as completed using mutation!
                 const goalId = task.id.replace('goal-', '');
                 
