@@ -281,8 +281,9 @@ export default function FocusTasks() {
       >
         <div className="flex items-start gap-3 p-4 rounded-lg bg-surface border border-border hover:border-primary/50 transition-all">
           <Checkbox
-            checked={task.completed}
+            checked={task.completed || hiddenIds.has(task.id)}
             onCheckedChange={(checked) => {
+              // Hide task immediately (optimistic update)
               setHiddenIds((prev) => new Set(prev).add(task.id));
 
               if (task.id.startsWith('study-')) {
