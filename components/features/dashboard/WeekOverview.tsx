@@ -5,6 +5,7 @@ import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, addDays, startOfWeek, isSameDay, isToday } from 'date-fns';
 import { useState, memo, useCallback } from 'react';
 import { Skeleton } from '@/components/ui';
+import { getEventDensityColor, getEventDensityEmoji, EventDensity } from '@/lib/utils/colors';
 
 interface DayEvent {
   date: Date;
@@ -57,38 +58,12 @@ const WeekOverview = memo(function WeekOverview({ events = [], isLoading = false
     return event?.count || 0;
   };
 
-  const getEventType = (date: Date): 'none' | 'low' | 'medium' | 'high' => {
+  const getEventType = (date: Date): EventDensity => {
     const count = getEventCount(date);
     if (count === 0) return 'none';
     if (count === 1) return 'low';
     if (count === 2) return 'medium';
     return 'high';
-  };
-
-  const getEventColor = (type: 'none' | 'low' | 'medium' | 'high') => {
-    switch (type) {
-      case 'none':
-        return 'bg-surface-hover border-border';
-      case 'low':
-        return 'bg-success/20 border-success/50';
-      case 'medium':
-        return 'bg-warning/20 border-warning/50';
-      case 'high':
-        return 'bg-error/20 border-error/50';
-    }
-  };
-
-  const getEventDot = (type: 'none' | 'low' | 'medium' | 'high') => {
-    switch (type) {
-      case 'none':
-        return null;
-      case 'low':
-        return '🟢';
-      case 'medium':
-        return '🟡';
-      case 'high':
-        return '🔴';
-    }
   };
 
   // Memoized navigation handlers
@@ -132,7 +107,7 @@ const WeekOverview = memo(function WeekOverview({ events = [], isLoading = false
       <div className="grid grid-cols-7 gap-2">
         {weekDays.map((day, index) => {
           const eventType = getEventType(day);
-          const eventDot = getEventDot(eventType);
+          const eventDot = getEventDensityEmoji(eventType);
           const today = isToday(day);
 
           return (
@@ -141,7 +116,7 @@ const WeekOverview = memo(function WeekOverview({ events = [], isLoading = false
               className={`relative flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all ${
                 today
                   ? 'border-primary bg-primary/10 ring-2 ring-primary/20'
-                  : getEventColor(eventType)
+                  : getEventDensityColor(eventType)
               }`}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}

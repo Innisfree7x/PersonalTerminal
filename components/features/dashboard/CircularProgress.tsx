@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState, memo, useMemo } from 'react';
 import { SkeletonCircle, Skeleton } from '@/components/ui';
+import { getPercentageColor, getPercentageGlow } from '@/lib/utils/colors';
 
 interface CircularProgressProps {
   percentage: number;
@@ -61,20 +62,9 @@ const CircularProgress = memo(function CircularProgress({
     return () => clearInterval(timer);
   }, [percentage]);
 
-  // Memoized color calculations
-  const color = useMemo(() => {
-    if (displayPercentage >= 80) return 'stroke-success';
-    if (displayPercentage >= 50) return 'stroke-info';
-    if (displayPercentage >= 25) return 'stroke-warning';
-    return 'stroke-error';
-  }, [displayPercentage]);
-
-  const glowColor = useMemo(() => {
-    if (displayPercentage >= 80) return 'drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]';
-    if (displayPercentage >= 50) return 'drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]';
-    if (displayPercentage >= 25) return 'drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]';
-    return 'drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]';
-  }, [displayPercentage]);
+  // Memoized color calculations using centralized utility
+  const color = useMemo(() => getPercentageColor(displayPercentage), [displayPercentage]);
+  const glowColor = useMemo(() => getPercentageGlow(displayPercentage), [displayPercentage]);
 
   return (
     <div className="flex flex-col items-center gap-3">

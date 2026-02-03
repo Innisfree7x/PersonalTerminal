@@ -5,6 +5,7 @@ import { Activity, CheckCircle2, Target, GraduationCap, Briefcase, FileText } fr
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui';
 import { memo } from 'react';
+import { getCategoryColorClasses, CategoryType } from '@/lib/utils/colors';
 
 interface ActivityItem {
   id: string;
@@ -34,23 +35,6 @@ const ActivityFeed = memo(function ActivityFeed({ activities = [], maxItems = 5,
         return FileText;
       default:
         return Activity;
-    }
-  };
-
-  const getColor = (type: ActivityItem['type']) => {
-    switch (type) {
-      case 'task':
-        return 'text-success bg-success/10';
-      case 'goal':
-        return 'text-goals-accent bg-goals-accent/10';
-      case 'exercise':
-        return 'text-university-accent bg-university-accent/10';
-      case 'application':
-        return 'text-career-accent bg-career-accent/10';
-      case 'note':
-        return 'text-primary bg-primary/10';
-      default:
-        return 'text-text-secondary bg-surface-hover';
     }
   };
 
@@ -86,7 +70,7 @@ const ActivityFeed = memo(function ActivityFeed({ activities = [], maxItems = 5,
         <div className="space-y-3">
         {displayActivities.map((activity, index) => {
           const Icon = getIcon(activity.type);
-          const colorClasses = getColor(activity.type);
+          const colorClasses = getCategoryColorClasses(activity.type as CategoryType);
 
           return (
             <motion.div

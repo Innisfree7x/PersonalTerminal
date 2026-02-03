@@ -18,87 +18,40 @@ import TimeBlockVisualizer from '@/components/features/dashboard/TimeBlockVisual
 import MoodTracker from '@/components/features/dashboard/MoodTracker';
 import PomodoroTimer from '@/components/features/dashboard/PomodoroTimer';
 import WeekOverview from '@/components/features/dashboard/WeekOverview';
-
-/**
- * Check if user is connected to Google Calendar
- */
-async function checkConnection(): Promise<boolean> {
-  try {
-    const response = await fetch('/api/calendar/today');
-    return response.status !== 401;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Fetch today's events from Google Calendar
- */
-async function fetchTodayEvents(): Promise<CalendarEvent[]> {
-  const response = await fetch('/api/calendar/today');
-
-  if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error('UNAUTHORIZED');
-    }
-    throw new Error('Failed to fetch events');
-  }
-
-  const data = await response.json();
-  return data.map((event: any) => ({
-    ...event,
-    startTime: new Date(event.startTime),
-    endTime: new Date(event.endTime),
-  }));
-}
-
-/**
- * Disconnect Google Calendar
- */
-async function disconnectGoogle(): Promise<void> {
-  const response = await fetch('/api/auth/google/disconnect', { method: 'POST' });
-  if (!response.ok) {
-    throw new Error('Failed to disconnect');
-  }
-}
+import { 
+  checkGoogleCalendarConnection, 
+  fetchTodayCalendarEvents, 
+  disconnectGoogleCalendar,
+  connectGoogleCalendar
+} from '@/lib/api/calendar';
+import { useNotifications, parseOAuthCallbackParams } from '@/lib/hooks/useNotifications';
 
 export default function TodayPage() {
   const queryClient = useQueryClient();
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const { error, success, setError, setSuccess } = useNotifications();
 
-  // Check URL params for error/success messages
+  // Check URL params for OAuth callback messages
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const errorParam = params.get('error');
-    const successParam = params.get('success');
-
-    if (errorParam) {
-      setError(
-        errorParam === 'oauth_not_configured'
-          ? 'Google OAuth is not configured. Please check your environment variables.'
-          : errorParam === 'token_exchange_failed'
-          ? 'Failed to exchange authorization code. Please try again.'
-          : errorParam === 'missing_code'
-          ? 'Authorization code missing. Please try again.'
-          : 'An error occurred during authentication.'
-      );
+    const messages = parseOAuthCallbackParams();
+    
+    if (messages.error) {
+      setError(messages.error);
     }
 
-    if (successParam === 'connected') {
-      setSuccess('Successfully connected to Google Calendar!');
+    if (messages.success) {
+      setSuccess(messages.success);
       window.history.replaceState({}, '', '/today');
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['calendar', 'today'] });
-        checkConnection().then(setIsConnected);
+        checkGoogleCalendarConnection().then(setIsConnected);
       }, 1000);
     }
-  }, [queryClient]);
+  }, [queryClient, setError, setSuccess]);
 
   // Check connection status on mount
   useEffect(() => {
-    checkConnection().then(setIsConnected);
+    checkGoogleCalendarConnection().then(setIsConnected);
   }, []);
 
   // Fetch events if connected
@@ -108,7 +61,7 @@ export default function TodayPage() {
     error: fetchError,
   } = useQuery<CalendarEvent[]>({
     queryKey: ['calendar', 'today'],
-    queryFn: fetchTodayEvents,
+    queryFn: fetchTodayCalendarEvents,
     enabled: isConnected === true,
     retry: false,
     refetchOnWindowFocus: false,
@@ -116,7 +69,7 @@ export default function TodayPage() {
 
   // Disconnect mutation
   const disconnectMutation = useMutation({
-    mutationFn: disconnectGoogle,
+    mutationFn: disconnectGoogleCalendar,
     onSuccess: () => {
       setIsConnected(false);
       queryClient.setQueryData(['calendar', 'today'], []);
@@ -128,7 +81,7 @@ export default function TodayPage() {
   });
 
   const handleConnect = () => {
-    window.location.href = '/api/auth/google';
+    connectGoogleCalendar();
   };
 
   const handleDisconnect = () => {
@@ -140,25 +93,8 @@ export default function TodayPage() {
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['calendar', 'today'] });
     queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-    setError(null);
     setSuccess('Events refreshed!');
-    setTimeout(() => setSuccess(null), 3000);
   };
-
-  // Clear error/success after 5 seconds
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => setError(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
-
-  useEffect(() => {
-    if (success) {
-      const timer = setTimeout(() => setSuccess(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [success]);
 
   // Check if schedule is empty (no events or not connected)
   const hasEvents = events.length > 0;
