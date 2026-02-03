@@ -157,6 +157,35 @@ export default function FocusTasks() {
     },
   });
 
+  const completeGoalMutation = useMutation({
+    mutationFn: async (goalId: string) => {
+      const response = await fetch(`/api/goals/${goalId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'completed' }),
+      });
+      if (!response.ok) throw new Error('Failed to complete goal');
+      return response.json();
+    },
+    onSuccess: async () => {
+      // CRITICAL: Wait for refetch to complete BEFORE clearing hiddenIds!
+      await queryClient.refetchQueries({ queryKey: ['dashboard', 'today'] });
+      await queryClient.refetchQueries({ queryKey: ['goals'] });
+      // Clear hidden IDs only after successful refetch
+      setHiddenIds(new Set());
+    },
+    onError: (error, goalId) => {
+      // Remove from hidden if mutation failed
+      const taskId = `goal-${goalId}`;
+      setHiddenIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(taskId);
+        return newSet;
+      });
+      console.error('Failed to complete goal:', error);
+    },
+  });
+
   const handleAddTask = () => {
     if (!newTaskTitle.trim()) return;
     createMutation.mutate({
@@ -292,32 +321,12 @@ export default function FocusTasks() {
                   });
                 }
               } else if (task.id.startsWith('goal-')) {
-                // GOAL TASK - Mark the actual goal as completed!
+                // GOAL TASK - Mark the actual goal as completed using mutation!
                 const goalId = task.id.replace('goal-', '');
                 
                 if (checked) {
-                  // Update the goal itself to completed status
-                  fetch(`/api/goals/${goalId}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status: 'completed' }),
-                  })
-                    .then((res) => {
-                      if (res.ok) {
-                        // Refetch to remove from goalsDueToday
-                        queryClient.refetchQueries({ queryKey: ['dashboard', 'today'] });
-                        queryClient.refetchQueries({ queryKey: ['goals'] });
-                      }
-                    })
-                    .catch((err) => {
-                      console.error('Failed to complete goal:', err);
-                      // Restore task if failed
-                      setHiddenIds((prev) => {
-                        const newSet = new Set(prev);
-                        newSet.delete(task.id);
-                        return newSet;
-                      });
-                    });
+                  // Use mutation for proper async handling and refetch coordination
+                  completeGoalMutation.mutate(goalId);
                 }
               } else if (task.id.startsWith('interview-')) {
                 // INTERVIEW TASK - Create a daily task (interviews can't be "completed")
