@@ -12,10 +12,20 @@
 ## ✨ Features
 
 ### 🎯 Dashboard Command Center (`/today`)
-- **3-column layout** with Focus Tasks, Today's Schedule, and Progress Stats
-- **Smart task aggregation** from goals, career interviews, study exercises, and manual tasks
+- **Smart 3-column layout** with Focus Tasks, Schedule, and Dynamic Widgets
+- **8 Productivity Widgets:**
+  - **Quick Stats Bar** - Events, productivity, focus time, streak, goals progress
+  - **Circular Progress** - Apple Watch-style completion ring
+  - **Quick Actions** - Fast shortcuts to add tasks, goals, applications
+  - **Pomodoro Timer** - Focus timer with work/break cycles
+  - **Mood Tracker** - Energy level tracking (Exhausted → Energized)
+  - **Activity Feed** - Recent actions (tasks, goals, exercises)
+  - **Time Block Visualizer** - Focus time by period (morning/afternoon/evening)
+  - **Week Overview** - Mini calendar with event density visualization
 - **Real-time sync** with Google Calendar
+- **Smart task aggregation** from goals, career interviews, study exercises, and manual tasks
 - **Urgency-based color coding** for exams and deadlines
+- **Dynamic layout** adapts when schedule is empty
 
 ### 🎓 University System (`/university`)
 - **Course management** with ECTS, semester, and exam date tracking
@@ -78,7 +88,11 @@ graph LR
 | **Date Handling** | date-fns |
 | **File Parsing** | pdf-parse, mammoth (DOCX) |
 | **External API** | Google Calendar API (googleapis) |
+| **Animations** | Framer Motion |
+| **UI Components** | Radix UI (Dialog, Tooltip, Dropdown) |
+| **Command Palette** | cmdk |
 | **Testing** | Vitest + @testing-library/react |
+| **Accessibility** | WCAG 2.1 AA Compliant |
 
 ---
 
@@ -180,34 +194,53 @@ prism/
 │   │   ├── calendar/         # Google Calendar integration
 │   │   └── layout.tsx        # Shared dashboard layout (sidebar + header)
 │   ├── api/                  # API routes (server-side)
-│   │   ├── goals/            # Goals CRUD
-│   │   ├── applications/     # Career applications CRUD
+│   │   ├── goals/            # Goals CRUD + Pagination
+│   │   ├── applications/     # Career applications CRUD + Pagination
 │   │   ├── courses/          # University courses CRUD
 │   │   ├── daily-tasks/      # Manual tasks CRUD
+│   │   ├── activity/         # Activity feed endpoint
+│   │   │   └── recent/       # GET recent user activity
+│   │   ├── user/             # User-related endpoints
+│   │   │   └── streak/       # GET user streak calculation
 │   │   ├── calendar/         # Google Calendar fetch
 │   │   ├── dashboard/        # Dashboard aggregation endpoints
+│   │   │   ├── focus-time/   # GET focus time by time blocks
+│   │   │   ├── week-events/  # GET week overview events
+│   │   │   └── today/        # GET today's priorities
 │   │   └── auth/google/      # Google OAuth flow
 │   ├── globals.css           # Global Tailwind styles
 │   ├── layout.tsx            # Root layout
 │   └── page.tsx              # Home/landing page
 ├── components/
 │   ├── features/             # Feature-specific components
-│   │   ├── dashboard/        # FocusTasks, StatusDashboard, ScheduleColumn
+│   │   ├── dashboard/        # Dashboard widgets (8 widgets!)
+│   │   │   ├── QuickStatsBar.tsx         # Stats overview bar
+│   │   │   ├── CircularProgress.tsx      # Animated progress ring
+│   │   │   ├── QuickActionsWidget.tsx    # Quick add buttons
+│   │   │   ├── PomodoroTimer.tsx         # Focus timer
+│   │   │   ├── MoodTracker.tsx           # Energy level tracker
+│   │   │   ├── ActivityFeed.tsx          # Recent actions
+│   │   │   ├── TimeBlockVisualizer.tsx   # Focus time blocks
+│   │   │   ├── WeekOverview.tsx          # Mini calendar
+│   │   │   ├── FocusTasks.tsx            # Task list
+│   │   │   ├── ScheduleColumn.tsx        # Calendar events
+│   │   │   └── QuickNotes.tsx            # Floating notes
 │   │   ├── goals/            # GoalCard, GoalForm, GoalModal
 │   │   ├── career/           # ApplicationCard, CvUpload, ApplicationStats
 │   │   ├── university/       # CourseCard, CourseModal
 │   │   └── calendar/         # EventCard
 │   ├── layout/               # Layout components (Header, Sidebar)
+│   ├── shared/               # Shared components (ErrorBoundary, CommandPalette)
 │   ├── providers/            # React Query provider
-│   └── ui/                   # Reusable UI components (buttons, etc.)
+│   └── ui/                   # Reusable UI components (Button, Card, Input, etc.)
 ├── lib/
 │   ├── supabase/             # Supabase client & database functions
 │   │   ├── client.ts         # Server-side client
 │   │   ├── browserClient.ts  # Client-side client
 │   │   ├── types.ts          # Database types (generated)
-│   │   ├── goals.ts          # Goals DB operations
+│   │   ├── goals.ts          # Goals DB operations (with pagination!)
 │   │   ├── courses.ts        # Courses DB operations
-│   │   └── applications.ts   # Applications DB operations
+│   │   └── applications.ts   # Applications DB operations (with pagination!)
 │   ├── schemas/              # Zod validation schemas
 │   │   ├── goal.schema.ts
 │   │   ├── course.schema.ts
@@ -215,19 +248,23 @@ prism/
 │   │   └── dailyTask.schema.ts
 │   ├── google/               # Google Calendar API integration
 │   │   └── calendar.ts
+│   ├── design-system/        # Design tokens (colors, typography, spacing)
 │   ├── api/                  # Frontend API client functions
-│   └── utils/                # Utility functions
+│   ├── hooks/                # Custom React hooks (useNotifications)
+│   └── utils/                # Utility functions (colors, cn)
 ├── scripts/
 │   ├── seedGoals.ts          # Seed script for sample data
 │   └── fixCourseExercises.ts # Fix missing exercise entries
 ├── tests/
-│   ├── unit/                 # Unit tests
-│   └── integration/          # Integration tests
+│   ├── unit/                 # Unit tests (CircularProgress, PomodoroTimer, etc.)
+│   ├── integration/          # Integration tests (Dashboard)
+│   └── utils/                # Test utilities & mock data
 ├── docs/                     # Documentation
 │   ├── API.md                # API endpoint reference
 │   ├── DATABASE.md           # Database schema & ERD
 │   ├── FEATURES.md           # Feature descriptions
 │   └── SETUP.md              # Setup guide
+├── KEYBOARD_NAVIGATION.md    # Keyboard shortcuts & accessibility guide
 ├── types/                    # Custom TypeScript types
 ├── tailwind.config.ts        # Tailwind configuration
 ├── next.config.js            # Next.js configuration
