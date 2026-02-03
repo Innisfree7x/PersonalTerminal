@@ -17,7 +17,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     };
     return (
       <div className={`flex items-start gap-3 ${className}`}>
-        <div className="relative flex items-center">
+        <label className="relative flex items-center cursor-pointer">
           <input
             ref={ref}
             type="checkbox"
@@ -66,7 +66,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
               )}
             </AnimatePresence>
           </motion.div>
-        </div>
+        </label>
 
         {(label || description) && (
           <div className="flex flex-col gap-1">
