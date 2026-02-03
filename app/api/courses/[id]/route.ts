@@ -1,6 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateCourse, deleteCourse } from '@/lib/supabase/courses';
+import { updateCourse, deleteCourse, fetchCoursesWithExercises } from '@/lib/supabase/courses';
 import { createCourseSchema } from '@/lib/schemas/course.schema';
+
+/**
+ * GET /api/courses/[id] - Get a single course with exercises
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id } = params;
+    
+    // Fetch all courses with exercises, then find the one we need
+    const courses = await fetchCoursesWithExercises();
+    const course = courses.find((c) => c.id === id);
+    
+    if (!course) {
+      return NextResponse.json(
+        { message: 'Course not found' },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json(course);
+  } catch (error) {
+    console.error(`Error fetching course ${params.id}:`, error);
+    return NextResponse.json(
+      { message: error instanceof Error ? error.message : 'Failed to fetch course' },
+      { status: 500 }
+    );
+  }
+}
 
 /**
  * PATCH /api/courses/[id] - Update a course
