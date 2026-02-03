@@ -30,19 +30,10 @@ function loadFallbackEnvFromFileExplorerEnvLocal(): void {
 // Try fallback load first (server-only).
 loadFallbackEnvFromFileExplorerEnvLocal();
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Use centralized env validation from lib/env.ts
+// This ensures type safety and consistent validation across the app
+import { clientEnv } from '@/lib/env';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  const missing: string[] = [];
-  if (!supabaseUrl) missing.push('NEXT_PUBLIC_SUPABASE_URL');
-  if (!supabaseAnonKey) missing.push('NEXT_PUBLIC_SUPABASE_ANON_KEY');
-
-  throw new Error(
-    `Missing Supabase environment variables: ${missing.join(', ')}. ` +
-      `Fix: create bloomberg-personal/.env.local (recommended) OR keep bloomberg-personal/File_Explorer.env.local. ` +
-      `Then restart the dev server.`
-  );
-}
+const { NEXT_PUBLIC_SUPABASE_URL: supabaseUrl, NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey } = clientEnv;
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);

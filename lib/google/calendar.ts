@@ -18,8 +18,7 @@ interface GoogleCalendarEvent {
  * Refresh access token using refresh token
  */
 async function refreshAccessToken(refreshToken: string): Promise<string> {
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const { GOOGLE_CLIENT_ID: clientId, GOOGLE_CLIENT_SECRET: clientSecret } = await import('@/lib/env').then(m => m.serverEnv);
 
   if (!clientId || !clientSecret) {
     throw new Error('Google OAuth not configured');

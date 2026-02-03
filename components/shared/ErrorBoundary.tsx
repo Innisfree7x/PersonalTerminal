@@ -108,7 +108,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
 
               {/* Error Details (only in development) */}
-              {process.env.NODE_ENV === 'development' && error && (
+              {(typeof window === 'undefined' ? require('@/lib/env').isDevelopment : process.env.NODE_ENV === 'development') && error && (
                 <div className="mb-6 p-4 bg-background/50 border border-border rounded-lg">
                   <h3 className="text-sm font-semibold text-text-primary mb-2">
                     Error Details (Development Only):

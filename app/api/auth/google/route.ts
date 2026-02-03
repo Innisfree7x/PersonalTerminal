@@ -1,18 +1,13 @@
 import { NextResponse } from 'next/server';
+import { serverEnv } from '@/lib/env';
 
 /**
  * GET /api/auth/google - Redirect to Google OAuth consent screen
  */
 export async function GET() {
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const redirectUri = process.env.GOOGLE_REDIRECT_URI;
-
-  if (!clientId || !redirectUri) {
-    return NextResponse.json(
-      { message: 'Google OAuth not configured. Missing GOOGLE_CLIENT_ID or GOOGLE_REDIRECT_URI.' },
-      { status: 500 }
-    );
-  }
+  // Env vars are already validated by lib/env.ts
+  // No need for manual checks!
+  const { GOOGLE_CLIENT_ID: clientId, GOOGLE_REDIRECT_URI: redirectUri } = serverEnv;
 
   const scope = 'https://www.googleapis.com/auth/calendar.readonly';
   const responseType = 'code';

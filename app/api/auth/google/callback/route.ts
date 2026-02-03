@@ -20,9 +20,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+  const { GOOGLE_CLIENT_ID: clientId, GOOGLE_CLIENT_SECRET: clientSecret, GOOGLE_REDIRECT_URI: redirectUri } = await import('@/lib/env').then(m => m.serverEnv);
 
   if (!clientId || !clientSecret || !redirectUri) {
     return NextResponse.redirect(
@@ -82,7 +80,7 @@ export async function GET(request: NextRequest) {
     if (refresh_token) {
       response.cookies.set('google_refresh_token', refresh_token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: (await import('@/lib/env').then(m => m.isProduction)),
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 365, // 1 year
         path: '/',
