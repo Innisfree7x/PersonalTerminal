@@ -39,14 +39,14 @@ export async function GET(request: NextRequest) {
     const weekEnd = endOfWeek(today, { weekStartsOn: 1 }); // Sunday
 
     // Fetch all goals and applications
-    const allGoals = await fetchGoals();
-    const allApplications = await fetchApplications();
+    const { goals: allGoals } = await fetchGoals();
+    const { applications: allApplications } = await fetchApplications();
 
     // Career stats
-    const interviews = allApplications.filter((app) => app.status === 'interview');
+    const interviews = allApplications.filter((app: any) => app.status === 'interview');
     const upcomingInterviews = interviews
-      .filter((app) => app.interviewDate && new Date(app.interviewDate) >= today)
-      .sort((a, b) => {
+      .filter((app: any) => app.interviewDate && new Date(app.interviewDate) >= today)
+      .sort((a: any, b: any) => {
         if (!a.interviewDate || !b.interviewDate) return 0;
         return new Date(a.interviewDate).getTime() - new Date(b.interviewDate).getTime();
       });
@@ -58,13 +58,13 @@ export async function GET(request: NextRequest) {
         }
       : undefined;
 
-    const applicationsPending = allApplications.filter((app) => app.status === 'applied').length;
+    const applicationsPending = allApplications.filter((app: any) => app.status === 'applied').length;
     const oldestPending =
       applicationsPending > 0
         ? allApplications
-            .filter((app) => app.status === 'applied')
+            .filter((app: any) => app.status === 'applied')
             .sort(
-              (a, b) => a.applicationDate.getTime() - b.applicationDate.getTime()
+              (a: any, b: any) => a.applicationDate.getTime() - b.applicationDate.getTime()
             )[0]
         : null;
     const pendingDays = oldestPending
@@ -74,37 +74,37 @@ export async function GET(request: NextRequest) {
     const sevenDaysAgo = new Date(today);
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const followUpNeeded = allApplications.filter(
-      (app) =>
+      (app: any) =>
         app.status === 'applied' && app.applicationDate < sevenDaysAgo
     ).length;
 
     // Goals stats
-    const weekGoals = allGoals.filter((goal) => {
+    const weekGoals = allGoals.filter((goal: any) => {
       const goalDate = startOfDay(goal.targetDate);
       return goalDate >= weekStart && goalDate <= weekEnd;
     });
-    const onTrackGoals = weekGoals.filter((goal) => {
+    const onTrackGoals = weekGoals.filter((goal: any) => {
       if (!goal.metrics) return false;
       const progress = goal.metrics.current / goal.metrics.target;
       return progress >= 0.5; // 50% or more = on track
     });
 
     const goalsByCategory: Record<string, number> = {};
-    allGoals.forEach((goal) => {
+    allGoals.forEach((goal: any) => {
       if (!goalsByCategory[goal.category]) {
         goalsByCategory[goal.category] = 0;
       }
       goalsByCategory[goal.category]++;
     });
 
-    const overdueGoals = allGoals.filter((goal) => {
+    const overdueGoals = allGoals.filter((goal: any) => {
       const goalDate = startOfDay(goal.targetDate);
       return goalDate < startOfDay(today);
     }).length;
 
     // Metrics
     // Today completion would need daily_tasks table, for now use goals
-    const todayGoals = allGoals.filter((goal) => {
+    const todayGoals = allGoals.filter((goal: any) => {
       const goalDate = startOfDay(goal.targetDate);
       return goalDate.getTime() === startOfDay(today).getTime();
     }).length;

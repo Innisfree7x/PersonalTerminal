@@ -40,13 +40,13 @@ export async function GET(request: NextRequest) {
     const sevenDaysAgo = addDays(today, -7);
 
     // Fetch goals due today
-    const allGoals = await fetchGoals();
+    const { goals: allGoals } = await fetchGoals();
     const goalsDueToday = allGoals
-      .filter((goal) => {
+      .filter((goal: any) => {
         const goalDate = startOfDay(goal.targetDate);
         return goalDate >= todayStart && goalDate <= todayEnd;
       })
-      .map((goal) => ({
+      .map((goal: any) => ({
         id: goal.id,
         title: goal.title,
         category: goal.category,
@@ -55,37 +55,37 @@ export async function GET(request: NextRequest) {
       }));
 
     // Fetch upcoming interviews (next 3 days)
-    const allApplications = await fetchApplications();
+    const { applications: allApplications } = await fetchApplications();
     const upcomingInterviews = allApplications
-      .filter((app) => {
+      .filter((app: any) => {
         if (!app.interviewDate) return false;
         const interviewDate = startOfDay(app.interviewDate);
         return interviewDate >= todayStart && interviewDate <= startOfDay(threeDaysFromNow);
       })
-      .map((app) => ({
+      .map((app: any) => ({
         id: app.id,
         company: app.company,
         position: app.position,
         interviewDate: app.interviewDate!.toISOString(),
         daysUntil: differenceInDays(startOfDay(app.interviewDate!), todayStart),
       }))
-      .sort((a, b) => a.daysUntil - b.daysUntil);
+      .sort((a: any, b: any) => a.daysUntil - b.daysUntil);
 
     // Fetch pending follow-ups (applied >7 days ago, status='applied')
     const pendingFollowUps = allApplications
-      .filter((app) => {
+      .filter((app: any) => {
         if (app.status !== 'applied') return false;
         const appDate = startOfDay(app.applicationDate);
         return appDate < startOfDay(sevenDaysAgo);
       })
-      .map((app) => ({
+      .map((app: any) => ({
         id: app.id,
         company: app.company,
         position: app.position,
         applicationDate: app.applicationDate.toISOString(),
         daysSince: differenceInDays(todayStart, startOfDay(app.applicationDate)),
       }))
-      .sort((a, b) => b.daysSince - a.daysSince);
+      .sort((a: any, b: any) => b.daysSince - a.daysSince);
 
     const priorities: TodayPriorities = {
       goalsDueToday,

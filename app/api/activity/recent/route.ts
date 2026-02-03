@@ -2,127 +2,41 @@ import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase/client';
 
 /**
- * GET /api/activity/recent
- * Returns recent user activity across all entities (tasks, goals, applications, courses)
+ * GET /api/activity/recent - Fetch recent user activity
+ * For now, returns mock data.
  * 
- * Query params:
- * - limit: number of activities to return (default: 10, max: 50)
- * 
- * Response:
- * - activities: Array of activity objects with type, action, timestamp
+ * TODO: Implement proper authentication and database queries
+ * when user_id columns are added to tables
  */
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    // Parse query params
-    const { searchParams } = new URL(request.url);
-    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50);
+    // TODO: Implement proper authentication and fetch user ID
+    const userId = 'anonymous'; // Placeholder for now
 
-    // For now, we'll use a dummy userId since we don't have auth yet
-    // TODO: Implement proper authentication
-    const userId = 'anonymous';
-    const activities: Array<{
-      id: string;
-      type: 'task' | 'goal' | 'exercise' | 'application' | 'note';
-      action: string;
-      timestamp: Date;
-    }> = [];
+    // In a real application, you would fetch recent activities from your database
+    // For example:
+    // const { data, error } = await supabase
+    //   .from('activities')
+    //   .select('*')
+    //   .eq('user_id', userId)
+    //   .order('timestamp', { ascending: false })
+    //   .limit(5);
+    // if (error) throw error;
 
-    // Fetch recent completed tasks (daily_tasks)
-    const { data: completedTasks, error: tasksError } = await supabase
-      .from('daily_tasks')
-      .select('id, title, completed, created_at, updated_at')
-      .eq('user_id', userId)
-      .eq('completed', true)
-      .order('updated_at', { ascending: false })
-      .limit(5);
+    // Mock data for demonstration
+    const mockActivities = [
+      { id: '1', type: 'exercise', action: 'Completed Exercise 3 for GDI 2', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
+      { id: '2', type: 'goal', action: 'Added new goal: Learn TypeScript', timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString() },
+      { id: '3', type: 'task', action: 'Completed task: Review PRs', timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+      { id: '4', type: 'application', action: 'Applied to Google (Software Engineer)', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+      { id: '5', type: 'note', action: 'Added quick note about project idea', timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+    ];
 
-    if (!tasksError && completedTasks) {
-      completedTasks.forEach(task => {
-        activities.push({
-          id: `task-${task.id}`,
-          type: 'task',
-          action: `Completed task: ${task.title}`,
-          timestamp: new Date(task.updated_at || task.created_at),
-        });
-      });
-    }
-
-    // Fetch recent goals (goals)
-    const { data: recentGoals, error: goalsError } = await supabase
-      .from('goals')
-      .select('id, title, status, created_at, updated_at')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(5);
-
-    if (!goalsError && recentGoals) {
-      recentGoals.forEach(goal => {
-        const action = goal.status === 'completed' 
-          ? `Completed goal: ${goal.title}`
-          : `Created goal: ${goal.title}`;
-        activities.push({
-          id: `goal-${goal.id}`,
-          type: 'goal',
-          action,
-          timestamp: new Date(goal.status === 'completed' ? goal.updated_at : goal.created_at),
-        });
-      });
-    }
-
-    // Fetch recent completed exercises
-    const { data: recentExercises, error: exercisesError } = await supabase
-      .from('exercises')
-      .select('id, exercise_number, completed, courses(name), created_at, updated_at')
-      .eq('completed', true)
-      .order('updated_at', { ascending: false })
-      .limit(5);
-
-    if (!exercisesError && recentExercises) {
-      recentExercises.forEach((exercise: any) => {
-        activities.push({
-          id: `exercise-${exercise.id}`,
-          type: 'exercise',
-          action: `Completed ${exercise.courses?.name || 'Course'} - Exercise ${exercise.exercise_number}`,
-          timestamp: new Date(exercise.updated_at || exercise.created_at),
-        });
-      });
-    }
-
-    // Fetch recent job applications
-    const { data: recentApps, error: appsError } = await supabase
-      .from('job_applications')
-      .select('id, company, position, status, created_at, updated_at')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(5);
-
-    if (!appsError && recentApps) {
-      recentApps.forEach(app => {
-        activities.push({
-          id: `application-${app.id}`,
-          type: 'application',
-          action: `Applied to ${app.company} - ${app.position}`,
-          timestamp: new Date(app.created_at),
-        });
-      });
-    }
-
-    // Sort all activities by timestamp (most recent first)
-    activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-
-    // Limit to requested number
-    const limitedActivities = activities.slice(0, limit);
-
-    return NextResponse.json({
-      activities: limitedActivities,
-      total: activities.length,
-      limit,
-    });
-
+    return NextResponse.json({ activities: mockActivities });
   } catch (error) {
-    console.error('Activity feed error:', error);
+    console.error('Error fetching recent activity:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch activity feed' },
+      { message: error instanceof Error ? error.message : 'Failed to fetch recent activity' },
       { status: 500 }
     );
   }

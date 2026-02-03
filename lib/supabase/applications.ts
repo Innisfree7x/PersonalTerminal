@@ -53,7 +53,7 @@ export function applicationToSupabaseInsert(
 export async function fetchApplications(options?: {
   page?: number;
   limit?: number;
-  status?: string;
+  status?: 'applied' | 'interview' | 'offer' | 'rejected';
 }): Promise<{ applications: Application[]; total: number }> {
   const { page = 1, limit = 20, status } = options || {};
 

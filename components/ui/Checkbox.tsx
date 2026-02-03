@@ -2,15 +2,19 @@ import { InputHTMLAttributes, forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check } from 'lucide-react';
 
-export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'className'> {
+export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'className' | 'onChange'> {
   label?: string;
   description?: string;
   error?: string;
   className?: string;
+  onCheckedChange?: (checked: boolean) => void;
 }
 
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
-  ({ label, description, error, className = '', checked, disabled, ...props }, ref) => {
+  ({ label, description, error, className = '', checked, disabled, onCheckedChange, ...props }, ref) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      onCheckedChange?.(e.target.checked);
+    };
     return (
       <div className={`flex items-start gap-3 ${className}`}>
         <div className="relative flex items-center">
@@ -19,6 +23,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
             type="checkbox"
             checked={checked}
             disabled={disabled}
+            onChange={handleChange}
             className="peer sr-only"
             {...props}
           />

@@ -3,9 +3,9 @@ import { motion, HTMLMotionProps } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
-export type ButtonSize = 'sm' | 'md' | 'lg';
+export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
 
-export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className'> {
+export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart' | 'onAnimationEnd'> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
@@ -46,6 +46,7 @@ const sizeStyles: Record<ButtonSize, string> = {
   sm: 'h-8 px-3 text-xs',
   md: 'h-10 px-4 text-sm',
   lg: 'h-12 px-6 text-base',
+  icon: 'h-8 w-8 p-0',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -107,6 +108,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       sm: 'w-8 h-8',
       md: 'w-10 h-10',
       lg: 'w-12 h-12',
+      icon: 'w-8 h-8',
     };
 
     return (

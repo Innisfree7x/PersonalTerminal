@@ -48,7 +48,7 @@ export async function fetchGoals(options?: {
   page?: number;
   limit?: number;
   status?: 'active' | 'completed' | 'archived';
-  category?: string;
+  category?: 'career' | 'fitness' | 'learning' | 'finance';
 }): Promise<{ goals: Goal[]; total: number }> {
   const { page = 1, limit = 20, status, category } = options || {};
 

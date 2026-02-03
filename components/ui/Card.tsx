@@ -4,7 +4,7 @@ import { motion, HTMLMotionProps } from 'framer-motion';
 export type CardVariant = 'default' | 'bordered' | 'elevated' | 'ghost';
 export type CardPadding = 'none' | 'sm' | 'md' | 'lg';
 
-export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'className'> {
+export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart' | 'onAnimationEnd'> {
   variant?: CardVariant;
   padding?: CardPadding;
   hoverable?: boolean;

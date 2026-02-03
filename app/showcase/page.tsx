@@ -183,7 +183,7 @@ export default function ShowcasePage() {
             <div className="space-y-4">
               <Checkbox 
                 checked={checked}
-                onChange={(e) => setChecked(e.target.checked)}
+                onCheckedChange={(checked) => setChecked(checked)}
                 label="Animated Checkbox"
                 description="Click to see the smooth check animation"
               />
