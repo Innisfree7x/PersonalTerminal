@@ -40,17 +40,8 @@ const CircularProgress = memo(function CircularProgress({
   showPercentage = true,
   isLoading = false,
 }: CircularProgressProps) {
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS!
   const [displayPercentage, setDisplayPercentage] = useState(0);
-
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center gap-3">
-        <SkeletonCircle size={size} />
-        {label && <Skeleton className="h-4 w-24" />}
-      </div>
-    );
-  }
   
   // Memoized calculations (prevents recalculation on every render)
   const radius = useMemo(() => (size - strokeWidth) / 2, [size, strokeWidth]);
@@ -83,6 +74,16 @@ const CircularProgress = memo(function CircularProgress({
   // Memoized color calculations using centralized utility
   const color = useMemo(() => getPercentageColor(displayPercentage), [displayPercentage]);
   const glowColor = useMemo(() => getPercentageGlow(displayPercentage), [displayPercentage]);
+
+  // Loading state - conditional RENDERING after all hooks!
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center gap-3">
+        <SkeletonCircle size={size} />
+        {label && <Skeleton className="h-4 w-24" />}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center gap-3">

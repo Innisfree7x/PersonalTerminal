@@ -261,7 +261,7 @@ export default function UniversityPage() {
                   No upcoming exams
                 </div>
                 <div className="text-sm text-text-tertiary">
-                  You're all caught up! 🎉
+                  You&apos;re all caught up! 🎉
                 </div>
               </div>
             )}

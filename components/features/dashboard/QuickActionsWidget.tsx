@@ -35,22 +35,7 @@ interface QuickActionsWidgetProps {
 }
 
 const QuickActionsWidget = memo(function QuickActionsWidget({ isLoading = false }: QuickActionsWidgetProps) {
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-4">
-          <Plus className="w-5 h-5 text-primary" />
-          <h3 className="text-base font-semibold text-text-primary">Quick Actions</h3>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-20 rounded-lg" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS!
   /**
    * Handle quick action clicks with proper error handling
    * Shows toast notifications for success/error states
@@ -75,6 +60,23 @@ const QuickActionsWidget = memo(function QuickActionsWidget({ isLoading = false 
       // toast.error(`Failed to ${actionType}. Please try again.`);
     }
   }, []);
+
+  // Loading state - conditional RENDERING after all hooks!
+  if (isLoading) {
+    return (
+      <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Plus className="w-5 h-5 text-primary" />
+          <h3 className="text-base font-semibold text-text-primary">Quick Actions</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-lg" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const actions: QuickAction[] = [
     {

@@ -78,7 +78,7 @@ export default function StatusDashboard() {
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-4">
             <Zap className="w-5 h-5 text-primary" />
-            <h3 className="text-sm font-semibold text-text-primary">Today's Progress</h3>
+            <h3 className="text-sm font-semibold text-text-primary">Today&apos;s Progress</h3>
           </div>
 
           {/* Large Completion Number */}
