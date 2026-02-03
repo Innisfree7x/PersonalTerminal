@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Smile, Battery } from 'lucide-react';
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Skeleton } from '@/components/ui';
 
 type Mood = 'exhausted' | 'tired' | 'okay' | 'good' | 'energized';
@@ -19,7 +19,7 @@ interface MoodTrackerProps {
   isLoading?: boolean;
 }
 
-export default function MoodTracker({ onMoodSelect, isLoading = false }: MoodTrackerProps) {
+const MoodTracker = memo(function MoodTracker({ onMoodSelect, isLoading = false }: MoodTrackerProps) {
   // Loading state
   if (isLoading) {
     return (
@@ -104,4 +104,6 @@ export default function MoodTracker({ onMoodSelect, isLoading = false }: MoodTra
       )}
     </div>
   );
-}
+});
+
+export default MoodTracker;

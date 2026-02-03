@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Calendar, TrendingUp, Clock, Flame, Target, BookOpen } from 'lucide-react';
 import { Skeleton } from '@/components/ui';
+import { memo } from 'react';
 
 interface QuickStatsBarProps {
   eventsToday: number;
@@ -14,7 +15,7 @@ interface QuickStatsBarProps {
   isLoading?: boolean;
 }
 
-export default function QuickStatsBar({
+const QuickStatsBar = memo(function QuickStatsBar({
   eventsToday,
   productivity,
   focusTime,
@@ -161,4 +162,6 @@ export default function QuickStatsBar({
       </div>
     </motion.div>
   );
-}
+});
+
+export default QuickStatsBar;

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Activity, CheckCircle2, Target, GraduationCap, Briefcase, FileText } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui';
+import { memo } from 'react';
 
 interface ActivityItem {
   id: string;
@@ -18,7 +19,7 @@ interface ActivityFeedProps {
   isLoading?: boolean;
 }
 
-export default function ActivityFeed({ activities = [], maxItems = 5, isLoading = false }: ActivityFeedProps) {
+const ActivityFeed = memo(function ActivityFeed({ activities = [], maxItems = 5, isLoading = false }: ActivityFeedProps) {
   const getIcon = (type: ActivityItem['type']) => {
     switch (type) {
       case 'task':
@@ -118,4 +119,6 @@ export default function ActivityFeed({ activities = [], maxItems = 5, isLoading 
       )}
     </div>
   );
-}
+});
+
+export default ActivityFeed;

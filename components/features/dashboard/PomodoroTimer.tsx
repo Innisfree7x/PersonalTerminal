@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, RotateCcw, Coffee } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { SkeletonCircle, Skeleton } from '@/components/ui';
 
 interface PomodoroTimerProps {
@@ -11,7 +11,7 @@ interface PomodoroTimerProps {
   isLoading?: boolean;
 }
 
-export default function PomodoroTimer({ 
+const PomodoroTimer = memo(function PomodoroTimer({ 
   workDuration = 25, 
   breakDuration = 5,
   isLoading = false,
@@ -211,4 +211,6 @@ export default function PomodoroTimer({
       </p>
     </div>
   );
-}
+});
+
+export default PomodoroTimer;

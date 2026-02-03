@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, addDays, startOfWeek, isSameDay, isToday } from 'date-fns';
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Skeleton } from '@/components/ui';
 
 interface DayEvent {
@@ -17,7 +17,7 @@ interface WeekOverviewProps {
   isLoading?: boolean;
 }
 
-export default function WeekOverview({ events = [], isLoading = false }: WeekOverviewProps) {
+const WeekOverview = memo(function WeekOverview({ events = [], isLoading = false }: WeekOverviewProps) {
   // Loading state
   if (isLoading) {
     return (
@@ -195,4 +195,6 @@ export default function WeekOverview({ events = [], isLoading = false }: WeekOve
       </div>
     </div>
   );
-}
+});
+
+export default WeekOverview;

@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import { SkeletonCircle, Skeleton } from '@/components/ui';
 
 interface CircularProgressProps {
@@ -13,7 +13,7 @@ interface CircularProgressProps {
   isLoading?: boolean;
 }
 
-export default function CircularProgress({
+const CircularProgress = memo(function CircularProgress({
   percentage,
   size = 120,
   strokeWidth = 8,
@@ -141,4 +141,6 @@ export default function CircularProgress({
       )}
     </div>
   );
-}
+});
+
+export default CircularProgress;

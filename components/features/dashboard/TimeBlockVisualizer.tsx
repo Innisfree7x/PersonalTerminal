@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Clock, Sunrise, Sun, Moon } from 'lucide-react';
 import { Skeleton } from '@/components/ui';
+import { memo } from 'react';
 
 interface TimeBlock {
   period: 'morning' | 'afternoon' | 'evening';
@@ -21,7 +22,7 @@ interface TimeBlockVisualizerProps {
   isLoading?: boolean;
 }
 
-export default function TimeBlockVisualizer({
+const TimeBlockVisualizer = memo(function TimeBlockVisualizer({
   morningProgress = 0,
   afternoonProgress = 0,
   eveningProgress = 0,
@@ -166,4 +167,6 @@ export default function TimeBlockVisualizer({
       </div>
     </div>
   );
-}
+});
+
+export default TimeBlockVisualizer;

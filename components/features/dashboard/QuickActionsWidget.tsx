@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Plus, FileText, Target, GraduationCap, Briefcase, Calendar } from 'lucide-react';
 import { Skeleton } from '@/components/ui';
+import { memo } from 'react';
 
 interface QuickAction {
   icon: React.ElementType;
@@ -16,7 +17,7 @@ interface QuickActionsWidgetProps {
   isLoading?: boolean;
 }
 
-export default function QuickActionsWidget({ isLoading = false }: QuickActionsWidgetProps) {
+const QuickActionsWidget = memo(function QuickActionsWidget({ isLoading = false }: QuickActionsWidgetProps) {
   // Loading state
   if (isLoading) {
     return (
@@ -100,4 +101,6 @@ export default function QuickActionsWidget({ isLoading = false }: QuickActionsWi
       </div>
     </div>
   );
-}
+});
+
+export default QuickActionsWidget;
