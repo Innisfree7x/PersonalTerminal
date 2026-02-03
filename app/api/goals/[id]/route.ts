@@ -13,18 +13,36 @@ export async function PATCH(
     const goalId = params.id;
     const body = await request.json();
     
-    // Convert targetDate string to Date if needed
-    const dataToValidate = {
-      ...body,
-      targetDate: body.targetDate
-        ? typeof body.targetDate === 'string'
-          ? new Date(body.targetDate)
-          : body.targetDate
-        : undefined,
-    };
+    // Allow partial updates - only validate provided fields
+    const dataToUpdate: any = {};
     
-    // Validate input with Zod
-    const validatedData = createGoalSchema.parse(dataToValidate);
+    // Build update object with only provided fields
+    if (body.title !== undefined) dataToUpdate.title = body.title;
+    if (body.category !== undefined) dataToUpdate.category = body.category;
+    if (body.status !== undefined) dataToUpdate.status = body.status;
+    if (body.priority !== undefined) dataToUpdate.priority = body.priority;
+    if (body.description !== undefined) dataToUpdate.description = body.description;
+    if (body.metrics !== undefined) dataToUpdate.metrics = body.metrics;
+    if (body.milestones !== undefined) dataToUpdate.milestones = body.milestones;
+    if (body.notes !== undefined) dataToUpdate.notes = body.notes;
+    
+    // Handle targetDate conversion
+    if (body.targetDate !== undefined) {
+      dataToUpdate.targetDate = typeof body.targetDate === 'string'
+        ? new Date(body.targetDate)
+        : body.targetDate;
+    }
+    
+    // Ensure at least one field to update
+    if (Object.keys(dataToUpdate).length === 0) {
+      return NextResponse.json(
+        { message: 'No fields to update' },
+        { status: 400 }
+      );
+    }
+    
+    // For partial updates, use partial schema validation
+    const validatedData = createGoalSchema.partial().parse(dataToUpdate);
     
     const goal = await updateGoal(goalId, validatedData);
     return NextResponse.json(goal);

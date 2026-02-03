@@ -291,9 +291,38 @@ export default function FocusTasks() {
                     completed: checked,
                   });
                 }
-              } else if (task.id.startsWith('goal-') || task.id.startsWith('interview-')) {
-                const sourceId = task.id.replace(/^(goal|interview)-/, '');
-                const existingTask = dailyTasks.find((dt) => dt.sourceId === sourceId && dt.source === task.source);
+              } else if (task.id.startsWith('goal-')) {
+                // GOAL TASK - Mark the actual goal as completed!
+                const goalId = task.id.replace('goal-', '');
+                
+                if (checked) {
+                  // Update the goal itself to completed status
+                  fetch(`/api/goals/${goalId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'completed' }),
+                  })
+                    .then((res) => {
+                      if (res.ok) {
+                        // Refetch to remove from goalsDueToday
+                        queryClient.refetchQueries({ queryKey: ['dashboard', 'today'] });
+                        queryClient.refetchQueries({ queryKey: ['goals'] });
+                      }
+                    })
+                    .catch((err) => {
+                      console.error('Failed to complete goal:', err);
+                      // Restore task if failed
+                      setHiddenIds((prev) => {
+                        const newSet = new Set(prev);
+                        newSet.delete(task.id);
+                        return newSet;
+                      });
+                    });
+                }
+              } else if (task.id.startsWith('interview-')) {
+                // INTERVIEW TASK - Create a daily task (interviews can't be "completed")
+                const interviewId = task.id.replace('interview-', '');
+                const existingTask = dailyTasks.find((dt) => dt.sourceId === interviewId && dt.source === 'interview');
 
                 if (existingTask) {
                   updateMutation.mutate({ id: existingTask.id, completed: true });
@@ -301,8 +330,8 @@ export default function FocusTasks() {
                   createMutation.mutate({
                     title: task.title,
                     date: today,
-                    source: task.source || 'manual',
-                    sourceId,
+                    source: 'interview',
+                    sourceId: interviewId,
                     timeEstimate: task.timeEstimate,
                   } as any);
                 }
