@@ -3,12 +3,12 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createGoalSchema, CreateGoalInput, GoalCategory } from '@/lib/schemas/goal.schema';
+import { createGoalSchema, CreateGoalInput } from '@/lib/schemas/goal.schema';
 
 interface GoalFormProps {
   onSubmit: (data: CreateGoalInput) => void;
   onCancel: () => void;
-  initialData?: CreateGoalInput;
+  initialData?: CreateGoalInput | undefined;
   isEdit?: boolean;
   submitDisabled?: boolean;
 }
@@ -24,7 +24,6 @@ export default function GoalForm({
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    watch,
     reset,
   } = useForm<CreateGoalInput>({
     resolver: zodResolver(createGoalSchema),

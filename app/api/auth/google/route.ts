@@ -9,6 +9,13 @@ export async function GET() {
   // No need for manual checks!
   const { GOOGLE_CLIENT_ID: clientId, GOOGLE_REDIRECT_URI: redirectUri } = serverEnv;
 
+  if (!clientId || !redirectUri) {
+    return NextResponse.json(
+      { message: 'Google OAuth credentials not configured' },
+      { status: 500 }
+    );
+  }
+
   const scope = 'https://www.googleapis.com/auth/calendar.readonly';
   const responseType = 'code';
   const accessType = 'offline'; // Required to get refresh_token

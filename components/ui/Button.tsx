@@ -1,5 +1,5 @@
 import { ButtonHTMLAttributes, forwardRef } from 'react';
-import { motion, HTMLMotionProps } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -67,10 +67,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const isDisabled = disabled || loading;
 
+    const MotionButton = motion.button;
+    const additionalProps: any = {};
+    if (!isDisabled) additionalProps.whileTap = { scale: 0.98 };
+    
     return (
-      <motion.button
+      <MotionButton
         ref={ref}
-        whileTap={!isDisabled ? { scale: 0.98 } : undefined}
+        {...additionalProps}
         transition={{ type: 'spring', stiffness: 400, damping: 17 }}
         className={`
           inline-flex items-center justify-center gap-2
@@ -89,7 +93,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {!loading && leftIcon && <span className="inline-flex">{leftIcon}</span>}
         {children}
         {!loading && rightIcon && <span className="inline-flex">{rightIcon}</span>}
-      </motion.button>
+      </MotionButton>
     );
   }
 );

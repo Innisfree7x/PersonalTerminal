@@ -69,7 +69,7 @@ export default function Header() {
   const hasUrgent =
     (stats?.career.nextInterview &&
       new Date(stats.career.nextInterview.date) <= new Date(Date.now() + 24 * 60 * 60 * 1000)) ||
-    (stats?.goals.overdue && stats.goals.overdue > 0) ||
+    (stats?.goals.overdue !== undefined && stats.goals.overdue > 0) ||
     false;
 
   const currentTitle = routeTitles[pathname] || 'Dashboard';

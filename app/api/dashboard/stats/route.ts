@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fetchGoals } from '@/lib/supabase/goals';
 import { fetchApplications } from '@/lib/supabase/applications';
 import { supabase } from '@/lib/supabase/client';
-import { startOfWeek, endOfWeek, startOfDay, differenceInDays, getWeek } from 'date-fns';
+import { startOfWeek, endOfWeek, startOfDay, differenceInDays } from 'date-fns';
 
 interface DashboardStats {
   career: {
@@ -32,7 +32,7 @@ interface DashboardStats {
 /**
  * GET /api/dashboard/stats - Fetch dashboard statistics
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const today = new Date();
     const weekStart = startOfWeek(today, { weekStartsOn: 1 }); // Monday
@@ -91,10 +91,11 @@ export async function GET(request: NextRequest) {
 
     const goalsByCategory: Record<string, number> = {};
     allGoals.forEach((goal: any) => {
-      if (!goalsByCategory[goal.category]) {
-        goalsByCategory[goal.category] = 0;
+      const cat = goal.category as string;
+      if (goalsByCategory[cat] === undefined) {
+        goalsByCategory[cat] = 0;
       }
-      goalsByCategory[goal.category]++;
+      goalsByCategory[cat]!++;
     });
 
     const overdueGoals = allGoals.filter((goal: any) => {
@@ -160,7 +161,7 @@ export async function GET(request: NextRequest) {
     const stats: DashboardStats = {
       career: {
         activeInterviews: interviews.length,
-        nextInterview,
+        ...(nextInterview ? { nextInterview } : {}),
         applicationsPending,
         pendingDays,
         followUpNeeded,
@@ -173,7 +174,7 @@ export async function GET(request: NextRequest) {
       study: {
         weekCompleted: weekCompletedExercises,
         semesterPercent,
-        nextExam: nextExamCourse,
+        ...(nextExamCourse ? { nextExam: nextExamCourse } : {}),
       },
       metrics: {
         todayCompletion,

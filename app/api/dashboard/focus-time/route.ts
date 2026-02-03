@@ -54,10 +54,10 @@ export async function GET(request: Request) {
           const hoursMatch = timeStr.match(/(\d+)\s*h/);
           const minutesMatch = timeStr.match(/(\d+)\s*m/);
           
-          if (hoursMatch) {
+          if (hoursMatch && hoursMatch[1]) {
             minutes += parseInt(hoursMatch[1]) * 60;
           }
-          if (minutesMatch) {
+          if (minutesMatch && minutesMatch[1]) {
             minutes += parseInt(minutesMatch[1]);
           }
         } else {

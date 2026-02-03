@@ -48,16 +48,22 @@ export function useNotifications(autoDismissDelay: number = 5000): NotificationS
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => setError(null), autoDismissDelay);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+      };
     }
+    return undefined;
   }, [error, autoDismissDelay]);
 
   // Auto-dismiss success messages
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => setSuccess(null), autoDismissDelay);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+      };
     }
+    return undefined;
   }, [success, autoDismissDelay]);
 
   const clearAll = () => {

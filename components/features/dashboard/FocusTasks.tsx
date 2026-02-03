@@ -1,37 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { format, differenceInDays, startOfDay } from 'date-fns';
+// import { startOfDay } from 'date-fns'; // Unused for now
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Badge } from '@/components/ui/Badge';
 import { Plus, Clock, Target, Briefcase, GraduationCap } from 'lucide-react';
-import { createTask, updateTask, toggleExercise } from '@/lib/api/daily-tasks';
-
-interface TodayPriorities {
-  goalsDueToday: Array<{
-    id: string;
-    title: string;
-    category: string;
-    metrics?: { current: number; target: number; unit: string };
-    targetDate: string;
-  }>;
-  upcomingInterviews: Array<{
-    id: string;
-    company: string;
-    position: string;
-    interviewDate: string;
-    daysUntil: number;
-  }>;
-  pendingFollowUps: Array<{
-    id: string;
-    company: string;
-    position: string;
-    applicationDate: string;
-    daysSince: number;
-  }>;
-}
+import { createTask, updateTask } from '@/lib/api/daily-tasks';
 
 interface DailyTask {
   id: string;
@@ -44,75 +20,24 @@ interface DailyTask {
   createdAt: string;
 }
 
-interface StudyTask {
-  id: string;
-  courseId: string;
-  courseName: string;
-  exerciseNumber: number;
-  examDate: string | null;
-  daysUntilExam: number | null;
-  urgency: 'urgent' | 'important' | 'normal';
-}
-
-interface CourseWithExercises {
-  id: string;
-  name: string;
-  ects: number;
-  numExercises: number;
-  examDate?: Date;
-  semester: string;
-  createdAt: Date;
-  exercises: Array<{
-    id: string;
-    courseId: string;
-    exerciseNumber: number;
-    completed: boolean;
-    completedAt?: Date;
-    createdAt: Date;
-  }>;
-}
-
-async function fetchTodayPriorities(): Promise<TodayPriorities> {
-  const response = await fetch('/api/dashboard/today');
-  if (!response.ok) throw new Error('Failed to fetch priorities');
-  return response.json();
-}
-
 async function fetchDailyTasks(date: string): Promise<DailyTask[]> {
   const response = await fetch(`/api/daily-tasks?date=${date}`);
   if (!response.ok) throw new Error('Failed to fetch tasks');
   return response.json();
 }
 
-async function fetchStudyTasks(): Promise<StudyTask[]> {
-  const response = await fetch('/api/dashboard/study-tasks');
-  if (!response.ok) throw new Error('Failed to fetch study tasks');
-  return response.json();
-}
-
-// NEW: Fetch complete course with all exercises
-async function fetchCourse(courseId: string): Promise<CourseWithExercises> {
-  const response = await fetch(`/api/courses/${courseId}`);
-  if (!response.ok) throw new Error('Failed to fetch course');
-  return response.json();
-}
 
 export default function FocusTasks() {
   const queryClient = useQueryClient();
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0]!;
   const [showAddInput, setShowAddInput] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskTime, setNewTaskTime] = useState('');
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
 
-  const { data: priorities } = useQuery({
-    queryKey: ['dashboard', 'today'],
-    queryFn: fetchTodayPriorities,
-  });
-
   const { data: dailyTasks = [] } = useQuery({
     queryKey: ['daily-tasks', today],
-    queryFn: () => fetchDailyTasks(today),
+    queryFn: () => fetchDailyTasks(today!),
   });
 
   // REMOVED: Study Tasks - too complex to sync, user will add manually if needed
@@ -185,11 +110,14 @@ export default function FocusTasks() {
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim()) return;
-    createMutation.mutate({
+    const taskData: any = {
       title: newTaskTitle.trim(),
-      date: today,
-      timeEstimate: newTaskTime.trim() || undefined,
-    });
+      date: today!,
+    };
+    if (newTaskTime.trim()) {
+      taskData.timeEstimate = newTaskTime.trim();
+    }
+    createMutation.mutate(taskData);
   };
 
   // Combine all tasks
@@ -205,14 +133,15 @@ export default function FocusTasks() {
 
   // Add daily tasks
   dailyTasks.forEach((task) => {
-    allTasks.push({
+    const item: any = {
       id: task.id,
       title: task.title,
       completed: task.completed,
       timeEstimate: task.timeEstimate || undefined,
-      urgency: 'normal',
-      source: task.source || undefined,
-    });
+      urgency: 'normal' as const,
+    };
+    if (task.source) item.source = task.source;
+    allTasks.push(item);
   });
 
   // REMOVED: Goals, Interviews, Study Tasks
@@ -287,13 +216,17 @@ export default function FocusTasks() {
                 if (existingTask) {
                   updateMutation.mutate({ id: existingTask.id, completed: true });
                 } else if (checked) {
-                  createMutation.mutate({
+                  const taskData: any = {
                     title: task.title,
                     date: today,
                     source: 'interview',
                     sourceId: interviewId,
-                    timeEstimate: task.timeEstimate,
-                  } as any);
+                    completed: true,
+                  };
+                  if (task.timeEstimate) {
+                    taskData.timeEstimate = task.timeEstimate;
+                  }
+                  createMutation.mutate(taskData);
                 }
               } else {
                 updateMutation.mutate({ id: task.id, completed: true });

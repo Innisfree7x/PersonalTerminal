@@ -1,6 +1,6 @@
 'use client';
 
-import { Application, ApplicationStatus } from '@/lib/schemas/application.schema';
+import { Application } from '@/lib/schemas/application.schema';
 import { motion } from 'framer-motion';
 import { TrendingUp, Briefcase, CheckCircle, BarChart3 } from 'lucide-react';
 
@@ -17,12 +17,12 @@ export default function ApplicationStats({ applications }: ApplicationStatsProps
     rejected: applications.filter((a) => a.status === 'rejected').length,
   };
 
-  const responseRate =
-    stats.total > 0
-      ? Math.round(
-          ((stats.interview + stats.offer + stats.rejected) / stats.total) * 100
-        )
-      : 0;
+  // const responseRate =
+  //   stats.total > 0
+  //     ? Math.round(
+  //         ((stats.interview + stats.offer + stats.rejected) / stats.total) * 100
+  //       )
+  //     : 0;
 
   const offerRate =
     stats.total > 0

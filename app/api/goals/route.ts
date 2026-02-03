@@ -21,8 +21,8 @@ export async function GET(request: NextRequest) {
     const { goals } = await fetchGoals({
       page,
       limit,
-      status: status as any,
-      category: category as any,
+      status: status as 'active' | 'completed' | 'archived' | undefined,
+      category: category as 'career' | 'fitness' | 'learning' | 'finance' | undefined,
     });
 
     // Return array directly for frontend compatibility

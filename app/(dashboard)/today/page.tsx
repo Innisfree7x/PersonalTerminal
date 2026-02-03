@@ -8,7 +8,6 @@ import Link from 'next/link';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import FocusTasks from '@/components/features/dashboard/FocusTasks';
 import ScheduleColumn from '@/components/features/dashboard/ScheduleColumn';
-import StatusDashboard from '@/components/features/dashboard/StatusDashboard';
 import QuickNotes from '@/components/features/dashboard/QuickNotes';
 import QuickStatsBar from '@/components/features/dashboard/QuickStatsBar';
 import CircularProgress from '@/components/features/dashboard/CircularProgress';
@@ -58,7 +57,6 @@ export default function TodayPage() {
   const {
     data: events = [],
     isLoading,
-    error: fetchError,
   } = useQuery<CalendarEvent[]>({
     queryKey: ['calendar', 'today'],
     queryFn: fetchTodayCalendarEvents,

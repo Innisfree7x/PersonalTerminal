@@ -4,7 +4,6 @@ import { createDailyTaskSchema } from '@/lib/schemas/dailyTask.schema';
 import type { Database } from '@/lib/supabase/types';
 
 type DailyTaskInsert = Database['public']['Tables']['daily_tasks']['Insert'];
-type DailyTaskUpdate = Database['public']['Tables']['daily_tasks']['Update'];
 
 /**
  * GET /api/daily-tasks - Fetch daily tasks for a specific date
@@ -13,7 +12,7 @@ type DailyTaskUpdate = Database['public']['Tables']['daily_tasks']['Update'];
 export async function GET(request: NextRequest) {
   try {
     const dateParam = request.nextUrl.searchParams.get('date');
-    const date = dateParam || new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const date = dateParam ?? new Date().toISOString().split('T')[0]!; // YYYY-MM-DD
 
     const { data, error } = await supabase
       .from('daily_tasks')

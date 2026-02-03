@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Smile, Battery } from 'lucide-react';
+import { Battery } from 'lucide-react';
 import { useState, memo, useCallback } from 'react';
 import { Skeleton } from '@/components/ui';
 

@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createCourseSchema, type CreateCourseInput } from '@/lib/schemas/course.schema';
@@ -9,7 +8,7 @@ interface CourseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: CreateCourseInput) => void;
-  initialData?: CreateCourseInput;
+  initialData?: CreateCourseInput | undefined;
   isEdit?: boolean;
 }
 

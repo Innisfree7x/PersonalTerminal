@@ -4,9 +4,6 @@ import { CalendarEvent } from '@/lib/data/mockEvents';
 import { format, startOfWeek, addWeeks, subWeeks, isSameDay, getWeek } from 'date-fns';
 import { useMemo, useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import Link from 'next/link';
-
-type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6; // Sunday = 0, Monday = 1, etc.
 
 /**
  * Get Monday of the week for a given date
@@ -46,7 +43,10 @@ function groupEventsByDay(events: CalendarEvent[]): Record<string, CalendarEvent
 
   // Sort events within each day by start time
   Object.keys(groups).forEach((key) => {
-    groups[key].sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+    const dayEvents = groups[key];
+    if (dayEvents) {
+      dayEvents.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+    }
   });
 
   return groups;
@@ -200,6 +200,7 @@ export default function CalendarPage() {
       const timer = setTimeout(() => setError(null), 5000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [error]);
 
   useEffect(() => {
@@ -207,9 +208,9 @@ export default function CalendarPage() {
       const timer = setTimeout(() => setSuccess(null), 5000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [success]);
 
-  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const dayNamesShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   return (

@@ -12,9 +12,6 @@ import {
   GraduationCap,
   Calendar,
   Plus,
-  TrendingUp,
-  BookOpen,
-  FileText,
   Zap,
 } from 'lucide-react';
 

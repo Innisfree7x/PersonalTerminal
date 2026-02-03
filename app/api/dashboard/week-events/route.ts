@@ -26,8 +26,13 @@ export async function GET(request: Request) {
     // Calculate week range
     const weekStart = addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), weekOffset * 7);
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-    const weekStartStr = format(weekDays[0], 'yyyy-MM-dd');
-    const weekEndStr = format(weekDays[6], 'yyyy-MM-dd');
+    const firstDay = weekDays[0];
+    const lastDay = weekDays[6];
+    if (!firstDay || !lastDay) {
+      throw new Error('Failed to calculate week range');
+    }
+    const weekStartStr = format(firstDay, 'yyyy-MM-dd');
+    const weekEndStr = format(lastDay, 'yyyy-MM-dd');
 
     // Fetch daily tasks for the week
     const { data: tasks, error: tasksError } = await supabase
@@ -54,7 +59,10 @@ export async function GET(request: Request) {
     if (tasks) {
       tasks.forEach(task => {
         if (task.date in eventCounts) {
-          eventCounts[task.date]++;
+          const count = eventCounts[task.date];
+          if (count !== undefined) {
+            eventCounts[task.date] = count + 1;
+          }
         }
       });
     }
@@ -81,8 +89,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       events,
-      weekStart: weekDays[0].toISOString(),
-      weekEnd: weekDays[6].toISOString(),
+      weekStart: firstDay.toISOString(),
+      weekEnd: lastDay.toISOString(),
       totalEvents: Object.values(eventCounts).reduce((sum, count) => sum + count, 0),
     });
 

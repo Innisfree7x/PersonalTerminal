@@ -68,7 +68,7 @@ export async function PATCH(
  * DELETE /api/daily-tasks/[id] - Delete a daily task
  */
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {

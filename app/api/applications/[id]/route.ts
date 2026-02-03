@@ -44,7 +44,7 @@ export async function PATCH(
  * DELETE /api/applications/[id] - Delete an application
  */
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {

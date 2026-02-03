@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchGoals } from '@/lib/supabase/goals';
 import { fetchApplications } from '@/lib/supabase/applications';
-import { supabase } from '@/lib/supabase/client';
-import { format, startOfDay, endOfDay, addDays, differenceInDays } from 'date-fns';
+import { startOfDay, endOfDay, addDays, differenceInDays } from 'date-fns';
 
 interface TodayPriorities {
   goalsDueToday: Array<{
@@ -31,7 +30,7 @@ interface TodayPriorities {
 /**
  * GET /api/dashboard/today - Fetch today's priorities (goals, interviews, follow-ups)
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const today = new Date();
     const todayStart = startOfDay(today);

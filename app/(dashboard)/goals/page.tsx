@@ -10,7 +10,7 @@ import GoalsList from '@/components/features/goals/GoalsList';
 import GoalModal from '@/components/features/goals/GoalModal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Plus, Target, TrendingUp, Calendar, Filter } from 'lucide-react';
+import { Plus, Target, Filter } from 'lucide-react';
 
 type SortOption = 'date' | 'progress' | 'title';
 type FilterOption = GoalCategory | 'all';

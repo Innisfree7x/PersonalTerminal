@@ -59,7 +59,6 @@ export default function StatusDashboard() {
     );
   }
 
-  const weekProgressPercent = Math.round((stats.metrics.weekProgress.day / stats.metrics.weekProgress.total) * 100);
   const goalsProgressPercent = stats.goals.weeklyProgress.total > 0 
     ? Math.round((stats.goals.weeklyProgress.onTrack / stats.goals.weeklyProgress.total) * 100)
     : 0;

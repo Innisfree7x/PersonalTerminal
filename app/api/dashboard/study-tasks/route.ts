@@ -15,7 +15,7 @@ interface StudyTask {
 /**
  * GET /api/dashboard/study-tasks - Fetch incomplete exercises prioritized by exam date
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const today = startOfDay(new Date());
 
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
         courseId: course.id,
         courseName: course.name,
         exerciseNumber: firstIncomplete.exerciseNumber,
-        examDate: course.examDate ? course.examDate.toISOString().split('T')[0] : null,
+        examDate: course.examDate ? course.examDate.toISOString().split('T')[0]! : null,
         daysUntilExam,
         urgency,
       });

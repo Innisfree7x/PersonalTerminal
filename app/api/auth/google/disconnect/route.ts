@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 /**
  * POST /api/auth/google/disconnect - Clear Google OAuth tokens
  */
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   const response = NextResponse.json({ success: true });
 
   // Clear all Google OAuth cookies

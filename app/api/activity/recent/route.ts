@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
 
 /**
  * GET /api/activity/recent - Fetch recent user activity
@@ -11,7 +10,7 @@ import { supabase } from '@/lib/supabase/client';
 export async function GET() {
   try {
     // TODO: Implement proper authentication and fetch user ID
-    const userId = 'anonymous'; // Placeholder for now
+    // const userId = 'anonymous'; // Placeholder for now
 
     // In a real application, you would fetch recent activities from your database
     // For example:

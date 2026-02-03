@@ -1,5 +1,5 @@
 import { HTMLAttributes, forwardRef } from 'react';
-import { motion, HTMLMotionProps } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 export type CardVariant = 'default' | 'bordered' | 'elevated' | 'ghost';
 export type CardPadding = 'none' | 'sm' | 'md' | 'lg';
@@ -56,11 +56,14 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
 
     const clickableStyles = clickable ? 'cursor-pointer' : '';
 
+    const motionProps: any = {};
+    if (hoverable || clickable) motionProps.whileHover = { y: -2 };
+    if (clickable) motionProps.whileTap = { scale: 0.98 };
+    
     return (
       <MotionDiv
         ref={ref}
-        whileHover={hoverable || clickable ? { y: -2 } : undefined}
-        whileTap={clickable ? { scale: 0.98 } : undefined}
+        {...motionProps}
         transition={{ type: 'spring', stiffness: 400, damping: 20 }}
         className={`
           rounded-lg

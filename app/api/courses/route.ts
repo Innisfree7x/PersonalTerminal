@@ -5,7 +5,7 @@ import { createCourseSchema } from '@/lib/schemas/course.schema';
 /**
  * GET /api/courses - Fetch all courses with exercise progress
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const courses = await fetchCoursesWithExercises();
     return NextResponse.json(courses);

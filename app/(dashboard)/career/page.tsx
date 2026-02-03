@@ -18,8 +18,6 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Plus, Briefcase, Upload } from 'lucide-react';
 
-type FilterOption = ApplicationStatus | 'all';
-
 function applicationToCreateInput(application: Application): CreateApplicationInput {
   return {
     company: application.company,

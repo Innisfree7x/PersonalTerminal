@@ -14,13 +14,20 @@ async function saveNote(content: string, date: string): Promise<void> {
   if (!response.ok) throw new Error('Failed to save note');
 }
 
+// Extend Window interface to include our custom property
+declare global {
+  interface Window {
+    noteSaveTimer?: ReturnType<typeof setTimeout>;
+  }
+}
+
 export default function QuickNotes() {
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0]!;
   const [content, setContent] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
 
   const saveMutation = useMutation({
-    mutationFn: (note: string) => saveNote(note, today),
+    mutationFn: (note: string) => saveNote(note, today!),
     onSuccess: () => {
       // Auto-save feedback could be shown here
     },
@@ -29,8 +36,10 @@ export default function QuickNotes() {
   const handleChange = (value: string) => {
     setContent(value);
     // Auto-save with debounce
-    clearTimeout((window as any).noteSaveTimer);
-    (window as any).noteSaveTimer = setTimeout(() => {
+    if (window.noteSaveTimer) {
+      clearTimeout(window.noteSaveTimer);
+    }
+    window.noteSaveTimer = setTimeout(() => {
       if (value.trim()) {
         saveMutation.mutate(value.trim());
       }

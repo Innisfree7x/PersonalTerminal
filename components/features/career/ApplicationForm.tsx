@@ -6,13 +6,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   createApplicationSchema,
   CreateApplicationInput,
-  ApplicationStatus,
 } from '@/lib/schemas/application.schema';
 
 interface ApplicationFormProps {
   onSubmit: (data: CreateApplicationInput) => void;
   onCancel: () => void;
-  initialData?: CreateApplicationInput;
+  initialData?: CreateApplicationInput | undefined;
   isEdit?: boolean;
   submitDisabled?: boolean;
 }

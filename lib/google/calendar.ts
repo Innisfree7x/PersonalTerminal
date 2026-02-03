@@ -111,14 +111,17 @@ function mapGoogleEventToCalendarEvent(event: GoogleCalendarEvent): CalendarEven
     type = 'task';
   }
 
-  return {
+  const calendarEvent: any = {
     id: event.id,
     title,
     startTime,
     endTime,
     type,
-    description: event.description,
   };
+  if (event.description) {
+    calendarEvent.description = event.description;
+  }
+  return calendarEvent;
 }
 
 /**

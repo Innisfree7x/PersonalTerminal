@@ -7,7 +7,7 @@ interface ApplicationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: CreateApplicationInput) => void;
-  initialData?: CreateApplicationInput;
+  initialData?: CreateApplicationInput | undefined;
   isEdit?: boolean;
   submitDisabled?: boolean;
   error?: string | null;

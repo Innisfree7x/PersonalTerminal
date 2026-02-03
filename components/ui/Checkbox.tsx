@@ -29,7 +29,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           />
           
           <motion.div
-            whileTap={!disabled ? { scale: 0.9 } : undefined}
+            {...(!disabled ? { whileTap: { scale: 0.9 } } : {})}
             className={`
               w-5 h-5 rounded-sm border-2 flex items-center justify-center
               transition-all duration-fast cursor-pointer

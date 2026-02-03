@@ -3,7 +3,6 @@ import { Goal, CreateGoalInput } from '@/lib/schemas/goal.schema';
 import { SupabaseGoal, Database } from './types';
 
 type GoalInsert = Database['public']['Tables']['goals']['Insert'];
-type GoalUpdate = Database['public']['Tables']['goals']['Update'];
 
 /**
  * Converts Supabase Goal Row to our Goal type
@@ -33,7 +32,7 @@ export function goalToSupabaseInsert(goal: CreateGoalInput): GoalInsert {
   return {
     title: goal.title,
     description: goal.description || null,
-    target_date: goal.targetDate.toISOString().split('T')[0], // YYYY-MM-DD format
+    target_date: goal.targetDate.toISOString().split('T')[0]!, // YYYY-MM-DD format
     category: goal.category,
     metrics_current: goal.metrics?.current ?? null,
     metrics_target: goal.metrics?.target ?? null,
@@ -47,8 +46,8 @@ export function goalToSupabaseInsert(goal: CreateGoalInput): GoalInsert {
 export async function fetchGoals(options?: {
   page?: number;
   limit?: number;
-  status?: 'active' | 'completed' | 'archived';
-  category?: 'career' | 'fitness' | 'learning' | 'finance';
+  status?: 'active' | 'completed' | 'archived' | undefined;
+  category?: 'career' | 'fitness' | 'learning' | 'finance' | undefined;
 }): Promise<{ goals: Goal[]; total: number }> {
   const { page = 1, limit = 20, status, category } = options || {};
 
@@ -106,11 +105,16 @@ export async function createGoal(goal: CreateGoalInput): Promise<Goal> {
 /**
  * Update an existing goal in Supabase
  */
-export async function updateGoal(goalId: string, goal: CreateGoalInput): Promise<Goal> {
-  const updateData: GoalUpdate = {
-    ...goalToSupabaseInsert(goal),
+export async function updateGoal(goalId: string, goal: Partial<CreateGoalInput>): Promise<Goal> {
+  const updateData: Record<string, any> = {
     updated_at: new Date().toISOString(),
   };
+  
+  if (goal.title !== undefined) updateData.title = goal.title;
+  if (goal.description !== undefined) updateData.description = goal.description;
+  if (goal.targetDate !== undefined) updateData.target_date = goal.targetDate.toISOString();
+  if (goal.category !== undefined) updateData.category = goal.category;
+  if (goal.metrics !== undefined) updateData.metrics = goal.metrics;
 
   const { data, error } = await supabase
     .from('goals')

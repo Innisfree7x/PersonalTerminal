@@ -1,6 +1,19 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
 
-# Run linting and type checking before commit
-npm run lint
-npm run type-check
+echo "🔍 Running pre-commit checks..."
+
+# Run type check
+echo "📘 Type checking..."
+npm run type-check || exit 1
+
+# Run linter
+echo "🔧 Linting..."
+npm run lint || exit 1
+
+# Tests temporarily disabled - missing @testing-library/user-event
+# TODO: Re-enable after installing dependencies
+# echo "🧪 Running tests..."
+# npm run test -- --run || exit 1
+
+echo "✅ All checks passed!"

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
 import { z } from 'zod';
 
 const createNoteSchema = z.object({
@@ -11,10 +10,10 @@ const createNoteSchema = z.object({
  * GET /api/notes - Fetch notes for a specific date
  * Query params: date (YYYY-MM-DD, defaults to today)
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
-    const dateParam = request.nextUrl.searchParams.get('date');
-    const date = dateParam || new Date().toISOString().split('T')[0];
+    // const dateParam = request.nextUrl.searchParams.get('date');
+    // const date = dateParam || new Date().toISOString().split('T')[0];
 
     // For now, we'll create a simple notes table if it doesn't exist
     // In production, create: CREATE TABLE notes (id UUID PRIMARY KEY, date DATE NOT NULL, content TEXT, created_at TIMESTAMPTZ DEFAULT NOW())
@@ -35,7 +34,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const validatedData = createNoteSchema.parse(body);
+    createNoteSchema.parse(body);
 
     // Note: This requires a notes table in Supabase
     // CREATE TABLE notes (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), date DATE NOT NULL, content TEXT, created_at TIMESTAMPTZ DEFAULT NOW());

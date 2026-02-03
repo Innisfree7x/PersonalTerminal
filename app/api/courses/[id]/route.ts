@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateCourse, deleteCourse, fetchCoursesWithExercises } from '@/lib/supabase/courses';
-import { createCourseSchema } from '@/lib/schemas/course.schema';
+import type { CreateCourseInput } from '@/lib/schemas/course.schema';
 
 /**
  * GET /api/courses/[id] - Get a single course with exercises
  */
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -45,7 +45,7 @@ export async function PATCH(
     const body = await request.json();
 
     // Partial validation
-    const updates: any = {};
+    const updates: Partial<CreateCourseInput> = {};
     if (body.name !== undefined) updates.name = body.name;
     if (body.ects !== undefined) updates.ects = body.ects;
     if (body.numExercises !== undefined) updates.numExercises = body.numExercises;
@@ -70,7 +70,7 @@ export async function PATCH(
  * DELETE /api/courses/[id] - Delete a course
  */
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {

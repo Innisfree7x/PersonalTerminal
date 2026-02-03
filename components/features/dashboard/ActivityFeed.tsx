@@ -44,7 +44,6 @@ interface ActivityFeedProps {
 const ActivityFeed = memo(function ActivityFeed({ activities: propActivities, maxItems = 5, isLoading: propIsLoading = false }: ActivityFeedProps) {
   const [activities, setActivities] = useState<ActivityItem[]>(propActivities || []);
   const [isLoading, setIsLoading] = useState(propIsLoading);
-  const [error, setError] = useState<string | null>(null);
 
   // Fetch activities from API if not provided via props
   useEffect(() => {
@@ -71,10 +70,8 @@ const ActivityFeed = memo(function ActivityFeed({ activities: propActivities, ma
         }));
         
         setActivities(parsedActivities);
-        setError(null);
       } catch (err) {
         console.error('ActivityFeed fetch error:', err);
-        setError('Failed to load activities');
         // Fallback to mock data on error
         setActivities([
           { id: '1', type: 'exercise', action: 'Completed Exercise 3 for GDI 2', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) },

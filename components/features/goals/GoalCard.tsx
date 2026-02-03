@@ -8,8 +8,8 @@ import { Trash2, Calendar, TrendingUp } from 'lucide-react';
 
 interface GoalCardProps {
   goal: Goal;
-  onClick?: () => void;
-  onDelete?: (goalId: string) => void;
+  onClick?: (() => void) | undefined;
+  onDelete?: ((goalId: string) => void) | undefined;
 }
 
 const categoryConfig: Record<Goal['category'], { icon: string; color: string; bgGradient: string; borderColor: string }> = {

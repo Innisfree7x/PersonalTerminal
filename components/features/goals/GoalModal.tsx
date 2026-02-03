@@ -9,9 +9,9 @@ interface GoalModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: CreateGoalInput) => void;
-  initialData?: CreateGoalInput;
+  initialData?: CreateGoalInput | undefined;
   isEdit?: boolean;
-  errorMessage?: string | null;
+  errorMessage?: string | null | undefined;
   isSaving?: boolean;
 }
 

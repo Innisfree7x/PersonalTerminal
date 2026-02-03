@@ -12,8 +12,7 @@ import {
   Briefcase,
   ChevronLeft,
   User,
-  Settings,
-  LogOut
+  Settings
 } from 'lucide-react';
 import { useSidebar } from './SidebarProvider';
 

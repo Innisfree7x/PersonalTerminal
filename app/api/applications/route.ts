@@ -16,10 +16,10 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')));
     const status = searchParams.get('status') || undefined;
 
-    const { applications, total } = await fetchApplications({
+    const { applications } = await fetchApplications({
       page,
       limit,
-      status: status as any,
+      status: status as 'applied' | 'interview' | 'offer' | 'rejected' | undefined,
     });
 
     // Return array directly for frontend compatibility

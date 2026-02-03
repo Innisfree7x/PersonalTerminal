@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Play, Pause, RotateCcw, Coffee } from 'lucide-react';
 import { useState, useEffect, useRef, memo, useCallback } from 'react';
 import { SkeletonCircle, Skeleton } from '@/components/ui';

@@ -19,6 +19,7 @@ export interface CreateTaskInput {
   timeEstimate?: string;
   source?: string;
   sourceId?: string;
+  completed?: boolean;
 }
 
 const API_BASE = '/api/daily-tasks';
@@ -34,11 +35,11 @@ export async function fetchDailyTasks(date: string): Promise<DailyTask[]> {
   }
 
   const data = await response.json();
-  return data.map((task: any) => ({
+  return data.map((task: Record<string, unknown>) => ({
     ...task,
-    date: new Date(task.date),
-    createdAt: new Date(task.createdAt),
-  }));
+    date: new Date(task.date as string),
+    createdAt: new Date(task.createdAt as string),
+  })) as DailyTask[];
 }
 
 /**

@@ -14,7 +14,7 @@ export async function PATCH(
     const body = await request.json();
     
     // Allow partial updates - only validate provided fields
-    const dataToUpdate: any = {};
+    const dataToUpdate: Partial<typeof body> = {};
     
     // Build update object with only provided fields
     if (body.title !== undefined) dataToUpdate.title = body.title;
@@ -42,7 +42,7 @@ export async function PATCH(
     }
     
     // For partial updates, use partial schema validation
-    const validatedData = createGoalSchema.partial().parse(dataToUpdate);
+    const validatedData = createGoalSchema.partial().parse(dataToUpdate) as Partial<import('@/lib/schemas/goal.schema').CreateGoalInput>;
     
     const goal = await updateGoal(goalId, validatedData);
     return NextResponse.json(goal);
@@ -68,7 +68,7 @@ export async function PATCH(
  * DELETE /api/goals/[id] - Delete a goal
  */
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {

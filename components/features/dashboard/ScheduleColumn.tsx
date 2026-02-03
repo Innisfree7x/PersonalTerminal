@@ -59,7 +59,7 @@ function calculateFreeSlots(events: CalendarEvent[], currentTime: Date): FreeSlo
   const freeSlots: FreeSlot[] = [];
 
   const firstEvent = sortedEvents[0];
-  if (firstEvent.startTime > todayStart) {
+  if (firstEvent && firstEvent.startTime > todayStart) {
     const duration = Math.round((firstEvent.startTime.getTime() - todayStart.getTime()) / (1000 * 60));
     if (duration >= 60) {
       freeSlots.push({ startTime: todayStart, endTime: firstEvent.startTime, duration });
@@ -69,6 +69,7 @@ function calculateFreeSlots(events: CalendarEvent[], currentTime: Date): FreeSlo
   for (let i = 0; i < sortedEvents.length - 1; i++) {
     const current = sortedEvents[i];
     const next = sortedEvents[i + 1];
+    if (!current || !next) continue;
     const gapStart = current.endTime;
     const gapEnd = next.startTime;
 
@@ -81,7 +82,7 @@ function calculateFreeSlots(events: CalendarEvent[], currentTime: Date): FreeSlo
   }
 
   const lastEvent = sortedEvents[sortedEvents.length - 1];
-  if (lastEvent.endTime < todayEnd) {
+  if (lastEvent && lastEvent.endTime < todayEnd) {
     const duration = Math.round((todayEnd.getTime() - lastEvent.endTime.getTime()) / (1000 * 60));
     if (duration >= 60) {
       freeSlots.push({ startTime: lastEvent.endTime, endTime: todayEnd, duration });
@@ -91,7 +92,7 @@ function calculateFreeSlots(events: CalendarEvent[], currentTime: Date): FreeSlo
   return freeSlots;
 }
 
-function getFreeSlotSuggestion(slot: FreeSlot, currentTime: Date): string {
+function getFreeSlotSuggestion(slot: FreeSlot): string {
   const hour = slot.startTime.getHours();
   if (hour >= 9 && hour < 12) return '☕ Deep work, Important calls';
   if (hour >= 14 && hour < 17) return '🏋️ Gym, Errands';
@@ -255,7 +256,8 @@ export default function ScheduleColumn({
                 {/* Events */}
                 {groupEvents.map((event, index) => {
                   const isCurrent = currentTime ? isCurrentEvent(event, currentTime) : false;
-                  const isNext = index === 0 && groupEvents[0].startTime > (currentTime || new Date());
+                  const firstGroupEvent = groupEvents[0];
+                  const isNext = index === 0 && firstGroupEvent && firstGroupEvent.startTime > (currentTime || new Date());
 
                   return (
                     <motion.div
@@ -308,7 +310,7 @@ export default function ScheduleColumn({
                           </div>
                         </div>
                         <div className="text-xs text-text-tertiary">
-                          {getFreeSlotSuggestion(slot, currentTime || new Date())}
+                          {getFreeSlotSuggestion(slot)}
                         </div>
                       </div>
                     </div>
