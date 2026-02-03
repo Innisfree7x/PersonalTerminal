@@ -157,7 +157,34 @@ export default function FocusTasks() {
     },
   });
 
-  // REMOVED: completeGoalMutation - Goals no longer auto-added to dashboard
+  const completeGoalMutation = useMutation({
+    mutationFn: async (goalId: string) => {
+      const response = await fetch(`/api/goals/${goalId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'completed' }),
+      });
+      if (!response.ok) throw new Error('Failed to complete goal');
+      return response.json();
+    },
+    onSuccess: async () => {
+      // CRITICAL: Wait for refetch to complete BEFORE clearing hiddenIds!
+      await queryClient.refetchQueries({ queryKey: ['dashboard', 'today'] });
+      await queryClient.refetchQueries({ queryKey: ['goals'] });
+      // Clear hidden IDs only after successful refetch
+      setHiddenIds(new Set());
+    },
+    onError: (error, goalId) => {
+      // Remove from hidden if mutation failed
+      const taskId = `goal-${goalId}`;
+      setHiddenIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(taskId);
+        return newSet;
+      });
+      console.error('Failed to complete goal:', error);
+    },
+  });
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim()) return;
@@ -192,34 +219,9 @@ export default function FocusTasks() {
   });
 
   // REMOVED: Goals due today - user will add manually as daily tasks
-  // User requested to remove auto-added goals from dashboard
-
-  // Add upcoming interviews
-  priorities?.upcomingInterviews.forEach((interview) => {
-    const urgency = interview.daysUntil === 0 ? 'urgent' : interview.daysUntil <= 1 ? 'important' : 'normal';
-    allTasks.push({
-      id: `interview-${interview.id}`,
-      title: `${interview.company} - ${interview.position}`,
-      completed: false,
-      timeEstimate: '2h',
-      urgency,
-      source: 'application',
-    });
-  });
-
-  // Add study tasks
-  studyTasks.forEach((studyTask) => {
-    const countdown = studyTask.daysUntilExam !== null ? `Exam in ${studyTask.daysUntilExam}d` : 'No exam date';
-    allTasks.push({
-      id: `study-${studyTask.id}`,
-      title: `${studyTask.courseName}: Blatt ${studyTask.exerciseNumber}`,
-      completed: false,
-      timeEstimate: countdown,
-      urgency: studyTask.urgency,
-      source: 'study',
-      examDays: studyTask.daysUntilExam,
-    });
-  });
+  // REMOVED: Study tasks - user will add manually as daily tasks
+  // REMOVED: Upcoming interviews - user will add manually as daily tasks
+  // User requested FULL MANUAL CONTROL - only show manually added daily tasks!
 
   // Filter and sort
   const visibleTasks = allTasks.filter((task) => !hiddenIds.has(task.id) && !task.completed);
@@ -283,6 +285,14 @@ export default function FocusTasks() {
                     exerciseNumber: studyTask.exerciseNumber,
                     completed: checked,
                   });
+                }
+              } else if (task.id.startsWith('goal-')) {
+                // GOAL TASK - Mark the actual goal as completed using mutation!
+                const goalId = task.id.replace('goal-', '');
+                
+                if (checked) {
+                  // Use mutation for proper async handling and refetch coordination
+                  completeGoalMutation.mutate(goalId);
                 }
               } else if (task.id.startsWith('interview-')) {
                 // INTERVIEW TASK - Create a daily task (interviews can't be "completed")
