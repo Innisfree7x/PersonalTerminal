@@ -120,10 +120,15 @@ export default function FocusTasks() {
     queryFn: fetchStudyTasks,
   });
 
+  // NEW: Find E-Tech 1 course ID from studyTasks
+  const eTech1Task = studyTasks.find((task) => task.courseName === 'E-Tech 1');
+  const eTech1CourseId = eTech1Task?.courseId;
+
   // NEW: Fetch E-Tech 1 course with ALL exercises for client-side filtering
   const { data: eTech1Course } = useQuery({
-    queryKey: ['course', 'E-Tech-1'],
-    queryFn: () => fetchCourse('E-Tech-1'),
+    queryKey: ['course', eTech1CourseId],
+    queryFn: () => fetchCourse(eTech1CourseId!),
+    enabled: !!eTech1CourseId, // Only fetch if we have the course ID
   });
 
   const createMutation = useMutation({
