@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Badge } from '@/components/ui/Badge';
 import { Plus, Clock, Target, Briefcase, GraduationCap } from 'lucide-react';
+import { createTask, updateTask, toggleExercise } from '@/lib/api/daily-tasks';
 
 interface TodayPriorities {
   goalsDueToday: Array<{
