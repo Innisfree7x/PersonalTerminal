@@ -22,16 +22,8 @@ export async function GET(request: NextRequest) {
       status: status as any,
     });
 
-    return NextResponse.json({
-      applications,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-        hasMore: page * limit < total,
-      },
-    });
+    // Return array directly for frontend compatibility
+    return NextResponse.json(applications);
   } catch (error) {
     console.error('Error fetching applications:', error);
     return NextResponse.json(

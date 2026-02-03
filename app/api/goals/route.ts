@@ -18,23 +18,15 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || undefined;
     const category = searchParams.get('category') || undefined;
 
-    const { goals, total } = await fetchGoals({
+    const { goals } = await fetchGoals({
       page,
       limit,
       status: status as any,
       category: category as any,
     });
 
-    return NextResponse.json({
-      goals,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-        hasMore: page * limit < total,
-      },
-    });
+    // Return array directly for frontend compatibility
+    return NextResponse.json(goals);
   } catch (error) {
     console.error('Error fetching goals:', error);
     return NextResponse.json(
