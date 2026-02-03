@@ -138,27 +138,58 @@ export default function FocusTasks() {
     mutationFn: createTask,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'today'] });
       setNewTaskTitle('');
       setNewTaskTime('');
       setShowAddInput(false);
+    },
+    onError: (error) => {
+      console.error('Failed to create task:', error);
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, completed }: { id: string; completed: boolean }) =>
       updateTask(id, completed),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
+    onSuccess: async () => {
+      // Invalidate and refetch immediately
+      await queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
+      await queryClient.invalidateQueries({ queryKey: ['dashboard', 'today'] });
+      // Clear hidden IDs after successful refetch
+      setHiddenIds(new Set());
+    },
+    onError: (error, variables) => {
+      // Remove from hidden if mutation failed
+      setHiddenIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(variables.id);
+        return newSet;
+      });
+      console.error('Failed to update task:', error);
     },
   });
 
   const toggleExerciseMutation = useMutation({
     mutationFn: ({ courseId, exerciseNumber, completed }: { courseId: string; exerciseNumber: number; completed: boolean }) =>
       toggleExercise(courseId, exerciseNumber, completed),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['study-tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['courses'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'stats'] });
+    onSuccess: async () => {
+      // Invalidate and refetch immediately
+      await queryClient.invalidateQueries({ queryKey: ['study-tasks'] });
+      await queryClient.invalidateQueries({ queryKey: ['courses'] });
+      await queryClient.invalidateQueries({ queryKey: ['dashboard', 'stats'] });
+      await queryClient.invalidateQueries({ queryKey: ['dashboard', 'today'] });
+      // Clear hidden IDs after successful refetch
+      setHiddenIds(new Set());
+    },
+    onError: (error, variables) => {
+      // Remove from hidden if mutation failed
+      const taskId = `study-${variables.courseId}-${variables.exerciseNumber}`;
+      setHiddenIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(taskId);
+        return newSet;
+      });
+      console.error('Failed to toggle exercise:', error);
     },
   });
 
