@@ -97,9 +97,10 @@ export default function FocusTasks() {
 
   const createMutation = useMutation({
     mutationFn: createTask,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'today'] });
+    onSuccess: async () => {
+      // CRITICAL: Use refetchQueries to force immediate refetch
+      await queryClient.refetchQueries({ queryKey: ['daily-tasks'] });
+      await queryClient.refetchQueries({ queryKey: ['dashboard', 'today'] });
       setNewTaskTitle('');
       setNewTaskTime('');
       setShowAddInput(false);
@@ -113,9 +114,10 @@ export default function FocusTasks() {
     mutationFn: ({ id, completed }: { id: string; completed: boolean }) =>
       updateTask(id, completed),
     onSuccess: async () => {
-      // Invalidate and refetch immediately
-      await queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
-      await queryClient.invalidateQueries({ queryKey: ['dashboard', 'today'] });
+      // CRITICAL: Use refetchQueries to force immediate refetch
+      // invalidateQueries only marks as stale, doesn't refetch if component unmounted!
+      await queryClient.refetchQueries({ queryKey: ['daily-tasks'] });
+      await queryClient.refetchQueries({ queryKey: ['dashboard', 'today'] });
       // Clear hidden IDs after successful refetch
       setHiddenIds(new Set());
     },
@@ -134,11 +136,12 @@ export default function FocusTasks() {
     mutationFn: ({ courseId, exerciseNumber, completed }: { courseId: string; exerciseNumber: number; completed: boolean }) =>
       toggleExercise(courseId, exerciseNumber, completed),
     onSuccess: async () => {
-      // Invalidate and refetch immediately
-      await queryClient.invalidateQueries({ queryKey: ['study-tasks'] });
-      await queryClient.invalidateQueries({ queryKey: ['courses'] });
-      await queryClient.invalidateQueries({ queryKey: ['dashboard', 'stats'] });
-      await queryClient.invalidateQueries({ queryKey: ['dashboard', 'today'] });
+      // CRITICAL: Use refetchQueries to force immediate refetch
+      // invalidateQueries only marks as stale, doesn't refetch if component unmounted!
+      await queryClient.refetchQueries({ queryKey: ['study-tasks'] });
+      await queryClient.refetchQueries({ queryKey: ['courses'] });
+      await queryClient.refetchQueries({ queryKey: ['dashboard', 'stats'] });
+      await queryClient.refetchQueries({ queryKey: ['dashboard', 'today'] });
       // Clear hidden IDs after successful refetch
       setHiddenIds(new Set());
     },

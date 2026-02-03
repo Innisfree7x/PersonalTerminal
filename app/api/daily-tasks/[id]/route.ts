@@ -15,11 +15,26 @@ export async function PATCH(
     const { id } = params;
     const body = await request.json();
 
-    const updateData: DailyTaskUpdate = {
-      title: body.title,
-      completed: body.completed,
-      time_estimate: body.timeEstimate || null,
-    };
+    // Build update object with only provided fields (partial update)
+    const updateData: Partial<DailyTaskUpdate> = {};
+    
+    if (body.title !== undefined) {
+      updateData.title = body.title;
+    }
+    if (body.completed !== undefined) {
+      updateData.completed = body.completed;
+    }
+    if (body.timeEstimate !== undefined) {
+      updateData.time_estimate = body.timeEstimate;
+    }
+
+    // Don't update if no fields provided
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json(
+        { message: 'No fields to update' },
+        { status: 400 }
+      );
+    }
 
     const { data, error } = await supabase
       .from('daily_tasks')
@@ -30,6 +45,13 @@ export async function PATCH(
 
     if (error) {
       throw new Error(`Failed to update daily task: ${error.message}`);
+    }
+
+    if (!data) {
+      return NextResponse.json(
+        { message: 'Task not found' },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json(data);
