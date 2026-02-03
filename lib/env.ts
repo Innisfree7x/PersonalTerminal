@@ -16,10 +16,10 @@ import { z } from 'zod';
  * These are only available on the server (API routes, server components)
  */
 const serverSchema = z.object({
-  // Google OAuth credentials
-  GOOGLE_CLIENT_ID: z.string().min(1, 'GOOGLE_CLIENT_ID is required'),
-  GOOGLE_CLIENT_SECRET: z.string().min(1, 'GOOGLE_CLIENT_SECRET is required'),
-  GOOGLE_REDIRECT_URI: z.string().url('GOOGLE_REDIRECT_URI must be a valid URL'),
+  // Google OAuth credentials (optional - only needed for Google Calendar integration)
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_REDIRECT_URI: z.string().optional(),
   
   // Node environment
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
