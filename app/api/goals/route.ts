@@ -3,12 +3,38 @@ import { createGoal, fetchGoals } from '@/lib/supabase/goals';
 import { createGoalSchema } from '@/lib/schemas/goal.schema';
 
 /**
- * GET /api/goals - Fetch all goals
+ * GET /api/goals - Fetch goals with pagination
+ * Query params:
+ * - page: page number (default: 1)
+ * - limit: items per page (default: 20, max: 100)
+ * - status: filter by status (optional)
+ * - category: filter by category (optional)
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const goals = await fetchGoals();
-    return NextResponse.json(goals);
+    const { searchParams } = new URL(request.url);
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')));
+    const status = searchParams.get('status') || undefined;
+    const category = searchParams.get('category') || undefined;
+
+    const { goals, total } = await fetchGoals({
+      page,
+      limit,
+      status: status as any,
+      category: category as any,
+    });
+
+    return NextResponse.json({
+      goals,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasMore: page * limit < total,
+      },
+    });
   } catch (error) {
     console.error('Error fetching goals:', error);
     return NextResponse.json(

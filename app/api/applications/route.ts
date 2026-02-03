@@ -3,12 +3,35 @@ import { createApplication, fetchApplications } from '@/lib/supabase/application
 import { createApplicationSchema } from '@/lib/schemas/application.schema';
 
 /**
- * GET /api/applications - Fetch all applications
+ * GET /api/applications - Fetch applications with pagination
+ * Query params:
+ * - page: page number (default: 1)
+ * - limit: items per page (default: 20, max: 100)
+ * - status: filter by status (optional)
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const applications = await fetchApplications();
-    return NextResponse.json(applications);
+    const { searchParams } = new URL(request.url);
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')));
+    const status = searchParams.get('status') || undefined;
+
+    const { applications, total } = await fetchApplications({
+      page,
+      limit,
+      status: status as any,
+    });
+
+    return NextResponse.json({
+      applications,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasMore: page * limit < total,
+      },
+    });
   } catch (error) {
     console.error('Error fetching applications:', error);
     return NextResponse.json(

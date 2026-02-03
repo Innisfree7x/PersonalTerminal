@@ -48,19 +48,42 @@ export function applicationToSupabaseInsert(
 }
 
 /**
- * Fetch all applications from Supabase
+ * Fetch applications from Supabase with optional pagination and filters
  */
-export async function fetchApplications(): Promise<Application[]> {
-  const { data, error } = await supabase
+export async function fetchApplications(options?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+}): Promise<{ applications: Application[]; total: number }> {
+  const { page = 1, limit = 20, status } = options || {};
+
+  // Build query
+  let query = supabase
     .from('job_applications')
-    .select('*')
+    .select('*', { count: 'exact' });
+
+  // Apply filters
+  if (status) {
+    query = query.eq('status', status);
+  }
+
+  // Apply pagination
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+  query = query
+    .range(from, to)
     .order('application_date', { ascending: false });
+
+  const { data, error, count } = await query;
 
   if (error) {
     throw new Error(`Failed to fetch applications: ${error.message}`);
   }
 
-  return data.map(supabaseApplicationToApplication);
+  return {
+    applications: (data || []).map(supabaseApplicationToApplication),
+    total: count || 0,
+  };
 }
 
 /**

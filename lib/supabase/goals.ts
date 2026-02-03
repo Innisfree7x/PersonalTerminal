@@ -42,19 +42,46 @@ export function goalToSupabaseInsert(goal: CreateGoalInput): GoalInsert {
 }
 
 /**
- * Fetch all goals from Supabase
+ * Fetch goals from Supabase with optional pagination and filters
  */
-export async function fetchGoals(): Promise<Goal[]> {
-  const { data, error } = await supabase
+export async function fetchGoals(options?: {
+  page?: number;
+  limit?: number;
+  status?: 'active' | 'completed' | 'archived';
+  category?: string;
+}): Promise<{ goals: Goal[]; total: number }> {
+  const { page = 1, limit = 20, status, category } = options || {};
+
+  // Build query
+  let query = supabase
     .from('goals')
-    .select('*')
+    .select('*', { count: 'exact' });
+
+  // Apply filters
+  if (status) {
+    query = query.eq('status', status);
+  }
+  if (category) {
+    query = query.eq('category', category);
+  }
+
+  // Apply pagination
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+  query = query
+    .range(from, to)
     .order('created_at', { ascending: false });
+
+  const { data, error, count } = await query;
 
   if (error) {
     throw new Error(`Failed to fetch goals: ${error.message}`);
   }
 
-  return data.map(supabaseGoalToGoal);
+  return {
+    goals: (data || []).map(supabaseGoalToGoal),
+    total: count || 0,
+  };
 }
 
 /**
