@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Smile, Battery } from 'lucide-react';
 import { useState } from 'react';
+import { Skeleton } from '@/components/ui';
 
 type Mood = 'exhausted' | 'tired' | 'okay' | 'good' | 'energized';
 
@@ -15,9 +16,27 @@ interface MoodOption {
 
 interface MoodTrackerProps {
   onMoodSelect?: (mood: Mood) => void;
+  isLoading?: boolean;
 }
 
-export default function MoodTracker({ onMoodSelect }: MoodTrackerProps) {
+export default function MoodTracker({ onMoodSelect, isLoading = false }: MoodTrackerProps) {
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Battery className="w-5 h-5 text-success" />
+          <h3 className="text-base font-semibold text-text-primary">Energy Level</h3>
+        </div>
+        <Skeleton className="h-4 w-48 mb-4" />
+        <div className="grid grid-cols-5 gap-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 rounded-lg" />
+          ))}
+        </div>
+      </div>
+    );
+  }
   const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
 
   const moods: MoodOption[] = [

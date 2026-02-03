@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Plus, FileText, Target, GraduationCap, Briefcase, Calendar } from 'lucide-react';
+import { Skeleton } from '@/components/ui';
 
 interface QuickAction {
   icon: React.ElementType;
@@ -11,7 +12,27 @@ interface QuickAction {
   onClick: () => void;
 }
 
-export default function QuickActionsWidget() {
+interface QuickActionsWidgetProps {
+  isLoading?: boolean;
+}
+
+export default function QuickActionsWidget({ isLoading = false }: QuickActionsWidgetProps) {
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Plus className="w-5 h-5 text-primary" />
+          <h3 className="text-base font-semibold text-text-primary">Quick Actions</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-lg" />
+          ))}
+        </div>
+      </div>
+    );
+  }
   const actions: QuickAction[] = [
     {
       icon: FileText,

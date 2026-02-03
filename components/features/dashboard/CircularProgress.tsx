@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { SkeletonCircle, Skeleton } from '@/components/ui';
 
 interface CircularProgressProps {
   percentage: number;
@@ -9,6 +10,7 @@ interface CircularProgressProps {
   strokeWidth?: number;
   label?: string;
   showPercentage?: boolean;
+  isLoading?: boolean;
 }
 
 export default function CircularProgress({
@@ -17,8 +19,19 @@ export default function CircularProgress({
   strokeWidth = 8,
   label = 'Completion',
   showPercentage = true,
+  isLoading = false,
 }: CircularProgressProps) {
   const [displayPercentage, setDisplayPercentage] = useState(0);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center gap-3">
+        <SkeletonCircle size={size} />
+        {label && <Skeleton className="h-4 w-24" />}
+      </div>
+    );
+  }
   
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;

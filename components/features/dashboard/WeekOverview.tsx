@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, addDays, startOfWeek, isSameDay, isToday } from 'date-fns';
 import { useState } from 'react';
+import { Skeleton } from '@/components/ui';
 
 interface DayEvent {
   date: Date;
@@ -13,9 +14,35 @@ interface DayEvent {
 
 interface WeekOverviewProps {
   events?: DayEvent[];
+  isLoading?: boolean;
 }
 
-export default function WeekOverview({ events = [] }: WeekOverviewProps) {
+export default function WeekOverview({ events = [], isLoading = false }: WeekOverviewProps) {
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-calendar-accent" />
+            <h3 className="text-base font-semibold text-text-primary">Week Overview</h3>
+          </div>
+          <div className="flex items-center gap-1">
+            <Skeleton className="w-6 h-6 rounded" />
+            <Skeleton className="w-6 h-6 rounded" />
+          </div>
+        </div>
+        <div className="grid grid-cols-7 gap-2">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-lg" />
+          ))}
+        </div>
+        <div className="mt-4 pt-4 border-t border-border">
+          <Skeleton className="h-3 w-full" />
+        </div>
+      </div>
+    );
+  }
   const [weekOffset, setWeekOffset] = useState(0);
 
   const getWeekDays = () => {

@@ -3,16 +3,45 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, RotateCcw, Coffee } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { SkeletonCircle, Skeleton } from '@/components/ui';
 
 interface PomodoroTimerProps {
   workDuration?: number; // in minutes
   breakDuration?: number; // in minutes
+  isLoading?: boolean;
 }
 
 export default function PomodoroTimer({ 
   workDuration = 25, 
-  breakDuration = 5 
+  breakDuration = 5,
+  isLoading = false,
 }: PomodoroTimerProps) {
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Coffee className="w-5 h-5 text-warning" />
+            <h3 className="text-base font-semibold text-text-primary">Pomodoro</h3>
+          </div>
+          <Skeleton className="h-6 w-16 rounded-md" />
+        </div>
+        <div className="flex flex-col items-center gap-4 mb-4">
+          <SkeletonCircle size={128} />
+        </div>
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <Skeleton className="w-12 h-12 rounded-full" />
+          <Skeleton className="w-12 h-12 rounded-full" />
+        </div>
+        <div className="flex items-center justify-center gap-1 pb-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="w-8 h-8 rounded-full" />
+          ))}
+        </div>
+      </div>
+    );
+  }
   const [isRunning, setIsRunning] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
   const [timeLeft, setTimeLeft] = useState(workDuration * 60); // in seconds

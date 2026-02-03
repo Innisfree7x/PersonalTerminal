@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Calendar, TrendingUp, Clock, Flame, Target, BookOpen } from 'lucide-react';
+import { Skeleton } from '@/components/ui';
 
 interface QuickStatsBarProps {
   eventsToday: number;
@@ -10,6 +11,7 @@ interface QuickStatsBarProps {
   streak: number;
   goalsThisWeek: { completed: number; total: number };
   exercisesThisWeek: number;
+  isLoading?: boolean;
 }
 
 export default function QuickStatsBar({
@@ -19,7 +21,28 @@ export default function QuickStatsBar({
   streak,
   goalsThisWeek,
   exercisesThisWeek,
+  isLoading = false,
 }: QuickStatsBarProps) {
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="relative overflow-hidden rounded-2xl mb-8 p-4 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/20">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="p-4 rounded-xl border border-border bg-surface/50">
+              <div className="flex items-center gap-3">
+                <Skeleton className="w-10 h-10 rounded-lg" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-6 w-12" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
   const stats = [
     {
       icon: Calendar,

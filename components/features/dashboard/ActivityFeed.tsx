@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Activity, CheckCircle2, Target, GraduationCap, Briefcase, FileText } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { Skeleton } from '@/components/ui';
 
 interface ActivityItem {
   id: string;
@@ -14,9 +15,10 @@ interface ActivityItem {
 interface ActivityFeedProps {
   activities?: ActivityItem[];
   maxItems?: number;
+  isLoading?: boolean;
 }
 
-export default function ActivityFeed({ activities = [], maxItems = 5 }: ActivityFeedProps) {
+export default function ActivityFeed({ activities = [], maxItems = 5, isLoading = false }: ActivityFeedProps) {
   const getIcon = (type: ActivityItem['type']) => {
     switch (type) {
       case 'task':
@@ -67,7 +69,20 @@ export default function ActivityFeed({ activities = [], maxItems = 5 }: Activity
         <h3 className="text-base font-semibold text-text-primary">Recent Activity</h3>
       </div>
 
-      <div className="space-y-3">
+      {isLoading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <Skeleton className="w-8 h-8 rounded-lg flex-shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-3">
         {displayActivities.map((activity, index) => {
           const Icon = getIcon(activity.type);
           const colorClasses = getColor(activity.type);
@@ -100,6 +115,7 @@ export default function ActivityFeed({ activities = [], maxItems = 5 }: Activity
           <p className="text-sm text-text-tertiary text-center py-4">No recent activity</p>
         )}
       </div>
+      )}
     </div>
   );
 }

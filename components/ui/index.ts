@@ -22,3 +22,6 @@ export type { BadgeProps, StatusBadgeProps, PriorityBadgeProps, BadgeVariant, Ba
 // Input
 export { Input, Textarea, InputGroup } from './Input';
 export type { InputProps, TextareaProps, InputGroupProps } from './Input';
+
+// Skeleton
+export { Skeleton, SkeletonCard, SkeletonCircle, SkeletonText } from './Skeleton';
