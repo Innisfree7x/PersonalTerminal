@@ -219,9 +219,21 @@ export default function FocusTasks() {
   });
 
   // REMOVED: Goals due today - user will add manually as daily tasks
-  // REMOVED: Study tasks - user will add manually as daily tasks
   // REMOVED: Upcoming interviews - user will add manually as daily tasks
-  // User requested FULL MANUAL CONTROL - only show manually added daily tasks!
+
+  // Add study tasks (synced with University tab!)
+  studyTasks.forEach((studyTask) => {
+    const countdown = studyTask.daysUntilExam !== null ? `Exam in ${studyTask.daysUntilExam}d` : 'No exam date';
+    allTasks.push({
+      id: `study-${studyTask.id}`,
+      title: `${studyTask.courseName}: Blatt ${studyTask.exerciseNumber}`,
+      completed: false,
+      timeEstimate: countdown,
+      urgency: studyTask.urgency,
+      source: 'study',
+      examDays: studyTask.daysUntilExam,
+    });
+  });
 
   // Filter and sort
   const visibleTasks = allTasks.filter((task) => !hiddenIds.has(task.id) && !task.completed);
