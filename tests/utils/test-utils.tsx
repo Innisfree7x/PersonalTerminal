@@ -18,7 +18,7 @@ export function createTestQueryClient() {
     defaultOptions: {
       queries: {
         retry: false, // Don't retry failed queries in tests
-        cacheTime: 0, // Don't cache query results
+        gcTime: 0, // Don't cache query results (previously cacheTime)
         staleTime: 0, // Consider all queries stale immediately
       },
       mutations: {
