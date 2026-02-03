@@ -75,31 +75,7 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
     fetchWeekEvents();
   }, [weekOffset, propEvents]);
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-calendar-accent" />
-            <h3 className="text-base font-semibold text-text-primary">Week Overview</h3>
-          </div>
-          <div className="flex items-center gap-1">
-            <Skeleton className="w-6 h-6 rounded" />
-            <Skeleton className="w-6 h-6 rounded" />
-          </div>
-        </div>
-        <div className="grid grid-cols-7 gap-2">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <Skeleton key={i} className="h-20 rounded-lg" />
-          ))}
-        </div>
-        <div className="mt-4 pt-4 border-t border-border">
-          <Skeleton className="h-3 w-full" />
-        </div>
-      </div>
-    );
-  }
+  // Define functions (ALWAYS, not conditionally!)
   const getWeekDays = () => {
     const start = addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), weekOffset * 7);
     return Array.from({ length: 7 }, (_, i) => addDays(start, i));
@@ -159,12 +135,25 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
         </div>
       </div>
 
-      {/* Week grid */}
-      <div 
-        className="grid grid-cols-7 gap-2"
-        role="list"
-        aria-label="Week overview calendar"
-      >
+      {isLoading ? (
+        <>
+          <div className="grid grid-cols-7 gap-2">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <Skeleton key={i} className="h-20 rounded-lg" />
+            ))}
+          </div>
+          <div className="mt-4 pt-4 border-t border-border">
+            <Skeleton className="h-3 w-full" />
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Week grid */}
+          <div 
+            className="grid grid-cols-7 gap-2"
+            role="list"
+            aria-label="Week overview calendar"
+          >
         {weekDays.map((day, index) => {
           const eventType = getEventType(day);
           const eventDot = getEventDensityEmoji(eventType);
@@ -222,10 +211,10 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
             </motion.div>
           );
         })}
-      </div>
+          </div>
 
-      {/* Legend */}
-      <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs text-text-tertiary">
+          {/* Legend */}
+          <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs text-text-tertiary">
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-surface-hover"></span> None
         </span>
@@ -238,7 +227,9 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-error"></span> 3+
         </span>
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 });

@@ -89,31 +89,7 @@ const TimeBlockVisualizer = memo(function TimeBlockVisualizer({
     fetchFocusTime();
   }, [propMorningProgress, propAfternoonProgress, propEveningProgress]);
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-4">
-          <Clock className="w-5 h-5 text-info" />
-          <h3 className="text-base font-semibold text-text-primary">Focus Time Today</h3>
-        </div>
-        <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="p-3 bg-surface-hover rounded-lg border border-border">
-              <div className="flex items-center justify-between mb-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-3 w-16" />
-              </div>
-              <Skeleton className="h-2 w-full rounded-full" />
-              <div className="mt-1 text-right">
-                <Skeleton className="h-3 w-8 ml-auto" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  // Define time blocks (ALWAYS, not conditionally!)
   const timeBlocks: TimeBlock[] = [
     {
       period: 'morning',
@@ -161,7 +137,23 @@ const TimeBlockVisualizer = memo(function TimeBlockVisualizer({
         <h3 className="text-base font-semibold text-text-primary">Focus Time Today</h3>
       </div>
 
-      <div className="space-y-3">
+      {isLoading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="p-3 bg-surface-hover rounded-lg border border-border">
+              <div className="flex items-center justify-between mb-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+              <Skeleton className="h-2 w-full rounded-full" />
+              <div className="mt-1 text-right">
+                <Skeleton className="h-3 w-8 ml-auto" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-3">
         {timeBlocks.map((block, index) => {
           const Icon = block.icon;
           const isCurrent = block.period === currentPeriod;
@@ -224,9 +216,11 @@ const TimeBlockVisualizer = memo(function TimeBlockVisualizer({
             </motion.div>
           );
         })}
-      </div>
+        </div>
+      )}
 
       {/* Summary */}
+      {!isLoading && (
       <div className="mt-4 pt-4 border-t border-border">
         <div className="flex items-center justify-between text-sm">
           <span className="text-text-secondary">Total Focus Time:</span>
@@ -235,6 +229,7 @@ const TimeBlockVisualizer = memo(function TimeBlockVisualizer({
           </span>
         </div>
       </div>
+      )}
     </div>
   );
 });
