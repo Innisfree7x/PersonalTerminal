@@ -54,7 +54,10 @@ export default function CareerPage() {
     error,
   } = useQuery({
     queryKey: ['applications'],
-    queryFn: fetchApplications,
+    queryFn: async () => {
+      const response = await fetchApplications();
+      return response.applications; // Extract applications array from response
+    },
   });
 
   // Create mutation

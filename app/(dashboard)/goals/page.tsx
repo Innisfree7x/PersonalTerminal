@@ -37,7 +37,10 @@ export default function GoalsPage() {
     error,
   } = useQuery({
     queryKey: ['goals'],
-    queryFn: fetchGoals,
+    queryFn: async () => {
+      const response = await fetchGoals();
+      return response.goals; // Extract goals array from response
+    },
   });
 
   // Create mutation
