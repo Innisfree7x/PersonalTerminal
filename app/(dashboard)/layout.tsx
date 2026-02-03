@@ -3,6 +3,7 @@
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
 import { SidebarProvider, useSidebar } from '@/components/layout/SidebarProvider';
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 
@@ -36,40 +37,45 @@ function DashboardLayoutInner({
   const { isCollapsed } = useSidebar();
 
   return (
-    <div className="min-h-screen bg-background">
-      <Sidebar />
-      
-      {/* Main content area - dynamically adjusted for sidebar */}
-      <div 
-        className={`min-h-screen transition-all duration-300 ease-in-out ${
-          isCollapsed ? 'lg:pl-20' : 'lg:pl-60'
-        }`}
-      >
-        <Header />
+    <ErrorBoundary
+      fallbackTitle="Dashboard Error"
+      fallbackMessage="Something went wrong while loading the dashboard. Don't worry, your data is safe."
+    >
+      <div className="min-h-screen bg-background">
+        <Sidebar />
         
-        {/* Main content with max-width and centered */}
-        <main className="relative">
-          {/* Subtle gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
+        {/* Main content area - dynamically adjusted for sidebar */}
+        <div 
+          className={`min-h-screen transition-all duration-300 ease-in-out ${
+            isCollapsed ? 'lg:pl-20' : 'lg:pl-60'
+          }`}
+        >
+          <Header />
           
-          {/* Content container */}
-          <div className="relative max-w-[1600px] mx-auto px-6 py-8">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={pathname}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                variants={pageVariants}
-                transition={pageTransition}
-              >
-                {children}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </main>
+          {/* Main content with max-width and centered */}
+          <main className="relative">
+            {/* Subtle gradient background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
+            
+            {/* Content container */}
+            <div className="relative max-w-[1600px] mx-auto px-6 py-8">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={pathname}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  variants={pageVariants}
+                  transition={pageTransition}
+                >
+                  {children}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 }
 

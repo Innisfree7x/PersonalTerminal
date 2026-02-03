@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import FocusTasks from '@/components/features/dashboard/FocusTasks';
 import ScheduleColumn from '@/components/features/dashboard/ScheduleColumn';
 import StatusDashboard from '@/components/features/dashboard/StatusDashboard';
@@ -204,7 +205,9 @@ export default function TodayPage() {
           transition={{ delay: 0.1 }}
           className="space-y-6"
         >
-          <FocusTasks />
+          <ErrorBoundary fallbackTitle="Focus Tasks Error">
+            <FocusTasks />
+          </ErrorBoundary>
         </motion.div>
 
         {/* MIDDLE COLUMN - Schedule OR Widgets (if empty) */}
@@ -214,28 +217,32 @@ export default function TodayPage() {
           transition={{ delay: 0.2 }}
           className="space-y-6"
         >
-          <ScheduleColumn
-            events={events}
-            currentTime={new Date()}
-            isConnected={isConnected}
-            isLoading={isLoading}
-            onConnect={handleConnect}
-            onRefresh={handleRefresh}
-            onDisconnect={handleDisconnect}
-            isRefreshing={false}
-            isDisconnecting={disconnectMutation.isPending}
-          />
+          <ErrorBoundary fallbackTitle="Schedule Error">
+            <ScheduleColumn
+              events={events}
+              currentTime={new Date()}
+              isConnected={isConnected}
+              isLoading={isLoading}
+              onConnect={handleConnect}
+              onRefresh={handleRefresh}
+              onDisconnect={handleDisconnect}
+              isRefreshing={false}
+              isDisconnecting={disconnectMutation.isPending}
+            />
+          </ErrorBoundary>
 
           {/* Show widgets here if schedule is empty */}
           {!hasEvents && (
-            <>
-              <TimeBlockVisualizer
-                morningProgress={50}
-                afternoonProgress={0}
-                eveningProgress={0}
-              />
-              <WeekOverview />
-            </>
+            <ErrorBoundary fallbackTitle="Widgets Error">
+              <>
+                <TimeBlockVisualizer
+                  morningProgress={50}
+                  afternoonProgress={0}
+                  eveningProgress={0}
+                />
+                <WeekOverview />
+              </>
+            </ErrorBoundary>
           )}
         </motion.div>
 
@@ -246,34 +253,38 @@ export default function TodayPage() {
           transition={{ delay: 0.3 }}
           className="space-y-6"
         >
-          {/* Circular Progress instead of old StatusDashboard */}
-          <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-6 flex flex-col items-center">
-            <CircularProgress percentage={85} label="Today's Completion" />
-          </div>
-
-          {/* Quick Actions */}
-          <QuickActionsWidget />
-
-          {/* Pomodoro Timer */}
-          <PomodoroTimer />
-
-          {/* Mood Tracker */}
-          <MoodTracker />
-
-          {/* Activity Feed */}
-          <ActivityFeed />
-
-          {/* Show TimeBlock & Week here if schedule HAS events */}
-          {hasEvents && (
+          <ErrorBoundary fallbackTitle="Widgets Error">
             <>
-              <TimeBlockVisualizer
-                morningProgress={50}
-                afternoonProgress={0}
-                eveningProgress={0}
-              />
-              <WeekOverview />
+              {/* Circular Progress instead of old StatusDashboard */}
+              <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-6 flex flex-col items-center">
+                <CircularProgress percentage={85} label="Today's Completion" />
+              </div>
+
+              {/* Quick Actions */}
+              <QuickActionsWidget />
+
+              {/* Pomodoro Timer */}
+              <PomodoroTimer />
+
+              {/* Mood Tracker */}
+              <MoodTracker />
+
+              {/* Activity Feed */}
+              <ActivityFeed />
+
+              {/* Show TimeBlock & Week here if schedule HAS events */}
+              {hasEvents && (
+                <>
+                  <TimeBlockVisualizer
+                    morningProgress={50}
+                    afternoonProgress={0}
+                    eveningProgress={0}
+                  />
+                  <WeekOverview />
+                </>
+              )}
             </>
-          )}
+          </ErrorBoundary>
         </motion.div>
       </div>
 
