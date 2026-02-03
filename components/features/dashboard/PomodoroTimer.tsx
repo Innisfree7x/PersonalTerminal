@@ -17,19 +17,47 @@ import { SkeletonCircle, Skeleton } from '@/components/ui';
  * />
  */
 interface PomodoroTimerProps {
-  /** Work session duration in minutes (default: 25) */
+  /** Work session duration in minutes (default: 25, min: 1, max: 60) */
   workDuration?: number;
-  /** Break session duration in minutes (default: 5) */
+  /** Break session duration in minutes (default: 5, min: 1, max: 30) */
   breakDuration?: number;
   /** Show loading skeleton (default: false) */
   isLoading?: boolean;
 }
 
+/**
+ * Validate and clamp Pomodoro duration to acceptable range
+ * Prevents invalid or extreme values from breaking the timer
+ */
+function validateDuration(duration: number, min: number, max: number, defaultValue: number): number {
+  // Handle invalid numbers (NaN, Infinity, etc.)
+  if (!Number.isFinite(duration)) {
+    console.warn(`Invalid Pomodoro duration: ${duration}. Using default: ${defaultValue}`);
+    return defaultValue;
+  }
+  
+  // Clamp to acceptable range
+  if (duration < min) {
+    console.warn(`Pomodoro duration ${duration} below minimum ${min}. Using ${min}.`);
+    return min;
+  }
+  
+  if (duration > max) {
+    console.warn(`Pomodoro duration ${duration} above maximum ${max}. Using ${max}.`);
+    return max;
+  }
+  
+  return Math.round(duration); // Ensure integer value
+}
+
 const PomodoroTimer = memo(function PomodoroTimer({ 
-  workDuration = 25, 
-  breakDuration = 5,
+  workDuration: rawWorkDuration = 25, 
+  breakDuration: rawBreakDuration = 5,
   isLoading = false,
 }: PomodoroTimerProps) {
+  // Validate input durations
+  const workDuration = validateDuration(rawWorkDuration, 1, 60, 25);
+  const breakDuration = validateDuration(rawBreakDuration, 1, 30, 5);
   // Loading state
   if (isLoading) {
     return (

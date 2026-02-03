@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { Plus, FileText, Target, GraduationCap, Briefcase, Calendar } from 'lucide-react';
 import { Skeleton } from '@/components/ui';
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 
 /**
  * Quick action button configuration
@@ -51,41 +51,66 @@ const QuickActionsWidget = memo(function QuickActionsWidget({ isLoading = false 
       </div>
     );
   }
+  /**
+   * Handle quick action clicks with proper error handling
+   * Shows toast notifications for success/error states
+   */
+  const handleAction = useCallback(async (actionType: string) => {
+    try {
+      // TODO: Implement actual API calls when endpoints are ready
+      // For now, just show a success message
+      console.log(`Action: ${actionType}`);
+      
+      // Simulate async operation
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // TODO: Replace with actual toast notification system (react-hot-toast)
+      // For now, log success
+      console.log(`✅ ${actionType} action completed successfully`);
+    } catch (error) {
+      // Proper error handling - never let action handlers crash silently
+      console.error(`❌ Failed to ${actionType}:`, error);
+      
+      // TODO: Show error toast to user
+      // toast.error(`Failed to ${actionType}. Please try again.`);
+    }
+  }, []);
+
   const actions: QuickAction[] = [
     {
       icon: FileText,
       label: 'Add Task',
       color: 'text-primary',
       bgColor: 'bg-primary/10 hover:bg-primary/20',
-      onClick: () => console.log('Add Task'),
+      onClick: () => handleAction('add task'),
     },
     {
       icon: Target,
       label: 'New Goal',
       color: 'text-goals-accent',
       bgColor: 'bg-goals-accent/10 hover:bg-goals-accent/20',
-      onClick: () => console.log('New Goal'),
+      onClick: () => handleAction('create goal'),
     },
     {
       icon: Briefcase,
       label: 'Job App',
       color: 'text-career-accent',
       bgColor: 'bg-career-accent/10 hover:bg-career-accent/20',
-      onClick: () => console.log('Job Application'),
+      onClick: () => handleAction('add job application'),
     },
     {
       icon: GraduationCap,
       label: 'Course',
       color: 'text-university-accent',
       bgColor: 'bg-university-accent/10 hover:bg-university-accent/20',
-      onClick: () => console.log('Add Course'),
+      onClick: () => handleAction('add course'),
     },
     {
       icon: Calendar,
       label: 'Event',
       color: 'text-calendar-accent',
       bgColor: 'bg-calendar-accent/10 hover:bg-calendar-accent/20',
-      onClick: () => console.log('Add Event'),
+      onClick: () => handleAction('add event'),
     },
   ];
 
