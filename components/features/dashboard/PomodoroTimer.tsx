@@ -58,32 +58,8 @@ const PomodoroTimer = memo(function PomodoroTimer({
   // Validate input durations
   const workDuration = validateDuration(rawWorkDuration, 1, 60, 25);
   const breakDuration = validateDuration(rawBreakDuration, 1, 30, 5);
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Coffee className="w-5 h-5 text-warning" />
-            <h3 className="text-base font-semibold text-text-primary">Pomodoro</h3>
-          </div>
-          <Skeleton className="h-6 w-16 rounded-md" />
-        </div>
-        <div className="flex flex-col items-center gap-4 mb-4">
-          <SkeletonCircle size={128} />
-        </div>
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <Skeleton className="w-12 h-12 rounded-full" />
-          <Skeleton className="w-12 h-12 rounded-full" />
-        </div>
-        <div className="flex items-center justify-center gap-1 pb-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="w-8 h-8 rounded-full" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS!
   const [isRunning, setIsRunning] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
   const [timeLeft, setTimeLeft] = useState(workDuration * 60); // in seconds
@@ -137,6 +113,33 @@ const PomodoroTimer = memo(function PomodoroTimer({
     setIsBreak((prev) => !prev);
     setTimeLeft(isBreak ? workDuration * 60 : breakDuration * 60);
   }, [isBreak, workDuration, breakDuration]);
+
+  // Loading state - conditional RENDERING after all hooks!
+  if (isLoading) {
+    return (
+      <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Coffee className="w-5 h-5 text-warning" />
+            <h3 className="text-base font-semibold text-text-primary">Pomodoro</h3>
+          </div>
+          <Skeleton className="h-6 w-16 rounded-md" />
+        </div>
+        <div className="flex flex-col items-center gap-4 mb-4">
+          <SkeletonCircle size={128} />
+        </div>
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <Skeleton className="w-12 h-12 rounded-full" />
+          <Skeleton className="w-12 h-12 rounded-full" />
+        </div>
+        <div className="flex items-center justify-center gap-1 pb-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="w-8 h-8 rounded-full" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">

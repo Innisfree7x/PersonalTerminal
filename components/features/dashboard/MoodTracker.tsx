@@ -38,23 +38,7 @@ interface MoodTrackerProps {
 }
 
 const MoodTracker = memo(function MoodTracker({ onMoodSelect, isLoading = false }: MoodTrackerProps) {
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-4">
-          <Battery className="w-5 h-5 text-success" />
-          <h3 className="text-base font-semibold text-text-primary">Energy Level</h3>
-        </div>
-        <Skeleton className="h-4 w-48 mb-4" />
-        <div className="grid grid-cols-5 gap-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 rounded-lg" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  // Hooks MUST be called before any conditional returns!
   const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
 
   const moods: MoodOption[] = [
@@ -72,6 +56,24 @@ const MoodTracker = memo(function MoodTracker({ onMoodSelect, isLoading = false 
       onMoodSelect(mood);
     }
   }, [onMoodSelect]);
+
+  // Loading state - conditional RENDERING, not early return!
+  if (isLoading) {
+    return (
+      <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Battery className="w-5 h-5 text-success" />
+          <h3 className="text-base font-semibold text-text-primary">Energy Level</h3>
+        </div>
+        <Skeleton className="h-4 w-48 mb-4" />
+        <div className="grid grid-cols-5 gap-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 rounded-lg" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
