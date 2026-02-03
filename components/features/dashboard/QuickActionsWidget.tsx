@@ -5,15 +5,32 @@ import { Plus, FileText, Target, GraduationCap, Briefcase, Calendar } from 'luci
 import { Skeleton } from '@/components/ui';
 import { memo } from 'react';
 
+/**
+ * Quick action button configuration
+ */
 interface QuickAction {
+  /** Icon component to display */
   icon: React.ElementType;
+  /** Button label text */
   label: string;
+  /** Text color class */
   color: string;
+  /** Background color class */
   bgColor: string;
+  /** Click handler */
   onClick: () => void;
 }
 
+/**
+ * Quick action buttons for common tasks
+ * Provides easy access to add tasks, goals, applications, courses, and events
+ * 
+ * @component
+ * @example
+ * <QuickActionsWidget />
+ */
 interface QuickActionsWidgetProps {
+  /** Show loading skeleton (default: false) */
   isLoading?: boolean;
 }
 

@@ -5,12 +5,30 @@ import { useEffect, useState, memo, useMemo } from 'react';
 import { SkeletonCircle, Skeleton } from '@/components/ui';
 import { getPercentageColor, getPercentageGlow } from '@/lib/utils/colors';
 
+/**
+ * Circular progress indicator with animated percentage display
+ * Apple Watch-style progress ring with color coding based on completion
+ * 
+ * @component
+ * @example
+ * <CircularProgress 
+ *   percentage={85} 
+ *   label="Today's Completion"
+ *   size={120}
+ * />
+ */
 interface CircularProgressProps {
+  /** Completion percentage (0-100) */
   percentage: number;
+  /** Diameter of the circle in pixels (default: 120) */
   size?: number;
+  /** Width of the progress stroke (default: 8) */
   strokeWidth?: number;
+  /** Text label below the circle */
   label?: string;
+  /** Show percentage number in center (default: true) */
   showPercentage?: boolean;
+  /** Show loading skeleton (default: false) */
   isLoading?: boolean;
 }
 

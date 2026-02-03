@@ -5,9 +5,23 @@ import { Play, Pause, RotateCcw, Coffee } from 'lucide-react';
 import { useState, useEffect, useRef, memo, useCallback } from 'react';
 import { SkeletonCircle, Skeleton } from '@/components/ui';
 
+/**
+ * Pomodoro technique timer widget with work/break cycles
+ * Features circular progress display, play/pause controls, and session tracking
+ * 
+ * @component
+ * @example
+ * <PomodoroTimer 
+ *   workDuration={25}
+ *   breakDuration={5}
+ * />
+ */
 interface PomodoroTimerProps {
-  workDuration?: number; // in minutes
-  breakDuration?: number; // in minutes
+  /** Work session duration in minutes (default: 25) */
+  workDuration?: number;
+  /** Break session duration in minutes (default: 5) */
+  breakDuration?: number;
+  /** Show loading skeleton (default: false) */
   isLoading?: boolean;
 }
 

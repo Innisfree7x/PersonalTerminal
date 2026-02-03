@@ -7,16 +7,37 @@ import { Skeleton } from '@/components/ui';
 import { memo } from 'react';
 import { getCategoryColorClasses, CategoryType } from '@/lib/utils/colors';
 
+/**
+ * Activity item structure for recent user actions
+ */
 interface ActivityItem {
+  /** Unique identifier */
   id: string;
+  /** Type of activity */
   type: 'task' | 'goal' | 'exercise' | 'application' | 'note';
+  /** Description of the action */
   action: string;
+  /** When the activity occurred */
   timestamp: Date;
 }
 
+/**
+ * Displays recent user activity with icons and timestamps
+ * Shows tasks completed, goals added, exercises finished, etc.
+ * 
+ * @component
+ * @example
+ * <ActivityFeed 
+ *   activities={recentActivities}
+ *   maxItems={5}
+ * />
+ */
 interface ActivityFeedProps {
+  /** List of activities to display */
   activities?: ActivityItem[];
+  /** Maximum number of items to show (default: 5) */
   maxItems?: number;
+  /** Show loading skeleton (default: false) */
   isLoading?: boolean;
 }
 

@@ -5,8 +5,14 @@ import { Smile, Battery } from 'lucide-react';
 import { useState, memo, useCallback } from 'react';
 import { Skeleton } from '@/components/ui';
 
+/**
+ * Available mood/energy levels
+ */
 type Mood = 'exhausted' | 'tired' | 'okay' | 'good' | 'energized';
 
+/**
+ * Mood option configuration
+ */
 interface MoodOption {
   value: Mood;
   emoji: string;
@@ -14,8 +20,20 @@ interface MoodOption {
   color: string;
 }
 
+/**
+ * Energy level tracker with emoji selection
+ * Helps users track their daily energy and provides contextual feedback
+ * 
+ * @component
+ * @example
+ * <MoodTracker 
+ *   onMoodSelect={(mood) => console.log('Selected:', mood)}
+ * />
+ */
 interface MoodTrackerProps {
+  /** Callback when a mood is selected */
   onMoodSelect?: (mood: Mood) => void;
+  /** Show loading skeleton (default: false) */
   isLoading?: boolean;
 }
 

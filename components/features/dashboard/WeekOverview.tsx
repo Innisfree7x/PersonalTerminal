@@ -7,14 +7,32 @@ import { useState, memo, useCallback } from 'react';
 import { Skeleton } from '@/components/ui';
 import { getEventDensityColor, getEventDensityEmoji, EventDensity } from '@/lib/utils/colors';
 
+/**
+ * Day event data for calendar display
+ */
 interface DayEvent {
+  /** Date of the events */
   date: Date;
+  /** Number of events on this day */
   count: number;
+  /** Event density classification */
   type: 'none' | 'low' | 'medium' | 'high';
 }
 
+/**
+ * Mini weekly calendar with event density visualization
+ * Shows 7 days with color-coded indicators for event load
+ * 
+ * @component
+ * @example
+ * <WeekOverview 
+ *   events={weekEvents}
+ * />
+ */
 interface WeekOverviewProps {
+  /** Array of day events with counts */
   events?: DayEvent[];
+  /** Show loading skeleton (default: false) */
   isLoading?: boolean;
 }
 

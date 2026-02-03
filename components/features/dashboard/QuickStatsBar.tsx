@@ -5,13 +5,36 @@ import { Calendar, TrendingUp, Clock, Flame, Target, BookOpen } from 'lucide-rea
 import { Skeleton } from '@/components/ui';
 import { memo } from 'react';
 
+/**
+ * Horizontal stats bar displaying key metrics
+ * Shows events, productivity, focus time, streak, goals, and exercises
+ * Features purple gradient background with animated stat cards
+ * 
+ * @component
+ * @example
+ * <QuickStatsBar 
+ *   eventsToday={5}
+ *   productivity={85}
+ *   focusTime={6}
+ *   streak={7}
+ *   goalsThisWeek={{ completed: 2, total: 5 }}
+ *   exercisesThisWeek={12}
+ * />
+ */
 interface QuickStatsBarProps {
+  /** Number of calendar events today */
   eventsToday: number;
+  /** Productivity percentage (0-100) */
   productivity: number;
+  /** Focus time in hours */
   focusTime: number;
+  /** Current day streak */
   streak: number;
+  /** Goals completed this week */
   goalsThisWeek: { completed: number; total: number };
+  /** Exercises completed this week */
   exercisesThisWeek: number;
+  /** Show loading skeleton (default: false) */
   isLoading?: boolean;
 }
 

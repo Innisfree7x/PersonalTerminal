@@ -5,6 +5,9 @@ import { Clock, Sunrise, Sun, Moon } from 'lucide-react';
 import { Skeleton } from '@/components/ui';
 import { memo } from 'react';
 
+/**
+ * Time block configuration for a period of the day
+ */
 interface TimeBlock {
   period: 'morning' | 'afternoon' | 'evening';
   label: string;
@@ -15,10 +18,26 @@ interface TimeBlock {
   bgColor: string;
 }
 
+/**
+ * Visualizes focus time across morning, afternoon, and evening periods
+ * Shows progress bars for each time block with "NOW" indicator
+ * 
+ * @component
+ * @example
+ * <TimeBlockVisualizer 
+ *   morningProgress={75}
+ *   afternoonProgress={30}
+ *   eveningProgress={0}
+ * />
+ */
 interface TimeBlockVisualizerProps {
+  /** Morning focus time progress (0-100) */
   morningProgress?: number;
+  /** Afternoon focus time progress (0-100) */
   afternoonProgress?: number;
+  /** Evening focus time progress (0-100) */
   eveningProgress?: number;
+  /** Show loading skeleton (default: false) */
   isLoading?: boolean;
 }
 
