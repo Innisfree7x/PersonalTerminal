@@ -3,7 +3,8 @@
 import { motion } from 'framer-motion';
 import { Clock, Sunrise, Sun, Moon } from 'lucide-react';
 import { Skeleton } from '@/components/ui';
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
+import { format } from 'date-fns';
 
 /**
  * Time block configuration for a period of the day
@@ -42,11 +43,52 @@ interface TimeBlockVisualizerProps {
 }
 
 const TimeBlockVisualizer = memo(function TimeBlockVisualizer({
-  morningProgress = 0,
-  afternoonProgress = 0,
-  eveningProgress = 0,
-  isLoading = false,
+  morningProgress: propMorningProgress,
+  afternoonProgress: propAfternoonProgress,
+  eveningProgress: propEveningProgress,
+  isLoading: propIsLoading = false,
 }: TimeBlockVisualizerProps) {
+  const [morningProgress, setMorningProgress] = useState(propMorningProgress || 0);
+  const [afternoonProgress, setAfternoonProgress] = useState(propAfternoonProgress || 0);
+  const [eveningProgress, setEveningProgress] = useState(propEveningProgress || 0);
+  const [isLoading, setIsLoading] = useState(propIsLoading);
+
+  // Fetch focus time from API if not provided via props
+  useEffect(() => {
+    if (propMorningProgress !== undefined || propAfternoonProgress !== undefined || propEveningProgress !== undefined) {
+      // Use prop values if provided
+      setMorningProgress(propMorningProgress || 0);
+      setAfternoonProgress(propAfternoonProgress || 0);
+      setEveningProgress(propEveningProgress || 0);
+      return;
+    }
+
+    // Fetch from API
+    const fetchFocusTime = async () => {
+      try {
+        setIsLoading(true);
+        const today = format(new Date(), 'yyyy-MM-dd');
+        const response = await fetch(`/api/dashboard/focus-time?date=${today}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch focus time');
+        }
+
+        const data = await response.json();
+        setMorningProgress(data.morning || 0);
+        setAfternoonProgress(data.afternoon || 0);
+        setEveningProgress(data.evening || 0);
+      } catch (err) {
+        console.error('TimeBlock fetch error:', err);
+        // Keep default values (0) on error
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFocusTime();
+  }, [propMorningProgress, propAfternoonProgress, propEveningProgress]);
+
   // Loading state
   if (isLoading) {
     return (

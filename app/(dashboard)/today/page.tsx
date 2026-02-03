@@ -93,8 +93,21 @@ export default function TodayPage() {
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['calendar', 'today'] });
     queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    queryClient.invalidateQueries({ queryKey: ['user', 'streak'] });
     setSuccess('Events refreshed!');
   };
+
+  // Fetch user streak
+  const { data: streakData } = useQuery({
+    queryKey: ['user', 'streak'],
+    queryFn: async () => {
+      const response = await fetch('/api/user/streak');
+      if (!response.ok) throw new Error('Failed to fetch streak');
+      return response.json();
+    },
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 
   // Check if schedule is empty (no events or not connected)
   const hasEvents = events.length > 0;
@@ -127,7 +140,7 @@ export default function TodayPage() {
         eventsToday={events.length}
         productivity={85}
         focusTime={6}
-        streak={7}
+        streak={streakData?.streak || 0}
         goalsThisWeek={{ completed: 2, total: 5 }}
         exercisesThisWeek={12}
       />

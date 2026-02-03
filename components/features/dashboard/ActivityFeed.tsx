@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Activity, CheckCircle2, Target, GraduationCap, Briefcase, FileText } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui';
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { getCategoryColorClasses, CategoryType } from '@/lib/utils/colors';
 
 /**
@@ -41,7 +41,54 @@ interface ActivityFeedProps {
   isLoading?: boolean;
 }
 
-const ActivityFeed = memo(function ActivityFeed({ activities = [], maxItems = 5, isLoading = false }: ActivityFeedProps) {
+const ActivityFeed = memo(function ActivityFeed({ activities: propActivities, maxItems = 5, isLoading: propIsLoading = false }: ActivityFeedProps) {
+  const [activities, setActivities] = useState<ActivityItem[]>(propActivities || []);
+  const [isLoading, setIsLoading] = useState(propIsLoading);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch activities from API if not provided via props
+  useEffect(() => {
+    if (propActivities && propActivities.length > 0) {
+      // Use prop activities if provided
+      setActivities(propActivities);
+      return;
+    }
+
+    // Fetch from API
+    const fetchActivities = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/activity/recent?limit=${maxItems}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch activities');
+        }
+
+        const data = await response.json();
+        const parsedActivities = data.activities.map((activity: any) => ({
+          ...activity,
+          timestamp: new Date(activity.timestamp),
+        }));
+        
+        setActivities(parsedActivities);
+        setError(null);
+      } catch (err) {
+        console.error('ActivityFeed fetch error:', err);
+        setError('Failed to load activities');
+        // Fallback to mock data on error
+        setActivities([
+          { id: '1', type: 'exercise', action: 'Completed Exercise 3 for GDI 2', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) },
+          { id: '2', type: 'goal', action: 'Added new goal: Learn TypeScript', timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000) },
+          { id: '3', type: 'task', action: 'Completed task: Review PRs', timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) },
+        ] as ActivityItem[]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchActivities();
+  }, [propActivities, maxItems]);
+
   const getIcon = (type: ActivityItem['type']) => {
     switch (type) {
       case 'task':
@@ -59,14 +106,7 @@ const ActivityFeed = memo(function ActivityFeed({ activities = [], maxItems = 5,
     }
   };
 
-  // Mock data if empty
-  const displayActivities = activities.length > 0 
-    ? activities.slice(0, maxItems)
-    : [
-        { id: '1', type: 'exercise', action: 'Completed Exercise 3 for GDI 2', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) },
-        { id: '2', type: 'goal', action: 'Added new goal: Learn TypeScript', timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000) },
-        { id: '3', type: 'task', action: 'Completed task: Review PRs', timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) },
-      ] as ActivityItem[];
+  const displayActivities = activities.slice(0, maxItems);
 
   return (
     <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">

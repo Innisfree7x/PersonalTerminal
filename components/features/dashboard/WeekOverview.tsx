@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, addDays, startOfWeek, isSameDay, isToday } from 'date-fns';
-import { useState, memo, useCallback } from 'react';
+import { useState, memo, useCallback, useEffect } from 'react';
 import { Skeleton } from '@/components/ui';
 import { getEventDensityColor, getEventDensityEmoji, EventDensity } from '@/lib/utils/colors';
 
@@ -36,7 +36,45 @@ interface WeekOverviewProps {
   isLoading?: boolean;
 }
 
-const WeekOverview = memo(function WeekOverview({ events = [], isLoading = false }: WeekOverviewProps) {
+const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading: propIsLoading = false }: WeekOverviewProps) {
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [events, setEvents] = useState<DayEvent[]>(propEvents || []);
+  const [isLoading, setIsLoading] = useState(propIsLoading);
+
+  // Fetch week events from API if not provided via props
+  useEffect(() => {
+    if (propEvents && propEvents.length > 0) {
+      setEvents(propEvents);
+      return;
+    }
+
+    const fetchWeekEvents = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/dashboard/week-events?offset=${weekOffset}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch week events');
+        }
+
+        const data = await response.json();
+        const parsedEvents = data.events.map((event: any) => ({
+          ...event,
+          date: new Date(event.date),
+        }));
+        
+        setEvents(parsedEvents);
+      } catch (err) {
+        console.error('WeekOverview fetch error:', err);
+        setEvents([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchWeekEvents();
+  }, [weekOffset, propEvents]);
+
   // Loading state
   if (isLoading) {
     return (
@@ -62,8 +100,6 @@ const WeekOverview = memo(function WeekOverview({ events = [], isLoading = false
       </div>
     );
   }
-  const [weekOffset, setWeekOffset] = useState(0);
-
   const getWeekDays = () => {
     const start = addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), weekOffset * 7);
     return Array.from({ length: 7 }, (_, i) => addDays(start, i));
