@@ -133,7 +133,6 @@ export default function Header() {
             whileTap={{ scale: 0.95 }}
             onClick={() => {
               // TODO: Open quick add modal
-              console.log('Quick add');
             }}
             aria-label="Quick add"
           >

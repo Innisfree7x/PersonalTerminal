@@ -60,7 +60,7 @@ const MoodTracker = memo(function MoodTracker({ onMoodSelect, isLoading = false 
   // Loading state - conditional RENDERING, not early return!
   if (isLoading) {
     return (
-      <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
+      <div className="card-surface rounded-xl p-4">
         <div className="flex items-center gap-2 mb-4">
           <Battery className="w-5 h-5 text-success" />
           <h3 className="text-base font-semibold text-text-primary">Energy Level</h3>
@@ -76,7 +76,7 @@ const MoodTracker = memo(function MoodTracker({ onMoodSelect, isLoading = false 
   }
 
   return (
-    <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
+    <div className="card-surface rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4">
         <Battery className="w-5 h-5 text-success" />
         <h3 className="text-base font-semibold text-text-primary">Energy Level</h3>

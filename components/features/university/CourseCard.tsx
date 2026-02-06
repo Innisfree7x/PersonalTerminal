@@ -46,18 +46,9 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
 
   const toggleMutation = useMutation({
     mutationFn: async ({ exerciseNumber, completed }: { exerciseNumber: number; completed: boolean }) => {
-      console.log('🔵 [CourseCard] toggleMutation started:', { 
-        course: course.name, 
-        courseId: course.id,
-        exerciseNumber, 
-        completed 
-      });
-      const result = await toggleExercise(course.id, exerciseNumber, completed);
-      console.log('✅ [CourseCard] toggleMutation success!', result);
-      return result;
+      return toggleExercise(course.id, exerciseNumber, completed);
     },
     onMutate: async ({ exerciseNumber, completed }) => {
-      console.log('🟡 [CourseCard] onMutate - Optimistic update', { exerciseNumber, completed });
       await queryClient.cancelQueries({ queryKey: ['courses'] });
       const previousCourses = queryClient.getQueryData(['courses']);
 
@@ -78,22 +69,15 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
 
       return { previousCourses };
     },
-    onError: (err, variables, context) => {
-      console.error('❌ [CourseCard] toggleMutation ERROR:', err);
-      console.error('Variables:', variables);
+    onError: (_err, _variables, context) => {
       if (context?.previousCourses) {
         queryClient.setQueryData(['courses'], context.previousCourses);
-        console.log('🔄 [CourseCard] Restored previous data due to error');
       }
     },
     onSettled: async () => {
-      console.log('🟢 [CourseCard] onSettled - Refetching queries');
-      // CRITICAL: Use refetchQueries to force immediate refetch
-      // invalidateQueries only marks as stale, doesn't refetch if component unmounted!
       await queryClient.refetchQueries({ queryKey: ['courses'] });
       await queryClient.refetchQueries({ queryKey: ['study-tasks'] });
       await queryClient.refetchQueries({ queryKey: ['dashboard'] });
-      console.log('✅ [CourseCard] Refetch complete!');
     },
   });
 

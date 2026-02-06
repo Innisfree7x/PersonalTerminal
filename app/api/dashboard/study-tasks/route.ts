@@ -23,13 +23,9 @@ export async function GET(_request: NextRequest) {
   try {
     const today = startOfDay(new Date());
 
-    // Fetch all courses with exercises (reuse working function!)
     const coursesWithExercises = await fetchCoursesWithExercises();
 
-    console.log('📚 COURSES FETCHED:', coursesWithExercises.length);
-
     if (coursesWithExercises.length === 0) {
-      console.log('❌ NO COURSES FOUND - returning empty');
       return NextResponse.json([]);
     }
 
@@ -87,9 +83,6 @@ export async function GET(_request: NextRequest) {
       return a.exerciseNumber - b.exerciseNumber;
     });
 
-    // Top 5
-    console.log('✅ RETURNING STUDY TASKS:', studyTasks.length, 'tasks');
-    console.log('Tasks:', studyTasks);
     return NextResponse.json(studyTasks.slice(0, 5));
   } catch (error) {
     console.error('Error fetching study tasks:', error);

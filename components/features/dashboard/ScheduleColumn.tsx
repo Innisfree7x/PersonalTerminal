@@ -150,7 +150,7 @@ export default function ScheduleColumn({
 
   if (isConnected === false) {
     return (
-      <div className="bg-surface/50 backdrop-blur-sm rounded-lg border border-border p-8 text-center">
+      <div className="card-surface p-8 text-center">
         <div className="mb-4 text-4xl">📅</div>
         <h3 className="text-lg font-semibold text-text-primary mb-2">Connect Calendar</h3>
         <p className="text-sm text-text-secondary mb-6">
@@ -166,7 +166,7 @@ export default function ScheduleColumn({
 
   if (isLoading) {
     return (
-      <div className="bg-surface/50 backdrop-blur-sm rounded-lg border border-border p-8 text-center">
+      <div className="card-surface p-8 text-center">
         <div className="animate-spin inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full mb-4" />
         <p className="text-sm text-text-tertiary">Loading schedule...</p>
       </div>
@@ -174,7 +174,7 @@ export default function ScheduleColumn({
   }
 
   return (
-    <div className="bg-surface/50 backdrop-blur-sm rounded-lg border border-border p-6">
+    <div className="card-surface p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">

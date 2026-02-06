@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { requireApiAuth } from '@/lib/api/auth';
 
 export const runtime = 'nodejs';
 
@@ -17,6 +18,9 @@ async function extractDocx(buffer: Buffer): Promise<string> {
 }
 
 export async function POST(request: Request) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const formData = await request.formData();
     const file = formData.get('file');

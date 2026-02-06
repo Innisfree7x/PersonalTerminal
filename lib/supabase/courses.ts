@@ -183,14 +183,11 @@ export async function toggleExerciseCompletion(
   exerciseNumber: number,
   completed: boolean
 ): Promise<ExerciseProgress> {
-  console.log('💾 [DB] toggleExerciseCompletion called:', { courseId, exerciseNumber, completed });
-  
   const updateData = {
     completed,
     completed_at: completed ? new Date().toISOString() : null,
   };
-  console.log('💾 [DB] Update data:', updateData);
-  
+
   const { data, error } = await supabase
     .from('exercise_progress')
     .update(updateData)
@@ -200,15 +197,12 @@ export async function toggleExerciseCompletion(
     .single();
 
   if (error) {
-    console.error('❌ [DB] Supabase error:', error);
     throw new Error(`Failed to toggle exercise: ${error.message}`);
   }
 
   if (!data) {
-    console.error('❌ [DB] No data returned from Supabase!');
     throw new Error('No data returned from database');
   }
 
-  console.log('✅ [DB] Exercise updated in DB:', data);
   return supabaseExerciseProgressToExerciseProgress(data);
 }

@@ -101,10 +101,3 @@ export const isTest = serverEnv.NODE_ENV === 'test';
 
 // Validate on import to fail fast
 // This ensures the app won't start if env vars are missing
-if (typeof window === 'undefined') {
-  // Server-side validation
-  console.log('✅ Server environment variables validated');
-}
-
-// Client-side validation happens automatically when imported
-console.log('✅ Client environment variables validated');
