@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchCoursesWithExercises, createCourse } from '@/lib/supabase/courses';
 import { createCourseSchema } from '@/lib/schemas/course.schema';
+import { requireApiAuth } from '@/lib/api/auth';
 
 /**
  * GET /api/courses - Fetch all courses with exercise progress
  */
 export async function GET(_request: NextRequest) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const courses = await fetchCoursesWithExercises();
     return NextResponse.json(courses);
@@ -22,6 +26,9 @@ export async function GET(_request: NextRequest) {
  * POST /api/courses - Create a new course with exercise progress entries
  */
 export async function POST(request: NextRequest) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const body = await request.json();
 

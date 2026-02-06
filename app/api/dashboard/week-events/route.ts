@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase/client';
 import { startOfWeek, addDays, format } from 'date-fns';
+import { requireApiAuth } from '@/lib/api/auth';
 
 /**
  * GET /api/dashboard/week-events
@@ -15,6 +16,9 @@ import { startOfWeek, addDays, format } from 'date-fns';
  *   - type: 'none' | 'low' (1) | 'medium' (2) | 'high' (3+)
  */
 export async function GET(request: Request) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const { searchParams } = new URL(request.url);
     const weekOffset = parseInt(searchParams.get('offset') || '0');

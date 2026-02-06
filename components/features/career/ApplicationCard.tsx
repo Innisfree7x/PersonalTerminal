@@ -127,7 +127,7 @@ export default function ApplicationCard({
   return (
     <motion.div
       onClick={onClick}
-      className={`group relative bg-gradient-to-br from-surface/80 to-surface backdrop-blur-sm border border-border rounded-xl p-6 cursor-pointer overflow-hidden`}
+      className="group relative gradient-card p-6 cursor-pointer"
       whileHover={{ y: -4 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >

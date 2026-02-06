@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { toggleExerciseCompletion } from '@/lib/supabase/courses';
+import { requireApiAuth } from '@/lib/api/auth';
 
 /**
  * PATCH /api/courses/[id]/exercises/[number] - Toggle exercise completion
@@ -8,6 +9,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string; number: string } }
 ) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     console.log('📡 [API] PATCH /api/courses/[id]/exercises/[number] called');
     console.log('📡 [API] Params:', params);

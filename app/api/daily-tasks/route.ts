@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase/client';
 import { createDailyTaskSchema } from '@/lib/schemas/dailyTask.schema';
 import type { Database } from '@/lib/supabase/types';
+import { requireApiAuth } from '@/lib/api/auth';
 
 type DailyTaskInsert = Database['public']['Tables']['daily_tasks']['Insert'];
 
@@ -10,9 +11,12 @@ type DailyTaskInsert = Database['public']['Tables']['daily_tasks']['Insert'];
  * Query params: date (YYYY-MM-DD, defaults to today)
  */
 export async function GET(request: NextRequest) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const dateParam = request.nextUrl.searchParams.get('date');
-    const date = dateParam ?? new Date().toISOString().split('T')[0]!; // YYYY-MM-DD
+    const date = dateParam ?? (new Date().toISOString().split('T')[0] ?? ''); // YYYY-MM-DD
 
     const { data, error } = await supabase
       .from('daily_tasks')
@@ -39,6 +43,9 @@ export async function GET(request: NextRequest) {
  * POST /api/daily-tasks - Create a new daily task
  */
 export async function POST(request: NextRequest) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const body = await request.json();
 

@@ -22,12 +22,12 @@ declare global {
 }
 
 export default function QuickNotes() {
-  const today = new Date().toISOString().split('T')[0]!;
+  const today = new Date().toISOString().split('T')[0] ?? '';
   const [content, setContent] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
 
   const saveMutation = useMutation({
-    mutationFn: (note: string) => saveNote(note, today!),
+    mutationFn: (note: string) => saveNote(note, today),
     onSuccess: () => {
       // Auto-save feedback could be shown here
     },

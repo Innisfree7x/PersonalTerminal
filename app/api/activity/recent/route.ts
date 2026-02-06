@@ -1,13 +1,17 @@
 import { NextResponse } from 'next/server';
+import { requireApiAuth } from '@/lib/api/auth';
 
 /**
  * GET /api/activity/recent - Fetch recent user activity
  * For now, returns mock data.
- * 
+ *
  * TODO: Implement proper authentication and database queries
  * when user_id columns are added to tables
  */
 export async function GET() {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     // TODO: Implement proper authentication and fetch user ID
     // const userId = 'anonymous'; // Placeholder for now

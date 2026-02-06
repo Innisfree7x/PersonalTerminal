@@ -29,7 +29,7 @@ async function fetchDailyTasks(date: string): Promise<DailyTask[]> {
 
 export default function FocusTasks() {
   const queryClient = useQueryClient();
-  const today = new Date().toISOString().split('T')[0]!;
+  const today = new Date().toISOString().split('T')[0] ?? '';
   const [showAddInput, setShowAddInput] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskTime, setNewTaskTime] = useState('');
@@ -37,7 +37,7 @@ export default function FocusTasks() {
 
   const { data: dailyTasks = [] } = useQuery({
     queryKey: ['daily-tasks', today],
-    queryFn: () => fetchDailyTasks(today!),
+    queryFn: () => fetchDailyTasks(today),
   });
 
   // REMOVED: Study Tasks - too complex to sync, user will add manually if needed
@@ -112,7 +112,7 @@ export default function FocusTasks() {
     if (!newTaskTitle.trim()) return;
     const taskData: any = {
       title: newTaskTitle.trim(),
-      date: today!,
+      date: today,
     };
     if (newTaskTime.trim()) {
       taskData.timeEstimate = newTaskTime.trim();
@@ -268,7 +268,7 @@ export default function FocusTasks() {
   };
 
   return (
-    <div className="bg-surface/50 backdrop-blur-sm rounded-lg border border-border p-6 h-fit sticky top-20">
+    <div className="card-surface p-6 h-fit sticky top-20">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
           <Target className="w-5 h-5 text-primary" />
@@ -312,7 +312,7 @@ export default function FocusTasks() {
                 placeholder="Task title"
                 value={newTaskTitle}
                 onChange={(e) => setNewTaskTitle(e.target.value)}
-                className="w-full px-3 py-2 text-sm bg-surface text-text-primary border border-border rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+                className="w-full text-sm input-field"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleAddTask();
                   if (e.key === 'Escape') setShowAddInput(false);
@@ -324,7 +324,7 @@ export default function FocusTasks() {
                 placeholder="Time (e.g. 2h, 30m)"
                 value={newTaskTime}
                 onChange={(e) => setNewTaskTime(e.target.value)}
-                className="w-full px-3 py-2 text-sm bg-surface text-text-primary border border-border rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors font-mono"
+                className="w-full text-sm input-field font-mono"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleAddTask();
                   if (e.key === 'Escape') setShowAddInput(false);

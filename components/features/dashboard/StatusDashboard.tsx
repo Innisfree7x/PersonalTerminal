@@ -48,7 +48,7 @@ export default function StatusDashboard() {
   if (isLoading || !stats) {
     return (
       <div className="space-y-4">
-        <div className="bg-surface/50 backdrop-blur-sm rounded-lg border border-border p-6 animate-pulse">
+        <div className="card-surface p-6 animate-pulse">
           <div className="h-4 bg-surface-hover rounded w-1/2 mb-4" />
           <div className="space-y-3">
             <div className="h-3 bg-surface-hover rounded" />
@@ -115,7 +115,7 @@ export default function StatusDashboard() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-surface/50 backdrop-blur-sm rounded-lg border border-border p-6"
+        className="card-surface p-6"
       >
         <div className="flex items-center gap-2 mb-4">
           <Briefcase className="w-5 h-5 text-career-accent" />
@@ -178,7 +178,7 @@ export default function StatusDashboard() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-surface/50 backdrop-blur-sm rounded-lg border border-border p-6"
+        className="card-surface p-6"
       >
         <div className="flex items-center gap-2 mb-4">
           <Target className="w-5 h-5 text-goals-accent" />
@@ -232,7 +232,7 @@ export default function StatusDashboard() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="bg-surface/50 backdrop-blur-sm rounded-lg border border-border p-6"
+        className="card-surface p-6"
       >
         <div className="flex items-center gap-2 mb-4">
           <GraduationCap className="w-5 h-5 text-university-accent" />

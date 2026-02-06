@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateGoal, deleteGoal } from '@/lib/supabase/goals';
 import { createGoalSchema } from '@/lib/schemas/goal.schema';
+import { requireApiAuth } from '@/lib/api/auth';
 
 /**
  * PATCH /api/goals/[id] - Update a goal
@@ -9,6 +10,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const goalId = params.id;
     const body = await request.json();
@@ -71,6 +75,9 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const goalId = params.id;
     await deleteGoal(goalId);

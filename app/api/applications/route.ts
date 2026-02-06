@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createApplication, fetchApplications } from '@/lib/supabase/applications';
 import { createApplicationSchema } from '@/lib/schemas/application.schema';
+import { requireApiAuth } from '@/lib/api/auth';
 
 /**
  * GET /api/applications - Fetch applications with pagination
@@ -10,6 +11,9 @@ import { createApplicationSchema } from '@/lib/schemas/application.schema';
  * - status: filter by status (optional)
  */
 export async function GET(request: NextRequest) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
@@ -37,6 +41,9 @@ export async function GET(request: NextRequest) {
  * POST /api/applications - Create a new application
  */
 export async function POST(request: NextRequest) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const body = await request.json();
 

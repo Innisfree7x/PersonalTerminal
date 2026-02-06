@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fetchGoals } from '@/lib/supabase/goals';
 import { fetchApplications } from '@/lib/supabase/applications';
 import { startOfDay, endOfDay, addDays, differenceInDays } from 'date-fns';
+import { requireApiAuth } from '@/lib/api/auth';
 
 interface TodayPriorities {
   goalsDueToday: Array<{
@@ -31,6 +32,9 @@ interface TodayPriorities {
  * GET /api/dashboard/today - Fetch today's priorities (goals, interviews, follow-ups)
  */
 export async function GET(_request: NextRequest) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const today = new Date();
     const todayStart = startOfDay(today);
@@ -61,13 +65,16 @@ export async function GET(_request: NextRequest) {
         const interviewDate = startOfDay(app.interviewDate);
         return interviewDate >= todayStart && interviewDate <= startOfDay(threeDaysFromNow);
       })
-      .map((app: any) => ({
-        id: app.id,
-        company: app.company,
-        position: app.position,
-        interviewDate: app.interviewDate!.toISOString(),
-        daysUntil: differenceInDays(startOfDay(app.interviewDate!), todayStart),
-      }))
+      .map((app: any) => {
+        const interviewDate = app.interviewDate as Date;
+        return {
+          id: app.id,
+          company: app.company,
+          position: app.position,
+          interviewDate: interviewDate.toISOString(),
+          daysUntil: differenceInDays(startOfDay(interviewDate), todayStart),
+        };
+      })
       .sort((a: any, b: any) => a.daysUntil - b.daysUntil);
 
     // Fetch pending follow-ups (applied >7 days ago, status='applied')

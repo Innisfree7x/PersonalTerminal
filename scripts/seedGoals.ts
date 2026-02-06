@@ -9,7 +9,7 @@ function goalToInsertRow(goal: (typeof mockGoals)[number]): GoalInsert {
     id: goal.id,
     title: goal.title,
     description: goal.description ?? null,
-    target_date: goal.targetDate.toISOString().split('T')[0]!,
+    target_date: goal.targetDate.toISOString().split('T')[0] ?? '',
     category: goal.category,
     metrics_current: goal.metrics?.current ?? null,
     metrics_target: goal.metrics?.target ?? null,

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase/client';
 import { format } from 'date-fns';
+import { requireApiAuth } from '@/lib/api/auth';
 
 /**
  * GET /api/dashboard/focus-time
@@ -17,6 +18,9 @@ import { format } from 'date-fns';
  * - totalMinutes: total focus time in minutes
  */
 export async function GET(request: Request) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const { searchParams } = new URL(request.url);
     const date = searchParams.get('date') || format(new Date(), 'yyyy-MM-dd');

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateApplication, deleteApplication } from '@/lib/supabase/applications';
 import { createApplicationSchema } from '@/lib/schemas/application.schema';
+import { requireApiAuth } from '@/lib/api/auth';
 
 /**
  * PATCH /api/applications/[id] - Update an existing application
@@ -9,6 +10,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const { id } = params;
     const body = await request.json();
@@ -47,6 +51,9 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const { id } = params;
     await deleteApplication(id);

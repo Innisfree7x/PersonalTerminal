@@ -82,6 +82,24 @@
   }
 }
 
+@layer components {
+  .card-surface {
+    @apply bg-surface/50 backdrop-blur-sm rounded-lg border border-border;
+  }
+
+  .card-surface-hover {
+    @apply bg-surface/50 backdrop-blur-sm rounded-lg border border-border hover:border-primary/30 transition-colors;
+  }
+
+  .input-field {
+    @apply bg-surface text-text-primary border border-border rounded-lg px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors;
+  }
+
+  .gradient-card {
+    @apply bg-gradient-to-br from-surface/80 to-surface backdrop-blur-sm border border-border rounded-xl overflow-hidden;
+  }
+}
+
 @layer utilities {
   /* Custom scrollbar */
   .scrollbar-thin {

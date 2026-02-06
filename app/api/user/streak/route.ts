@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase/client';
 import { startOfDay, subDays, format } from 'date-fns';
+import { requireApiAuth } from '@/lib/api/auth';
 
 /**
  * GET /api/user/streak
@@ -17,6 +18,9 @@ import { startOfDay, subDays, format } from 'date-fns';
  * - longestStreak: highest streak ever (future enhancement)
  */
 export async function GET() {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     // For now, we'll use a dummy userId since we don't have auth yet
     // TODO: Implement proper authentication

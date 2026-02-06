@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateCourse, deleteCourse, fetchCoursesWithExercises } from '@/lib/supabase/courses';
 import type { CreateCourseInput } from '@/lib/schemas/course.schema';
+import { requireApiAuth } from '@/lib/api/auth';
 
 /**
  * GET /api/courses/[id] - Get a single course with exercises
@@ -9,6 +10,9 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const { id } = params;
     
@@ -40,6 +44,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const { id } = params;
     const body = await request.json();
@@ -73,6 +80,9 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const { id } = params;
 

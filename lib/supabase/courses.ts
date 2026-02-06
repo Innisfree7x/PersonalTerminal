@@ -43,7 +43,7 @@ export function courseToSupabaseInsert(course: CreateCourseInput): CourseInsert 
     name: course.name,
     ects: course.ects,
     num_exercises: course.numExercises,
-    exam_date: course.examDate ? course.examDate.toISOString().split('T')[0]! : null,
+    exam_date: course.examDate ? (course.examDate.toISOString().split('T')[0] ?? '') : null,
     semester: course.semester,
   };
 }
@@ -85,7 +85,7 @@ export async function fetchCoursesWithExercises(): Promise<CourseWithExercises[]
     if (!exercisesByCourse[courseId]) {
       exercisesByCourse[courseId] = [];
     }
-    exercisesByCourse[courseId]!.push(supabaseExerciseProgressToExerciseProgress(ex));
+    exercisesByCourse[courseId]?.push(supabaseExerciseProgressToExerciseProgress(ex));
   });
 
   // Combine courses with exercises
@@ -146,7 +146,7 @@ export async function updateCourse(id: string, updates: Partial<CreateCourseInpu
   if (updates.ects !== undefined) updateData.ects = updates.ects;
   if (updates.numExercises !== undefined) updateData.num_exercises = updates.numExercises;
   if (updates.examDate !== undefined) {
-    updateData.exam_date = updates.examDate ? updates.examDate.toISOString().split('T')[0]! : null;
+    updateData.exam_date = updates.examDate ? (updates.examDate.toISOString().split('T')[0] ?? '') : null;
   }
   if (updates.semester !== undefined) updateData.semester = updates.semester;
 

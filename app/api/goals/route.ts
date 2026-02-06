@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createGoal, fetchGoals } from '@/lib/supabase/goals';
 import { createGoalSchema } from '@/lib/schemas/goal.schema';
+import { requireApiAuth } from '@/lib/api/auth';
 
 /**
  * GET /api/goals - Fetch goals with pagination
@@ -11,6 +12,9 @@ import { createGoalSchema } from '@/lib/schemas/goal.schema';
  * - category: filter by category (optional)
  */
 export async function GET(request: NextRequest) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
@@ -40,6 +44,9 @@ export async function GET(request: NextRequest) {
  * POST /api/goals - Create a new goal
  */
 export async function POST(request: NextRequest) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const body = await request.json();
     

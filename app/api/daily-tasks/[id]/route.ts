@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
+import { requireApiAuth } from '@/lib/api/auth';
 
 type DailyTaskUpdate = Database['public']['Tables']['daily_tasks']['Update'];
 
@@ -11,6 +12,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const { id } = params;
     const body = await request.json();
@@ -71,6 +75,9 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const { id } = params;
 

@@ -3,6 +3,7 @@ import { fetchGoals } from '@/lib/supabase/goals';
 import { fetchApplications } from '@/lib/supabase/applications';
 import { supabase } from '@/lib/supabase/client';
 import { startOfWeek, endOfWeek, startOfDay, differenceInDays } from 'date-fns';
+import { requireApiAuth } from '@/lib/api/auth';
 
 interface DashboardStats {
   career: {
@@ -33,6 +34,9 @@ interface DashboardStats {
  * GET /api/dashboard/stats - Fetch dashboard statistics
  */
 export async function GET(_request: NextRequest) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const today = new Date();
     const weekStart = startOfWeek(today, { weekStartsOn: 1 }); // Monday
@@ -50,11 +54,12 @@ export async function GET(_request: NextRequest) {
         if (!a.interviewDate || !b.interviewDate) return 0;
         return new Date(a.interviewDate).getTime() - new Date(b.interviewDate).getTime();
       });
-    const nextInterview = upcomingInterviews[0]
+    const firstUpcoming = upcomingInterviews[0];
+    const nextInterview = firstUpcoming && firstUpcoming.interviewDate
       ? {
-          company: upcomingInterviews[0].company,
-          position: upcomingInterviews[0].position,
-          date: upcomingInterviews[0].interviewDate!.toISOString(),
+          company: firstUpcoming.company,
+          position: firstUpcoming.position,
+          date: new Date(firstUpcoming.interviewDate).toISOString(),
         }
       : undefined;
 
@@ -95,7 +100,7 @@ export async function GET(_request: NextRequest) {
       if (goalsByCategory[cat] === undefined) {
         goalsByCategory[cat] = 0;
       }
-      goalsByCategory[cat]!++;
+      goalsByCategory[cat] = (goalsByCategory[cat] ?? 0) + 1;
     });
 
     const overdueGoals = allGoals.filter((goal: any) => {

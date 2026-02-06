@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchCoursesWithExercises } from '@/lib/supabase/courses';
 import { startOfDay, differenceInDays } from 'date-fns';
+import { requireApiAuth } from '@/lib/api/auth';
 
 interface StudyTask {
   id: string;
@@ -16,6 +17,9 @@ interface StudyTask {
  * GET /api/dashboard/study-tasks - Fetch incomplete exercises prioritized by exam date
  */
 export async function GET(_request: NextRequest) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const today = startOfDay(new Date());
 
@@ -57,7 +61,7 @@ export async function GET(_request: NextRequest) {
         courseId: course.id,
         courseName: course.name,
         exerciseNumber: firstIncomplete.exerciseNumber,
-        examDate: course.examDate ? course.examDate.toISOString().split('T')[0]! : null,
+        examDate: course.examDate ? (course.examDate.toISOString().split('T')[0] ?? '') : null,
         daysUntilExam,
         urgency,
       });

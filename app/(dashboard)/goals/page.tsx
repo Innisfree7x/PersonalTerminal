@@ -145,10 +145,8 @@ export default function GoalsPage() {
 
   const isEditMode = editingGoal !== null;
   const initialData = editingGoal ? goalToCreateInput(editingGoal) : undefined;
-  const saveErrorMessage =
-    (isEditMode ? updateMutation.error : createMutation.error) instanceof Error
-      ? (isEditMode ? updateMutation.error : createMutation.error)!.message
-      : null;
+  const saveError = isEditMode ? updateMutation.error : createMutation.error;
+  const saveErrorMessage = saveError instanceof Error ? saveError.message : null;
   const isSaving = isEditMode ? updateMutation.isPending : createMutation.isPending;
 
   // Loading state
@@ -224,7 +222,7 @@ export default function GoalsPage() {
         transition={{ delay: 0.1 }}
         className="grid grid-cols-2 md:grid-cols-4 gap-4"
       >
-        <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-lg p-4">
+        <div className="card-surface p-4">
           <div className="text-2xl font-bold text-text-primary">{stats.total}</div>
           <div className="text-xs text-text-tertiary">Total Goals</div>
         </div>
@@ -294,7 +292,7 @@ export default function GoalsPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className="px-3 py-2 bg-surface border border-border rounded-lg text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+            className="input-field text-sm"
           >
             <option value="date">Target Date</option>
             <option value="progress">Progress</option>

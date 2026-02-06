@@ -35,9 +35,9 @@ export function applicationToSupabaseInsert(
     company: application.company,
     position: application.position,
     status: application.status,
-    application_date: application.applicationDate.toISOString().split('T')[0]!, // YYYY-MM-DD
+    application_date: application.applicationDate.toISOString().split('T')[0] ?? '', // YYYY-MM-DD
     interview_date: application.interviewDate
-      ? application.interviewDate.toISOString().split('T')[0]!
+      ? (application.interviewDate.toISOString().split('T')[0] ?? '')
       : null,
     notes: application.notes || null,
     salary_range: application.salaryRange || null,
