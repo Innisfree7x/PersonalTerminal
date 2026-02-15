@@ -111,7 +111,11 @@ export default function TodayPage() {
           tasksCompleted={stats.tasksCompleted}
           exercisesCompleted={stats.exercisesThisWeek}
           exercisesTotal={stats.exercisesTotal}
-          nextExam={stats.nextExam}
+          nextExam={
+            stats.nextExam && typeof stats.nextExam.daysUntilExam === 'number'
+              ? { name: stats.nextExam.name, daysUntilExam: stats.nextExam.daysUntilExam }
+              : null
+          }
           goalsDueSoon={stats.goalsDueSoon}
           interviewsUpcoming={stats.interviewsUpcoming}
         />

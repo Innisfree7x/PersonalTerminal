@@ -54,12 +54,6 @@ async function fetchDailyTasks(date: string): Promise<DailyTask[]> {
   return response.json();
 }
 
-async function fetchNextTasks() {
-  const response = await fetch('/api/dashboard/next-tasks');
-  if (!response.ok) throw new Error('Failed to fetch next tasks');
-  return response.json();
-}
-
 export default function FocusTasks() {
   const queryClient = useQueryClient();
   const { play } = useAppSound();
@@ -77,7 +71,11 @@ export default function FocusTasks() {
 
   const { data: nextTasksData } = useQuery({
     queryKey: ['dashboard', 'next-tasks'],
-    queryFn: fetchNextTasks,
+    queryFn: async () => {
+      const response = await fetch('/api/dashboard/next-tasks');
+      if (!response.ok) throw new Error('Failed to fetch next tasks');
+      return response.json();
+    },
     staleTime: 15 * 1000,
   });
 
