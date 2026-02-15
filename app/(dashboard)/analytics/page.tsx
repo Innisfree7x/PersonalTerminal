@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Clock, Target, Flame, TrendingUp, Zap, Award } from 'lucide-react';
 import { fetchFocusAnalytics, fetchFocusSessions } from '@/lib/api/focus-sessions';
@@ -32,12 +32,19 @@ export default function AnalyticsPage() {
     queryKey: ['focus', 'analytics', selectedRange],
     queryFn: () => fetchFocusAnalytics(selectedRange),
     retry: false,
+    staleTime: 60 * 1000,
+    placeholderData: keepPreviousData,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   const { data: recentSessions } = useQuery({
     queryKey: ['focus', 'sessions', 'recent'],
     queryFn: () => fetchFocusSessions({ limit: 10 }),
     retry: false,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   return (

@@ -3,7 +3,7 @@
 import { CalendarEvent } from '@/lib/data/mockEvents';
 import EventCard from '@/components/features/calendar/EventCard';
 import { format, startOfDay, endOfDay } from 'date-fns';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, RefreshCw, X, Clock, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -102,7 +102,7 @@ function getFreeSlotSuggestion(slot: FreeSlot): string {
 
 interface ScheduleColumnProps {
   events: CalendarEvent[];
-  currentTime: Date | null;
+  currentTime?: Date | null;
   isConnected: boolean | null;
   isLoading: boolean;
   onConnect: () => void;
@@ -123,17 +123,41 @@ export default function ScheduleColumn({
   isRefreshing,
   isDisconnecting,
 }: ScheduleColumnProps) {
+  const [localTime, setLocalTime] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLocalTime(new Date());
+    }, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const activeTime = currentTime ?? localTime;
+
   const groupedEvents = useMemo(() => groupEventsByTime(events), [events]);
 
   const currentEvent = useMemo(() => {
-    if (!currentTime) return null;
-    return events.find((event) => isCurrentEvent(event, currentTime)) || null;
-  }, [events, currentTime]);
+    return events.find((event) => isCurrentEvent(event, activeTime)) || null;
+  }, [events, activeTime]);
 
   const freeSlots = useMemo(() => {
-    if (!currentTime || events.length === 0) return [];
-    return calculateFreeSlots(events, currentTime);
-  }, [events, currentTime]);
+    if (events.length === 0) return [];
+    return calculateFreeSlots(events, activeTime);
+  }, [events, activeTime]);
+
+  const freeSlotsByGroup = useMemo(() => {
+    const grouped: Record<TimeGroup, FreeSlot[]> = {
+      morning: [],
+      afternoon: [],
+      evening: [],
+    };
+
+    freeSlots.forEach((slot) => {
+      grouped[getTimeGroup(slot.startTime.getHours())].push(slot);
+    });
+
+    return grouped;
+  }, [freeSlots]);
 
   const timeGroupLabels: Record<TimeGroup, { label: string; icon: string }> = {
     morning: { label: 'Morning', icon: '🌅' },
@@ -228,10 +252,7 @@ export default function ScheduleColumn({
       <div className="space-y-6">
         {(Object.keys(groupedEvents) as TimeGroup[]).map((group) => {
           const groupEvents = groupedEvents[group];
-          const groupFreeSlots = freeSlots.filter((slot) => {
-            const hour = slot.startTime.getHours();
-            return getTimeGroup(hour) === group;
-          });
+          const groupFreeSlots = freeSlotsByGroup[group];
 
           if (groupEvents.length === 0 && groupFreeSlots.length === 0) return null;
 
@@ -255,9 +276,9 @@ export default function ScheduleColumn({
               <div className="space-y-3 pl-4 border-l-2 border-border">
                 {/* Events */}
                 {groupEvents.map((event, index) => {
-                  const isCurrent = currentTime ? isCurrentEvent(event, currentTime) : false;
+                  const isCurrent = isCurrentEvent(event, activeTime);
                   const firstGroupEvent = groupEvents[0];
-                  const isNext = index === 0 && firstGroupEvent && firstGroupEvent.startTime > (currentTime || new Date());
+                  const isNext = index === 0 && firstGroupEvent && firstGroupEvent.startTime > activeTime;
 
                   return (
                     <motion.div

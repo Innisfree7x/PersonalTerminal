@@ -133,14 +133,19 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
     queryKey: ['focus', 'today'],
     queryFn: fetchTodayFocusSummary,
     refetchInterval: 60000,
+    staleTime: 30 * 1000,
     retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   // Save session mutation
   const saveMutation = useMutation({
     mutationFn: createFocusSession,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['focus'] });
+      queryClient.invalidateQueries({ queryKey: ['focus', 'today'] });
+      queryClient.invalidateQueries({ queryKey: ['focus', 'analytics'] });
+      queryClient.invalidateQueries({ queryKey: ['focus', 'sessions'] });
     },
   });
 

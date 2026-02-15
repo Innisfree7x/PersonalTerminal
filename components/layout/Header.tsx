@@ -44,27 +44,44 @@ const routeTitles: Record<string, string> = {
   '/analytics': 'Analytics',
 };
 
-export default function Header() {
-  const pathname = usePathname();
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const { open: openCommandPalette } = useCommandPalette();
-  const { status: timerStatus, timeLeft: timerTimeLeft, sessionType, setIsExpanded: setTimerExpanded } = useFocusTimer();
-  const [currentTime, setCurrentTime] = useState<Date | null>(null);
-  
-  const { data: stats } = useQuery({
-    queryKey: ['dashboard', 'stats'],
-    queryFn: fetchStats,
-    refetchInterval: 60000, // Refetch every minute
-  });
+function HeaderClock() {
+  const [currentTime, setCurrentTime] = useState<Date>(() => new Date());
 
-  // Update time every second
   useEffect(() => {
-    setCurrentTime(new Date());
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  return (
+    <div className="hidden md:flex items-center gap-3 px-4 py-1.5 rounded-lg bg-surface/50 border border-border">
+      <div className="flex flex-col">
+        <span className="text-xs text-text-tertiary">
+          {format(currentTime, 'EEEE, MMMM d, yyyy')}
+        </span>
+        <span className="text-lg font-bold text-text-primary font-mono">
+          {format(currentTime, 'HH:mm:ss')}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export default function Header() {
+  const pathname = usePathname();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const { open: openCommandPalette } = useCommandPalette();
+  const { status: timerStatus, timeLeft: timerTimeLeft, sessionType, setIsExpanded: setTimerExpanded } = useFocusTimer();
+  
+  const { data: stats } = useQuery({
+    queryKey: ['dashboard', 'stats'],
+    queryFn: fetchStats,
+    refetchInterval: 60000, // Refetch every minute
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
 
   const todayCompletion = stats?.metrics.todayCompletion || 0;
   
@@ -98,18 +115,7 @@ export default function Header() {
           </div>
 
           {/* Date & Time */}
-          {currentTime && (
-            <div className="hidden md:flex items-center gap-3 px-4 py-1.5 rounded-lg bg-surface/50 border border-border">
-              <div className="flex flex-col">
-                <span className="text-xs text-text-tertiary">
-                  {format(currentTime, 'EEEE, MMMM d, yyyy')}
-                </span>
-                <span className="text-lg font-bold text-text-primary font-mono">
-                  {format(currentTime, 'HH:mm:ss')}
-                </span>
-              </div>
-            </div>
-          )}
+          <HeaderClock />
         </div>
 
         {/* Right: Actions */}

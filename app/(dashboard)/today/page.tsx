@@ -1,7 +1,7 @@
 'use client';
 
 import { CalendarEvent } from '@/lib/data/mockEvents';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
@@ -56,7 +56,9 @@ export default function TodayPage() {
     queryFn: fetchTodayCalendarEvents,
     enabled: isConnected === true,
     retry: false,
+    staleTime: 30 * 1000,
     refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   // Fetch next-tasks data (powers stats, study progress, deadlines)
@@ -67,6 +69,9 @@ export default function TodayPage() {
       if (!response.ok) throw new Error('Failed to fetch');
       return response.json();
     },
+    staleTime: 15 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   // Disconnect mutation
@@ -82,17 +87,17 @@ export default function TodayPage() {
     },
   });
 
-  const handleConnect = () => connectGoogleCalendar();
-  const handleDisconnect = () => {
+  const handleConnect = useCallback(() => connectGoogleCalendar(), []);
+  const handleDisconnect = useCallback(() => {
     if (confirm('Are you sure you want to disconnect Google Calendar?')) {
       disconnectMutation.mutate();
     }
-  };
-  const handleRefresh = () => {
+  }, [disconnectMutation]);
+  const handleRefresh = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['calendar', 'today'] });
     queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
     toast.success('Refreshed!');
-  };
+  }, [queryClient]);
 
   const stats = nextTasksData?.stats;
   const studyProgress = nextTasksData?.studyProgress || [];
@@ -143,7 +148,6 @@ export default function TodayPage() {
           <ErrorBoundary fallbackTitle="Schedule Error">
             <ScheduleColumn
               events={events}
-              currentTime={new Date()}
               isConnected={isConnected}
               isLoading={isLoading}
               onConnect={handleConnect}

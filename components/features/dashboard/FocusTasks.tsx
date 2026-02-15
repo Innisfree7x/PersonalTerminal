@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Checkbox } from '@/components/ui/Checkbox';
@@ -71,32 +71,30 @@ export default function FocusTasks() {
   const { data: dailyTasks = [] } = useQuery({
     queryKey: ['daily-tasks', today],
     queryFn: () => fetchDailyTasks(today),
+    staleTime: 30 * 1000,
   });
 
   const { data: nextTasksData } = useQuery({
     queryKey: ['dashboard', 'next-tasks'],
     queryFn: fetchNextTasks,
+    staleTime: 15 * 1000,
   });
 
   const createMutation = useMutation({
     mutationFn: createTask,
-    onSuccess: async () => {
-      await queryClient.refetchQueries({ queryKey: ['daily-tasks'] });
-      await queryClient.refetchQueries({ queryKey: ['dashboard', 'next-tasks'] });
-      setNewTaskTitle('');
-      setNewTaskTime('');
-      setShowAddInput(false);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, completed }: { id: string; completed: boolean }) =>
       updateTask(id, completed),
-    onSuccess: async () => {
+    onSuccess: () => {
       play('pop');
-      await queryClient.refetchQueries({ queryKey: ['daily-tasks'] });
-      await queryClient.refetchQueries({ queryKey: ['dashboard', 'next-tasks'] });
-      setHiddenIds(new Set());
+      queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
     },
     onError: (_error, variables) => {
       setHiddenIds((prev) => {
@@ -110,11 +108,10 @@ export default function FocusTasks() {
   const exerciseMutation = useMutation({
     mutationFn: ({ courseId, exerciseNumber }: { courseId: string; exerciseNumber: number }) =>
       toggleExercise(courseId, exerciseNumber, true),
-    onSuccess: async () => {
+    onSuccess: () => {
       play('pop');
-      await queryClient.refetchQueries({ queryKey: ['dashboard', 'next-tasks'] });
-      await queryClient.refetchQueries({ queryKey: ['courses'] });
-      setHiddenIds(new Set());
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
     },
     onError: (_error, variables) => {
       const taskId = `hw-${variables.courseId}-${variables.exerciseNumber}`;
@@ -133,6 +130,9 @@ export default function FocusTasks() {
       date: today,
       ...(newTaskTime.trim() ? { timeEstimate: newTaskTime.trim() } : {}),
     });
+    setNewTaskTitle('');
+    setNewTaskTime('');
+    setShowAddInput(false);
   };
 
   // Build unified task list
@@ -149,80 +149,79 @@ export default function FocusTasks() {
     exerciseNumber?: number | undefined;
   };
 
-  const allTasks: TaskItem[] = [];
+  const { sortedTasks, completedTasks } = useMemo(() => {
+    const allTasks: TaskItem[] = [];
 
-  // Add homework tasks (from university courses)
-  const homeworks: NextHomework[] = nextTasksData?.homeworks || [];
-  homeworks.forEach((hw) => {
-    const urgency: TaskItem['urgency'] =
-      hw.daysUntilExam !== undefined && hw.daysUntilExam < 30
-        ? 'urgent'
-        : hw.daysUntilExam !== undefined && hw.daysUntilExam < 60
-          ? 'important'
-          : 'normal';
+    const homeworks: NextHomework[] = nextTasksData?.homeworks || [];
+    homeworks.forEach((hw) => {
+      const urgency: TaskItem['urgency'] =
+        hw.daysUntilExam !== undefined && hw.daysUntilExam < 30
+          ? 'urgent'
+          : hw.daysUntilExam !== undefined && hw.daysUntilExam < 60
+            ? 'important'
+            : 'normal';
 
-    allTasks.push({
-      id: hw.id,
-      title: `${hw.courseName} - Blatt ${hw.exerciseNumber}`,
-      subtitle: `${hw.completedExercises}/${hw.totalExercises} done${hw.daysUntilExam !== undefined ? ` · Exam in ${hw.daysUntilExam}d` : ''}`,
-      completed: false,
-      source: 'homework',
-      urgency,
-      courseId: hw.courseId,
-      exerciseNumber: hw.exerciseNumber,
+      allTasks.push({
+        id: hw.id,
+        title: `${hw.courseName} - Blatt ${hw.exerciseNumber}`,
+        subtitle: `${hw.completedExercises}/${hw.totalExercises} done${hw.daysUntilExam !== undefined ? ` · Exam in ${hw.daysUntilExam}d` : ''}`,
+        completed: false,
+        source: 'homework',
+        urgency,
+        courseId: hw.courseId,
+        exerciseNumber: hw.exerciseNumber,
+      });
     });
-  });
 
-  // Add upcoming goals
-  const goals: NextGoal[] = nextTasksData?.goals || [];
-  goals.forEach((goal) => {
-    allTasks.push({
-      id: `goal-${goal.id}`,
-      title: goal.title,
-      subtitle: goal.daysUntil === 0 ? 'Due today' : `Due in ${goal.daysUntil}d`,
-      completed: false,
-      source: 'goal',
-      urgency: goal.daysUntil <= 1 ? 'urgent' : goal.daysUntil <= 3 ? 'important' : 'normal',
+    const goals: NextGoal[] = nextTasksData?.goals || [];
+    goals.forEach((goal) => {
+      allTasks.push({
+        id: `goal-${goal.id}`,
+        title: goal.title,
+        subtitle: goal.daysUntil === 0 ? 'Due today' : `Due in ${goal.daysUntil}d`,
+        completed: false,
+        source: 'goal',
+        urgency: goal.daysUntil <= 1 ? 'urgent' : goal.daysUntil <= 3 ? 'important' : 'normal',
+      });
     });
-  });
 
-  // Add upcoming interviews
-  const interviews: NextInterview[] = nextTasksData?.interviews || [];
-  interviews.forEach((interview) => {
-    allTasks.push({
-      id: `interview-${interview.id}`,
-      title: `Interview: ${interview.company}`,
-      subtitle: `${interview.position}${interview.daysUntil === 0 ? ' · Today!' : ` · In ${interview.daysUntil}d`}`,
-      completed: false,
-      source: 'interview',
-      urgency: interview.daysUntil === 0 ? 'urgent' : 'important',
+    const interviews: NextInterview[] = nextTasksData?.interviews || [];
+    interviews.forEach((interview) => {
+      allTasks.push({
+        id: `interview-${interview.id}`,
+        title: `Interview: ${interview.company}`,
+        subtitle: `${interview.position}${interview.daysUntil === 0 ? ' · Today!' : ` · In ${interview.daysUntil}d`}`,
+        completed: false,
+        source: 'interview',
+        urgency: interview.daysUntil === 0 ? 'urgent' : 'important',
+      });
     });
-  });
 
-  // Add manual daily tasks
-  dailyTasks.forEach((task) => {
-    allTasks.push({
-      id: task.id,
-      title: task.title,
-      completed: task.completed,
-      source: 'manual',
-      urgency: 'normal',
-      timeEstimate: task.timeEstimate || undefined,
+    dailyTasks.forEach((task) => {
+      allTasks.push({
+        id: task.id,
+        title: task.title,
+        completed: task.completed,
+        source: 'manual',
+        urgency: 'normal',
+        timeEstimate: task.timeEstimate || undefined,
+      });
     });
-  });
 
-  // Filter and sort
-  const visibleTasks = allTasks.filter((task) => !hiddenIds.has(task.id) && !task.completed);
-  const completedTasks = allTasks.filter((task) => task.completed && !hiddenIds.has(task.id));
+    const visible = allTasks.filter((task) => !hiddenIds.has(task.id) && !task.completed);
+    const done = allTasks.filter((task) => task.completed && !hiddenIds.has(task.id));
 
-  const sortedTasks = [...visibleTasks].sort((a, b) => {
-    const urgencyOrder = { urgent: 0, important: 1, normal: 2 };
-    if (urgencyOrder[a.urgency] !== urgencyOrder[b.urgency]) {
-      return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
-    }
-    const sourceOrder = { interview: 0, homework: 1, goal: 2, manual: 3 };
-    return sourceOrder[a.source] - sourceOrder[b.source];
-  });
+    const sorted = [...visible].sort((a, b) => {
+      const urgencyOrder = { urgent: 0, important: 1, normal: 2 };
+      if (urgencyOrder[a.urgency] !== urgencyOrder[b.urgency]) {
+        return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+      }
+      const sourceOrder = { interview: 0, homework: 1, goal: 2, manual: 3 };
+      return sourceOrder[a.source] - sourceOrder[b.source];
+    });
+
+    return { sortedTasks: sorted, completedTasks: done };
+  }, [nextTasksData, dailyTasks, hiddenIds]);
 
   const getSourceIcon = (source: TaskItem['source']) => {
     switch (source) {
