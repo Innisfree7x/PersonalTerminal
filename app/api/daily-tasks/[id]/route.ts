@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/auth/server';
 import type { Database } from '@/lib/supabase/types';
 import { requireApiAuth } from '@/lib/api/auth';
 
@@ -16,6 +16,7 @@ export async function PATCH(
   if (errorResponse) return errorResponse;
 
   try {
+    const supabase = createClient();
     const { id } = params;
     const body = await request.json();
 
@@ -79,6 +80,7 @@ export async function DELETE(
   if (errorResponse) return errorResponse;
 
   try {
+    const supabase = createClient();
     const { id } = params;
 
     const { error } = await supabase.from('daily_tasks').delete().eq('id', id);

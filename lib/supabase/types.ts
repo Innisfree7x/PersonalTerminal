@@ -188,6 +188,45 @@ export interface Database {
         };
         Relationships: [];
       };
+      focus_sessions: {
+        Row: {
+          id: string;
+          session_type: 'focus' | 'break';
+          duration_seconds: number;
+          planned_duration_seconds: number;
+          started_at: string;
+          ended_at: string;
+          completed: boolean;
+          label: string | null;
+          category: 'study' | 'work' | 'exercise' | 'reading' | 'other' | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_type?: 'focus' | 'break';
+          duration_seconds: number;
+          planned_duration_seconds: number;
+          started_at: string;
+          ended_at: string;
+          completed?: boolean;
+          label?: string | null;
+          category?: 'study' | 'work' | 'exercise' | 'reading' | 'other' | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          session_type?: 'focus' | 'break';
+          duration_seconds?: number;
+          planned_duration_seconds?: number;
+          started_at?: string;
+          ended_at?: string;
+          completed?: boolean;
+          label?: string | null;
+          category?: 'study' | 'work' | 'exercise' | 'reading' | 'other' | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       exercise_progress: {
         Row: {
           id: string;
@@ -249,3 +288,6 @@ export type SupabaseCourse = Database['public']['Tables']['courses']['Row'];
 
 // Helper type to convert Supabase ExerciseProgress Row to our ExerciseProgress type
 export type SupabaseExerciseProgress = Database['public']['Tables']['exercise_progress']['Row'];
+
+// Helper type for Focus Session
+export type SupabaseFocusSession = Database['public']['Tables']['focus_sessions']['Row'];

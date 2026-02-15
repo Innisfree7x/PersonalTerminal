@@ -4,12 +4,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  Target, 
-  GraduationCap, 
+import {
+  LayoutDashboard,
+  Calendar,
+  Target,
+  GraduationCap,
   Briefcase,
+  BarChart3,
   ChevronLeft,
   User,
   Settings
@@ -22,6 +23,7 @@ const navigation = [
   { name: 'Goals', href: '/goals', icon: Target },
   { name: 'University', href: '/university', icon: GraduationCap },
   { name: 'Career', href: '/career', icon: Briefcase },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
 
 export default function Sidebar() {

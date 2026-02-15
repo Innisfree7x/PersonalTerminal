@@ -1,13 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-// import { startOfDay } from 'date-fns'; // Unused for now
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Badge } from '@/components/ui/Badge';
-import { Plus, Clock, Target, Briefcase, GraduationCap } from 'lucide-react';
-import { createTask, updateTask } from '@/lib/api/daily-tasks';
+import { Plus, Clock, Target, Briefcase, GraduationCap, BookOpen } from 'lucide-react';
+import { createTask, updateTask, toggleExercise } from '@/lib/api/daily-tasks';
 
 interface DailyTask {
   id: string;
@@ -20,12 +19,44 @@ interface DailyTask {
   createdAt: string;
 }
 
+interface NextHomework {
+  type: 'homework';
+  id: string;
+  courseId: string;
+  courseName: string;
+  exerciseNumber: number;
+  totalExercises: number;
+  completedExercises: number;
+  daysUntilExam?: number;
+}
+
+interface NextGoal {
+  type: 'goal';
+  id: string;
+  title: string;
+  category: string;
+  daysUntil: number;
+}
+
+interface NextInterview {
+  type: 'interview';
+  id: string;
+  company: string;
+  position: string;
+  daysUntil: number;
+}
+
 async function fetchDailyTasks(date: string): Promise<DailyTask[]> {
   const response = await fetch(`/api/daily-tasks?date=${date}`);
   if (!response.ok) throw new Error('Failed to fetch tasks');
   return response.json();
 }
 
+async function fetchNextTasks() {
+  const response = await fetch('/api/dashboard/next-tasks');
+  if (!response.ok) throw new Error('Failed to fetch next tasks');
+  return response.json();
+}
 
 export default function FocusTasks() {
   const queryClient = useQueryClient();
@@ -40,20 +71,19 @@ export default function FocusTasks() {
     queryFn: () => fetchDailyTasks(today),
   });
 
-  // REMOVED: Study Tasks - too complex to sync, user will add manually if needed
+  const { data: nextTasksData } = useQuery({
+    queryKey: ['dashboard', 'next-tasks'],
+    queryFn: fetchNextTasks,
+  });
 
   const createMutation = useMutation({
     mutationFn: createTask,
     onSuccess: async () => {
-      // CRITICAL: Use refetchQueries to force immediate refetch
       await queryClient.refetchQueries({ queryKey: ['daily-tasks'] });
-      await queryClient.refetchQueries({ queryKey: ['dashboard', 'today'] });
+      await queryClient.refetchQueries({ queryKey: ['dashboard', 'next-tasks'] });
       setNewTaskTitle('');
       setNewTaskTime('');
       setShowAddInput(false);
-    },
-    onError: (error) => {
-      console.error('Failed to create task:', error);
     },
   });
 
@@ -61,222 +91,233 @@ export default function FocusTasks() {
     mutationFn: ({ id, completed }: { id: string; completed: boolean }) =>
       updateTask(id, completed),
     onSuccess: async () => {
-      // CRITICAL: Use refetchQueries to force immediate refetch
-      // invalidateQueries only marks as stale, doesn't refetch if component unmounted!
       await queryClient.refetchQueries({ queryKey: ['daily-tasks'] });
-      await queryClient.refetchQueries({ queryKey: ['dashboard', 'today'] });
-      // Clear hidden IDs after successful refetch
+      await queryClient.refetchQueries({ queryKey: ['dashboard', 'next-tasks'] });
       setHiddenIds(new Set());
     },
-    onError: (error, variables) => {
-      // Remove from hidden if mutation failed
+    onError: (_error, variables) => {
       setHiddenIds((prev) => {
         const newSet = new Set(prev);
         newSet.delete(variables.id);
         return newSet;
       });
-      console.error('Failed to update task:', error);
     },
   });
 
-  const completeGoalMutation = useMutation({
-    mutationFn: async (goalId: string) => {
-      const response = await fetch(`/api/goals/${goalId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'completed' }),
-      });
-      if (!response.ok) throw new Error('Failed to complete goal');
-      return response.json();
-    },
+  const exerciseMutation = useMutation({
+    mutationFn: ({ courseId, exerciseNumber }: { courseId: string; exerciseNumber: number }) =>
+      toggleExercise(courseId, exerciseNumber, true),
     onSuccess: async () => {
-      // CRITICAL: Wait for refetch to complete BEFORE clearing hiddenIds!
-      await queryClient.refetchQueries({ queryKey: ['dashboard', 'today'] });
-      await queryClient.refetchQueries({ queryKey: ['goals'] });
-      // Clear hidden IDs only after successful refetch
+      await queryClient.refetchQueries({ queryKey: ['dashboard', 'next-tasks'] });
+      await queryClient.refetchQueries({ queryKey: ['courses'] });
       setHiddenIds(new Set());
     },
-    onError: (error, goalId) => {
-      // Remove from hidden if mutation failed
-      const taskId = `goal-${goalId}`;
+    onError: (_error, variables) => {
+      const taskId = `hw-${variables.courseId}-${variables.exerciseNumber}`;
       setHiddenIds((prev) => {
         const newSet = new Set(prev);
         newSet.delete(taskId);
         return newSet;
       });
-      console.error('Failed to complete goal:', error);
     },
   });
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim()) return;
-    const taskData: any = {
+    createMutation.mutate({
       title: newTaskTitle.trim(),
       date: today,
-    };
-    if (newTaskTime.trim()) {
-      taskData.timeEstimate = newTaskTime.trim();
-    }
-    createMutation.mutate(taskData);
+      ...(newTaskTime.trim() ? { timeEstimate: newTaskTime.trim() } : {}),
+    });
   };
 
-  // Combine all tasks
-  const allTasks: Array<{
+  // Build unified task list
+  type TaskItem = {
     id: string;
     title: string;
+    subtitle?: string;
     completed: boolean;
-    timeEstimate: string | undefined;
+    source: 'manual' | 'homework' | 'goal' | 'interview';
     urgency: 'urgent' | 'important' | 'normal';
-    source?: string;
-    examDays?: number | null;
-  }> = [];
+    timeEstimate?: string | undefined;
+    // For homework completion
+    courseId?: string | undefined;
+    exerciseNumber?: number | undefined;
+  };
 
-  // Add daily tasks
+  const allTasks: TaskItem[] = [];
+
+  // Add homework tasks (from university courses)
+  const homeworks: NextHomework[] = nextTasksData?.homeworks || [];
+  homeworks.forEach((hw) => {
+    const urgency: TaskItem['urgency'] =
+      hw.daysUntilExam !== undefined && hw.daysUntilExam < 30
+        ? 'urgent'
+        : hw.daysUntilExam !== undefined && hw.daysUntilExam < 60
+          ? 'important'
+          : 'normal';
+
+    allTasks.push({
+      id: hw.id,
+      title: `${hw.courseName} - Blatt ${hw.exerciseNumber}`,
+      subtitle: `${hw.completedExercises}/${hw.totalExercises} done${hw.daysUntilExam !== undefined ? ` · Exam in ${hw.daysUntilExam}d` : ''}`,
+      completed: false,
+      source: 'homework',
+      urgency,
+      courseId: hw.courseId,
+      exerciseNumber: hw.exerciseNumber,
+    });
+  });
+
+  // Add upcoming goals
+  const goals: NextGoal[] = nextTasksData?.goals || [];
+  goals.forEach((goal) => {
+    allTasks.push({
+      id: `goal-${goal.id}`,
+      title: goal.title,
+      subtitle: goal.daysUntil === 0 ? 'Due today' : `Due in ${goal.daysUntil}d`,
+      completed: false,
+      source: 'goal',
+      urgency: goal.daysUntil <= 1 ? 'urgent' : goal.daysUntil <= 3 ? 'important' : 'normal',
+    });
+  });
+
+  // Add upcoming interviews
+  const interviews: NextInterview[] = nextTasksData?.interviews || [];
+  interviews.forEach((interview) => {
+    allTasks.push({
+      id: `interview-${interview.id}`,
+      title: `Interview: ${interview.company}`,
+      subtitle: `${interview.position}${interview.daysUntil === 0 ? ' · Today!' : ` · In ${interview.daysUntil}d`}`,
+      completed: false,
+      source: 'interview',
+      urgency: interview.daysUntil === 0 ? 'urgent' : 'important',
+    });
+  });
+
+  // Add manual daily tasks
   dailyTasks.forEach((task) => {
-    const item: any = {
+    allTasks.push({
       id: task.id,
       title: task.title,
       completed: task.completed,
+      source: 'manual',
+      urgency: 'normal',
       timeEstimate: task.timeEstimate || undefined,
-      urgency: 'normal' as const,
-    };
-    if (task.source) item.source = task.source;
-    allTasks.push(item);
+    });
   });
-
-  // REMOVED: Goals, Interviews, Study Tasks
-  // User will add tasks manually using "Add Quick Task" button
 
   // Filter and sort
   const visibleTasks = allTasks.filter((task) => !hiddenIds.has(task.id) && !task.completed);
+  const completedTasks = allTasks.filter((task) => task.completed && !hiddenIds.has(task.id));
+
   const sortedTasks = [...visibleTasks].sort((a, b) => {
-    if (a.completed !== b.completed) return a.completed ? 1 : -1;
-    if (a.completed) return 0;
-    const typeOrder: Record<string, number> = { career: 0, study: 1, goal: 2, daily: 3 };
-    const orderA = typeOrder[a.source || 'daily'] ?? 3;
-    const orderB = typeOrder[b.source || 'daily'] ?? 3;
-    if (orderA !== orderB) return orderA - orderB;
     const urgencyOrder = { urgent: 0, important: 1, normal: 2 };
-    return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+    if (urgencyOrder[a.urgency] !== urgencyOrder[b.urgency]) {
+      return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+    }
+    const sourceOrder = { interview: 0, homework: 1, goal: 2, manual: 3 };
+    return sourceOrder[a.source] - sourceOrder[b.source];
   });
 
-  const getUrgencyVariant = (urgency: string) => {
-    if (urgency === 'urgent') return 'error';
-    if (urgency === 'important') return 'warning';
-    return 'default';
+  const getSourceIcon = (source: TaskItem['source']) => {
+    switch (source) {
+      case 'homework': return <GraduationCap className="w-4 h-4" />;
+      case 'goal': return <Target className="w-4 h-4" />;
+      case 'interview': return <Briefcase className="w-4 h-4" />;
+      default: return <Clock className="w-4 h-4" />;
+    }
   };
 
-  const getSourceIcon = (source?: string) => {
-    if (source === 'goal') return <Target className="w-4 h-4" />;
-    if (source === 'application' || source === 'career') return <Briefcase className="w-4 h-4" />;
-    if (source === 'study') return <GraduationCap className="w-4 h-4" />;
-    return <Clock className="w-4 h-4" />;
+  const getSourceColor = (source: TaskItem['source']) => {
+    switch (source) {
+      case 'homework': return 'text-university-accent';
+      case 'goal': return 'text-goals-accent';
+      case 'interview': return 'text-career-accent';
+      default: return 'text-text-tertiary';
+    }
   };
 
-  const getExamColor = (days: number | null | undefined) => {
-    if (days === null || days === undefined) return 'text-text-tertiary';
-    if (days < 45) return 'text-error';
-    if (days <= 60) return 'text-warning';
-    return 'text-info';
+  const handleCheck = (task: TaskItem) => {
+    setHiddenIds((prev) => new Set(prev).add(task.id));
+
+    if (task.source === 'homework' && task.courseId && task.exerciseNumber) {
+      exerciseMutation.mutate({
+        courseId: task.courseId,
+        exerciseNumber: task.exerciseNumber,
+      });
+    } else if (task.source === 'manual') {
+      updateMutation.mutate({ id: task.id, completed: true });
+    }
+    // Goals and interviews: just hide for now (they're reminders, not completable here)
   };
 
-  const renderTaskRow = (task: (typeof sortedTasks)[number], index: number) => {
-    const isStudy = task.source === 'study';
-    const studyColor = isStudy ? getExamColor(task.examDays) : '';
-    
-    return (
-      <motion.div
-        key={task.id}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, x: -20 }}
-        transition={{ delay: index * 0.05 }}
-        className="group"
-      >
-        <div className="flex items-start gap-3 p-4 rounded-lg bg-surface border border-border hover:border-primary/50 transition-all">
-          <Checkbox
-            checked={task.completed || hiddenIds.has(task.id)}
-            onCheckedChange={(checked) => {
-              // Hide task immediately (optimistic update)
-              setHiddenIds((prev) => new Set(prev).add(task.id));
+  const renderTaskRow = (task: TaskItem, index: number) => (
+    <motion.div
+      key={task.id}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      transition={{ delay: index * 0.03 }}
+      className="group"
+    >
+      <div className="flex items-start gap-3 p-3 rounded-lg bg-surface border border-border hover:border-primary/50 transition-all">
+        <Checkbox
+          checked={hiddenIds.has(task.id)}
+          onCheckedChange={() => handleCheck(task)}
+        />
 
-              if (task.id.startsWith('goal-')) {
-                // GOAL TASK - Mark the actual goal as completed using mutation!
-                const goalId = task.id.replace('goal-', '');
-                
-                if (checked) {
-                  // Use mutation for proper async handling and refetch coordination
-                  completeGoalMutation.mutate(goalId);
-                }
-              } else if (task.id.startsWith('interview-')) {
-                // INTERVIEW TASK - Create a daily task (interviews can't be "completed")
-                const interviewId = task.id.replace('interview-', '');
-                const existingTask = dailyTasks.find((dt) => dt.sourceId === interviewId && dt.source === 'interview');
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className={`${getSourceColor(task.source)}`}>
+              {getSourceIcon(task.source)}
+            </span>
+            <span className="text-sm font-medium text-text-primary truncate">
+              {task.title}
+            </span>
+          </div>
 
-                if (existingTask) {
-                  updateMutation.mutate({ id: existingTask.id, completed: true });
-                } else if (checked) {
-                  const taskData: any = {
-                    title: task.title,
-                    date: today,
-                    source: 'interview',
-                    sourceId: interviewId,
-                    completed: true,
-                  };
-                  if (task.timeEstimate) {
-                    taskData.timeEstimate = task.timeEstimate;
-                  }
-                  createMutation.mutate(taskData);
-                }
-              } else {
-                updateMutation.mutate({ id: task.id, completed: true });
-              }
-            }}
-          />
-          
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className={`text-sm font-medium ${studyColor || 'text-text-primary'}`}>
-                {task.title}
+          <div className="flex items-center gap-2 ml-6">
+            {task.subtitle && (
+              <span className="text-xs text-text-tertiary">{task.subtitle}</span>
+            )}
+            {task.urgency !== 'normal' && (
+              <Badge
+                variant={task.urgency === 'urgent' ? 'error' : 'warning'}
+                size="sm"
+              >
+                {task.urgency}
+              </Badge>
+            )}
+            {task.timeEstimate && (
+              <span className="text-xs text-text-tertiary font-mono flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {task.timeEstimate}
               </span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              {task.urgency !== 'normal' && (
-                <Badge variant={getUrgencyVariant(task.urgency)} size="sm">
-                  {task.urgency}
-                </Badge>
-              )}
-              
-              {task.source && (
-                <div className="flex items-center gap-1 text-xs text-text-tertiary">
-                  {getSourceIcon(task.source)}
-                </div>
-              )}
-              
-              {task.timeEstimate && (
-                <div className={`flex items-center gap-1 text-xs ${isStudy ? studyColor : 'text-text-tertiary'} font-mono`}>
-                  <Clock className="w-3 h-3" />
-                  {task.timeEstimate}
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
-      </motion.div>
-    );
-  };
+      </div>
+    </motion.div>
+  );
 
   return (
     <div className="card-surface p-6 h-fit sticky top-20">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
-          <Target className="w-5 h-5 text-primary" />
-          Focus Today
+          <BookOpen className="w-5 h-5 text-primary" />
+          Today
         </h2>
-        <Badge variant="primary" size="sm">
-          {sortedTasks.length}
-        </Badge>
+        <div className="flex items-center gap-2">
+          {completedTasks.length > 0 && (
+            <span className="text-xs text-text-tertiary">
+              {completedTasks.length} done
+            </span>
+          )}
+          <Badge variant="primary" size="sm">
+            {sortedTasks.length}
+          </Badge>
+        </div>
       </div>
 
       <AnimatePresence mode="popLayout">
@@ -285,10 +326,10 @@ export default function FocusTasks() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="text-center py-12"
+            className="text-center py-8"
           >
-            <div className="text-4xl mb-2">🎉</div>
-            <p className="text-sm text-text-tertiary">No tasks for today</p>
+            <div className="text-3xl mb-2">🎉</div>
+            <p className="text-sm text-text-tertiary">All caught up!</p>
           </motion.div>
         ) : (
           <div className="space-y-2">
@@ -297,7 +338,7 @@ export default function FocusTasks() {
         )}
       </AnimatePresence>
 
-      {/* Add Task Button/Form */}
+      {/* Add Task */}
       <div className="mt-4 pt-4 border-t border-border">
         <AnimatePresence mode="wait">
           {showAddInput ? (
@@ -354,7 +395,7 @@ export default function FocusTasks() {
               className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm bg-surface-hover text-text-secondary rounded-lg hover:bg-border hover:text-text-primary transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Add Quick Task
+              Add Task
             </motion.button>
           )}
         </AnimatePresence>

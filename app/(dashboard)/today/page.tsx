@@ -8,20 +8,17 @@ import Link from 'next/link';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import FocusTasks from '@/components/features/dashboard/FocusTasks';
 import ScheduleColumn from '@/components/features/dashboard/ScheduleColumn';
-import QuickNotes from '@/components/features/dashboard/QuickNotes';
-import QuickStatsBar from '@/components/features/dashboard/QuickStatsBar';
-import CircularProgress from '@/components/features/dashboard/CircularProgress';
+import DashboardStats from '@/components/features/dashboard/DashboardStats';
 import QuickActionsWidget from '@/components/features/dashboard/QuickActionsWidget';
-import ActivityFeed from '@/components/features/dashboard/ActivityFeed';
-import TimeBlockVisualizer from '@/components/features/dashboard/TimeBlockVisualizer';
-import MoodTracker from '@/components/features/dashboard/MoodTracker';
-import PomodoroTimer from '@/components/features/dashboard/PomodoroTimer';
+import StudyProgress from '@/components/features/dashboard/StudyProgress';
+import UpcomingDeadlines from '@/components/features/dashboard/UpcomingDeadlines';
 import WeekOverview from '@/components/features/dashboard/WeekOverview';
-import { 
-  checkGoogleCalendarConnection, 
-  fetchTodayCalendarEvents, 
+import PomodoroTimer from '@/components/features/dashboard/PomodoroTimer';
+import {
+  checkGoogleCalendarConnection,
+  fetchTodayCalendarEvents,
   disconnectGoogleCalendar,
-  connectGoogleCalendar
+  connectGoogleCalendar,
 } from '@/lib/api/calendar';
 import { useNotifications, parseOAuthCallbackParams } from '@/lib/hooks/useNotifications';
 
@@ -33,7 +30,7 @@ export default function TodayPage() {
   // Check URL params for OAuth callback messages
   useEffect(() => {
     const messages = parseOAuthCallbackParams();
-    
+
     if (messages.error) {
       setError(messages.error);
     }
@@ -54,15 +51,22 @@ export default function TodayPage() {
   }, []);
 
   // Fetch events if connected
-  const {
-    data: events = [],
-    isLoading,
-  } = useQuery<CalendarEvent[]>({
+  const { data: events = [], isLoading } = useQuery<CalendarEvent[]>({
     queryKey: ['calendar', 'today'],
     queryFn: fetchTodayCalendarEvents,
     enabled: isConnected === true,
     retry: false,
     refetchOnWindowFocus: false,
+  });
+
+  // Fetch next-tasks data (powers stats, study progress, deadlines)
+  const { data: nextTasksData } = useQuery({
+    queryKey: ['dashboard', 'next-tasks'],
+    queryFn: async () => {
+      const response = await fetch('/api/dashboard/next-tasks');
+      if (!response.ok) throw new Error('Failed to fetch');
+      return response.json();
+    },
   });
 
   // Disconnect mutation
@@ -78,37 +82,20 @@ export default function TodayPage() {
     },
   });
 
-  const handleConnect = () => {
-    connectGoogleCalendar();
-  };
-
+  const handleConnect = () => connectGoogleCalendar();
   const handleDisconnect = () => {
     if (confirm('Are you sure you want to disconnect Google Calendar?')) {
       disconnectMutation.mutate();
     }
   };
-
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['calendar', 'today'] });
-    queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-    queryClient.invalidateQueries({ queryKey: ['user', 'streak'] });
-    setSuccess('Events refreshed!');
+    queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
+    setSuccess('Refreshed!');
   };
 
-  // Fetch user streak
-  const { data: streakData } = useQuery({
-    queryKey: ['user', 'streak'],
-    queryFn: async () => {
-      const response = await fetch('/api/user/streak');
-      if (!response.ok) throw new Error('Failed to fetch streak');
-      return response.json();
-    },
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
-
-  // Check if schedule is empty (no events or not connected)
-  const hasEvents = events.length > 0;
+  const stats = nextTasksData?.stats;
+  const studyProgress = nextTasksData?.studyProgress || [];
 
   return (
     <div className="space-y-6">
@@ -122,7 +109,6 @@ export default function TodayPage() {
           {error}
         </motion.div>
       )}
-
       {success && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -133,31 +119,34 @@ export default function TodayPage() {
         </motion.div>
       )}
 
-      {/* QUICK STATS BAR - With Purple Background */}
-      <QuickStatsBar
-        eventsToday={events.length}
-        productivity={85}
-        focusTime={6}
-        streak={streakData?.streak || 0}
-        goalsThisWeek={{ completed: 2, total: 5 }}
-        exercisesThisWeek={12}
-      />
+      {/* Stats Bar - Real Data */}
+      {stats && (
+        <DashboardStats
+          tasksToday={stats.tasksToday}
+          tasksCompleted={stats.tasksCompleted}
+          exercisesCompleted={stats.exercisesThisWeek}
+          exercisesTotal={stats.exercisesTotal}
+          nextExam={stats.nextExam}
+          goalsDueSoon={stats.goalsDueSoon}
+          interviewsUpcoming={stats.interviewsUpcoming}
+        />
+      )}
 
-      {/* SMART GRID LAYOUT */}
+      {/* MAIN 3-COLUMN GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* LEFT COLUMN - Focus Tasks */}
+        {/* LEFT - Tasks (with homework integration) */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
           className="space-y-6"
         >
-          <ErrorBoundary fallbackTitle="Focus Tasks Error">
+          <ErrorBoundary fallbackTitle="Tasks Error">
             <FocusTasks />
           </ErrorBoundary>
         </motion.div>
 
-        {/* MIDDLE COLUMN - Schedule OR Widgets (if empty) */}
+        {/* MIDDLE - Schedule */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -178,22 +167,13 @@ export default function TodayPage() {
             />
           </ErrorBoundary>
 
-          {/* Show widgets here if schedule is empty */}
-          {!hasEvents && (
-            <ErrorBoundary fallbackTitle="Widgets Error">
-              <>
-                <TimeBlockVisualizer
-                  morningProgress={50}
-                  afternoonProgress={0}
-                  eveningProgress={0}
-                />
-                <WeekOverview />
-              </>
-            </ErrorBoundary>
-          )}
+          {/* Pomodoro below schedule */}
+          <ErrorBoundary fallbackTitle="Timer Error">
+            <PomodoroTimer />
+          </ErrorBoundary>
         </motion.div>
 
-        {/* RIGHT COLUMN - Status + New Widgets */}
+        {/* RIGHT - Widgets */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -201,36 +181,21 @@ export default function TodayPage() {
           className="space-y-6"
         >
           <ErrorBoundary fallbackTitle="Widgets Error">
-            <>
-              {/* Circular Progress instead of old StatusDashboard */}
-              <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-6 flex flex-col items-center">
-                <CircularProgress percentage={85} label="Today's Completion" />
-              </div>
+            {/* Quick Actions */}
+            <QuickActionsWidget />
 
-              {/* Quick Actions */}
-              <QuickActionsWidget />
+            {/* Study Progress */}
+            <StudyProgress courses={studyProgress} />
 
-              {/* Pomodoro Timer */}
-              <PomodoroTimer />
+            {/* Upcoming Deadlines */}
+            <UpcomingDeadlines
+              goals={nextTasksData?.goals || []}
+              interviews={nextTasksData?.interviews || []}
+              exams={studyProgress}
+            />
 
-              {/* Mood Tracker */}
-              <MoodTracker />
-
-              {/* Activity Feed */}
-              <ActivityFeed />
-
-              {/* Show TimeBlock & Week here if schedule HAS events */}
-              {hasEvents && (
-                <>
-                  <TimeBlockVisualizer
-                    morningProgress={50}
-                    afternoonProgress={0}
-                    eveningProgress={0}
-                  />
-                  <WeekOverview />
-                </>
-              )}
-            </>
+            {/* Week Overview */}
+            <WeekOverview />
           </ErrorBoundary>
         </motion.div>
       </div>
@@ -252,8 +217,6 @@ export default function TodayPage() {
         </motion.div>
       )}
 
-      {/* Quick Notes Floating Input */}
-      <QuickNotes />
     </div>
   );
 }

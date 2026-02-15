@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
 import CommandPaletteProvider from "@/components/shared/CommandPaletteProvider";
+import { FocusTimerProvider } from "@/components/providers/FocusTimerProvider";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -28,9 +29,11 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased`}>
         <AuthProvider>
           <QueryProvider>
-            <CommandPaletteProvider>
-              {children}
-            </CommandPaletteProvider>
+            <FocusTimerProvider>
+              <CommandPaletteProvider>
+                {children}
+              </CommandPaletteProvider>
+            </FocusTimerProvider>
           </QueryProvider>
         </AuthProvider>
         <Analytics />

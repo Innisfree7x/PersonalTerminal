@@ -13,7 +13,10 @@ import { Plus, GraduationCap, BookOpen, Calendar, TrendingUp } from 'lucide-reac
 
 async function fetchCourses(): Promise<CourseWithExercises[]> {
   const response = await fetch('/api/courses');
-  if (!response.ok) throw new Error('Failed to fetch courses');
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || `Failed to fetch courses (${response.status})`);
+  }
   const data = await response.json();
   return data.map((course: any) => ({
     ...course,
@@ -33,7 +36,29 @@ async function createCourse(data: CreateCourseInput): Promise<CourseWithExercise
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  if (!response.ok) throw new Error('Failed to create course');
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || `Failed to create course (${response.status})`);
+  }
+  return response.json();
+}
+
+async function updateCourse({
+  id,
+  data,
+}: {
+  id: string;
+  data: Partial<CreateCourseInput>;
+}): Promise<CourseWithExercises> {
+  const response = await fetch(`/api/courses/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || `Failed to update course (${response.status})`);
+  }
   return response.json();
 }
 
@@ -41,13 +66,17 @@ async function deleteCourse(id: string): Promise<void> {
   const response = await fetch(`/api/courses/${id}`, {
     method: 'DELETE',
   });
-  if (!response.ok) throw new Error('Failed to delete course');
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || `Failed to delete course (${response.status})`);
+  }
 }
 
 export default function UniversityPage() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<CourseWithExercises | null>(null);
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
   const { data: courses = [], isLoading } = useQuery({
     queryKey: ['courses'],
@@ -59,6 +88,24 @@ export default function UniversityPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
       setIsModalOpen(false);
+      setEditingCourse(null);
+      setMutationError(null);
+    },
+    onError: (error: Error) => {
+      setMutationError(error.message);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: updateCourse,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      setIsModalOpen(false);
+      setEditingCourse(null);
+      setMutationError(null);
+    },
+    onError: (error: Error) => {
+      setMutationError(error.message);
     },
   });
 
@@ -66,6 +113,10 @@ export default function UniversityPage() {
     mutationFn: deleteCourse,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
+      setMutationError(null);
+    },
+    onError: (error: Error) => {
+      setMutationError(error.message);
     },
   });
 
@@ -92,8 +143,12 @@ export default function UniversityPage() {
     ? differenceInDays(nextExam.examDate, today)
     : null;
 
-  const handleAddCourse = (data: CreateCourseInput) => {
-    createMutation.mutate(data);
+  const handleSubmitCourse = (data: CreateCourseInput) => {
+    if (editingCourse) {
+      updateMutation.mutate({ id: editingCourse.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
   };
 
   const handleEditCourse = (course: CourseWithExercises) => {
@@ -110,6 +165,7 @@ export default function UniversityPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingCourse(null);
+    setMutationError(null);
   };
 
   // Loading state
@@ -143,7 +199,7 @@ export default function UniversityPage() {
             University
           </h1>
           <p className="text-text-secondary">
-            WS 2024/25 · Track courses and exercise progress
+            WS 2025/26 · Track courses and exercise progress
           </p>
         </div>
         <Button
@@ -158,6 +214,23 @@ export default function UniversityPage() {
           Add Course
         </Button>
       </motion.div>
+
+      {/* Error Banner */}
+      {mutationError && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error"
+        >
+          <span>{mutationError}</span>
+          <button
+            onClick={() => setMutationError(null)}
+            className="ml-4 text-error hover:text-error/80 transition-colors"
+          >
+            &times;
+          </button>
+        </motion.div>
+      )}
 
       {/* Stats Dashboard */}
       <motion.div
@@ -318,7 +391,7 @@ export default function UniversityPage() {
       <CourseModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        onSubmit={handleAddCourse}
+        onSubmit={handleSubmitCourse}
         initialData={
           editingCourse
             ? {
@@ -331,6 +404,8 @@ export default function UniversityPage() {
             : undefined
         }
         isEdit={!!editingCourse}
+        isSaving={createMutation.isPending || updateMutation.isPending}
+        error={mutationError}
       />
     </div>
   );

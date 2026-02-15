@@ -30,7 +30,7 @@ export default function ApplicationForm({
     reset,
   } = useForm<CreateApplicationInput>({
     resolver: zodResolver(createApplicationSchema),
-    defaultValues: initialData || {
+    defaultValues: {
       company: '',
       position: '',
       status: 'applied',
@@ -43,11 +43,21 @@ export default function ApplicationForm({
     },
   });
 
-  // Reset form when initialData changes
+  const defaultFormValues: CreateApplicationInput = {
+    company: '',
+    position: '',
+    status: 'applied',
+    applicationDate: new Date(),
+    interviewDate: undefined,
+    notes: '',
+    salaryRange: '',
+    location: '',
+    jobUrl: '',
+  };
+
+  // Reset form when initialData changes (edit → add or switching between items)
   useEffect(() => {
-    if (initialData) {
-      reset(initialData);
-    }
+    reset(initialData ?? defaultFormValues);
   }, [initialData, reset]);
 
   const onSubmitForm = (data: CreateApplicationInput) => {

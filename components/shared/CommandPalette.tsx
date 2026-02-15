@@ -11,9 +11,14 @@ import {
   Briefcase,
   GraduationCap,
   Calendar,
+  BarChart3,
   Plus,
+  Play,
+  Pause,
+  Square,
   Zap,
 } from 'lucide-react';
+import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -23,6 +28,7 @@ interface CommandPaletteProps {
 export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const router = useRouter();
   const [search, setSearch] = useState('');
+  const { status: timerStatus, startTimer, pauseTimer, resumeTimer, stopTimer, setIsExpanded: setTimerExpanded } = useFocusTimer();
 
   // Navigation commands
   const navigationCommands = [
@@ -60,6 +66,13 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       icon: Calendar,
       action: () => router.push('/calendar'),
       keywords: ['calendar', 'schedule', 'events'],
+    },
+    {
+      id: 'nav-analytics',
+      label: 'Analytics',
+      icon: BarChart3,
+      action: () => router.push('/analytics'),
+      keywords: ['analytics', 'stats', 'focus', 'charts', 'productivity'],
     },
   ];
 
@@ -111,7 +124,56 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     },
   ];
 
-  const allCommands = [...navigationCommands, ...quickActions];
+  // Focus timer commands
+  const focusCommands = [
+    ...(timerStatus === 'idle'
+      ? [
+          {
+            id: 'focus-start',
+            label: 'Start Focus Timer',
+            icon: Play,
+            action: () => { startTimer(); setTimerExpanded(true); },
+            keywords: ['focus', 'timer', 'start', 'pomodoro', 'study'],
+            shortcut: 'Alt+F',
+          },
+        ]
+      : []),
+    ...(timerStatus === 'running' || timerStatus === 'break'
+      ? [
+          {
+            id: 'focus-pause',
+            label: 'Pause Timer',
+            icon: Pause,
+            action: () => pauseTimer(),
+            keywords: ['focus', 'timer', 'pause'],
+          },
+        ]
+      : []),
+    ...(timerStatus === 'paused' || timerStatus === 'break_paused'
+      ? [
+          {
+            id: 'focus-resume',
+            label: 'Resume Timer',
+            icon: Play,
+            action: () => resumeTimer(),
+            keywords: ['focus', 'timer', 'resume', 'continue'],
+          },
+        ]
+      : []),
+    ...(timerStatus !== 'idle'
+      ? [
+          {
+            id: 'focus-stop',
+            label: 'Stop Timer',
+            icon: Square,
+            action: () => stopTimer(),
+            keywords: ['focus', 'timer', 'stop', 'end'],
+          },
+        ]
+      : []),
+  ];
+
+  const allCommands = [...navigationCommands, ...quickActions, ...focusCommands];
 
   const handleSelect = useCallback(
     (command: typeof allCommands[0]) => {
@@ -203,6 +265,34 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                       );
                     })}
                   </Command.Group>
+
+                  {/* Focus Timer Section */}
+                  {focusCommands.length > 0 && (
+                    <Command.Group
+                      heading="Focus Timer"
+                      className="px-2 py-2 text-xs font-semibold text-text-tertiary uppercase tracking-wider mt-2"
+                    >
+                      {focusCommands.map((command) => {
+                        const Icon = command.icon;
+                        return (
+                          <Command.Item
+                            key={command.id}
+                            value={`${command.label} ${command.keywords.join(' ')}`}
+                            onSelect={() => handleSelect(command)}
+                            className="flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary transition-colors mb-1"
+                          >
+                            <Icon className="w-4 h-4 flex-shrink-0" />
+                            <span className="flex-1 text-sm font-medium">{command.label}</span>
+                            {'shortcut' in command && command.shortcut && (
+                              <kbd className="px-2 py-0.5 bg-surface-hover border border-border rounded text-xs text-text-tertiary">
+                                {command.shortcut}
+                              </kbd>
+                            )}
+                          </Command.Item>
+                        );
+                      })}
+                    </Command.Group>
+                  )}
 
                   {/* Quick Actions Section */}
                   <Command.Group

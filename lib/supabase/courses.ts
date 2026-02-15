@@ -1,4 +1,4 @@
-import { supabase } from './client';
+import { createClient } from '@/lib/auth/server';
 import type { Database, SupabaseCourse, SupabaseExerciseProgress } from './types';
 import type { Course, CreateCourseInput, ExerciseProgress, CourseWithExercises } from '../schemas/course.schema';
 
@@ -52,6 +52,8 @@ export function courseToSupabaseInsert(course: CreateCourseInput): CourseInsert 
  * Fetch all courses with their exercise progress
  */
 export async function fetchCoursesWithExercises(): Promise<CourseWithExercises[]> {
+  const supabase = createClient();
+
   // Fetch all courses
   const { data: coursesData, error: coursesError } = await supabase
     .from('courses')
@@ -99,6 +101,7 @@ export async function fetchCoursesWithExercises(): Promise<CourseWithExercises[]
  * Create a new course with exercise progress entries
  */
 export async function createCourse(course: CreateCourseInput): Promise<CourseWithExercises> {
+  const supabase = createClient();
   const insertData = courseToSupabaseInsert(course);
 
   // Insert course
@@ -141,6 +144,7 @@ export async function createCourse(course: CreateCourseInput): Promise<CourseWit
  * Update a course
  */
 export async function updateCourse(id: string, updates: Partial<CreateCourseInput>): Promise<Course> {
+  const supabase = createClient();
   const updateData: CourseUpdate = {};
   if (updates.name !== undefined) updateData.name = updates.name;
   if (updates.ects !== undefined) updateData.ects = updates.ects;
@@ -161,6 +165,54 @@ export async function updateCourse(id: string, updates: Partial<CreateCourseInpu
     throw new Error(`Failed to update course: ${error.message}`);
   }
 
+  // Sync exercise_progress entries when numExercises changes
+  if (updates.numExercises !== undefined) {
+    const newCount = updates.numExercises;
+
+    // Get current exercise entries
+    const { data: existingExercises, error: fetchError } = await supabase
+      .from('exercise_progress')
+      .select('exercise_number')
+      .eq('course_id', id)
+      .order('exercise_number', { ascending: true });
+
+    if (fetchError) {
+      throw new Error(`Failed to fetch exercises: ${fetchError.message}`);
+    }
+
+    const currentCount = existingExercises?.length ?? 0;
+
+    if (newCount > currentCount) {
+      // Add missing exercise entries
+      const newExercises: ExerciseProgressInsert[] = [];
+      for (let i = currentCount + 1; i <= newCount; i++) {
+        newExercises.push({
+          course_id: id,
+          exercise_number: i,
+          completed: false,
+        });
+      }
+      const { error: insertError } = await supabase
+        .from('exercise_progress')
+        .insert(newExercises);
+
+      if (insertError) {
+        throw new Error(`Failed to create new exercises: ${insertError.message}`);
+      }
+    } else if (newCount < currentCount) {
+      // Remove excess exercise entries (highest numbers first)
+      const { error: deleteError } = await supabase
+        .from('exercise_progress')
+        .delete()
+        .eq('course_id', id)
+        .gt('exercise_number', newCount);
+
+      if (deleteError) {
+        throw new Error(`Failed to remove excess exercises: ${deleteError.message}`);
+      }
+    }
+  }
+
   return supabaseCoursetoCourse(data);
 }
 
@@ -168,6 +220,7 @@ export async function updateCourse(id: string, updates: Partial<CreateCourseInpu
  * Delete a course (CASCADE deletes exercise_progress)
  */
 export async function deleteCourse(id: string): Promise<void> {
+  const supabase = createClient();
   const { error } = await supabase.from('courses').delete().eq('id', id);
 
   if (error) {
@@ -183,6 +236,7 @@ export async function toggleExerciseCompletion(
   exerciseNumber: number,
   completed: boolean
 ): Promise<ExerciseProgress> {
+  const supabase = createClient();
   const updateData = {
     completed,
     completed_at: completed ? new Date().toISOString() : null,

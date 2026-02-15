@@ -66,5 +66,6 @@ export const config = {
     '/university/:path*',
     '/career/:path*',
     '/auth/:path*',
+    '/api/:path*',
   ],
 };

@@ -1,6 +1,6 @@
 # 🚀 Setup Guide
 
-Step-by-step guide to get Bloomberg Personal running locally on your machine.
+Step-by-step guide to get Prism running locally on your machine.
 
 ---
 
@@ -50,8 +50,8 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/bloomberg-personal.git
-cd bloomberg-personal
+git clone https://github.com/yourusername/prism.git
+cd prism
 ```
 
 ### 2. Install Dependencies
@@ -89,7 +89,7 @@ added 342 packages in 45s
 
 1. Click "New Project"
 2. Fill in project details:
-   - **Name:** `bloomberg-personal` (or your choice)
+   - **Name:** `prism` (or your choice)
    - **Database Password:** Create a strong password (save it!)
    - **Region:** Choose closest to your location
 3. Click "Create new project"
@@ -173,10 +173,10 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Goals Table
 CREATE TABLE goals (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  title TEXT NOT NULL CHECK (char_length(title) >= 1 AND char_length(title) <= 200),
+  title TEXT NOT NULL CHECK (char_length(title) >= 3 AND char_length(title) <= 100),
   description TEXT,
   target_date DATE NOT NULL,
-  category TEXT NOT NULL CHECK (category IN ('Career', 'Wellness', 'Learning', 'Finance', 'Personal')),
+  category TEXT NOT NULL CHECK (category IN ('fitness', 'career', 'learning', 'finance')),
   metrics_current INTEGER,
   metrics_target INTEGER,
   metrics_unit TEXT,
@@ -234,6 +234,17 @@ CREATE TABLE daily_tasks (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
+-- Events Table
+CREATE TABLE events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,
+  description TEXT,
+  start_time TIMESTAMP WITH TIME ZONE NOT NULL,
+  end_time TIMESTAMP WITH TIME ZONE NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('meeting', 'task', 'break')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
 -- Create Indexes
 CREATE INDEX idx_goals_category ON goals(category);
 CREATE INDEX idx_goals_target_date ON goals(target_date);
@@ -260,6 +271,7 @@ ALTER TABLE job_applications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE courses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE exercise_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 
 -- Allow all access (development only)
 CREATE POLICY "Allow all access" ON goals FOR ALL USING (true);
@@ -267,6 +279,7 @@ CREATE POLICY "Allow all access" ON job_applications FOR ALL USING (true);
 CREATE POLICY "Allow all access" ON courses FOR ALL USING (true);
 CREATE POLICY "Allow all access" ON exercise_progress FOR ALL USING (true);
 CREATE POLICY "Allow all access" ON daily_tasks FOR ALL USING (true);
+CREATE POLICY "Allow all access" ON events FOR ALL USING (true);
 ```
 
 > ⚠️ **Production:** Replace with user-specific policies. See [`DATABASE.md`](./DATABASE.md) for examples.
@@ -283,12 +296,13 @@ CREATE POLICY "Allow all access" ON daily_tasks FOR ALL USING (true);
 ### 5. Verify Tables
 
 1. Click **Database** → **Tables** (left sidebar)
-2. You should see 5 tables:
+2. You should see 6 tables:
    - `goals`
    - `job_applications`
    - `courses`
    - `exercise_progress`
    - `daily_tasks`
+   - `events`
 
 ---
 
@@ -300,7 +314,7 @@ Skip this section if you don't need Google Calendar integration.
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Click "Select a project" → "New Project"
-3. Enter project name: `bloomberg-personal`
+3. Enter project name: `prism`
 4. Click "Create"
 
 ### 2. Enable Google Calendar API
@@ -316,7 +330,7 @@ Skip this section if you don't need Google Calendar integration.
 2. Click "+ CREATE CREDENTIALS" → "OAuth client ID"
 3. Configure consent screen (if prompted):
    - User Type: **External**
-   - App name: `Bloomberg Personal`
+   - App name: `Prism`
    - User support email: Your email
    - Developer contact: Your email
    - Click "Save and Continue"
@@ -325,7 +339,7 @@ Skip this section if you don't need Google Calendar integration.
    - Click "Save and Continue"
 4. Create OAuth client:
    - Application type: **Web application**
-   - Name: `Bloomberg Personal - Local`
+   - Name: `Prism - Local`
    - Authorized redirect URIs: `http://localhost:3000/api/auth/google/callback`
    - Click "Create"
 5. Copy **Client ID** and **Client Secret**
@@ -367,7 +381,7 @@ npm run dev
 Navigate to [http://localhost:3000](http://localhost:3000)
 
 **You should see:**
-- Landing page with "Bloomberg Personal" branding
+- Landing page with "Prism" branding
 - Navigation sidebar (left)
 - Dashboard layout
 
@@ -377,8 +391,8 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 2. Click "+ Add Goal"
 3. Fill in form:
    - Title: "Test Goal"
-   - Category: Learning
-   - Priority: Medium
+   - Category: learning
+   - Target Date: any future date
 4. Click "Save"
 
 **Expected result:**
@@ -587,7 +601,7 @@ Type error: Property 'xyz' does not exist on type 'XYZ'
 ### File Structure
 
 ```
-bloomberg-personal/
+prism/
 ├── app/                   # Next.js app directory
 │   ├── (dashboard)/       # Dashboard routes
 │   └── api/               # API endpoints
@@ -652,8 +666,8 @@ After successful setup:
 ### Resources
 
 - **Documentation:** [`/docs`](./README.md)
-- **Issues:** [GitHub Issues](https://github.com/yourusername/bloomberg-personal/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/yourusername/bloomberg-personal/discussions)
+- **Issues:** [GitHub Issues](https://github.com/yourusername/prism/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/yourusername/prism/discussions)
 
 ### Common Questions
 
@@ -692,7 +706,7 @@ npm run dev
 ---
 
 <div align="center">
-  <strong>🎉 Congratulations! You're ready to use Bloomberg Personal.</strong>
+  <strong>🎉 Congratulations! You're ready to use Prism.</strong>
   <br><br>
   <a href="../README.md">← Back to README</a>
 </div>

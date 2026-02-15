@@ -1,4 +1,4 @@
-import { supabase } from './client';
+import { createClient } from '@/lib/auth/server';
 import { Application, CreateApplicationInput } from '@/lib/schemas/application.schema';
 import { SupabaseApplication, Database } from './types';
 
@@ -56,6 +56,7 @@ export async function fetchApplications(options?: {
   status?: 'applied' | 'interview' | 'offer' | 'rejected' | undefined;
 }): Promise<{ applications: Application[]; total: number }> {
   const { page = 1, limit = 20, status } = options || {};
+  const supabase = createClient();
 
   // Build query
   let query = supabase
@@ -92,6 +93,7 @@ export async function fetchApplications(options?: {
 export async function createApplication(
   application: CreateApplicationInput
 ): Promise<Application> {
+  const supabase = createClient();
   const insertData = applicationToSupabaseInsert(application);
 
   const { data, error } = await supabase
@@ -114,6 +116,7 @@ export async function updateApplication(
   applicationId: string,
   application: CreateApplicationInput
 ): Promise<Application> {
+  const supabase = createClient();
   const updateData: ApplicationUpdate = {
     ...applicationToSupabaseInsert(application),
     updated_at: new Date().toISOString(),
@@ -137,6 +140,7 @@ export async function updateApplication(
  * Delete an application from Supabase
  */
 export async function deleteApplication(applicationId: string): Promise<void> {
+  const supabase = createClient();
   const { error } = await supabase.from('job_applications').delete().eq('id', applicationId);
 
   if (error) {

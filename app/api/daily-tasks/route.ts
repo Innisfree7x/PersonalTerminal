@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/auth/server';
 import { createDailyTaskSchema } from '@/lib/schemas/dailyTask.schema';
 import type { Database } from '@/lib/supabase/types';
 import { requireApiAuth } from '@/lib/api/auth';
@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
   if (errorResponse) return errorResponse;
 
   try {
+    const supabase = createClient();
     const dateParam = request.nextUrl.searchParams.get('date');
     const date = dateParam ?? (new Date().toISOString().split('T')[0] ?? ''); // YYYY-MM-DD
 
@@ -47,6 +48,7 @@ export async function POST(request: NextRequest) {
   if (errorResponse) return errorResponse;
 
   try {
+    const supabase = createClient();
     const body = await request.json();
 
     // Validate input with Zod

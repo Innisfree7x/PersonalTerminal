@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/auth/server';
 import { startOfWeek, addDays, format } from 'date-fns';
 import { requireApiAuth } from '@/lib/api/auth';
 
@@ -22,10 +22,8 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const weekOffset = parseInt(searchParams.get('offset') || '0');
-    
-    // For now, we'll use a dummy userId since we don't have auth yet
-    // TODO: Implement proper authentication
-    const userId = 'anonymous';
+
+    const supabase = createClient();
 
     // Calculate week range
     const weekStart = addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), weekOffset * 7);
@@ -42,7 +40,6 @@ export async function GET(request: Request) {
     const { data: tasks, error: tasksError } = await supabase
       .from('daily_tasks')
       .select('date')
-      .eq('user_id', userId)
       .gte('date', weekStartStr)
       .lte('date', weekEndStr);
 

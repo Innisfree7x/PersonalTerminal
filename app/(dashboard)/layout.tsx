@@ -2,6 +2,7 @@
 
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
+import FloatingTimer from '@/components/features/focus/FloatingTimer';
 import { SidebarProvider, useSidebar } from '@/components/layout/SidebarProvider';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -74,6 +75,9 @@ function DashboardLayoutInner({
             </div>
           </main>
         </div>
+
+        {/* Floating Focus Timer */}
+        <FloatingTimer />
       </div>
     </ErrorBoundary>
   );

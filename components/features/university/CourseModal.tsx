@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createCourseSchema, type CreateCourseInput } from '@/lib/schemas/course.schema';
@@ -10,6 +11,8 @@ interface CourseModalProps {
   onSubmit: (data: CreateCourseInput) => void;
   initialData?: CreateCourseInput | undefined;
   isEdit?: boolean;
+  isSaving?: boolean;
+  error?: string | null;
 }
 
 export default function CourseModal({
@@ -18,7 +21,17 @@ export default function CourseModal({
   onSubmit,
   initialData,
   isEdit = false,
+  isSaving = false,
+  error = null,
 }: CourseModalProps) {
+  const defaultFormValues: CreateCourseInput = {
+    name: '',
+    ects: 6,
+    numExercises: 12,
+    examDate: undefined,
+    semester: 'WS 2024/25',
+  };
+
   const {
     register,
     handleSubmit,
@@ -26,14 +39,14 @@ export default function CourseModal({
     reset,
   } = useForm<CreateCourseInput>({
     resolver: zodResolver(createCourseSchema),
-    defaultValues: initialData || {
-      name: '',
-      ects: 6,
-      numExercises: 12,
-      examDate: undefined,
-      semester: 'WS 2024/25',
-    },
+    defaultValues: defaultFormValues,
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      reset(initialData ?? defaultFormValues);
+    }
+  }, [isOpen, initialData, reset]);
 
   const handleFormSubmit = (data: CreateCourseInput) => {
     onSubmit(data);
@@ -53,6 +66,12 @@ export default function CourseModal({
         <h2 className="text-xl font-semibold text-gray-100 dark:text-gray-100 mb-4">
           {isEdit ? 'Edit Course' : 'Add New Course'}
         </h2>
+
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           {/* Course Name */}
@@ -138,9 +157,10 @@ export default function CourseModal({
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              disabled={isSaving}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isEdit ? 'Save Changes' : 'Add Course'}
+              {isSaving ? 'Saving...' : isEdit ? 'Save Changes' : 'Add Course'}
             </button>
             <button
               type="button"

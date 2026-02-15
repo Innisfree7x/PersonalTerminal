@@ -21,7 +21,10 @@ async function toggleExercise(courseId: string, exerciseNumber: number, complete
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ completed }),
   });
-  if (!response.ok) throw new Error('Failed to toggle exercise');
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || `Failed to toggle exercise (${response.status})`);
+  }
 }
 
 export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps) {
@@ -222,12 +225,6 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
                     <div className="flex items-center justify-between mb-2">
                       <Checkbox
                         checked={exercise.completed}
-                        onCheckedChange={(checked) =>
-                          toggleMutation.mutate({
-                            exerciseNumber: exercise.exerciseNumber,
-                            completed: checked,
-                          })
-                        }
                         className="pointer-events-none"
                       />
                     </div>

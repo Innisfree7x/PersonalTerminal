@@ -27,7 +27,7 @@ export default function GoalForm({
     reset,
   } = useForm<CreateGoalInput>({
     resolver: zodResolver(createGoalSchema),
-    defaultValues: initialData || {
+    defaultValues: {
       title: '',
       description: '',
       category: 'fitness',
@@ -40,11 +40,21 @@ export default function GoalForm({
     },
   });
 
-  // Reset form when initialData changes
+  const defaultFormValues: CreateGoalInput = {
+    title: '',
+    description: '',
+    category: 'fitness',
+    targetDate: new Date(),
+    metrics: {
+      current: 0,
+      target: 0,
+      unit: '',
+    },
+  };
+
+  // Reset form when initialData changes (edit → add or switching between items)
   useEffect(() => {
-    if (initialData) {
-      reset(initialData);
-    }
+    reset(initialData ?? defaultFormValues);
   }, [initialData, reset]);
 
   const onSubmitForm = (data: CreateGoalInput) => {

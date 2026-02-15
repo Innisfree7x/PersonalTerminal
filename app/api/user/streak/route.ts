@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/auth/server';
 import { startOfDay, subDays, format } from 'date-fns';
 import { requireApiAuth } from '@/lib/api/auth';
 
@@ -22,17 +22,14 @@ export async function GET() {
   if (errorResponse) return errorResponse;
 
   try {
-    // For now, we'll use a dummy userId since we don't have auth yet
-    // TODO: Implement proper authentication
-    const userId = 'anonymous';
     const today = startOfDay(new Date());
+    const supabase = createClient();
 
     // Fetch all completed tasks for the last 365 days
     const oneYearAgo = format(subDays(today, 365), 'yyyy-MM-dd');
     const { data: completedTasks, error: tasksError } = await supabase
       .from('daily_tasks')
       .select('date, completed')
-      .eq('user_id', userId)
       .eq('completed', true)
       .gte('date', oneYearAgo)
       .order('date', { ascending: false });

@@ -1,4 +1,4 @@
-import { supabase } from './client';
+import { createClient } from '@/lib/auth/server';
 import { Goal, CreateGoalInput } from '@/lib/schemas/goal.schema';
 import { SupabaseGoal, Database } from './types';
 
@@ -50,6 +50,7 @@ export async function fetchGoals(options?: {
   category?: 'career' | 'fitness' | 'learning' | 'finance' | undefined;
 }): Promise<{ goals: Goal[]; total: number }> {
   const { page = 1, limit = 20, status, category } = options || {};
+  const supabase = createClient();
 
   // Build query
   let query = supabase
@@ -87,6 +88,7 @@ export async function fetchGoals(options?: {
  * Create a new goal in Supabase
  */
 export async function createGoal(goal: CreateGoalInput): Promise<Goal> {
+  const supabase = createClient();
   const insertData = goalToSupabaseInsert(goal);
 
   const { data, error } = await supabase
@@ -106,15 +108,22 @@ export async function createGoal(goal: CreateGoalInput): Promise<Goal> {
  * Update an existing goal in Supabase
  */
 export async function updateGoal(goalId: string, goal: Partial<CreateGoalInput>): Promise<Goal> {
+  const supabase = createClient();
   const updateData: Record<string, any> = {
     updated_at: new Date().toISOString(),
   };
   
   if (goal.title !== undefined) updateData.title = goal.title;
   if (goal.description !== undefined) updateData.description = goal.description;
-  if (goal.targetDate !== undefined) updateData.target_date = goal.targetDate.toISOString();
+  if (goal.targetDate !== undefined) {
+    updateData.target_date = goal.targetDate.toISOString().split('T')[0] ?? '';
+  }
   if (goal.category !== undefined) updateData.category = goal.category;
-  if (goal.metrics !== undefined) updateData.metrics = goal.metrics;
+  if (goal.metrics !== undefined) {
+    updateData.metrics_current = goal.metrics?.current ?? null;
+    updateData.metrics_target = goal.metrics?.target ?? null;
+    updateData.metrics_unit = goal.metrics?.unit ?? null;
+  }
 
   const { data, error } = await supabase
     .from('goals')
@@ -134,6 +143,7 @@ export async function updateGoal(goalId: string, goal: Partial<CreateGoalInput>)
  * Delete a goal from Supabase
  */
 export async function deleteGoal(goalId: string): Promise<void> {
+  const supabase = createClient();
   const { error } = await supabase
     .from('goals')
     .delete()

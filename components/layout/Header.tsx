@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Search, Bell, Plus, Command } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useCommandPalette } from '@/components/shared/CommandPaletteProvider';
+import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import { format } from 'date-fns';
 
 interface DashboardStats {
@@ -40,12 +41,14 @@ const routeTitles: Record<string, string> = {
   '/goals': 'Goals',
   '/university': 'University',
   '/career': 'Career',
+  '/analytics': 'Analytics',
 };
 
 export default function Header() {
   const pathname = usePathname();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const { open: openCommandPalette } = useCommandPalette();
+  const { status: timerStatus, timeLeft: timerTimeLeft, sessionType, setIsExpanded: setTimerExpanded } = useFocusTimer();
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   
   const { data: stats } = useQuery({
@@ -125,6 +128,29 @@ export default function Header() {
               K
             </kbd>
           </motion.button>
+
+          {/* Timer Indicator */}
+          {timerStatus !== 'idle' && (
+            <motion.button
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-mono font-medium transition-colors ${
+                sessionType === 'break'
+                  ? 'bg-success/10 border-success/30 text-success'
+                  : 'bg-primary/10 border-primary/30 text-primary'
+              }`}
+              onClick={() => setTimerExpanded(true)}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <motion.div
+                className={`w-1.5 h-1.5 rounded-full ${sessionType === 'break' ? 'bg-success' : 'bg-primary'}`}
+                animate={timerStatus === 'running' || timerStatus === 'break' ? { opacity: [1, 0.3, 1] } : {}}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              />
+              {`${Math.floor(timerTimeLeft / 60).toString().padStart(2, '0')}:${(timerTimeLeft % 60).toString().padStart(2, '0')}`}
+            </motion.button>
+          )}
 
           {/* Quick Add Button */}
           <motion.button

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchGoals } from '@/lib/supabase/goals';
 import { fetchApplications } from '@/lib/supabase/applications';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/auth/server';
 import { startOfWeek, endOfWeek, startOfDay, differenceInDays } from 'date-fns';
 import { requireApiAuth } from '@/lib/api/auth';
 
@@ -132,6 +132,7 @@ export async function GET(_request: NextRequest) {
     }
 
     // Study stats
+    const supabase = createClient();
     const { data: coursesData } = await supabase.from('courses').select('id, name, exam_date');
     const { data: exercisesData } = await supabase.from('exercise_progress').select('*');
 
