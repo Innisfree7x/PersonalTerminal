@@ -37,6 +37,7 @@ import ApplicationModal from '@/components/features/career/ApplicationModal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Plus, Briefcase, Upload } from 'lucide-react';
+import { useAppSound } from '@/lib/hooks/useAppSound';
 
 // --- Helper Functions ---
 
@@ -164,6 +165,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
 
     const [isPending, startTransition] = useTransition();
 
+    const { play } = useAppSound();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isCvUploadOpen, setIsCvUploadOpen] = useState(false);
     const [editingApplication, setEditingApplication] = useState<Application | null>(null);
@@ -228,6 +230,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                 dispatchOptimistic({ type: 'delete', id: tempId });
                 dispatchOptimistic({ type: 'upsert', app: createdApplication });
             });
+            play('swoosh');
             toast.success('Application added!');
         } catch (e) {
             startTransition(() => {
@@ -328,6 +331,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                 startTransition(() => {
                     dispatchOptimistic({ type: 'upsert', app: persistedApp });
                 });
+                play('swoosh');
                 toast.success(`Moved to ${newStatus}`);
             } catch (e) {
                 startTransition(() => {

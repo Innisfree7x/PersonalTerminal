@@ -10,9 +10,13 @@ import {
     Monitor,
     LogOut,
     Sparkles,
-    Check
+    Check,
+    Volume2,
+    VolumeX,
+    Music,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { useAppSound } from '@/lib/hooks/useAppSound';
 
 const themes = [
     { id: 'midnight', name: 'Midnight', color: '#0A0A0A', border: '#262626' },
@@ -36,6 +40,7 @@ const accents = [
 export default function SettingsPage() {
     const { user, signOut } = useAuth();
     const { theme, setTheme, accentColor, setAccentColor } = useTheme();
+    const { play, settings: soundSettings, setEnabled: setSoundEnabled, setMasterVolume } = useAppSound();
 
     return (
         <div className="space-y-8 pb-12">
@@ -100,7 +105,7 @@ export default function SettingsPage() {
                         {themes.map((t) => (
                             <motion.button
                                 key={t.id}
-                                onClick={() => setTheme(t.id)}
+                                onClick={() => { setTheme(t.id); play('click'); }}
                                 className={`relative group p-4 rounded-xl border-2 text-left transition-all ${theme === t.id
                                     ? 'border-primary ring-2 ring-primary/20'
                                     : 'border-border hover:border-primary/50'
@@ -148,7 +153,7 @@ export default function SettingsPage() {
                         {accents.map((a) => (
                             <motion.button
                                 key={a.id}
-                                onClick={() => setAccentColor(a.id)}
+                                onClick={() => { setAccentColor(a.id); play('click'); }}
                                 className={`group relative w-12 h-12 rounded-full flex items-center justify-center transition-all ${accentColor === a.id
                                     ? 'ring-4 ring-offset-2 ring-offset-background'
                                     : 'hover:scale-110'
@@ -163,6 +168,91 @@ export default function SettingsPage() {
                                 )}
                             </motion.button>
                         ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Sound Section */}
+            <section className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold text-text-primary flex items-center gap-2">
+                        <Music className="w-5 h-5" />
+                        Sound
+                    </h2>
+                    <span className="text-xs font-medium px-2 py-1 rounded bg-primary/10 text-primary">
+                        Saved to local storage
+                    </span>
+                </div>
+
+                <div className="p-6 bg-surface border border-border rounded-xl space-y-6">
+                    {/* On/Off toggle */}
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-text-primary">Interaction Sounds</p>
+                            <p className="text-xs text-text-tertiary mt-0.5">Subtle audio feedback for UI actions</p>
+                        </div>
+                        <button
+                            onClick={() => setSoundEnabled(!soundSettings.enabled)}
+                            className={`relative w-12 h-6 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                                soundSettings.enabled ? 'bg-primary' : 'bg-surface-hover'
+                            }`}
+                            aria-label={soundSettings.enabled ? 'Disable sounds' : 'Enable sounds'}
+                        >
+                            <span
+                                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                                    soundSettings.enabled ? 'translate-x-6' : 'translate-x-0'
+                                }`}
+                            />
+                        </button>
+                    </div>
+
+                    {/* Volume slider */}
+                    <div className={`space-y-3 transition-opacity ${soundSettings.enabled ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+                        <div className="flex items-center justify-between">
+                            <label className="text-sm font-medium text-text-secondary flex items-center gap-2">
+                                {soundSettings.masterVolume === 0 ? (
+                                    <VolumeX className="w-4 h-4" />
+                                ) : (
+                                    <Volume2 className="w-4 h-4" />
+                                )}
+                                Master Volume
+                            </label>
+                            <span className="text-xs font-mono text-text-tertiary">
+                                {Math.round(soundSettings.masterVolume * 100)}%
+                            </span>
+                        </div>
+                        <input
+                            type="range"
+                            min={0}
+                            max={1}
+                            step={0.01}
+                            value={soundSettings.masterVolume}
+                            onChange={(e) => setMasterVolume(Number(e.target.value))}
+                            className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-primary bg-border"
+                        />
+                    </div>
+
+                    {/* Preview buttons */}
+                    <div className={`space-y-2 pt-4 border-t border-border transition-opacity ${soundSettings.enabled ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+                        <p className="text-xs font-medium text-text-tertiary uppercase tracking-wider mb-3">Preview</p>
+                        <div className="flex flex-wrap gap-3">
+                            {([
+                                { event: 'pop' as const, label: 'Pop', description: 'Task complete' },
+                                { event: 'swoosh' as const, label: 'Swoosh', description: 'Send / move' },
+                                { event: 'click' as const, label: 'Click', description: 'Toggle / select' },
+                            ] as const).map(({ event, label, description }) => (
+                                <motion.button
+                                    key={event}
+                                    onClick={() => play(event)}
+                                    className="flex flex-col items-center gap-1 px-4 py-3 rounded-lg border border-border hover:border-primary/50 bg-surface-hover hover:bg-primary/5 transition-all text-left"
+                                    whileHover={{ scale: 1.03 }}
+                                    whileTap={{ scale: 0.97 }}
+                                >
+                                    <span className="text-sm font-medium text-text-primary">{label}</span>
+                                    <span className="text-xs text-text-tertiary">{description}</span>
+                                </motion.button>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </section>

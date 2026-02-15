@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { Badge } from '@/components/ui/Badge';
 import { Plus, Clock, Target, Briefcase, GraduationCap, BookOpen } from 'lucide-react';
 import { createTask, updateTask, toggleExercise } from '@/lib/api/daily-tasks';
+import { useAppSound } from '@/lib/hooks/useAppSound';
 
 interface DailyTask {
   id: string;
@@ -60,6 +61,7 @@ async function fetchNextTasks() {
 
 export default function FocusTasks() {
   const queryClient = useQueryClient();
+  const { play } = useAppSound();
   const today = new Date().toISOString().split('T')[0] ?? '';
   const [showAddInput, setShowAddInput] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -91,6 +93,7 @@ export default function FocusTasks() {
     mutationFn: ({ id, completed }: { id: string; completed: boolean }) =>
       updateTask(id, completed),
     onSuccess: async () => {
+      play('pop');
       await queryClient.refetchQueries({ queryKey: ['daily-tasks'] });
       await queryClient.refetchQueries({ queryKey: ['dashboard', 'next-tasks'] });
       setHiddenIds(new Set());
@@ -108,6 +111,7 @@ export default function FocusTasks() {
     mutationFn: ({ courseId, exerciseNumber }: { courseId: string; exerciseNumber: number }) =>
       toggleExercise(courseId, exerciseNumber, true),
     onSuccess: async () => {
+      play('pop');
       await queryClient.refetchQueries({ queryKey: ['dashboard', 'next-tasks'] });
       await queryClient.refetchQueries({ queryKey: ['courses'] });
       setHiddenIds(new Set());

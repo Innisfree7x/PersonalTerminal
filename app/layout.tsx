@@ -7,6 +7,7 @@ import { FocusTimerProvider } from "@/components/providers/FocusTimerProvider";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
 import ToastProvider from "@/components/providers/ToastProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { SoundProvider } from "@/components/providers/SoundProvider";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -31,13 +32,15 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased`}>
         <AuthProvider>
           <ThemeProvider>
-            <QueryProvider>
-              <FocusTimerProvider>
-                <CommandPaletteProvider>
-                  {children}
-                </CommandPaletteProvider>
-              </FocusTimerProvider>
-            </QueryProvider>
+            <SoundProvider>
+              <QueryProvider>
+                <FocusTimerProvider>
+                  <CommandPaletteProvider>
+                    {children}
+                  </CommandPaletteProvider>
+                </FocusTimerProvider>
+              </QueryProvider>
+            </SoundProvider>
           </ThemeProvider>
         </AuthProvider>
         <ToastProvider />
