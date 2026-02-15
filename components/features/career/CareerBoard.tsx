@@ -2,7 +2,7 @@
 
 import { useOptimistic, useState, useTransition, useMemo } from 'react';
 import { useEffect } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Application, CreateApplicationInput, ApplicationStatus } from '@/lib/schemas/application.schema';
 import {
     createApplicationAction,
@@ -133,7 +133,6 @@ interface CareerBoardProps {
 export default function CareerBoard({ initialApplications, openCreateOnLoad = false }: CareerBoardProps) {
     const router = useRouter();
     const pathname = usePathname();
-    const searchParams = useSearchParams();
     // Optimistic State
     // Action: { type: 'upsert', app: Application } | { type: 'delete', id: string }
     const [applications, dispatchOptimistic] = useOptimistic(
@@ -175,10 +174,8 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
         if (!openCreateOnLoad) return;
         setEditingApplication(null);
         setIsModalOpen(true);
-        if (searchParams.get('action')) {
-            router.replace(pathname);
-        }
-    }, [openCreateOnLoad, pathname, router, searchParams]);
+        router.replace(pathname);
+    }, [openCreateOnLoad, pathname, router]);
 
     // Sensors
     const sensors = useSensors(

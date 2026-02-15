@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Goal, CreateGoalInput, GoalCategory } from '@/lib/schemas/goal.schema';
@@ -36,7 +36,6 @@ function normalizeGoal(goal: any): Goal {
 export default function GoalsPage() {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
@@ -230,11 +229,13 @@ export default function GoalsPage() {
   const isSaving = isEditMode ? updateMutation.isPending : createMutation.isPending;
 
   useEffect(() => {
-    if (searchParams.get('action') !== 'new-goal') return;
+    if (typeof window === 'undefined') return;
+    const action = new URLSearchParams(window.location.search).get('action');
+    if (action !== 'new-goal') return;
     setEditingGoal(null);
     setIsModalOpen(true);
     router.replace(pathname);
-  }, [pathname, router, searchParams]);
+  }, [pathname, router]);
 
   // Loading state
   if (isLoading) {

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfDay, differenceInDays } from 'date-fns';
 import { motion } from 'framer-motion';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import type { CourseWithExercises, CreateCourseInput } from '@/lib/schemas/course.schema';
 import {
   createCourseAction,
@@ -50,7 +50,6 @@ async function deleteCourse(id: string): Promise<void> {
 export default function UniversityPage() {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<CourseWithExercises | null>(null);
@@ -218,11 +217,13 @@ export default function UniversityPage() {
   };
 
   useEffect(() => {
-    if (searchParams.get('action') !== 'new-course') return;
+    if (typeof window === 'undefined') return;
+    const action = new URLSearchParams(window.location.search).get('action');
+    if (action !== 'new-course') return;
     setEditingCourse(null);
     setIsModalOpen(true);
     router.replace(pathname);
-  }, [pathname, router, searchParams]);
+  }, [pathname, router]);
 
   // Loading state
   if (isLoading) {
