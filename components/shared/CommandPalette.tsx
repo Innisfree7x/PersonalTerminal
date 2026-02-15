@@ -102,8 +102,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       label: 'Add New Goal',
       icon: Plus,
       action: () => {
-        router.push('/goals');
-        // TODO: Trigger goal modal (requires global state or URL param)
+        router.push('/goals?action=new-goal');
       },
       keywords: ['add', 'new', 'create', 'goal'],
       shortcut: 'G',
@@ -113,7 +112,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       label: 'Add Job Application',
       icon: Plus,
       action: () => {
-        router.push('/career');
+        router.push('/career?action=new-application');
       },
       keywords: ['add', 'new', 'create', 'job', 'application'],
       shortcut: 'A',
@@ -123,10 +122,20 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       label: 'Add Course',
       icon: Plus,
       action: () => {
-        router.push('/university');
+        router.push('/university?action=new-course');
       },
       keywords: ['add', 'new', 'create', 'course'],
       shortcut: 'C',
+    },
+    {
+      id: 'action-theme-toggle',
+      label: 'Toggle Theme (Midnight/Nord)',
+      icon: Palette,
+      action: () => {
+        setTheme(theme === 'midnight' ? 'nord' : 'midnight');
+      },
+      keywords: ['theme', 'toggle', 'switch', 'dark', 'light', 'midnight', 'nord'],
+      shortcut: 'T',
     },
   ];
 

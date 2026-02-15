@@ -10,6 +10,7 @@ interface GoalCardProps {
   goal: Goal;
   onClick?: (() => void) | undefined;
   onDelete?: ((goalId: string) => void) | undefined;
+  layoutId?: string;
 }
 
 const categoryConfig: Record<Goal['category'], { icon: string; color: string; bgGradient: string; borderColor: string }> = {
@@ -46,7 +47,7 @@ const progressGradients: Record<Goal['category'], string> = {
   finance: 'from-success to-success/70',
 };
 
-export default function GoalCard({ goal, onClick, onDelete }: GoalCardProps) {
+export default function GoalCard({ goal, onClick, onDelete, layoutId }: GoalCardProps) {
   const progress = goal.metrics
     ? Math.min(
       Math.round((goal.metrics.current / goal.metrics.target) * 100),
@@ -71,6 +72,7 @@ export default function GoalCard({ goal, onClick, onDelete }: GoalCardProps) {
 
   return (
     <motion.div
+      {...(layoutId ? { layoutId } : {})}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}

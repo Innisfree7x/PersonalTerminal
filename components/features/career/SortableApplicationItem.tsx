@@ -35,7 +35,14 @@ export default function SortableApplicationItem({
     };
 
     return (
-        <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="touch-none">
+        <div
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...listeners}
+            data-testid={`career-card-${application.id}`}
+            className="touch-none"
+        >
             <ApplicationCard
                 application={application}
                 onClick={onClick}

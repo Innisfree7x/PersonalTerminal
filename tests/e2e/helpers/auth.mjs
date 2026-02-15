@@ -1,0 +1,20 @@
+export function getE2ECredentials() {
+  return {
+    email: process.env.E2E_EMAIL || '',
+    password: process.env.E2E_PASSWORD || '',
+  };
+}
+
+export function hasE2ECredentials() {
+  const { email, password } = getE2ECredentials();
+  return Boolean(email && password);
+}
+
+export async function login(page) {
+  const { email, password } = getE2ECredentials();
+  await page.goto('/auth/login');
+  await page.locator('#email').fill(email);
+  await page.locator('#password').fill(password);
+  await page.getByRole('button', { name: /sign in/i }).click();
+  await page.waitForURL('**/today', { timeout: 30_000 });
+}

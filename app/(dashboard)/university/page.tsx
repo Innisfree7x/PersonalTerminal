@@ -1,10 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfDay, differenceInDays } from 'date-fns';
 import { motion } from 'framer-motion';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { CourseWithExercises, CreateCourseInput } from '@/lib/schemas/course.schema';
+import {
+  createCourseAction,
+  deleteCourseAction,
+  fetchCoursesAction,
+  updateCourseAction
+} from '@/app/actions/university';
 import CourseCard from '@/components/features/university/CourseCard';
 import CourseModal from '@/components/features/university/CourseModal';
 import { Button } from '@/components/ui/Button';
@@ -13,42 +20,17 @@ import { Plus, GraduationCap, BookOpen, Calendar, TrendingUp } from 'lucide-reac
 import toast from 'react-hot-toast';
 import AnimatedCounter from '@/components/ui/AnimatedCounter';
 
-function extractApiError(err: unknown, fallback: string): string {
-  if (typeof err !== 'object' || err === null) return fallback;
-  const payload = err as { message?: string; error?: { message?: string } };
-  return payload.message || payload.error?.message || fallback;
-}
-
-async function fetchCourses(): Promise<CourseWithExercises[]> {
-  const response = await fetch('/api/courses');
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(extractApiError(err, `Failed to fetch courses (${response.status})`));
-  }
-  const data = await response.json();
-  return data.map((course: any) => ({
+function normalizeCourse(course: any): CourseWithExercises {
+  return {
     ...course,
     examDate: course.examDate ? new Date(course.examDate) : undefined,
     createdAt: new Date(course.createdAt),
-    exercises: course.exercises.map((ex: any) => ({
+    exercises: (course.exercises || []).map((ex: any) => ({
       ...ex,
       completedAt: ex.completedAt ? new Date(ex.completedAt) : undefined,
       createdAt: new Date(ex.createdAt),
     })),
-  }));
-}
-
-async function createCourse(data: CreateCourseInput): Promise<CourseWithExercises> {
-  const response = await fetch('/api/courses', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(extractApiError(err, `Failed to create course (${response.status})`));
-  }
-  return response.json();
+  };
 }
 
 async function updateCourse({
@@ -57,72 +39,133 @@ async function updateCourse({
 }: {
   id: string;
   data: Partial<CreateCourseInput>;
-}): Promise<CourseWithExercises> {
-  const response = await fetch(`/api/courses/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(extractApiError(err, `Failed to update course (${response.status})`));
-  }
-  return response.json();
+}): Promise<void> {
+  await updateCourseAction(id, data);
 }
 
 async function deleteCourse(id: string): Promise<void> {
-  const response = await fetch(`/api/courses/${id}`, {
-    method: 'DELETE',
-  });
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(extractApiError(err, `Failed to delete course (${response.status})`));
-  }
+  await deleteCourseAction(id);
 }
 
 export default function UniversityPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<CourseWithExercises | null>(null);
 
   const { data: courses = [], isLoading, error } = useQuery({
     queryKey: ['courses'],
-    queryFn: fetchCourses,
+    queryFn: async () => {
+      const data = await fetchCoursesAction();
+      return data.map(normalizeCourse);
+    },
   });
 
   const createMutation = useMutation({
-    mutationFn: createCourse,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['courses'] });
+    mutationFn: createCourseAction,
+    onMutate: async (newCourseInput) => {
+      await queryClient.cancelQueries({ queryKey: ['courses'] });
+      const previousCourses = queryClient.getQueryData<CourseWithExercises[]>(['courses']) || [];
+
+      const now = new Date();
+      const tempId = crypto.randomUUID();
+      const optimisticCourse: CourseWithExercises = {
+        id: tempId,
+        name: newCourseInput.name,
+        ects: newCourseInput.ects,
+        numExercises: newCourseInput.numExercises,
+        examDate: newCourseInput.examDate,
+        semester: newCourseInput.semester,
+        createdAt: now,
+        exercises: Array.from({ length: newCourseInput.numExercises }, (_, index) => ({
+          id: crypto.randomUUID(),
+          courseId: tempId,
+          exerciseNumber: index + 1,
+          completed: false,
+          completedAt: undefined,
+          createdAt: now,
+        })),
+      };
+
+      queryClient.setQueryData<CourseWithExercises[]>(['courses'], [optimisticCourse, ...previousCourses]);
+      return { previousCourses, tempId };
+    },
+    onSuccess: (createdCourse, _variables, context) => {
+      const normalizedCreatedCourse = normalizeCourse(createdCourse);
+      queryClient.setQueryData<CourseWithExercises[]>(['courses'], (current = []) => {
+        if (!context?.tempId) return [normalizedCreatedCourse, ...current];
+        const replaced = current.map((course) =>
+          course.id === context.tempId ? normalizedCreatedCourse : course
+        );
+        const hasTemp = current.some((course) => course.id === context.tempId);
+        return hasTemp ? replaced : [normalizedCreatedCourse, ...current];
+      });
       setIsModalOpen(false);
       setEditingCourse(null);
       toast.success('Course created!');
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousCourses) {
+        queryClient.setQueryData(['courses'], context.previousCourses);
+      }
       toast.error(error.message || 'Failed to create course');
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: updateCourse,
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: ['courses'] });
+      const previousCourses = queryClient.getQueryData<CourseWithExercises[]>(['courses']) || [];
+
+      queryClient.setQueryData<CourseWithExercises[]>(['courses'], (current = []) =>
+        current.map((course) =>
+          course.id === id
+            ? {
+                ...course,
+                ...data,
+                examDate: data.examDate === undefined ? course.examDate : data.examDate,
+              }
+            : course
+        )
+      );
+
+      return { previousCourses };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
       setIsModalOpen(false);
       setEditingCourse(null);
       toast.success('Course updated!');
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousCourses) {
+        queryClient.setQueryData(['courses'], context.previousCourses);
+      }
       toast.error(error.message || 'Failed to update course');
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteCourse,
+    onMutate: async (courseId) => {
+      await queryClient.cancelQueries({ queryKey: ['courses'] });
+      const previousCourses = queryClient.getQueryData<CourseWithExercises[]>(['courses']) || [];
+      queryClient.setQueryData<CourseWithExercises[]>(
+        ['courses'],
+        previousCourses.filter((course) => course.id !== courseId)
+      );
+      return { previousCourses };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['courses'] });
       toast.success('Course deleted');
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousCourses) {
+        queryClient.setQueryData(['courses'], context.previousCourses);
+      }
       toast.error(error.message || 'Failed to delete course');
     },
   });
@@ -174,6 +217,13 @@ export default function UniversityPage() {
     setEditingCourse(null);
   };
 
+  useEffect(() => {
+    if (searchParams.get('action') !== 'new-course') return;
+    setEditingCourse(null);
+    setIsModalOpen(true);
+    router.replace(pathname);
+  }, [pathname, router, searchParams]);
+
   // Loading state
   if (isLoading) {
     return (
@@ -218,6 +268,7 @@ export default function UniversityPage() {
           </p>
         </div>
         <Button
+          data-testid="add-course-button"
           onClick={() => {
             setEditingCourse(null);
             setIsModalOpen(true);
@@ -386,6 +437,7 @@ export default function UniversityPage() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onSubmit={handleSubmitCourse}
+        {...(editingCourse ? { layoutId: `course-card-${editingCourse.id}` } : {})}
         initialData={
           editingCourse
             ? {

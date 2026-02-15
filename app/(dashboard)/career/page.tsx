@@ -7,8 +7,15 @@ export const metadata = {
   description: 'Track your job applications and manage your CV',
 };
 
-export default async function CareerPage() {
+interface CareerPageProps {
+  searchParams?: {
+    action?: string;
+  };
+}
+
+export default async function CareerPage({ searchParams }: CareerPageProps) {
   const user = await requireAuth();
+  const openCreateOnLoad = searchParams?.action === 'new-application';
 
   // Fetch initial data on the server
   // We can increase the limit to ensure we get most active applications
@@ -18,7 +25,6 @@ export default async function CareerPage() {
   });
 
   return (
-    <CareerBoard initialApplications={applications} />
+    <CareerBoard initialApplications={applications} openCreateOnLoad={openCreateOnLoad} />
   );
 }
-

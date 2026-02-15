@@ -5,6 +5,7 @@ import { format, differenceInDays, startOfDay } from 'date-fns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { CourseWithExercises } from '@/lib/schemas/course.schema';
+import { toggleExerciseCompletionAction } from '@/app/actions/university';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Badge } from '@/components/ui/Badge';
 import { ChevronDown, ChevronUp, Edit2, Trash2, Calendar, BookOpen } from 'lucide-react';
@@ -13,18 +14,6 @@ interface CourseCardProps {
   course: CourseWithExercises;
   onEdit: () => void;
   onDelete: () => void;
-}
-
-async function toggleExercise(courseId: string, exerciseNumber: number, completed: boolean): Promise<void> {
-  const response = await fetch(`/api/courses/${courseId}/exercises/${exerciseNumber}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ completed }),
-  });
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.message || `Failed to toggle exercise (${response.status})`);
-  }
 }
 
 export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps) {
@@ -49,7 +38,7 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
 
   const toggleMutation = useMutation({
     mutationFn: async ({ exerciseNumber, completed }: { exerciseNumber: number; completed: boolean }) => {
-      return toggleExercise(course.id, exerciseNumber, completed);
+      return toggleExerciseCompletionAction(course.id, exerciseNumber, completed);
     },
     onMutate: async ({ exerciseNumber, completed }) => {
       await queryClient.cancelQueries({ queryKey: ['courses'] });
@@ -86,6 +75,7 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
 
   return (
     <motion.div
+      layoutId={`course-card-${course.id}`}
       className="group relative bg-gradient-to-br from-university-accent/10 to-transparent backdrop-blur-sm border border-university-accent/30 rounded-xl overflow-hidden card-hover-glow"
       whileHover={{ y: -2 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}

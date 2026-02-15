@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Goal, CreateGoalInput, GoalCategory } from '@/lib/schemas/goal.schema';
 import { calculateProgress, goalToCreateInput } from '@/lib/utils/goalUtils';
-import { fetchGoals, createGoal, updateGoal, deleteGoal } from '@/lib/api/goals';
+import { createGoalAction, updateGoalAction, deleteGoalAction, fetchGoalsAction } from '@/app/actions/goals';
 import toast from 'react-hot-toast';
 import GoalsList from '@/components/features/goals/GoalsList';
 import GoalModal from '@/components/features/goals/GoalModal';
@@ -24,7 +25,18 @@ const categoryConfig: Record<FilterOption, { label: string; icon: string; color:
   finance: { label: 'Finance', icon: '💰', color: 'success' },
 };
 
+function normalizeGoal(goal: any): Goal {
+  return {
+    ...goal,
+    targetDate: new Date(goal.targetDate),
+    createdAt: new Date(goal.createdAt),
+  };
+}
+
 export default function GoalsPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
@@ -38,19 +50,45 @@ export default function GoalsPage() {
     error,
   } = useQuery({
     queryKey: ['goals'],
-    queryFn: fetchGoals, // Already returns Goal[] directly
+    queryFn: async () => {
+      const fetchedGoals = await fetchGoalsAction();
+      return fetchedGoals.map(normalizeGoal);
+    },
   });
 
   // Create mutation
   const createMutation = useMutation({
-    mutationFn: createGoal,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
+    mutationFn: createGoalAction,
+    onMutate: async (newGoalInput) => {
+      await queryClient.cancelQueries({ queryKey: ['goals'] });
+      const previousGoals = queryClient.getQueryData<Goal[]>(['goals']) || [];
+      const tempId = crypto.randomUUID();
+      const optimisticGoal: Goal = {
+        id: tempId,
+        ...newGoalInput,
+        createdAt: new Date(),
+      };
+      queryClient.setQueryData<Goal[]>(['goals'], [optimisticGoal, ...previousGoals]);
+      return { previousGoals, tempId };
+    },
+    onSuccess: (createdGoal, _variables, context) => {
+      const normalizedCreatedGoal = normalizeGoal(createdGoal);
+      queryClient.setQueryData<Goal[]>(['goals'], (current = []) => {
+        if (!context?.tempId) return [normalizedCreatedGoal, ...current];
+        const replaced = current.map((goal) =>
+          goal.id === context.tempId ? normalizedCreatedGoal : goal
+        );
+        const hasTemp = current.some((goal) => goal.id === context.tempId);
+        return hasTemp ? replaced : [normalizedCreatedGoal, ...current];
+      });
       setIsModalOpen(false);
       setEditingGoal(null);
       toast.success('Goal created!');
     },
-    onError: (err: Error) => {
+    onError: (err: Error, _variables, context) => {
+      if (context?.previousGoals) {
+        queryClient.setQueryData(['goals'], context.previousGoals);
+      }
       toast.error(err.message || 'Failed to create goal');
     },
   });
@@ -58,26 +96,55 @@ export default function GoalsPage() {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: ({ goalId, data }: { goalId: string; data: CreateGoalInput }) =>
-      updateGoal(goalId, data),
+      updateGoalAction(goalId, data),
+    onMutate: async ({ goalId, data }) => {
+      await queryClient.cancelQueries({ queryKey: ['goals'] });
+      const previousGoals = queryClient.getQueryData<Goal[]>(['goals']) || [];
+      queryClient.setQueryData<Goal[]>(['goals'], (current = []) =>
+        current.map((goal) =>
+          goal.id === goalId
+            ? {
+                ...goal,
+                ...data,
+                targetDate: data.targetDate ?? goal.targetDate,
+              }
+            : goal
+        )
+      );
+      return { previousGoals };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
       setIsModalOpen(false);
       setEditingGoal(null);
       toast.success('Goal updated!');
     },
-    onError: (err: Error) => {
+    onError: (err: Error, _variables, context) => {
+      if (context?.previousGoals) {
+        queryClient.setQueryData(['goals'], context.previousGoals);
+      }
       toast.error(err.message || 'Failed to update goal');
     },
   });
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: deleteGoal,
+    mutationFn: deleteGoalAction,
+    onMutate: async (goalId) => {
+      await queryClient.cancelQueries({ queryKey: ['goals'] });
+      const previousGoals = queryClient.getQueryData<Goal[]>(['goals']) || [];
+      queryClient.setQueryData<Goal[]>(
+        ['goals'],
+        previousGoals.filter((goal) => goal.id !== goalId)
+      );
+      return { previousGoals };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
       toast.success('Goal deleted');
     },
-    onError: (err: Error) => {
+    onError: (err: Error, _variables, context) => {
+      if (context?.previousGoals) {
+        queryClient.setQueryData(['goals'], context.previousGoals);
+      }
       toast.error(err.message || 'Failed to delete goal');
     },
   });
@@ -161,6 +228,13 @@ export default function GoalsPage() {
   const saveError = isEditMode ? updateMutation.error : createMutation.error;
   const saveErrorMessage = saveError instanceof Error ? saveError.message : null;
   const isSaving = isEditMode ? updateMutation.isPending : createMutation.isPending;
+
+  useEffect(() => {
+    if (searchParams.get('action') !== 'new-goal') return;
+    setEditingGoal(null);
+    setIsModalOpen(true);
+    router.replace(pathname);
+  }, [pathname, router, searchParams]);
 
   // Loading state
   if (isLoading) {
@@ -363,6 +437,7 @@ export default function GoalsPage() {
         isOpen={isModalOpen}
         onClose={handleModalClose}
         onSubmit={isEditMode ? handleEditGoal : handleAddGoal}
+        {...(editingGoal ? { layoutId: `goal-card-${editingGoal.id}` } : {})}
         initialData={initialData}
         isEdit={isEditMode}
         errorMessage={saveErrorMessage}

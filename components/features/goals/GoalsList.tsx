@@ -43,6 +43,7 @@ export default function GoalsList({ goals, onGoalClick, onDelete }: GoalsListPro
         <motion.div key={goal.id} variants={itemVariants}>
           <GoalCard
             goal={goal}
+            layoutId={`goal-card-${goal.id}`}
             onClick={() => handleGoalClick(goal)}
             onDelete={onDelete}
           />

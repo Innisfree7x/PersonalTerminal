@@ -1,6 +1,8 @@
 'use client';
 
 import { useOptimistic, useState, useTransition, useMemo } from 'react';
+import { useEffect } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Application, CreateApplicationInput, ApplicationStatus } from '@/lib/schemas/application.schema';
 import {
     createApplicationAction,
@@ -92,6 +94,7 @@ function KanbanColumn({
             {/* Column Content */}
             <div
                 ref={setNodeRef}
+                data-testid={`career-column-${column.status}`}
                 className="flex-1 bg-surface/30 border-x border-b border-border rounded-b-lg p-3 space-y-3 min-h-[200px]"
             >
                 <SortableContext
@@ -123,14 +126,27 @@ function KanbanColumn({
 
 interface CareerBoardProps {
     initialApplications: Application[];
+    openCreateOnLoad?: boolean;
 }
 
-export default function CareerBoard({ initialApplications }: CareerBoardProps) {
+export default function CareerBoard({ initialApplications, openCreateOnLoad = false }: CareerBoardProps) {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     // Optimistic State
     // Action: { type: 'upsert', app: Application } | { type: 'delete', id: string }
     const [applications, dispatchOptimistic] = useOptimistic(
         initialApplications,
-        (state: Application[], action: { type: 'upsert'; app: Application } | { type: 'delete'; id: string }) => {
+        (
+            state: Application[],
+            action:
+                | { type: 'upsert'; app: Application }
+                | { type: 'delete'; id: string }
+                | { type: 'replace'; apps: Application[] }
+        ) => {
+            if (action.type === 'replace') {
+                return action.apps;
+            }
             if (action.type === 'delete') {
                 return state.filter((app) => app.id !== action.id);
             }
@@ -152,6 +168,15 @@ export default function CareerBoard({ initialApplications }: CareerBoardProps) {
     const [isCvUploadOpen, setIsCvUploadOpen] = useState(false);
     const [editingApplication, setEditingApplication] = useState<Application | null>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!openCreateOnLoad) return;
+        setEditingApplication(null);
+        setIsModalOpen(true);
+        if (searchParams.get('action')) {
+            router.replace(pathname);
+        }
+    }, [openCreateOnLoad, pathname, router, searchParams]);
 
     // Sensors
     const sensors = useSensors(
@@ -182,6 +207,7 @@ export default function CareerBoard({ initialApplications }: CareerBoardProps) {
     // Handlers
     const handleAddApplication = async (data: CreateApplicationInput) => {
         setIsModalOpen(false);
+        const previousApplications = applications;
 
         // Create optimistic ID
         const tempId = crypto.randomUUID();
@@ -197,9 +223,16 @@ export default function CareerBoard({ initialApplications }: CareerBoardProps) {
         });
 
         try {
-            await createApplicationAction(data);
+            const createdApplication = await createApplicationAction(data);
+            startTransition(() => {
+                dispatchOptimistic({ type: 'delete', id: tempId });
+                dispatchOptimistic({ type: 'upsert', app: createdApplication });
+            });
             toast.success('Application added!');
         } catch (e) {
+            startTransition(() => {
+                dispatchOptimistic({ type: 'replace', apps: previousApplications });
+            });
             toast.error('Failed to create application');
         }
     };
@@ -207,6 +240,7 @@ export default function CareerBoard({ initialApplications }: CareerBoardProps) {
     const handleEditApplication = async (data: CreateApplicationInput) => {
         if (!editingApplication) return;
         setIsModalOpen(false);
+        const previousApplications = applications;
 
         const updatedApp: Application = {
             ...editingApplication,
@@ -219,9 +253,15 @@ export default function CareerBoard({ initialApplications }: CareerBoardProps) {
         });
 
         try {
-            await updateApplicationAction(editingApplication.id, data);
+            const persistedApp = await updateApplicationAction(editingApplication.id, data);
+            startTransition(() => {
+                dispatchOptimistic({ type: 'upsert', app: persistedApp });
+            });
             toast.success('Application updated!');
         } catch (e) {
+            startTransition(() => {
+                dispatchOptimistic({ type: 'replace', apps: previousApplications });
+            });
             toast.error('Failed to update application');
         }
         setEditingApplication(null);
@@ -229,6 +269,7 @@ export default function CareerBoard({ initialApplications }: CareerBoardProps) {
 
     const handleDeleteApplication = async (applicationId: string) => {
         if (!confirm('Are you sure you want to delete this application?')) return;
+        const previousApplications = applications;
 
         startTransition(() => {
             dispatchOptimistic({ type: 'delete', id: applicationId });
@@ -238,6 +279,9 @@ export default function CareerBoard({ initialApplications }: CareerBoardProps) {
             await deleteApplicationAction(applicationId);
             toast.success('Application deleted');
         } catch (e) {
+            startTransition(() => {
+                dispatchOptimistic({ type: 'replace', apps: previousApplications });
+            });
             toast.error('Failed to delete application');
         }
     };
@@ -268,6 +312,7 @@ export default function CareerBoard({ initialApplications }: CareerBoardProps) {
         }
 
         if (newStatus && newStatus !== activeApp.status) {
+            const previousApplications = applications;
             const updatedApp = { ...activeApp, status: newStatus };
 
             startTransition(() => {
@@ -276,9 +321,18 @@ export default function CareerBoard({ initialApplications }: CareerBoardProps) {
 
             // Server update
             try {
-                await updateApplicationAction(activeApp.id, applicationToCreateInput(updatedApp));
+                const persistedApp = await updateApplicationAction(
+                    activeApp.id,
+                    applicationToCreateInput(updatedApp)
+                );
+                startTransition(() => {
+                    dispatchOptimistic({ type: 'upsert', app: persistedApp });
+                });
                 toast.success(`Moved to ${newStatus}`);
             } catch (e) {
+                startTransition(() => {
+                    dispatchOptimistic({ type: 'replace', apps: previousApplications });
+                });
                 toast.error('Failed to move application');
             }
         }
@@ -315,6 +369,7 @@ export default function CareerBoard({ initialApplications }: CareerBoardProps) {
                         Upload CV
                     </Button>
                     <Button
+                        data-testid="add-application-button"
                         onClick={() => {
                             setEditingApplication(null);
                             setIsModalOpen(true);
