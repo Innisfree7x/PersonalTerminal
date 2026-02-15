@@ -96,6 +96,7 @@ export default function AnalyticsPage() {
           <AnalyticsStatCard
             title="Completed"
             value={`${analytics.completedSessions}`}
+            numericValue={analytics.completedSessions}
             subtitle={`of ${analytics.totalSessions} sessions`}
             icon={Target}
             color="text-success"
@@ -104,6 +105,7 @@ export default function AnalyticsPage() {
           <AnalyticsStatCard
             title="Current Streak"
             value={`${analytics.currentStreak}d`}
+            numericValue={analytics.currentStreak}
             subtitle={`Longest: ${analytics.longestStreak}d`}
             icon={Flame}
             color="text-orange-400"
@@ -112,6 +114,7 @@ export default function AnalyticsPage() {
           <AnalyticsStatCard
             title="Avg Session"
             value={`${analytics.averageSessionMinutes}m`}
+            numericValue={analytics.averageSessionMinutes}
             subtitle={`Best: ${analytics.longestSessionMinutes}m`}
             icon={Zap}
             color="text-sky-400"

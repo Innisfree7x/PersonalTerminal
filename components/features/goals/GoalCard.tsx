@@ -13,26 +13,26 @@ interface GoalCardProps {
 }
 
 const categoryConfig: Record<Goal['category'], { icon: string; color: string; bgGradient: string; borderColor: string }> = {
-  fitness: { 
-    icon: '💪', 
+  fitness: {
+    icon: '💪',
     color: 'text-error',
     bgGradient: 'from-error/10 to-transparent',
     borderColor: 'border-error/30'
   },
-  career: { 
-    icon: '💼', 
+  career: {
+    icon: '💼',
     color: 'text-career-accent',
     bgGradient: 'from-career-accent/10 to-transparent',
     borderColor: 'border-career-accent/30'
   },
-  learning: { 
-    icon: '📚', 
+  learning: {
+    icon: '📚',
     color: 'text-primary',
     bgGradient: 'from-primary/10 to-transparent',
     borderColor: 'border-primary/30'
   },
-  finance: { 
-    icon: '💰', 
+  finance: {
+    icon: '💰',
     color: 'text-success',
     bgGradient: 'from-success/10 to-transparent',
     borderColor: 'border-success/30'
@@ -49,9 +49,9 @@ const progressGradients: Record<Goal['category'], string> = {
 export default function GoalCard({ goal, onClick, onDelete }: GoalCardProps) {
   const progress = goal.metrics
     ? Math.min(
-        Math.round((goal.metrics.current / goal.metrics.target) * 100),
-        100
-      )
+      Math.round((goal.metrics.current / goal.metrics.target) * 100),
+      100
+    )
     : null;
 
   const daysUntilTarget = Math.ceil(
@@ -76,11 +76,11 @@ export default function GoalCard({ goal, onClick, onDelete }: GoalCardProps) {
       whileHover={{ y: -4 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
       onClick={onClick}
-      className={`group relative bg-gradient-to-br ${config.bgGradient} backdrop-blur-sm border ${config.borderColor} rounded-xl p-6 cursor-pointer overflow-hidden`}
+      className={`group relative bg-gradient-to-br ${config.bgGradient} backdrop-blur-sm border ${config.borderColor} rounded-xl p-6 cursor-pointer overflow-hidden card-hover-glow`}
     >
       {/* Animated glow on hover */}
       <div className={`absolute inset-0 bg-gradient-to-br ${config.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-      
+
       {/* Left border accent */}
       <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${progressGradients[goal.category]} opacity-80`} />
 
@@ -148,7 +148,7 @@ export default function GoalCard({ goal, onClick, onDelete }: GoalCardProps) {
                 </span>
               )}
             </div>
-            
+
             {/* Gradient Progress Bar */}
             <div className="relative w-full h-2 bg-surface rounded-full overflow-hidden">
               <motion.div
@@ -168,13 +168,12 @@ export default function GoalCard({ goal, onClick, onDelete }: GoalCardProps) {
             <span>{format(goal.targetDate, 'MMM dd, yyyy')}</span>
           </div>
           <span
-            className={`text-xs font-medium ${
-              isOverdue
+            className={`text-xs font-medium ${isOverdue
                 ? 'text-error'
                 : daysUntilTarget < 30
-                ? 'text-warning'
-                : 'text-text-tertiary'
-            }`}
+                  ? 'text-warning'
+                  : 'text-text-tertiary'
+              }`}
           >
             {isOverdue
               ? `${Math.abs(daysUntilTarget)}d overdue`

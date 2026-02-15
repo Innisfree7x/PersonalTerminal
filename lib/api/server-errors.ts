@@ -28,10 +28,10 @@ export function apiErrorResponse(
 
 export function handleRouteError(
   error: unknown,
-  fallbackMessage: string,
-  context: string
+  userMessage: string,
+  logMessage: string
 ) {
-  console.error(context, error);
+  console.error(`[API Error] ${logMessage}:`, error);
 
   if (error instanceof ZodError) {
     return apiErrorResponse(400, 'VALIDATION_ERROR', 'Validation error', error.flatten());
@@ -47,6 +47,6 @@ export function handleRouteError(
     );
   }
 
-  const message = error instanceof Error ? error.message : fallbackMessage;
-  return apiErrorResponse(500, 'INTERNAL_ERROR', message);
+  // Use userMessage for unknown errors (safe for client), log real error above
+  return apiErrorResponse(500, 'INTERNAL_ERROR', userMessage);
 }

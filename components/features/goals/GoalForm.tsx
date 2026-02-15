@@ -13,6 +13,18 @@ interface GoalFormProps {
   submitDisabled?: boolean;
 }
 
+const DEFAULT_GOAL_FORM_VALUES: CreateGoalInput = {
+  title: '',
+  description: '',
+  category: 'fitness',
+  targetDate: new Date(),
+  metrics: {
+    current: 0,
+    target: 0,
+    unit: '',
+  },
+};
+
 export default function GoalForm({
   onSubmit,
   onCancel,
@@ -27,34 +39,12 @@ export default function GoalForm({
     reset,
   } = useForm<CreateGoalInput>({
     resolver: zodResolver(createGoalSchema),
-    defaultValues: {
-      title: '',
-      description: '',
-      category: 'fitness',
-      targetDate: new Date(),
-      metrics: {
-        current: 0,
-        target: 0,
-        unit: '',
-      },
-    },
+    defaultValues: DEFAULT_GOAL_FORM_VALUES,
   });
-
-  const defaultFormValues: CreateGoalInput = {
-    title: '',
-    description: '',
-    category: 'fitness',
-    targetDate: new Date(),
-    metrics: {
-      current: 0,
-      target: 0,
-      unit: '',
-    },
-  };
 
   // Reset form when initialData changes (edit → add or switching between items)
   useEffect(() => {
-    reset(initialData ?? defaultFormValues);
+    reset(initialData ?? DEFAULT_GOAL_FORM_VALUES);
   }, [initialData, reset]);
 
   const onSubmitForm = (data: CreateGoalInput) => {

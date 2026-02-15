@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Goal, CreateGoalInput, GoalCategory } from '@/lib/schemas/goal.schema';
 import { calculateProgress, goalToCreateInput } from '@/lib/utils/goalUtils';
 import { fetchGoals, createGoal, updateGoal, deleteGoal } from '@/lib/api/goals';
+import toast from 'react-hot-toast';
 import GoalsList from '@/components/features/goals/GoalsList';
 import GoalModal from '@/components/features/goals/GoalModal';
 import { Button } from '@/components/ui/Button';
@@ -47,6 +48,10 @@ export default function GoalsPage() {
       queryClient.invalidateQueries({ queryKey: ['goals'] });
       setIsModalOpen(false);
       setEditingGoal(null);
+      toast.success('Goal created!');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to create goal');
     },
   });
 
@@ -58,6 +63,10 @@ export default function GoalsPage() {
       queryClient.invalidateQueries({ queryKey: ['goals'] });
       setIsModalOpen(false);
       setEditingGoal(null);
+      toast.success('Goal updated!');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to update goal');
     },
   });
 
@@ -66,6 +75,10 @@ export default function GoalsPage() {
     mutationFn: deleteGoal,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['goals'] });
+      toast.success('Goal deleted');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to delete goal');
     },
   });
 
@@ -131,12 +144,12 @@ export default function GoalsPage() {
       acc[goal.category] = (acc[goal.category] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-    
-    const completed = goals.filter(g => 
+
+    const completed = goals.filter(g =>
       g.metrics && (g.metrics.current / g.metrics.target) >= 1
     ).length;
-    
-    const overdue = goals.filter(g => 
+
+    const overdue = goals.filter(g =>
       g.targetDate < new Date()
     ).length;
 
@@ -257,16 +270,15 @@ export default function GoalsPage() {
             const config = categoryConfig[category];
             const count = category === 'all' ? stats.total : (stats.byCategory[category] || 0);
             const isActive = filterBy === category;
-            
+
             return (
               <motion.button
                 key={category}
                 onClick={() => setFilterBy(category)}
-                className={`relative px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  isActive
+                className={`relative px-4 py-2 rounded-full text-sm font-medium transition-all ${isActive
                     ? 'bg-primary text-white shadow-glow'
                     : 'bg-surface hover:bg-surface-hover text-text-secondary hover:text-text-primary border border-border'
-                }`}
+                  }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >

@@ -15,6 +15,14 @@ interface CourseModalProps {
   error?: string | null;
 }
 
+const DEFAULT_COURSE_FORM_VALUES: CreateCourseInput = {
+  name: '',
+  ects: 6,
+  numExercises: 12,
+  examDate: undefined,
+  semester: 'WS 2024/25',
+};
+
 export default function CourseModal({
   isOpen,
   onClose,
@@ -24,14 +32,6 @@ export default function CourseModal({
   isSaving = false,
   error = null,
 }: CourseModalProps) {
-  const defaultFormValues: CreateCourseInput = {
-    name: '',
-    ects: 6,
-    numExercises: 12,
-    examDate: undefined,
-    semester: 'WS 2024/25',
-  };
-
   const {
     register,
     handleSubmit,
@@ -39,12 +39,12 @@ export default function CourseModal({
     reset,
   } = useForm<CreateCourseInput>({
     resolver: zodResolver(createCourseSchema),
-    defaultValues: defaultFormValues,
+    defaultValues: DEFAULT_COURSE_FORM_VALUES,
   });
 
   useEffect(() => {
     if (isOpen) {
-      reset(initialData ?? defaultFormValues);
+      reset(initialData ?? DEFAULT_COURSE_FORM_VALUES);
     }
   }, [isOpen, initialData, reset]);
 

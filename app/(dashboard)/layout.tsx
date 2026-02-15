@@ -42,22 +42,21 @@ function DashboardLayoutInner({
       fallbackTitle="Dashboard Error"
       fallbackMessage="Something went wrong while loading the dashboard. Don't worry, your data is safe."
     >
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         <Sidebar />
-        
+
         {/* Main content area - dynamically adjusted for sidebar */}
-        <div 
-          className={`min-h-screen transition-all duration-300 ease-in-out ${
-            isCollapsed ? 'lg:pl-20' : 'lg:pl-60'
-          }`}
+        <div
+          className={`min-h-screen transition-all duration-300 ease-in-out ${isCollapsed ? 'lg:pl-20' : 'lg:pl-60'
+            }`}
         >
           <Header />
-          
+
           {/* Main content with max-width and centered */}
           <main className="relative">
             {/* Subtle gradient background */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
-            
+
             {/* Content container */}
             <div className="relative max-w-[1600px] mx-auto px-6 py-8">
               <AnimatePresence mode="wait">

@@ -43,7 +43,7 @@ export default function ApplicationCard({
     return (
       <motion.div
         onClick={onClick}
-        className="group relative bg-surface border border-border rounded-lg p-4 cursor-pointer hover:border-primary/50 transition-all"
+        className="group relative bg-surface border border-border rounded-lg p-4 cursor-pointer hover:border-primary/50 transition-all card-hover-glow"
         whileHover={{ y: -2 }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
       >
@@ -54,7 +54,7 @@ export default function ApplicationCard({
               {application.company.charAt(0).toUpperCase()}
             </span>
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <h4 className="font-semibold text-text-primary text-sm truncate mb-1">
               {application.position}
@@ -86,7 +86,7 @@ export default function ApplicationCard({
               <span className="truncate">{application.location}</span>
             </div>
           )}
-          
+
           {application.interviewDate && (
             <div className="flex items-center gap-1.5 text-warning">
               <Calendar className="w-3 h-3" />
@@ -144,7 +144,7 @@ export default function ApplicationCard({
                 {application.company.charAt(0).toUpperCase()}
               </span>
             </div>
-            
+
             <div className="flex-1 min-w-0">
               <h3 className="text-lg font-semibold text-text-primary mb-1">
                 {application.position}
@@ -181,13 +181,13 @@ export default function ApplicationCard({
             <Calendar className="w-3 h-3" />
             <span>Applied {format(application.applicationDate, 'MMM dd')}</span>
           </div>
-          
+
           {application.interviewDate && (
             <Badge variant="warning" size="sm">
               Interview {format(application.interviewDate, 'MMM dd')}
             </Badge>
           )}
-          
+
           {application.salaryRange && (
             <div className="flex items-center gap-1.5 text-xs text-success">
               <DollarSign className="w-3 h-3" />

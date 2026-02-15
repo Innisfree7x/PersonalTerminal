@@ -19,77 +19,78 @@ const config: Config = {
       colors: {
         // Base colors
         background: {
-          DEFAULT: '#0A0A0A',
-          secondary: '#141414',
-          tertiary: '#1A1A1A',
+          DEFAULT: 'rgb(var(--background) / <alpha-value>)',
+          secondary: 'rgb(var(--surface) / <alpha-value>)', // Mapping secondary to surface for now or create distinct var?
+          tertiary: 'rgb(var(--surface-hover) / <alpha-value>)',
         },
         surface: {
-          DEFAULT: '#141414',
-          hover: '#1A1A1A',
+          DEFAULT: 'rgb(var(--surface) / <alpha-value>)',
+          hover: 'rgb(var(--surface-hover) / <alpha-value>)',
         },
         border: {
-          DEFAULT: '#262626',
-          secondary: '#333333',
-          tertiary: '#404040',
+          DEFAULT: 'rgb(var(--border) / <alpha-value>)',
+          secondary: 'rgb(var(--border-secondary) / <alpha-value>)',
+          tertiary: 'rgb(var(--border-secondary) / <alpha-value>)', // Fallback
         },
 
         // Text colors
         text: {
-          primary: '#EDEDED',
-          secondary: '#A1A1A1',
-          tertiary: '#6B6B6B',
-          inverse: '#0A0A0A',
+          primary: 'rgb(var(--text-primary) / <alpha-value>)',
+          secondary: 'rgb(var(--text-secondary) / <alpha-value>)',
+          tertiary: 'rgb(var(--text-tertiary) / <alpha-value>)',
+          inverse: 'rgb(var(--background) / <alpha-value>)',
         },
 
         // Primary purple
         primary: {
+          DEFAULT: 'rgb(var(--primary) / <alpha-value>)',
+          hover: 'rgb(var(--primary-hover) / <alpha-value>)',
           50: '#FAF5FF',
           100: '#F3E8FF',
           200: '#E9D5FF',
           300: '#D8B4FE',
           400: '#A78BFA',
-          500: '#8B5CF6',
-          600: '#7C3AED',
+          500: 'rgb(var(--primary) / <alpha-value>)',
+          600: 'rgb(var(--primary-hover) / <alpha-value>)',
           700: '#6D28D9',
           800: '#5B21B6',
           900: '#4C1D95',
-          DEFAULT: '#8B5CF6',
         },
 
         // Feature accents
         accent: {
-          goals: '#8B5CF6',
-          career: '#3B82F6',
-          university: '#10B981',
-          calendar: '#F59E0B',
+          goals: 'rgb(var(--goals-accent) / <alpha-value>)',
+          career: 'rgb(var(--career-accent) / <alpha-value>)',
+          university: 'rgb(var(--university-accent) / <alpha-value>)',
+          calendar: 'rgb(var(--calendar-accent) / <alpha-value>)',
         },
 
         // Status colors
         success: {
           light: '#34D399',
-          DEFAULT: '#10B981',
+          DEFAULT: 'rgb(var(--success) / <alpha-value>)',
           dark: '#059669',
-        },
-        warning: {
-          light: '#FCD34D',
-          DEFAULT: '#F59E0B',
-          dark: '#D97706',
         },
         error: {
           light: '#F87171',
-          DEFAULT: '#EF4444',
+          DEFAULT: 'rgb(var(--error) / <alpha-value>)',
           dark: '#DC2626',
+        },
+        warning: {
+          light: '#FCD34D',
+          DEFAULT: 'rgb(var(--warning) / <alpha-value>)',
+          dark: '#D97706',
         },
         info: {
           light: '#60A5FA',
-          DEFAULT: '#3B82F6',
+          DEFAULT: 'rgb(var(--info) / <alpha-value>)',
           dark: '#2563EB',
         },
 
         // Urgency colors
-        urgent: '#EF4444',
-        important: '#F59E0B',
-        normal: '#3B82F6',
+        urgent: 'rgb(var(--error) / <alpha-value>)',
+        important: 'rgb(var(--warning) / <alpha-value>)',
+        normal: 'rgb(var(--info) / <alpha-value>)',
       },
 
       // Font sizes

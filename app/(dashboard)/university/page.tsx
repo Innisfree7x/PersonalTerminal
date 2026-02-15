@@ -10,12 +10,20 @@ import CourseModal from '@/components/features/university/CourseModal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Plus, GraduationCap, BookOpen, Calendar, TrendingUp } from 'lucide-react';
+import toast from 'react-hot-toast';
+import AnimatedCounter from '@/components/ui/AnimatedCounter';
+
+function extractApiError(err: unknown, fallback: string): string {
+  if (typeof err !== 'object' || err === null) return fallback;
+  const payload = err as { message?: string; error?: { message?: string } };
+  return payload.message || payload.error?.message || fallback;
+}
 
 async function fetchCourses(): Promise<CourseWithExercises[]> {
   const response = await fetch('/api/courses');
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error(err.message || `Failed to fetch courses (${response.status})`);
+    throw new Error(extractApiError(err, `Failed to fetch courses (${response.status})`));
   }
   const data = await response.json();
   return data.map((course: any) => ({
@@ -38,7 +46,7 @@ async function createCourse(data: CreateCourseInput): Promise<CourseWithExercise
   });
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error(err.message || `Failed to create course (${response.status})`);
+    throw new Error(extractApiError(err, `Failed to create course (${response.status})`));
   }
   return response.json();
 }
@@ -57,7 +65,7 @@ async function updateCourse({
   });
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error(err.message || `Failed to update course (${response.status})`);
+    throw new Error(extractApiError(err, `Failed to update course (${response.status})`));
   }
   return response.json();
 }
@@ -68,7 +76,7 @@ async function deleteCourse(id: string): Promise<void> {
   });
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error(err.message || `Failed to delete course (${response.status})`);
+    throw new Error(extractApiError(err, `Failed to delete course (${response.status})`));
   }
 }
 
@@ -76,9 +84,8 @@ export default function UniversityPage() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<CourseWithExercises | null>(null);
-  const [mutationError, setMutationError] = useState<string | null>(null);
 
-  const { data: courses = [], isLoading } = useQuery({
+  const { data: courses = [], isLoading, error } = useQuery({
     queryKey: ['courses'],
     queryFn: fetchCourses,
   });
@@ -89,10 +96,10 @@ export default function UniversityPage() {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
       setIsModalOpen(false);
       setEditingCourse(null);
-      setMutationError(null);
+      toast.success('Course created!');
     },
     onError: (error: Error) => {
-      setMutationError(error.message);
+      toast.error(error.message || 'Failed to create course');
     },
   });
 
@@ -102,10 +109,10 @@ export default function UniversityPage() {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
       setIsModalOpen(false);
       setEditingCourse(null);
-      setMutationError(null);
+      toast.success('Course updated!');
     },
     onError: (error: Error) => {
-      setMutationError(error.message);
+      toast.error(error.message || 'Failed to update course');
     },
   });
 
@@ -113,10 +120,10 @@ export default function UniversityPage() {
     mutationFn: deleteCourse,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
-      setMutationError(null);
+      toast.success('Course deleted');
     },
     onError: (error: Error) => {
-      setMutationError(error.message);
+      toast.error(error.message || 'Failed to delete course');
     },
   });
 
@@ -139,7 +146,7 @@ export default function UniversityPage() {
       return a.examDate.getTime() - b.examDate.getTime();
     });
   const nextExam = upcomingExams[0];
-  const daysUntilNextExam = nextExam?.examDate 
+  const daysUntilNextExam = nextExam?.examDate
     ? differenceInDays(nextExam.examDate, today)
     : null;
 
@@ -165,7 +172,6 @@ export default function UniversityPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingCourse(null);
-    setMutationError(null);
   };
 
   // Loading state
@@ -181,6 +187,15 @@ export default function UniversityPage() {
             ))}
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="rounded-lg border border-error/30 bg-error/10 px-6 py-4 text-error">
+        Error loading courses: {error instanceof Error ? error.message : 'Unknown error'}
       </div>
     );
   }
@@ -215,23 +230,6 @@ export default function UniversityPage() {
         </Button>
       </motion.div>
 
-      {/* Error Banner */}
-      {mutationError && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error"
-        >
-          <span>{mutationError}</span>
-          <button
-            onClick={() => setMutationError(null)}
-            className="ml-4 text-error hover:text-error/80 transition-colors"
-          >
-            &times;
-          </button>
-        </motion.div>
-      )}
-
       {/* Stats Dashboard */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -250,7 +248,7 @@ export default function UniversityPage() {
             </div>
             <div>
               <div className="text-3xl font-bold text-university-accent mb-1">
-                {totalECTS}
+                <AnimatedCounter to={totalECTS} />
               </div>
               <div className="text-sm text-text-tertiary">Total ECTS</div>
             </div>
@@ -268,7 +266,7 @@ export default function UniversityPage() {
             </div>
             <div>
               <div className="text-3xl font-bold text-primary mb-1">
-                {completionPercent}%
+                <AnimatedCounter to={completionPercent} suffix="%" />
               </div>
               <div className="text-sm text-text-tertiary mb-3">
                 {completedExercises}/{totalExercises} Exercises
@@ -287,27 +285,24 @@ export default function UniversityPage() {
         </div>
 
         {/* Next Exam */}
-        <div className={`relative overflow-hidden bg-gradient-to-br ${
-          daysUntilNextExam !== null && daysUntilNextExam < 45 
-            ? 'from-error/20 to-error/10 border-error/30' 
-            : 'from-warning/20 to-warning/10 border-warning/30'
-        } backdrop-blur-sm border rounded-lg p-6 group col-span-1 sm:col-span-2 lg:col-span-2`}>
+        <div className={`relative overflow-hidden bg-gradient-to-br ${daysUntilNextExam !== null && daysUntilNextExam < 45
+          ? 'from-error/20 to-error/10 border-error/30'
+          : 'from-warning/20 to-warning/10 border-warning/30'
+          } backdrop-blur-sm border rounded-lg p-6 group col-span-1 sm:col-span-2 lg:col-span-2`}>
           <div className="absolute inset-0 bg-gradient-to-br from-warning/20 to-warning/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           <div className="relative z-10">
             <div className="flex items-start justify-between mb-4">
-              <div className={`p-2 rounded-lg ${
-                daysUntilNextExam !== null && daysUntilNextExam < 45 
-                  ? 'bg-error/20 border-error/30' 
-                  : 'bg-warning/20 border-warning/30'
-              } border`}>
-                <Calendar className={`w-5 h-5 ${
-                  daysUntilNextExam !== null && daysUntilNextExam < 45 
-                    ? 'text-error' 
-                    : 'text-warning'
-                }`} />
+              <div className={`p-2 rounded-lg ${daysUntilNextExam !== null && daysUntilNextExam < 45
+                ? 'bg-error/20 border-error/30'
+                : 'bg-warning/20 border-warning/30'
+                } border`}>
+                <Calendar className={`w-5 h-5 ${daysUntilNextExam !== null && daysUntilNextExam < 45
+                  ? 'text-error'
+                  : 'text-warning'
+                  }`} />
               </div>
               {daysUntilNextExam !== null && (
-                <Badge 
+                <Badge
                   variant={daysUntilNextExam < 45 ? 'error' : 'warning'}
                   size="sm"
                 >
@@ -317,11 +312,10 @@ export default function UniversityPage() {
             </div>
             {nextExam && nextExam.examDate ? (
               <div>
-                <div className={`text-2xl font-bold mb-1 ${
-                  daysUntilNextExam !== null && daysUntilNextExam < 45 
-                    ? 'text-error' 
-                    : 'text-warning'
-                }`}>
+                <div className={`text-2xl font-bold mb-1 ${daysUntilNextExam !== null && daysUntilNextExam < 45
+                  ? 'text-error'
+                  : 'text-warning'
+                  }`}>
                   {nextExam.name}
                 </div>
                 <div className="text-sm text-text-tertiary">
@@ -395,17 +389,17 @@ export default function UniversityPage() {
         initialData={
           editingCourse
             ? {
-                name: editingCourse.name,
-                ects: editingCourse.ects,
-                numExercises: editingCourse.numExercises,
-                examDate: editingCourse.examDate,
-                semester: editingCourse.semester,
-              }
+              name: editingCourse.name,
+              ects: editingCourse.ects,
+              numExercises: editingCourse.numExercises,
+              examDate: editingCourse.examDate,
+              semester: editingCourse.semester,
+            }
             : undefined
         }
         isEdit={!!editingCourse}
         isSaving={createMutation.isPending || updateMutation.isPending}
-        error={mutationError}
+        error={null}
       />
     </div>
   );

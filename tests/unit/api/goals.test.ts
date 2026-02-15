@@ -75,7 +75,7 @@ describe('GET /api/goals', () => {
 
     expect(response.status).toBe(500);
     const body = await response.json();
-    expect(body.error?.message).toBe('Database error');
+    expect(body.error?.message).toBe('Failed to fetch goals');
     consoleSpy.mockRestore();
   });
 

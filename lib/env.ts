@@ -7,9 +7,38 @@
  * This file validates environment variables using Zod schemas.
  * If any required variable is missing or invalid, the app will fail fast
  * with a clear error message instead of crashing at runtime.
+ * with a clear error message instead of crashing at runtime.
  */
 
 import { z } from 'zod';
+
+// Fallback: Try to load File_Explorer.env.local if standard env vars are missing
+// This is necessary because some users might rely on this custom file
+if (typeof window === 'undefined') {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+
+    const filePath = path.join(process.cwd(), 'File_Explorer.env.local');
+    if (fs.existsSync(filePath)) {
+      const raw = fs.readFileSync(filePath, 'utf8');
+      for (const line of raw.split('\n')) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) continue;
+        const eqIdx = trimmed.indexOf('=');
+        if (eqIdx <= 0) continue;
+        const key = trimmed.slice(0, eqIdx).trim();
+        const value = trimmed.slice(eqIdx + 1).trim();
+        if (key && value && !process.env[key]) {
+          process.env[key] = value;
+        }
+      }
+    }
+  } catch (e) {
+    // Ignore errors during fallback load
+    // console.warn('Failed to load fallback env file:', e);
+  }
+}
 
 /**
  * Server-side environment variables schema
@@ -20,7 +49,7 @@ const serverSchema = z.object({
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_REDIRECT_URI: z.string().optional(),
-  
+
   // Node environment
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 });

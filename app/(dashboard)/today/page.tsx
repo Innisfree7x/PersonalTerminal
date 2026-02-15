@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import FocusTasks from '@/components/features/dashboard/FocusTasks';
 import ScheduleColumn from '@/components/features/dashboard/ScheduleColumn';
@@ -20,30 +21,29 @@ import {
   disconnectGoogleCalendar,
   connectGoogleCalendar,
 } from '@/lib/api/calendar';
-import { useNotifications, parseOAuthCallbackParams } from '@/lib/hooks/useNotifications';
+import { parseOAuthCallbackParams } from '@/lib/hooks/useNotifications';
 
 export default function TodayPage() {
   const queryClient = useQueryClient();
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
-  const { error, success, setError, setSuccess } = useNotifications();
 
   // Check URL params for OAuth callback messages
   useEffect(() => {
     const messages = parseOAuthCallbackParams();
 
     if (messages.error) {
-      setError(messages.error);
+      toast.error(messages.error);
     }
 
     if (messages.success) {
-      setSuccess(messages.success);
+      toast.success(messages.success);
       window.history.replaceState({}, '', '/today');
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['calendar', 'today'] });
         checkGoogleCalendarConnection().then(setIsConnected);
       }, 1000);
     }
-  }, [queryClient, setError, setSuccess]);
+  }, [queryClient]);
 
   // Check connection status on mount
   useEffect(() => {
@@ -75,10 +75,10 @@ export default function TodayPage() {
     onSuccess: () => {
       setIsConnected(false);
       queryClient.setQueryData(['calendar', 'today'], []);
-      setSuccess('Successfully disconnected from Google Calendar.');
+      toast.success('Successfully disconnected from Google Calendar.');
     },
     onError: () => {
-      setError('Failed to disconnect. Please try again.');
+      toast.error('Failed to disconnect. Please try again.');
     },
   });
 
@@ -91,7 +91,7 @@ export default function TodayPage() {
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['calendar', 'today'] });
     queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
-    setSuccess('Refreshed!');
+    toast.success('Refreshed!');
   };
 
   const stats = nextTasksData?.stats;
@@ -99,26 +99,6 @@ export default function TodayPage() {
 
   return (
     <div className="space-y-6">
-      {/* Error/Success Messages */}
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error"
-        >
-          {error}
-        </motion.div>
-      )}
-      {success && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success"
-        >
-          {success}
-        </motion.div>
-      )}
-
       {/* Stats Bar - Real Data */}
       {stats && (
         <DashboardStats
@@ -143,6 +123,13 @@ export default function TodayPage() {
         >
           <ErrorBoundary fallbackTitle="Tasks Error">
             <FocusTasks />
+            <div className="mt-6">
+              <UpcomingDeadlines
+                goals={nextTasksData?.goals || []}
+                interviews={nextTasksData?.interviews || []}
+                exams={studyProgress}
+              />
+            </div>
           </ErrorBoundary>
         </motion.div>
 
@@ -186,13 +173,6 @@ export default function TodayPage() {
 
             {/* Study Progress */}
             <StudyProgress courses={studyProgress} />
-
-            {/* Upcoming Deadlines */}
-            <UpcomingDeadlines
-              goals={nextTasksData?.goals || []}
-              interviews={nextTasksData?.interviews || []}
-              exams={studyProgress}
-            />
 
             {/* Week Overview */}
             <WeekOverview />

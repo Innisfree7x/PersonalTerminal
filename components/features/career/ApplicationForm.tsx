@@ -16,6 +16,18 @@ interface ApplicationFormProps {
   submitDisabled?: boolean;
 }
 
+const DEFAULT_APPLICATION_FORM_VALUES: CreateApplicationInput = {
+  company: '',
+  position: '',
+  status: 'applied',
+  applicationDate: new Date(),
+  interviewDate: undefined,
+  notes: '',
+  salaryRange: '',
+  location: '',
+  jobUrl: '',
+};
+
 export default function ApplicationForm({
   onSubmit,
   onCancel,
@@ -30,34 +42,12 @@ export default function ApplicationForm({
     reset,
   } = useForm<CreateApplicationInput>({
     resolver: zodResolver(createApplicationSchema),
-    defaultValues: {
-      company: '',
-      position: '',
-      status: 'applied',
-      applicationDate: new Date(),
-      interviewDate: undefined,
-      notes: '',
-      salaryRange: '',
-      location: '',
-      jobUrl: '',
-    },
+    defaultValues: DEFAULT_APPLICATION_FORM_VALUES,
   });
-
-  const defaultFormValues: CreateApplicationInput = {
-    company: '',
-    position: '',
-    status: 'applied',
-    applicationDate: new Date(),
-    interviewDate: undefined,
-    notes: '',
-    salaryRange: '',
-    location: '',
-    jobUrl: '',
-  };
 
   // Reset form when initialData changes (edit → add or switching between items)
   useEffect(() => {
-    reset(initialData ?? defaultFormValues);
+    reset(initialData ?? DEFAULT_APPLICATION_FORM_VALUES);
   }, [initialData, reset]);
 
   const onSubmitForm = (data: CreateApplicationInput) => {

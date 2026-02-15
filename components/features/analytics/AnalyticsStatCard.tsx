@@ -3,10 +3,12 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { LucideIcon } from 'lucide-react';
+import AnimatedCounter from '@/components/ui/AnimatedCounter';
 
 interface AnalyticsStatCardProps {
   title: string;
   value: string;
+  numericValue?: number;
   subtitle?: string;
   icon: LucideIcon;
   color?: string;
@@ -16,6 +18,7 @@ interface AnalyticsStatCardProps {
 const AnalyticsStatCard = memo(function AnalyticsStatCard({
   title,
   value,
+  numericValue,
   subtitle,
   icon: Icon,
   color = 'text-primary',
@@ -32,7 +35,13 @@ const AnalyticsStatCard = memo(function AnalyticsStatCard({
         <span className="text-xs text-text-tertiary font-medium">{title}</span>
         <Icon className={`w-4 h-4 ${color}`} />
       </div>
-      <div className="text-2xl font-bold text-text-primary">{value}</div>
+      <div className="text-2xl font-bold text-text-primary">
+        {numericValue !== undefined ? (
+          <AnimatedCounter to={numericValue} suffix={value.replace(/[0-9]/g, '')} />
+        ) : (
+          value
+        )}
+      </div>
       {subtitle && (
         <p className="text-xs text-text-tertiary mt-0.5">{subtitle}</p>
       )}

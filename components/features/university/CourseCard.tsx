@@ -36,7 +36,7 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   // Calculate days until exam
-  const daysUntilExam = course.examDate 
+  const daysUntilExam = course.examDate
     ? differenceInDays(startOfDay(course.examDate), startOfDay(new Date()))
     : null;
 
@@ -86,13 +86,13 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
 
   return (
     <motion.div
-      className="group relative bg-gradient-to-br from-university-accent/10 to-transparent backdrop-blur-sm border border-university-accent/30 rounded-xl overflow-hidden"
+      className="group relative bg-gradient-to-br from-university-accent/10 to-transparent backdrop-blur-sm border border-university-accent/30 rounded-xl overflow-hidden card-hover-glow"
       whileHover={{ y: -2 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >
       {/* Animated glow on hover */}
       <div className="absolute inset-0 bg-gradient-to-br from-university-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      
+
       {/* Left border accent */}
       <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-university-accent to-university-accent/70" />
 
@@ -185,7 +185,7 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
             />
             {/* Shine effect */}
             {progressPercent > 0 && (
-              <div 
+              <div
                 className="absolute top-0 left-0 h-full w-full bg-gradient-to-b from-white/30 via-transparent to-transparent rounded-full pointer-events-none"
                 style={{ width: `${progressPercent}%` }}
               />
@@ -210,11 +210,10 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.02 }}
-                    className={`relative p-3 rounded-lg border transition-all cursor-pointer group/ex ${
-                      exercise.completed
+                    className={`relative p-3 rounded-lg border transition-all cursor-pointer group/ex ${exercise.completed
                         ? 'bg-success/10 border-success/30'
                         : 'bg-surface border-border hover:border-primary/50'
-                    }`}
+                      }`}
                     onClick={() =>
                       toggleMutation.mutate({
                         exerciseNumber: exercise.exerciseNumber,
@@ -228,9 +227,8 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
                         className="pointer-events-none"
                       />
                     </div>
-                    <span className={`text-sm font-medium ${
-                      exercise.completed ? 'text-success' : 'text-text-primary'
-                    }`}>
+                    <span className={`text-sm font-medium ${exercise.completed ? 'text-success' : 'text-text-primary'
+                      }`}>
                       Blatt {exercise.exerciseNumber}
                     </span>
                     {exercise.completedAt && (

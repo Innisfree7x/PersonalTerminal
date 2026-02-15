@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Command } from 'cmdk';
@@ -17,8 +15,12 @@ import {
   Pause,
   Square,
   Zap,
+  Palette,
+  Settings,
+  Moon,
 } from 'lucide-react';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
+import { useTheme } from '@/components/providers/ThemeProvider';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -29,6 +31,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   const router = useRouter();
   const [search, setSearch] = useState('');
   const { status: timerStatus, startTimer, pauseTimer, resumeTimer, stopTimer, setIsExpanded: setTimerExpanded } = useFocusTimer();
+  const { setTheme, theme } = useTheme();
 
   // Navigation commands
   const navigationCommands = [
@@ -74,6 +77,22 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       action: () => router.push('/analytics'),
       keywords: ['analytics', 'stats', 'focus', 'charts', 'productivity'],
     },
+    {
+      id: 'nav-settings',
+      label: 'Settings',
+      icon: Settings,
+      action: () => router.push('/settings'),
+      keywords: ['settings', 'preferences', 'config', 'account'],
+    },
+  ];
+
+  // Theme commands
+  const themeCommands = [
+    { id: 'theme-midnight', label: 'Theme: Midnight', icon: Moon, action: () => setTheme('midnight'), keywords: ['theme', 'dark', 'midnight'] },
+    { id: 'theme-nord', label: 'Theme: Nord', icon: Palette, action: () => setTheme('nord'), keywords: ['theme', 'nord', 'blue', 'gray'] },
+    { id: 'theme-dracula', label: 'Theme: Dracula', icon: Palette, action: () => setTheme('dracula'), keywords: ['theme', 'dracula', 'purple', 'vampire'] },
+    { id: 'theme-ocean', label: 'Theme: Ocean', icon: Palette, action: () => setTheme('ocean'), keywords: ['theme', 'ocean', 'blue', 'deep'] },
+    { id: 'theme-emerald', label: 'Theme: Emerald', icon: Palette, action: () => setTheme('emerald'), keywords: ['theme', 'emerald', 'green', 'nature'] },
   ];
 
   // Quick action commands
@@ -84,7 +103,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       icon: Plus,
       action: () => {
         router.push('/goals');
-        // TODO: Trigger goal modal
+        // TODO: Trigger goal modal (requires global state or URL param)
       },
       keywords: ['add', 'new', 'create', 'goal'],
       shortcut: 'G',
@@ -95,7 +114,6 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       icon: Plus,
       action: () => {
         router.push('/career');
-        // TODO: Trigger application modal
       },
       keywords: ['add', 'new', 'create', 'job', 'application'],
       shortcut: 'A',
@@ -106,21 +124,9 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       icon: Plus,
       action: () => {
         router.push('/university');
-        // TODO: Trigger course modal
       },
       keywords: ['add', 'new', 'create', 'course'],
       shortcut: 'C',
-    },
-    {
-      id: 'action-add-task',
-      label: 'Add Quick Task',
-      icon: Plus,
-      action: () => {
-        router.push('/today');
-        // TODO: Trigger task input
-      },
-      keywords: ['add', 'new', 'create', 'task', 'todo'],
-      shortcut: 'T',
     },
   ];
 
@@ -128,55 +134,53 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   const focusCommands = [
     ...(timerStatus === 'idle'
       ? [
-          {
-            id: 'focus-start',
-            label: 'Start Focus Timer',
-            icon: Play,
-            action: () => { startTimer(); setTimerExpanded(true); },
-            keywords: ['focus', 'timer', 'start', 'pomodoro', 'study'],
-            shortcut: 'Alt+F',
-          },
-        ]
+        {
+          id: 'focus-start',
+          label: 'Start Focus Timer',
+          icon: Play,
+          action: () => { startTimer(); setTimerExpanded(true); },
+          keywords: ['focus', 'timer', 'start', 'pomodoro', 'study'],
+          shortcut: 'Alt+F',
+        },
+      ]
       : []),
     ...(timerStatus === 'running' || timerStatus === 'break'
       ? [
-          {
-            id: 'focus-pause',
-            label: 'Pause Timer',
-            icon: Pause,
-            action: () => pauseTimer(),
-            keywords: ['focus', 'timer', 'pause'],
-          },
-        ]
+        {
+          id: 'focus-pause',
+          label: 'Pause Timer',
+          icon: Pause,
+          action: () => pauseTimer(),
+          keywords: ['focus', 'timer', 'pause'],
+        },
+      ]
       : []),
     ...(timerStatus === 'paused' || timerStatus === 'break_paused'
       ? [
-          {
-            id: 'focus-resume',
-            label: 'Resume Timer',
-            icon: Play,
-            action: () => resumeTimer(),
-            keywords: ['focus', 'timer', 'resume', 'continue'],
-          },
-        ]
+        {
+          id: 'focus-resume',
+          label: 'Resume Timer',
+          icon: Play,
+          action: () => resumeTimer(),
+          keywords: ['focus', 'timer', 'resume', 'continue'],
+        },
+      ]
       : []),
     ...(timerStatus !== 'idle'
       ? [
-          {
-            id: 'focus-stop',
-            label: 'Stop Timer',
-            icon: Square,
-            action: () => stopTimer(),
-            keywords: ['focus', 'timer', 'stop', 'end'],
-          },
-        ]
+        {
+          id: 'focus-stop',
+          label: 'Stop Timer',
+          icon: Square,
+          action: () => stopTimer(),
+          keywords: ['focus', 'timer', 'stop', 'end'],
+        },
+      ]
       : []),
   ];
 
-  const allCommands = [...navigationCommands, ...quickActions, ...focusCommands];
-
   const handleSelect = useCallback(
-    (command: typeof allCommands[0]) => {
+    (command: { action: () => void }) => {
       command.action();
       onClose();
       setSearch('');
@@ -218,13 +222,14 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -20 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="w-full max-w-2xl pointer-events-auto"
+              className="w-full max-w-2xl pointer-events-auto px-4"
               onClick={(e) => e.stopPropagation()}
             >
               <Command
-                className="bg-surface/95 backdrop-blur-xl border-2 border-primary/30 rounded-2xl shadow-2xl overflow-hidden"
+                className="bg-surface/95 backdrop-blur-xl border-2 border-primary/30 rounded-2xl shadow-2xl overflow-hidden card-hover-glow"
                 value={search}
                 onValueChange={setSearch}
+                loop
               >
                 {/* Search Input */}
                 <div className="flex items-center gap-3 px-4 py-4 border-b border-border">
@@ -240,9 +245,10 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                 </div>
 
                 {/* Results */}
-                <Command.List className="max-h-[400px] overflow-y-auto p-2">
-                  <Command.Empty className="py-12 text-center text-text-tertiary text-sm">
-                    No results found.
+                <Command.List className="max-h-[400px] overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+                  <Command.Empty className="py-12 text-center text-text-tertiary text-sm flex flex-col items-center gap-2">
+                    <Search className="w-8 h-8 opacity-20" />
+                    <span>No results found.</span>
                   </Command.Empty>
 
                   {/* Navigation Section */}
@@ -257,10 +263,33 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                           key={command.id}
                           value={`${command.label} ${command.keywords.join(' ')}`}
                           onSelect={() => handleSelect(command)}
-                          className="flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary transition-colors mb-1"
+                          className="flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary transition-colors aria-selected:bg-primary/10 aria-selected:text-primary mb-1"
                         >
                           <Icon className="w-4 h-4 flex-shrink-0" />
                           <span className="flex-1 text-sm font-medium">{command.label}</span>
+                        </Command.Item>
+                      );
+                    })}
+                  </Command.Group>
+
+                  {/* Themes Section */}
+                  <Command.Group
+                    heading="Themes"
+                    className="px-2 py-2 text-xs font-semibold text-text-tertiary uppercase tracking-wider mt-2"
+                  >
+                    {themeCommands.map((command) => {
+                      const Icon = command.icon;
+                      const isSelected = theme === command.id.replace('theme-', '');
+                      return (
+                        <Command.Item
+                          key={command.id}
+                          value={`${command.label} ${command.keywords.join(' ')}`}
+                          onSelect={() => handleSelect(command)}
+                          className="flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary transition-colors aria-selected:bg-primary/10 aria-selected:text-primary mb-1"
+                        >
+                          <Icon className="w-4 h-4 flex-shrink-0" />
+                          <span className="flex-1 text-sm font-medium">{command.label}</span>
+                          {isSelected && <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded">Active</span>}
                         </Command.Item>
                       );
                     })}
@@ -279,7 +308,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                             key={command.id}
                             value={`${command.label} ${command.keywords.join(' ')}`}
                             onSelect={() => handleSelect(command)}
-                            className="flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary transition-colors mb-1"
+                            className="flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary transition-colors aria-selected:bg-primary/10 aria-selected:text-primary mb-1"
                           >
                             <Icon className="w-4 h-4 flex-shrink-0" />
                             <span className="flex-1 text-sm font-medium">{command.label}</span>
@@ -306,7 +335,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                           key={command.id}
                           value={`${command.label} ${command.keywords.join(' ')}`}
                           onSelect={() => handleSelect(command)}
-                          className="flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer data-[selected=true]:bg-success/10 data-[selected=true]:text-success transition-colors mb-1"
+                          className="flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer data-[selected=true]:bg-success/10 data-[selected=true]:text-success transition-colors aria-selected:bg-success/10 aria-selected:text-success mb-1"
                         >
                           <Icon className="w-4 h-4 flex-shrink-0" />
                           <span className="flex-1 text-sm font-medium">{command.label}</span>
