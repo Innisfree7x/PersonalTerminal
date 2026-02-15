@@ -69,7 +69,7 @@ describe('API Auth Guards', () => {
 
       expect(response.status).toBe(401);
       const body = await response.json();
-      expect(body.error).toBe('Unauthorized');
+      expect(body.error?.message).toBe('Unauthorized');
     });
   }
 

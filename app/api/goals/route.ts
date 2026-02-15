@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createGoal, fetchGoals } from '@/lib/supabase/goals';
 import { createGoalSchema } from '@/lib/schemas/goal.schema';
 import { requireApiAuth } from '@/lib/api/auth';
+import { handleRouteError } from '@/lib/api/server-errors';
 
 /**
  * GET /api/goals - Fetch goals with pagination
@@ -12,7 +13,7 @@ import { requireApiAuth } from '@/lib/api/auth';
  * - category: filter by category (optional)
  */
 export async function GET(request: NextRequest) {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
@@ -23,6 +24,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category') || undefined;
 
     const { goals } = await fetchGoals({
+      userId: user.id,
       page,
       limit,
       status: status as 'active' | 'completed' | 'archived' | undefined,
@@ -32,11 +34,7 @@ export async function GET(request: NextRequest) {
     // Return array directly for frontend compatibility
     return NextResponse.json(goals);
   } catch (error) {
-    console.error('Error fetching goals:', error);
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to fetch goals' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Failed to fetch goals', 'Error fetching goals');
   }
 }
 
@@ -44,7 +42,7 @@ export async function GET(request: NextRequest) {
  * POST /api/goals - Create a new goal
  */
 export async function POST(request: NextRequest) {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
@@ -63,22 +61,9 @@ export async function POST(request: NextRequest) {
     // Validate input with Zod
     const validatedData = createGoalSchema.parse(dataToValidate);
     
-    const goal = await createGoal(validatedData);
+    const goal = await createGoal(user.id, validatedData);
     return NextResponse.json(goal, { status: 201 });
   } catch (error) {
-    console.error('Error creating goal:', error);
-    
-    // Check if it's a Zod validation error
-    if (error && typeof error === 'object' && 'issues' in error) {
-      return NextResponse.json(
-        { message: 'Validation error', errors: error },
-        { status: 400 }
-      );
-    }
-    
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to create goal' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Failed to create goal', 'Error creating goal');
   }
 }

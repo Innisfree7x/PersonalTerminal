@@ -4,6 +4,7 @@ import { fetchApplications } from '@/lib/supabase/applications';
 import { createClient } from '@/lib/auth/server';
 import { startOfWeek, endOfWeek, startOfDay, differenceInDays } from 'date-fns';
 import { requireApiAuth } from '@/lib/api/auth';
+import { handleRouteError } from '@/lib/api/server-errors';
 
 interface DashboardStats {
   career: {
@@ -34,7 +35,7 @@ interface DashboardStats {
  * GET /api/dashboard/stats - Fetch dashboard statistics
  */
 export async function GET(_request: NextRequest) {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
@@ -43,8 +44,8 @@ export async function GET(_request: NextRequest) {
     const weekEnd = endOfWeek(today, { weekStartsOn: 1 }); // Sunday
 
     // Fetch all goals and applications
-    const { goals: allGoals } = await fetchGoals();
-    const { applications: allApplications } = await fetchApplications();
+    const { goals: allGoals } = await fetchGoals({ userId: user.id });
+    const { applications: allApplications } = await fetchApplications({ userId: user.id });
 
     // Career stats
     const interviews = allApplications.filter((app: any) => app.status === 'interview');
@@ -133,8 +134,14 @@ export async function GET(_request: NextRequest) {
 
     // Study stats
     const supabase = createClient();
-    const { data: coursesData } = await supabase.from('courses').select('id, name, exam_date');
-    const { data: exercisesData } = await supabase.from('exercise_progress').select('*');
+    const { data: coursesData } = await supabase
+      .from('courses')
+      .select('id, name, exam_date')
+      .eq('user_id', user.id);
+    const { data: exercisesData } = await supabase
+      .from('exercise_progress')
+      .select('*')
+      .eq('user_id', user.id);
 
     const weekStartDate = startOfWeek(today, { weekStartsOn: 1 });
     const weekCompletedExercises = (exercisesData || []).filter((ex) => {
@@ -191,10 +198,6 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json(stats);
   } catch (error) {
-    console.error('Error fetching dashboard stats:', error);
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to fetch stats' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Failed to fetch stats', 'Error fetching dashboard stats');
   }
 }

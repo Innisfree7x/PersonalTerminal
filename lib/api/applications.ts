@@ -2,6 +2,11 @@ import { Application, CreateApplicationInput } from '@/lib/schemas/application.s
 
 const API_BASE = '/api/applications';
 
+interface ApiErrorResponse {
+  message?: string;
+  error?: { message?: string };
+}
+
 /**
  * Fetch all applications from the API
  */
@@ -37,8 +42,8 @@ export async function createApplication(
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || `Failed to create application: ${response.statusText}`);
+    const error: ApiErrorResponse = await response.json();
+    throw new Error(error.message || error.error?.message || `Failed to create application: ${response.statusText}`);
   }
 
   const data = await response.json();
@@ -67,8 +72,8 @@ export async function updateApplication(
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || `Failed to update application: ${response.statusText}`);
+    const error: ApiErrorResponse = await response.json();
+    throw new Error(error.message || error.error?.message || `Failed to update application: ${response.statusText}`);
   }
 
   const data = await response.json();
@@ -90,7 +95,7 @@ export async function deleteApplication(applicationId: string): Promise<void> {
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || `Failed to delete application: ${response.statusText}`);
+    const error: ApiErrorResponse = await response.json();
+    throw new Error(error.message || error.error?.message || `Failed to delete application: ${response.statusText}`);
   }
 }

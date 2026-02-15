@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireApiAuth } from '@/lib/api/auth';
+import { createClient } from '@/lib/auth/server';
+import { handleRouteError } from '@/lib/api/server-errors';
 
 /**
  * GET /api/activity/recent - Fetch recent user activity
@@ -9,38 +11,75 @@ import { requireApiAuth } from '@/lib/api/auth';
  * when user_id columns are added to tables
  */
 export async function GET() {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
-    // TODO: Implement proper authentication and fetch user ID
-    // const userId = 'anonymous'; // Placeholder for now
+    const supabase = createClient();
+    const limit = 5;
 
-    // In a real application, you would fetch recent activities from your database
-    // For example:
-    // const { data, error } = await supabase
-    //   .from('activities')
-    //   .select('*')
-    //   .eq('user_id', userId)
-    //   .order('timestamp', { ascending: false })
-    //   .limit(5);
-    // if (error) throw error;
+    const [{ data: tasks }, { data: goals }, { data: applications }, { data: exercises }] =
+      await Promise.all([
+        supabase
+          .from('daily_tasks')
+          .select('id,title,created_at,completed')
+          .eq('user_id', user.id)
+          .eq('completed', true)
+          .order('created_at', { ascending: false })
+          .limit(limit),
+        supabase
+          .from('goals')
+          .select('id,title,created_at')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(limit),
+        supabase
+          .from('job_applications')
+          .select('id,company,position,created_at')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(limit),
+        supabase
+          .from('exercise_progress')
+          .select('id,exercise_number,course_id,completed_at')
+          .eq('user_id', user.id)
+          .eq('completed', true)
+          .not('completed_at', 'is', null)
+          .order('completed_at', { ascending: false })
+          .limit(limit),
+      ]);
 
-    // Mock data for demonstration
-    const mockActivities = [
-      { id: '1', type: 'exercise', action: 'Completed Exercise 3 for GDI 2', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
-      { id: '2', type: 'goal', action: 'Added new goal: Learn TypeScript', timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString() },
-      { id: '3', type: 'task', action: 'Completed task: Review PRs', timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
-      { id: '4', type: 'application', action: 'Applied to Google (Software Engineer)', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-      { id: '5', type: 'note', action: 'Added quick note about project idea', timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
-    ];
+    const activities = [
+      ...(tasks || []).map((t) => ({
+        id: `task-${t.id}`,
+        type: 'task',
+        action: `Completed task: ${t.title}`,
+        timestamp: t.created_at,
+      })),
+      ...(goals || []).map((g) => ({
+        id: `goal-${g.id}`,
+        type: 'goal',
+        action: `Added new goal: ${g.title}`,
+        timestamp: g.created_at,
+      })),
+      ...(applications || []).map((a) => ({
+        id: `application-${a.id}`,
+        type: 'application',
+        action: `Applied to ${a.company} (${a.position})`,
+        timestamp: a.created_at,
+      })),
+      ...(exercises || []).map((e) => ({
+        id: `exercise-${e.id}`,
+        type: 'exercise',
+        action: `Completed exercise ${e.exercise_number}`,
+        timestamp: e.completed_at as string,
+      })),
+    ]
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, limit);
 
-    return NextResponse.json({ activities: mockActivities });
+    return NextResponse.json({ activities });
   } catch (error) {
-    console.error('Error fetching recent activity:', error);
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to fetch recent activity' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Failed to fetch recent activity', 'Error fetching recent activity');
   }
 }

@@ -2,23 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fetchCoursesWithExercises, createCourse } from '@/lib/supabase/courses';
 import { createCourseSchema } from '@/lib/schemas/course.schema';
 import { requireApiAuth } from '@/lib/api/auth';
+import { handleRouteError } from '@/lib/api/server-errors';
 
 /**
  * GET /api/courses - Fetch all courses with exercise progress
  */
 export async function GET(_request: NextRequest) {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
-    const courses = await fetchCoursesWithExercises();
+    const courses = await fetchCoursesWithExercises(user.id);
     return NextResponse.json(courses);
   } catch (error) {
-    console.error('Error fetching courses:', error);
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to fetch courses' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Failed to fetch courses', 'Error fetching courses');
   }
 }
 
@@ -26,7 +23,7 @@ export async function GET(_request: NextRequest) {
  * POST /api/courses - Create a new course with exercise progress entries
  */
 export async function POST(request: NextRequest) {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
@@ -35,22 +32,10 @@ export async function POST(request: NextRequest) {
     // Validate input with Zod
     const validatedData = createCourseSchema.parse(body);
 
-    const course = await createCourse(validatedData);
+    const course = await createCourse(user.id, validatedData);
 
     return NextResponse.json(course, { status: 201 });
   } catch (error) {
-    console.error('Error creating course:', error);
-
-    if (error && typeof error === 'object' && 'issues' in error) {
-      return NextResponse.json(
-        { message: 'Validation error', errors: error },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to create course' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Failed to create course', 'Error creating course');
   }
 }

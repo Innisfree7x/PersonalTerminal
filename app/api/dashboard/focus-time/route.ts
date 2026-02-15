@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/auth/server';
 import { format } from 'date-fns';
 import { requireApiAuth } from '@/lib/api/auth';
+import { handleRouteError } from '@/lib/api/server-errors';
 
 /**
  * GET /api/dashboard/focus-time
@@ -18,7 +19,7 @@ import { requireApiAuth } from '@/lib/api/auth';
  * - totalMinutes: total focus time in minutes
  */
 export async function GET(request: Request) {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
@@ -31,12 +32,12 @@ export async function GET(request: Request) {
     const { data: tasks, error: tasksError } = await supabase
       .from('daily_tasks')
       .select('id, title, completed, time_estimate, created_at')
+      .eq('user_id', user.id)
       .eq('date', date)
       .eq('completed', true);
 
     if (tasksError) {
-      console.error('Focus time error:', tasksError);
-      return NextResponse.json({ error: 'Failed to fetch focus time' }, { status: 500 });
+      throw new Error(`Failed to fetch focus time: ${tasksError.message}`);
     }
 
     // Initialize time blocks (in minutes)
@@ -99,10 +100,6 @@ export async function GET(request: Request) {
     });
 
   } catch (error) {
-    console.error('Focus time API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Internal server error', 'Focus time API error');
   }
 }

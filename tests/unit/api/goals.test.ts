@@ -68,13 +68,15 @@ describe('GET /api/goals', () => {
   it('returns 500 on server error', async () => {
     mockedGetCurrentUser.mockResolvedValue(mockUser as any);
     mockedFetchGoals.mockRejectedValue(new Error('Database error'));
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const request = new NextRequest('http://localhost:3000/api/goals');
     const response = await GET(request);
 
     expect(response.status).toBe(500);
     const body = await response.json();
-    expect(body.message).toBe('Database error');
+    expect(body.error?.message).toBe('Database error');
+    consoleSpy.mockRestore();
   });
 
   it('passes pagination params', async () => {
@@ -85,6 +87,7 @@ describe('GET /api/goals', () => {
     await GET(request);
 
     expect(mockedFetchGoals).toHaveBeenCalledWith({
+      userId: 'user-123',
       page: 2,
       limit: 10,
       status: 'active',
@@ -130,6 +133,13 @@ describe('POST /api/goals', () => {
     expect(response.status).toBe(201);
     const body = await response.json();
     expect(body.title).toBe('New Goal');
+    expect(mockedCreateGoal).toHaveBeenCalledWith(
+      'user-123',
+      expect.objectContaining({
+        title: 'New Goal',
+        category: 'fitness',
+      })
+    );
   });
 
   it('returns 400 for invalid input', async () => {
@@ -150,7 +160,7 @@ describe('POST /api/goals', () => {
 
     expect(response.status).toBe(400);
     const body = await response.json();
-    expect(body.message).toBe('Validation error');
+    expect(body.error?.message).toBe('Validation error');
 
     consoleSpy.mockRestore();
   });

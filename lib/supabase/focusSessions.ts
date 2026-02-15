@@ -19,7 +19,9 @@ export function supabaseFocusSessionToFocusSession(row: SupabaseFocusSession): F
   };
 }
 
-export function focusSessionToSupabaseInsert(session: CreateFocusSessionInput): FocusSessionInsert {
+export function focusSessionToSupabaseInsert(
+  session: CreateFocusSessionInput
+): Omit<FocusSessionInsert, 'user_id'> {
   return {
     session_type: session.sessionType,
     duration_seconds: session.durationSeconds,
@@ -32,13 +34,13 @@ export function focusSessionToSupabaseInsert(session: CreateFocusSessionInput): 
   };
 }
 
-export async function createFocusSession(session: CreateFocusSessionInput): Promise<FocusSession> {
+export async function createFocusSession(userId: string, session: CreateFocusSessionInput): Promise<FocusSession> {
   const supabase = createClient();
   const insertData = focusSessionToSupabaseInsert(session);
 
   const { data, error } = await supabase
     .from('focus_sessions')
-    .insert(insertData)
+    .insert({ ...insertData, user_id: userId })
     .select()
     .single();
 
@@ -50,18 +52,21 @@ export async function createFocusSession(session: CreateFocusSessionInput): Prom
 }
 
 export async function fetchFocusSessions(options?: {
+  userId: string;
   from?: string;
   to?: string;
   category?: string;
   limit?: number;
 }): Promise<FocusSession[]> {
+  const { userId, from, to, category, limit } = options || {};
+  if (!userId) throw new Error('Missing user id');
   const supabase = createClient();
-  let query = supabase.from('focus_sessions').select('*');
+  let query = supabase.from('focus_sessions').select('*').eq('user_id', userId);
 
-  if (options?.from) query = query.gte('started_at', options.from);
-  if (options?.to) query = query.lte('started_at', options.to);
-  if (options?.category) query = query.eq('category', options.category as 'study' | 'work' | 'exercise' | 'reading' | 'other');
-  if (options?.limit) query = query.limit(options.limit);
+  if (from) query = query.gte('started_at', from);
+  if (to) query = query.lte('started_at', to);
+  if (category) query = query.eq('category', category as 'study' | 'work' | 'exercise' | 'reading' | 'other');
+  if (limit) query = query.limit(limit);
 
   query = query.order('started_at', { ascending: false });
 
@@ -73,7 +78,7 @@ export async function fetchFocusSessions(options?: {
   return (data || []).map(supabaseFocusSessionToFocusSession);
 }
 
-export async function fetchTodayFocusSummary(): Promise<{
+export async function fetchTodayFocusSummary(userId: string): Promise<{
   todayMinutes: number;
   todaySessions: number;
   todayCompletedSessions: number;
@@ -85,6 +90,7 @@ export async function fetchTodayFocusSummary(): Promise<{
   const { data, error } = await supabase
     .from('focus_sessions')
     .select('*')
+    .eq('user_id', userId)
     .eq('session_type', 'focus')
     .gte('started_at', todayStart.toISOString());
 
@@ -102,7 +108,7 @@ export async function fetchTodayFocusSummary(): Promise<{
   };
 }
 
-export async function fetchFocusAnalytics(days: number = 30) {
+export async function fetchFocusAnalytics(userId: string, days: number = 30) {
   const supabase = createClient();
   const fromDate = new Date();
   fromDate.setDate(fromDate.getDate() - days);
@@ -110,6 +116,7 @@ export async function fetchFocusAnalytics(days: number = 30) {
   const { data, error } = await supabase
     .from('focus_sessions')
     .select('*')
+    .eq('user_id', userId)
     .eq('session_type', 'focus')
     .gte('started_at', fromDate.toISOString())
     .order('started_at', { ascending: true });

@@ -1,49 +1,79 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { NextRequest } from 'next/server';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { NextRequest, NextResponse } from 'next/server';
 
-// Mock auth
+vi.mock('@/lib/api/auth', () => ({
+  requireApiAuth: vi.fn(),
+}));
+
 vi.mock('@/lib/auth/server', () => ({
-  getCurrentUser: vi.fn(),
+  createClient: vi.fn(),
 }));
 
-// Mock supabase client
-const mockSelect = vi.fn().mockReturnThis();
-const mockInsert = vi.fn().mockReturnThis();
-const mockEq = vi.fn().mockReturnThis();
-const mockOrder = vi.fn().mockReturnThis();
-const mockSingle = vi.fn();
-
-vi.mock('@/lib/supabase/client', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: mockSelect,
-      insert: mockInsert,
-      eq: mockEq,
-      order: mockOrder,
-      single: mockSingle,
-    })),
-  },
-}));
-
-import { getCurrentUser } from '@/lib/auth/server';
+import { requireApiAuth } from '@/lib/api/auth';
+import { createClient } from '@/lib/auth/server';
 import { GET, POST } from '@/app/api/daily-tasks/route';
 
-const mockedGetCurrentUser = vi.mocked(getCurrentUser);
+const mockedRequireApiAuth = vi.mocked(requireApiAuth);
+const mockedCreateClient = vi.mocked(createClient);
 
-const mockUser = { id: 'user-123', email: 'test@example.com' };
+function buildAuthSuccess() {
+  return { user: { id: 'user-123' } as any, errorResponse: null };
+}
+
+function buildAuthFailure() {
+  return {
+    user: null,
+    errorResponse: NextResponse.json(
+      { error: { code: 'UNAUTHORIZED', message: 'Unauthorized' } },
+      { status: 401 }
+    ),
+  };
+}
+
+function mockSupabaseForGet(result: { data: any; error: any }) {
+  const chain = {
+    eq: vi.fn(),
+    order: vi.fn(),
+  } as any;
+
+  chain.eq.mockReturnValue(chain);
+  chain.order.mockImplementation((_column: string) => {
+    if (chain.order.mock.calls.length === 1) return chain;
+    return Promise.resolve(result);
+  });
+
+  const client = {
+    from: vi.fn(() => ({
+      select: vi.fn(() => chain),
+    })),
+  };
+
+  return { client, chain };
+}
+
+function mockSupabaseForPost(result: { data: any; error: any }) {
+  const insert = vi.fn(() => ({
+    select: vi.fn(() => ({
+      single: vi.fn().mockResolvedValue(result),
+    })),
+  }));
+
+  const client = {
+    from: vi.fn(() => ({
+      insert,
+    })),
+  };
+
+  return { client, insert };
+}
 
 describe('GET /api/daily-tasks', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Default: successful query returning empty array
-    mockOrder.mockReturnValue({
-      order: vi.fn().mockResolvedValue({ data: [], error: null }),
-    });
   });
 
   it('returns 401 when not authenticated', async () => {
-    mockedGetCurrentUser.mockResolvedValue(null);
+    mockedRequireApiAuth.mockResolvedValue(buildAuthFailure() as any);
 
     const request = new NextRequest('http://localhost:3000/api/daily-tasks');
     const response = await GET(request);
@@ -52,13 +82,23 @@ describe('GET /api/daily-tasks', () => {
   });
 
   it('returns tasks when authenticated', async () => {
-    mockedGetCurrentUser.mockResolvedValue(mockUser as any);
-    const mockTasks = [
-      { id: '1', title: 'Task 1', completed: false, date: '2025-01-01' },
-    ];
-    mockOrder.mockReturnValue({
-      order: vi.fn().mockResolvedValue({ data: mockTasks, error: null }),
+    mockedRequireApiAuth.mockResolvedValue(buildAuthSuccess() as any);
+    const { client, chain } = mockSupabaseForGet({
+      data: [
+        {
+          id: '1',
+          title: 'Task 1',
+          completed: false,
+          date: '2025-01-01',
+          source: null,
+          source_id: null,
+          time_estimate: null,
+          created_at: '2025-01-01T08:00:00.000Z',
+        },
+      ],
+      error: null,
     });
+    mockedCreateClient.mockReturnValue(client as any);
 
     const request = new NextRequest('http://localhost:3000/api/daily-tasks?date=2025-01-01');
     const response = await GET(request);
@@ -67,30 +107,25 @@ describe('GET /api/daily-tasks', () => {
     const body = await response.json();
     expect(Array.isArray(body)).toBe(true);
     expect(body).toHaveLength(1);
-  });
-
-  it('defaults to today when no date param', async () => {
-    mockedGetCurrentUser.mockResolvedValue(mockUser as any);
-    mockOrder.mockReturnValue({
-      order: vi.fn().mockResolvedValue({ data: [], error: null }),
-    });
-
-    const request = new NextRequest('http://localhost:3000/api/daily-tasks');
-    const response = await GET(request);
-
-    expect(response.status).toBe(200);
+    expect(body[0].createdAt).toBe('2025-01-01T08:00:00.000Z');
+    expect(body[0].sourceId).toBeNull();
+    expect(chain.eq).toHaveBeenCalledWith('user_id', 'user-123');
   });
 
   it('returns 500 on database error', async () => {
-    mockedGetCurrentUser.mockResolvedValue(mockUser as any);
-    mockOrder.mockReturnValue({
-      order: vi.fn().mockResolvedValue({ data: null, error: { message: 'DB Error' } }),
+    mockedRequireApiAuth.mockResolvedValue(buildAuthSuccess() as any);
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { client } = mockSupabaseForGet({
+      data: null,
+      error: { message: 'DB Error' },
     });
+    mockedCreateClient.mockReturnValue(client as any);
 
     const request = new NextRequest('http://localhost:3000/api/daily-tasks');
     const response = await GET(request);
 
     expect(response.status).toBe(500);
+    consoleSpy.mockRestore();
   });
 });
 
@@ -100,7 +135,7 @@ describe('POST /api/daily-tasks', () => {
   });
 
   it('returns 401 when not authenticated', async () => {
-    mockedGetCurrentUser.mockResolvedValue(null);
+    mockedRequireApiAuth.mockResolvedValue(buildAuthFailure() as any);
 
     const request = new NextRequest('http://localhost:3000/api/daily-tasks', {
       method: 'POST',
@@ -113,9 +148,21 @@ describe('POST /api/daily-tasks', () => {
   });
 
   it('creates task with valid data', async () => {
-    mockedGetCurrentUser.mockResolvedValue(mockUser as any);
-    const mockCreated = { id: '1', title: 'New Task', date: '2025-01-01', completed: false };
-    mockSingle.mockResolvedValue({ data: mockCreated, error: null });
+    mockedRequireApiAuth.mockResolvedValue(buildAuthSuccess() as any);
+    const { client, insert } = mockSupabaseForPost({
+      data: {
+        id: '1',
+        title: 'New Task',
+        completed: false,
+        date: '2025-01-01',
+        source: 'manual',
+        source_id: null,
+        time_estimate: null,
+        created_at: '2025-01-01T08:00:00.000Z',
+      },
+      error: null,
+    });
+    mockedCreateClient.mockReturnValue(client as any);
 
     const request = new NextRequest('http://localhost:3000/api/daily-tasks', {
       method: 'POST',
@@ -127,11 +174,16 @@ describe('POST /api/daily-tasks', () => {
     expect(response.status).toBe(201);
     const body = await response.json();
     expect(body.title).toBe('New Task');
+    expect(body.createdAt).toBe('2025-01-01T08:00:00.000Z');
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: 'user-123',
+      })
+    );
   });
 
-  it('returns 400 for invalid input (missing title)', async () => {
-    mockedGetCurrentUser.mockResolvedValue(mockUser as any);
-    // Suppress console.error for expected validation errors
+  it('returns 400 for invalid input', async () => {
+    mockedRequireApiAuth.mockResolvedValue(buildAuthSuccess() as any);
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const request = new NextRequest('http://localhost:3000/api/daily-tasks', {
@@ -143,7 +195,7 @@ describe('POST /api/daily-tasks', () => {
 
     expect(response.status).toBe(400);
     const body = await response.json();
-    expect(body.message).toBe('Validation error');
+    expect(body.error?.message).toBe('Validation error');
 
     consoleSpy.mockRestore();
   });

@@ -1,10 +1,10 @@
 import { getCurrentUser } from '@/lib/auth/server';
-import { NextResponse } from 'next/server';
+import { apiErrorResponse } from '@/lib/api/server-errors';
 
 export async function requireApiAuth() {
   const user = await getCurrentUser();
   if (!user) {
-    return { user: null as null, errorResponse: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
+    return { user: null as null, errorResponse: apiErrorResponse(401, 'UNAUTHORIZED', 'Unauthorized') };
   }
   return { user, errorResponse: null as null };
 }

@@ -4,9 +4,10 @@ import type { Database } from '@/lib/supabase/types';
 
 type GoalInsert = Database['public']['Tables']['goals']['Insert'];
 
-function goalToInsertRow(goal: (typeof mockGoals)[number]): GoalInsert {
+function goalToInsertRow(goal: (typeof mockGoals)[number], userId: string): GoalInsert {
   return {
     id: goal.id,
+    user_id: userId,
     title: goal.title,
     description: goal.description ?? null,
     target_date: goal.targetDate.toISOString().split('T')[0] ?? '',
@@ -20,11 +21,16 @@ function goalToInsertRow(goal: (typeof mockGoals)[number]): GoalInsert {
 }
 
 async function main(): Promise<void> {
+  const userId = process.env.SEED_USER_ID;
+  if (!userId) {
+    throw new Error('SEED_USER_ID is required');
+  }
+
   let ok = 0;
   let failed = 0;
 
   for (const goal of mockGoals) {
-    const row = goalToInsertRow(goal);
+    const row = goalToInsertRow(goal, userId);
 
     // Upsert each goal; ignore duplicates so reruns are safe.
     const { error } = await supabase

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/auth/server';
 import { startOfWeek, addDays, format } from 'date-fns';
 import { requireApiAuth } from '@/lib/api/auth';
+import { handleRouteError } from '@/lib/api/server-errors';
 
 /**
  * GET /api/dashboard/week-events
@@ -16,7 +17,7 @@ import { requireApiAuth } from '@/lib/api/auth';
  *   - type: 'none' | 'low' (1) | 'medium' (2) | 'high' (3+)
  */
 export async function GET(request: Request) {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
@@ -40,12 +41,12 @@ export async function GET(request: Request) {
     const { data: tasks, error: tasksError } = await supabase
       .from('daily_tasks')
       .select('date')
+      .eq('user_id', user.id)
       .gte('date', weekStartStr)
       .lte('date', weekEndStr);
 
     if (tasksError) {
-      console.error('Week events error:', tasksError);
-      return NextResponse.json({ error: 'Failed to fetch week events' }, { status: 500 });
+      throw new Error(`Failed to fetch week events: ${tasksError.message}`);
     }
 
     // Count events per day
@@ -96,10 +97,6 @@ export async function GET(request: Request) {
     });
 
   } catch (error) {
-    console.error('Week events API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Internal server error', 'Week events API error');
   }
 }

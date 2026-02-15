@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { updateApplication, deleteApplication } from '@/lib/supabase/applications';
 import { createApplicationSchema } from '@/lib/schemas/application.schema';
 import { requireApiAuth } from '@/lib/api/auth';
+import { handleRouteError } from '@/lib/api/server-errors';
 
 /**
  * PATCH /api/applications/[id] - Update an existing application
@@ -10,7 +11,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
@@ -24,23 +25,10 @@ export async function PATCH(
       interviewDate: body.interviewDate ? new Date(body.interviewDate) : undefined,
     });
 
-    const updatedApplication = await updateApplication(id, validatedData);
+    const updatedApplication = await updateApplication(user.id, id, validatedData);
     return NextResponse.json(updatedApplication);
   } catch (error) {
-    console.error(`Error updating application ${params.id}:`, error);
-
-    // Check if it's a Zod validation error
-    if (error && typeof error === 'object' && 'issues' in error) {
-      return NextResponse.json(
-        { message: 'Validation error', errors: error },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to update application' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Failed to update application', `Error updating application ${params.id}`);
   }
 }
 
@@ -51,18 +39,14 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
     const { id } = params;
-    await deleteApplication(id);
+    await deleteApplication(user.id, id);
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error(`Error deleting application ${params.id}:`, error);
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to delete application' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Failed to delete application', `Error deleting application ${params.id}`);
   }
 }

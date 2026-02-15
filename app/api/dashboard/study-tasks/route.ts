@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fetchCoursesWithExercises } from '@/lib/supabase/courses';
 import { startOfDay, differenceInDays } from 'date-fns';
 import { requireApiAuth } from '@/lib/api/auth';
+import { handleRouteError } from '@/lib/api/server-errors';
 
 interface StudyTask {
   id: string;
@@ -17,13 +18,13 @@ interface StudyTask {
  * GET /api/dashboard/study-tasks - Fetch incomplete exercises prioritized by exam date
  */
 export async function GET(_request: NextRequest) {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
     const today = startOfDay(new Date());
 
-    const coursesWithExercises = await fetchCoursesWithExercises();
+    const coursesWithExercises = await fetchCoursesWithExercises(user.id);
 
     if (coursesWithExercises.length === 0) {
       return NextResponse.json([]);
@@ -85,10 +86,6 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json(studyTasks.slice(0, 5));
   } catch (error) {
-    console.error('Error fetching study tasks:', error);
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to fetch study tasks' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Failed to fetch study tasks', 'Error fetching study tasks');
   }
 }

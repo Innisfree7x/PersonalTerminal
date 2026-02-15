@@ -2,6 +2,11 @@ import type { FocusSession } from '@/lib/schemas/focusSession.schema';
 
 const API_BASE = '/api/focus-sessions';
 
+interface ApiErrorResponse {
+  message?: string;
+  error?: { message?: string };
+}
+
 interface FocusSessionApiResponse {
   id: string;
   sessionType: 'focus' | 'break';
@@ -67,8 +72,8 @@ export async function createFocusSession(
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to save focus session');
+    const error: ApiErrorResponse = await response.json();
+    throw new Error(error.message || error.error?.message || 'Failed to save focus session');
   }
 
   const data: FocusSessionApiResponse = await response.json();

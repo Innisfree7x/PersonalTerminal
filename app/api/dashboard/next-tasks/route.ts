@@ -5,6 +5,7 @@ import { fetchGoals } from '@/lib/supabase/goals';
 import { fetchApplications } from '@/lib/supabase/applications';
 import { createClient } from '@/lib/auth/server';
 import { differenceInDays, startOfDay } from 'date-fns';
+import { handleRouteError } from '@/lib/api/server-errors';
 
 interface NextHomework {
   type: 'homework';
@@ -44,7 +45,7 @@ export type NextTask = NextHomework | NextGoal | NextInterview;
  * Returns actionable next tasks: next homework per course, upcoming goals, upcoming interviews
  */
 export async function GET(_request: NextRequest) {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
@@ -52,7 +53,7 @@ export async function GET(_request: NextRequest) {
     const todayStart = startOfDay(today);
 
     // Fetch courses with exercises - find next incomplete homework per course
-    const courses = await fetchCoursesWithExercises();
+    const courses = await fetchCoursesWithExercises(user.id);
     const homeworks: NextHomework[] = [];
 
     for (const course of courses) {
@@ -92,7 +93,7 @@ export async function GET(_request: NextRequest) {
     });
 
     // Fetch goals due in next 7 days
-    const { goals: allGoals } = await fetchGoals();
+    const { goals: allGoals } = await fetchGoals({ userId: user.id });
     const upcomingGoals: NextGoal[] = allGoals
       .filter((goal: any) => {
         const goalDate = startOfDay(goal.targetDate);
@@ -115,7 +116,7 @@ export async function GET(_request: NextRequest) {
       .sort((a: NextGoal, b: NextGoal) => a.daysUntil - b.daysUntil);
 
     // Fetch upcoming interviews (next 7 days)
-    const { applications } = await fetchApplications();
+    const { applications } = await fetchApplications({ userId: user.id });
     const upcomingInterviews: NextInterview[] = applications
       .filter((app: any) => {
         if (!app.interviewDate || app.status !== 'interview') return false;
@@ -153,6 +154,7 @@ export async function GET(_request: NextRequest) {
     const { data: dailyTasksData } = await supabase
       .from('daily_tasks')
       .select('*')
+      .eq('user_id', user.id)
       .eq('date', today.toISOString().split('T')[0] ?? '');
 
     const dailyTasks = dailyTasksData || [];
@@ -178,10 +180,6 @@ export async function GET(_request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching next tasks:', error);
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to fetch next tasks' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Failed to fetch next tasks', 'Error fetching next tasks');
   }
 }

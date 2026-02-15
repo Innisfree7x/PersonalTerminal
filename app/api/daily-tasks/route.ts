@@ -3,15 +3,30 @@ import { createClient } from '@/lib/auth/server';
 import { createDailyTaskSchema } from '@/lib/schemas/dailyTask.schema';
 import type { Database } from '@/lib/supabase/types';
 import { requireApiAuth } from '@/lib/api/auth';
+import { handleRouteError } from '@/lib/api/server-errors';
 
 type DailyTaskInsert = Database['public']['Tables']['daily_tasks']['Insert'];
+type DailyTaskRow = Database['public']['Tables']['daily_tasks']['Row'];
+
+function toDailyTaskResponse(task: DailyTaskRow) {
+  return {
+    id: task.id,
+    date: task.date,
+    title: task.title,
+    completed: task.completed,
+    source: task.source,
+    sourceId: task.source_id,
+    timeEstimate: task.time_estimate,
+    createdAt: task.created_at,
+  };
+}
 
 /**
  * GET /api/daily-tasks - Fetch daily tasks for a specific date
  * Query params: date (YYYY-MM-DD, defaults to today)
  */
 export async function GET(request: NextRequest) {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
@@ -22,6 +37,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase
       .from('daily_tasks')
       .select('*')
+      .eq('user_id', user.id)
       .eq('date', date)
       .order('completed', { ascending: true })
       .order('created_at', { ascending: true });
@@ -30,13 +46,9 @@ export async function GET(request: NextRequest) {
       throw new Error(`Failed to fetch daily tasks: ${error.message}`);
     }
 
-    return NextResponse.json(data || []);
+    return NextResponse.json((data || []).map(toDailyTaskResponse));
   } catch (error) {
-    console.error('Error fetching daily tasks:', error);
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to fetch daily tasks' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Failed to fetch daily tasks', 'Error fetching daily tasks');
   }
 }
 
@@ -44,7 +56,7 @@ export async function GET(request: NextRequest) {
  * POST /api/daily-tasks - Create a new daily task
  */
 export async function POST(request: NextRequest) {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
@@ -55,6 +67,7 @@ export async function POST(request: NextRequest) {
     const validatedData = createDailyTaskSchema.parse(body);
 
     const insertData: DailyTaskInsert = {
+      user_id: user.id,
       date: validatedData.date,
       title: validatedData.title,
       completed: validatedData.completed ?? false,
@@ -73,20 +86,8 @@ export async function POST(request: NextRequest) {
       throw new Error(`Failed to create daily task: ${error.message}`);
     }
 
-    return NextResponse.json(data, { status: 201 });
+    return NextResponse.json(toDailyTaskResponse(data), { status: 201 });
   } catch (error) {
-    console.error('Error creating daily task:', error);
-
-    if (error && typeof error === 'object' && 'issues' in error) {
-      return NextResponse.json(
-        { message: 'Validation error', errors: error },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to create daily task' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Failed to create daily task', 'Error creating daily task');
   }
 }

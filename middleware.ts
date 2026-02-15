@@ -46,6 +46,9 @@ export async function middleware(request: NextRequest) {
   if (!user && request.nextUrl.pathname.startsWith('/career')) {
     return NextResponse.redirect(new URL('/auth/login', request.url));
   }
+  if (!user && request.nextUrl.pathname.startsWith('/analytics')) {
+    return NextResponse.redirect(new URL('/auth/login', request.url));
+  }
 
   // Redirect authenticated users away from auth pages
   if (user && request.nextUrl.pathname.startsWith('/auth/login')) {
@@ -65,6 +68,7 @@ export const config = {
     '/goals/:path*',
     '/university/:path*',
     '/career/:path*',
+    '/analytics/:path*',
     '/auth/:path*',
     '/api/:path*',
   ],

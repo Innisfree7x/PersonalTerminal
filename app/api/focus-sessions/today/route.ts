@@ -3,16 +3,17 @@ import { fetchTodayFocusSummary } from '@/lib/supabase/focusSessions';
 import { requireApiAuth } from '@/lib/api/auth';
 import { createClient } from '@/lib/auth/server';
 import { format, subDays, startOfDay } from 'date-fns';
+import { handleRouteError } from '@/lib/api/server-errors';
 
 /**
  * GET /api/focus-sessions/today - Get today's focus summary + streak
  */
 export async function GET() {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
-    const summary = await fetchTodayFocusSummary();
+    const summary = await fetchTodayFocusSummary(user.id);
 
     // Calculate focus streak
     const supabase = createClient();
@@ -22,6 +23,7 @@ export async function GET() {
     const { data: sessions } = await supabase
       .from('focus_sessions')
       .select('started_at')
+      .eq('user_id', user.id)
       .eq('session_type', 'focus')
       .eq('completed', true)
       .gte('started_at', oneYearAgo)
@@ -55,10 +57,6 @@ export async function GET() {
       currentStreak: streak,
     });
   } catch (error) {
-    console.error('Error fetching today focus summary:', error);
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to fetch focus summary' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Failed to fetch focus summary', 'Error fetching today focus summary');
   }
 }

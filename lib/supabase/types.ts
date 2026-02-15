@@ -14,6 +14,7 @@ export interface Database {
       goals: {
         Row: {
           id: string;
+          user_id: string;
           title: string;
           description: string | null;
           target_date: string;
@@ -26,6 +27,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          user_id: string;
           title: string;
           description?: string | null;
           target_date: string;
@@ -38,6 +40,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          user_id?: string;
           title?: string;
           description?: string | null;
           target_date?: string;
@@ -83,6 +86,7 @@ export interface Database {
       job_applications: {
         Row: {
           id: string;
+          user_id: string;
           company: string;
           position: string;
           status: 'applied' | 'interview' | 'offer' | 'rejected';
@@ -97,6 +101,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          user_id: string;
           company: string;
           position: string;
           status: 'applied' | 'interview' | 'offer' | 'rejected';
@@ -111,6 +116,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          user_id?: string;
           company?: string;
           position?: string;
           status?: 'applied' | 'interview' | 'offer' | 'rejected';
@@ -128,6 +134,7 @@ export interface Database {
       daily_tasks: {
         Row: {
           id: string;
+          user_id: string;
           date: string; // ISO date string
           title: string;
           completed: boolean;
@@ -138,6 +145,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          user_id: string;
           date: string; // ISO date string
           title: string;
           completed?: boolean;
@@ -148,6 +156,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          user_id?: string;
           date?: string; // ISO date string
           title?: string;
           completed?: boolean;
@@ -161,6 +170,7 @@ export interface Database {
       courses: {
         Row: {
           id: string;
+          user_id: string;
           name: string;
           ects: number;
           num_exercises: number;
@@ -170,6 +180,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          user_id: string;
           name: string;
           ects: number;
           num_exercises: number;
@@ -179,6 +190,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          user_id?: string;
           name?: string;
           ects?: number;
           num_exercises?: number;
@@ -191,6 +203,7 @@ export interface Database {
       focus_sessions: {
         Row: {
           id: string;
+          user_id: string;
           session_type: 'focus' | 'break';
           duration_seconds: number;
           planned_duration_seconds: number;
@@ -203,6 +216,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          user_id: string;
           session_type?: 'focus' | 'break';
           duration_seconds: number;
           planned_duration_seconds: number;
@@ -215,6 +229,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          user_id?: string;
           session_type?: 'focus' | 'break';
           duration_seconds?: number;
           planned_duration_seconds?: number;
@@ -230,6 +245,7 @@ export interface Database {
       exercise_progress: {
         Row: {
           id: string;
+          user_id: string;
           course_id: string;
           exercise_number: number;
           completed: boolean;
@@ -238,6 +254,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          user_id: string;
           course_id: string;
           exercise_number: number;
           completed?: boolean;
@@ -246,6 +263,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          user_id?: string;
           course_id?: string;
           exercise_number?: number;
           completed?: boolean;

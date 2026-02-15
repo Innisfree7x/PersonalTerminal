@@ -2,20 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fetchFocusAnalytics } from '@/lib/supabase/focusSessions';
 import { requireApiAuth } from '@/lib/api/auth';
 import { format } from 'date-fns';
+import { handleRouteError } from '@/lib/api/server-errors';
 
 /**
  * GET /api/focus-sessions/analytics?days=30
  * Returns computed analytics for charts
  */
 export async function GET(request: NextRequest) {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
     const { searchParams } = new URL(request.url);
     const days = Math.min(365, Math.max(7, parseInt(searchParams.get('days') || '30')));
 
-    const sessions = await fetchFocusAnalytics(days);
+    const sessions = await fetchFocusAnalytics(user.id, days);
 
     // Total stats
     const totalSeconds = sessions.reduce((sum, s) => sum + s.duration_seconds, 0);
@@ -157,10 +158,6 @@ export async function GET(request: NextRequest) {
       weekdayDistribution,
     });
   } catch (error) {
-    console.error('Error fetching focus analytics:', error);
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to fetch analytics' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Failed to fetch analytics', 'Error fetching focus analytics');
   }
 }

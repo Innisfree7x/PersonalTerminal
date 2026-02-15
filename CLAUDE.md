@@ -1,25 +1,27 @@
 # CLAUDE.md - Project Context
 
 ## Project Overview
-**Prism** is a personal productivity dashboard built with Next.js 14 (App Router), TypeScript, Supabase, and TanStack React Query. It manages university courses, goals, career applications, daily tasks, and Google Calendar integration.
+**Prism** is a personal productivity dashboard built with Next.js 14 (App Router), TypeScript, Supabase, and TanStack React Query. It manages university courses, goals, career applications, daily tasks, focus time tracking, and Google Calendar integration.
 
 ## Tech Stack
 - **Framework:** Next.js 14 (App Router, `app/` directory)
-- **Language:** TypeScript (strict mode)
-- **Database:** Supabase (PostgreSQL) via `@supabase/supabase-js`
+- **Language:** TypeScript (strict mode, `exactOptionalPropertyTypes: true`)
+- **Database:** Supabase (PostgreSQL) via `@supabase/ssr`
 - **State/Fetching:** TanStack React Query v5
 - **Forms:** React Hook Form + Zod validation
 - **Styling:** Tailwind CSS + Framer Motion animations
+- **Charts:** Recharts v3.7
 - **UI:** Radix UI primitives, Lucide icons, cmdk command palette
 
 ## Architecture Patterns
 
 ### API Layer
 - API routes in `app/api/` — all protected with `requireApiAuth()` from `lib/api/auth.ts`
-- Each feature has `route.ts` (GET list, POST create) and `[id]/route.ts` (GET single, PATCH update, DELETE)
+- Server-side Supabase client: `createClient()` from `lib/auth/server.ts` — create per-function, NOT singleton
+- **NEVER** use bare client from `lib/supabase/client.ts` in API routes (causes RLS failures)
 - Zod schemas in `lib/schemas/` validate all inputs
-- Supabase DB functions in `lib/supabase/` (courses.ts, goals.ts, applications.ts)
-- Frontend API client functions in `lib/api/` (goals.ts, applications.ts, daily-tasks.ts, calendar.ts)
+- Supabase data layer in `lib/supabase/` (courses.ts, goals.ts, applications.ts, focusSessions.ts)
+- Frontend API client in `lib/api/` (goals.ts, applications.ts, daily-tasks.ts, calendar.ts, focus-sessions.ts)
 
 ### Frontend Layer
 - Pages in `app/(dashboard)/` — all `'use client'` with React Query
@@ -41,19 +43,37 @@ Every CRUD feature follows this pattern:
 4. Modal/Form receives `initialData`, `isEdit`, `isSaving`, `error` props
 5. Form uses `useEffect` with `reset(initialData ?? defaults)` for reactivity
 
+### Global Providers (app/layout.tsx)
+```
+AuthProvider > QueryProvider > FocusTimerProvider > CommandPaletteProvider
+```
+
+## Pages
+| Route | Purpose |
+|-------|---------|
+| `/today` | Daily dashboard with tasks, schedule, study progress, deadlines |
+| `/calendar` | Weekly calendar with Google Calendar integration |
+| `/goals` | Goal tracking (fitness, career, learning, finance) |
+| `/university` | Course & exercise tracking (WS 2025/26) |
+| `/career` | Job application Kanban pipeline |
+| `/analytics` | Focus analytics with Recharts charts |
+
 ## Key Files
 | Path | Purpose |
 |------|---------|
-| `lib/supabase/types.ts` | Database type definitions (6 tables) |
+| `lib/supabase/types.ts` | Database type definitions (7 tables) |
 | `lib/schemas/*.schema.ts` | Zod validation schemas |
-| `lib/api/auth.ts` | API route auth middleware |
-| `lib/env.ts` | Environment variable validation |
-| `lib/auth/server.ts` | Server-side Supabase auth client |
+| `lib/api/auth.ts` | API route auth middleware (`requireApiAuth`) |
+| `lib/auth/server.ts` | Server-side Supabase auth client (`createClient`) |
+| `components/providers/FocusTimerProvider.tsx` | Global focus timer context |
+| `components/features/focus/FloatingTimer.tsx` | Floating timer widget |
 
 ## Database Tables
-`goals`, `job_applications`, `courses`, `exercise_progress`, `daily_tasks`, `events`
+`goals`, `job_applications`, `courses`, `exercise_progress`, `daily_tasks`, `focus_sessions`
 
-See `docs/DATABASE.md` for full schema.
+Note: `events` table exists in types.ts but NOT in Supabase DB.
+
+RLS: All tables use `FOR ALL TO authenticated USING (true) WITH CHECK (true)` — no `user_id` columns.
 
 ## Commands
 ```bash
@@ -62,13 +82,13 @@ npm run build        # Production build
 npm run type-check   # TypeScript check (tsc --noEmit)
 npm run lint         # ESLint
 npm run test         # Vitest
-npm run seed         # Seed sample goals
-npm run fix-courses  # Fix missing exercise_progress entries
 ```
 
 ## Conventions
 - Commit messages: conventional commits (feat:, fix:, docs:, etc.)
-- All dates stored as `YYYY-MM-DD` strings in Supabase, converted to `Date` objects on the frontend
+- All dates stored as `YYYY-MM-DD` strings in Supabase, converted to `Date` objects on frontend
 - Supabase columns use `snake_case`, TypeScript types use `camelCase`
 - Conversion functions: `supabaseXToX()` and `xToSupabaseInsert()` in `lib/supabase/*.ts`
 - Pre-commit hooks: husky + lint-staged (eslint --fix, prettier --write)
+- TypeScript strict: use explicit object building instead of `undefined` in optional properties
+- User language: German for conversation, English for code

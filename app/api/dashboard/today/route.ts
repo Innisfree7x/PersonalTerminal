@@ -3,6 +3,7 @@ import { fetchGoals } from '@/lib/supabase/goals';
 import { fetchApplications } from '@/lib/supabase/applications';
 import { startOfDay, endOfDay, addDays, differenceInDays } from 'date-fns';
 import { requireApiAuth } from '@/lib/api/auth';
+import { handleRouteError } from '@/lib/api/server-errors';
 
 interface TodayPriorities {
   goalsDueToday: Array<{
@@ -32,7 +33,7 @@ interface TodayPriorities {
  * GET /api/dashboard/today - Fetch today's priorities (goals, interviews, follow-ups)
  */
 export async function GET(_request: NextRequest) {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
@@ -43,7 +44,7 @@ export async function GET(_request: NextRequest) {
     const sevenDaysAgo = addDays(today, -7);
 
     // Fetch goals due today
-    const { goals: allGoals } = await fetchGoals();
+    const { goals: allGoals } = await fetchGoals({ userId: user.id });
     const goalsDueToday = allGoals
       .filter((goal: any) => {
         const goalDate = startOfDay(goal.targetDate);
@@ -58,7 +59,7 @@ export async function GET(_request: NextRequest) {
       }));
 
     // Fetch upcoming interviews (next 3 days)
-    const { applications: allApplications } = await fetchApplications();
+    const { applications: allApplications } = await fetchApplications({ userId: user.id });
     const upcomingInterviews = allApplications
       .filter((app: any) => {
         if (!app.interviewDate) return false;
@@ -101,10 +102,6 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json(priorities);
   } catch (error) {
-    console.error('Error fetching today priorities:', error);
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to fetch priorities' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Failed to fetch priorities', 'Error fetching today priorities');
   }
 }
