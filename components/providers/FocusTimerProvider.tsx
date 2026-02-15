@@ -11,12 +11,14 @@ import {
 } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  createFocusSession,
   fetchTodayFocusSummary,
-  type CreateFocusSessionPayload,
   type TodayFocusSummary,
 } from '@/lib/api/focus-sessions';
 import type { FocusSessionCategory } from '@/lib/schemas/focusSession.schema';
+import {
+  createFocusSessionAction,
+  type CreateFocusSessionActionPayload,
+} from '@/app/actions/focus-sessions';
 
 type TimerStatus = 'idle' | 'running' | 'paused' | 'break' | 'break_paused';
 
@@ -141,7 +143,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
 
   // Save session mutation
   const saveMutation = useMutation({
-    mutationFn: createFocusSession,
+    mutationFn: createFocusSessionAction,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['focus', 'today'] });
       queryClient.invalidateQueries({ queryKey: ['focus', 'analytics'] });
@@ -180,7 +182,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
   const saveSession = useCallback(
     (completed: boolean, durationSeconds: number, plannedSeconds: number, type: 'focus' | 'break') => {
       if (!startedAtRef.current) return;
-      const payload: CreateFocusSessionPayload = {
+      const payload: CreateFocusSessionActionPayload = {
         sessionType: type,
         durationSeconds,
         plannedDurationSeconds: plannedSeconds,

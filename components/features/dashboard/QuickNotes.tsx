@@ -4,15 +4,7 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, X } from 'lucide-react';
-
-async function saveNote(content: string, date: string): Promise<void> {
-  const response = await fetch('/api/notes', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ date, content }),
-  });
-  if (!response.ok) throw new Error('Failed to save note');
-}
+import { saveNoteAction } from '@/app/actions/notes';
 
 // Extend Window interface to include our custom property
 declare global {
@@ -27,7 +19,7 @@ export default function QuickNotes() {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const saveMutation = useMutation({
-    mutationFn: (note: string) => saveNote(note, today),
+    mutationFn: (note: string) => saveNoteAction({ date: today, content: note }),
     onSuccess: () => {
       // Auto-save feedback could be shown here
     },

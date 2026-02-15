@@ -6,8 +6,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Badge } from '@/components/ui/Badge';
 import { Plus, Clock, Target, Briefcase, GraduationCap, BookOpen } from 'lucide-react';
-import { createTask, updateTask, toggleExercise } from '@/lib/api/daily-tasks';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import { createDailyTaskAction, updateDailyTaskAction } from '@/app/actions/daily-tasks';
+import { toggleExerciseCompletionAction } from '@/app/actions/university';
 
 interface DailyTask {
   id: string;
@@ -81,7 +82,7 @@ export default function FocusTasks() {
   });
 
   const createMutation = useMutation({
-    mutationFn: createTask,
+    mutationFn: createDailyTaskAction,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
@@ -90,7 +91,7 @@ export default function FocusTasks() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, completed }: { id: string; completed: boolean }) =>
-      updateTask(id, completed),
+      updateDailyTaskAction(id, { completed }),
     onSuccess: () => {
       play('pop');
       queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
@@ -107,7 +108,7 @@ export default function FocusTasks() {
 
   const exerciseMutation = useMutation({
     mutationFn: ({ courseId, exerciseNumber }: { courseId: string; exerciseNumber: number }) =>
-      toggleExercise(courseId, exerciseNumber, true),
+      toggleExerciseCompletionAction(courseId, exerciseNumber, true),
     onSuccess: () => {
       play('pop');
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
