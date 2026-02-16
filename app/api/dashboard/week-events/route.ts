@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/auth/server';
 import { startOfWeek, addDays, format } from 'date-fns';
+import { requireApiAuth } from '@/lib/api/auth';
+import { handleRouteError } from '@/lib/api/server-errors';
 
 /**
  * GET /api/dashboard/week-events
@@ -15,13 +17,14 @@ import { startOfWeek, addDays, format } from 'date-fns';
  *   - type: 'none' | 'low' (1) | 'medium' (2) | 'high' (3+)
  */
 export async function GET(request: Request) {
+  const { user, errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const { searchParams } = new URL(request.url);
     const weekOffset = parseInt(searchParams.get('offset') || '0');
-    
-    // For now, we'll use a dummy userId since we don't have auth yet
-    // TODO: Implement proper authentication
-    const userId = 'anonymous';
+
+    const supabase = createClient();
 
     // Calculate week range
     const weekStart = addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), weekOffset * 7);
@@ -38,13 +41,12 @@ export async function GET(request: Request) {
     const { data: tasks, error: tasksError } = await supabase
       .from('daily_tasks')
       .select('date')
-      .eq('user_id', userId)
+      .eq('user_id', user.id)
       .gte('date', weekStartStr)
       .lte('date', weekEndStr);
 
     if (tasksError) {
-      console.error('Week events error:', tasksError);
-      return NextResponse.json({ error: 'Failed to fetch week events' }, { status: 500 });
+      throw new Error(`Failed to fetch week events: ${tasksError.message}`);
     }
 
     // Count events per day
@@ -95,10 +97,6 @@ export async function GET(request: Request) {
     });
 
   } catch (error) {
-    console.error('Week events API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Internal server error', 'Week events API error');
   }
 }

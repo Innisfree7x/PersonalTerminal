@@ -6,33 +6,9 @@ import { motion } from 'framer-motion';
 import { Search, Bell, Plus, Command } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useCommandPalette } from '@/components/shared/CommandPaletteProvider';
+import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import { format } from 'date-fns';
-
-interface DashboardStats {
-  career: {
-    activeInterviews: number;
-    nextInterview?: { company: string; position: string; date: string };
-    applicationsPending: number;
-    pendingDays: number;
-    followUpNeeded: number;
-  };
-  goals: {
-    weeklyProgress: { onTrack: number; total: number };
-    byCategory: Record<string, number>;
-    overdue: number;
-  };
-  metrics: {
-    todayCompletion: number;
-    weekProgress: { day: number; total: number };
-    focusTime: string;
-  };
-}
-
-async function fetchStats(): Promise<DashboardStats> {
-  const response = await fetch('/api/dashboard/stats');
-  if (!response.ok) throw new Error('Failed to fetch stats');
-  return response.json();
-}
+import { fetchDashboardStatsAction } from '@/app/actions/dashboard';
 
 const routeTitles: Record<string, string> = {
   '/today': 'Today',
@@ -40,28 +16,47 @@ const routeTitles: Record<string, string> = {
   '/goals': 'Goals',
   '/university': 'University',
   '/career': 'Career',
+  '/analytics': 'Analytics',
 };
 
-export default function Header() {
-  const pathname = usePathname();
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const { open: openCommandPalette } = useCommandPalette();
-  const [currentTime, setCurrentTime] = useState<Date | null>(null);
-  
-  const { data: stats } = useQuery({
-    queryKey: ['dashboard', 'stats'],
-    queryFn: fetchStats,
-    refetchInterval: 60000, // Refetch every minute
-  });
+function HeaderClock() {
+  const [currentTime, setCurrentTime] = useState<Date>(() => new Date());
 
-  // Update time every second
   useEffect(() => {
-    setCurrentTime(new Date());
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  return (
+    <div className="hidden md:flex items-center gap-3 px-4 py-1.5 rounded-lg bg-surface/50 border border-border">
+      <div className="flex flex-col">
+        <span className="text-xs text-text-tertiary">
+          {format(currentTime, 'EEEE, MMMM d, yyyy')}
+        </span>
+        <span className="text-lg font-bold text-text-primary font-mono">
+          {format(currentTime, 'HH:mm:ss')}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export default function Header() {
+  const pathname = usePathname();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const { open: openCommandPalette } = useCommandPalette();
+  const { status: timerStatus, timeLeft: timerTimeLeft, sessionType, setIsExpanded: setTimerExpanded } = useFocusTimer();
+  
+  const { data: stats } = useQuery({
+    queryKey: ['dashboard', 'stats'],
+    queryFn: fetchDashboardStatsAction,
+    refetchInterval: 60000, // Refetch every minute
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
 
   const todayCompletion = stats?.metrics.todayCompletion || 0;
   
@@ -95,18 +90,7 @@ export default function Header() {
           </div>
 
           {/* Date & Time */}
-          {currentTime && (
-            <div className="hidden md:flex items-center gap-3 px-4 py-1.5 rounded-lg bg-surface/50 border border-border">
-              <div className="flex flex-col">
-                <span className="text-xs text-text-tertiary">
-                  {format(currentTime, 'EEEE, MMMM d, yyyy')}
-                </span>
-                <span className="text-lg font-bold text-text-primary font-mono">
-                  {format(currentTime, 'HH:mm:ss')}
-                </span>
-              </div>
-            </div>
-          )}
+          <HeaderClock />
         </div>
 
         {/* Right: Actions */}
@@ -126,15 +110,35 @@ export default function Header() {
             </kbd>
           </motion.button>
 
+          {/* Timer Indicator */}
+          {timerStatus !== 'idle' && (
+            <motion.button
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-mono font-medium transition-colors ${
+                sessionType === 'break'
+                  ? 'bg-success/10 border-success/30 text-success'
+                  : 'bg-primary/10 border-primary/30 text-primary'
+              }`}
+              onClick={() => setTimerExpanded(true)}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <motion.div
+                className={`w-1.5 h-1.5 rounded-full ${sessionType === 'break' ? 'bg-success' : 'bg-primary'}`}
+                animate={timerStatus === 'running' || timerStatus === 'break' ? { opacity: [1, 0.3, 1] } : {}}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              />
+              {`${Math.floor(timerTimeLeft / 60).toString().padStart(2, '0')}:${(timerTimeLeft % 60).toString().padStart(2, '0')}`}
+            </motion.button>
+          )}
+
           {/* Quick Add Button */}
           <motion.button
             className="p-2 rounded-lg bg-primary text-white hover:bg-primary-hover transition-colors shadow-glow"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              // TODO: Open quick add modal
-              console.log('Quick add');
-            }}
+            onClick={openCommandPalette}
             aria-label="Quick add"
           >
             <Plus className="w-4 h-4" />

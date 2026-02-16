@@ -5,7 +5,7 @@
  * @module tests/utils/test-utils
  */
 
-import { ReactElement, ReactNode } from 'react';
+import React, { ReactElement, ReactNode } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -83,17 +83,42 @@ export function renderWithProviders(
  * });
  */
 export function mockFramerMotion() {
-  // Mock framer-motion to disable animations
-  vi.mock('framer-motion', () => ({
+  const motionOnlyProps = new Set([
+    'animate',
+    'exit',
+    'initial',
+    'layout',
+    'transition',
+    'variants',
+    'whileHover',
+    'whileTap',
+    'whileInView',
+    'viewport',
+  ]);
+
+  const createMotionComponent = (tag: string) => {
+    return ({ children, ...props }: Record<string, unknown>) => {
+      const sanitizedProps: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(props)) {
+        if (!motionOnlyProps.has(key)) {
+          sanitizedProps[key] = value;
+        }
+      }
+      return <>{React.createElement(tag, sanitizedProps, children)}</>;
+    };
+  };
+
+  // Use doMock to avoid global hoisting side effects from utility modules.
+  vi.doMock('framer-motion', () => ({
     motion: {
-      div: 'div',
-      aside: 'aside',
-      header: 'header',
-      main: 'main',
-      button: 'button',
-      span: 'span',
-      p: 'p',
-      circle: 'circle',
+      div: createMotionComponent('div'),
+      aside: createMotionComponent('aside'),
+      header: createMotionComponent('header'),
+      main: createMotionComponent('main'),
+      button: createMotionComponent('button'),
+      span: createMotionComponent('span'),
+      p: createMotionComponent('p'),
+      circle: createMotionComponent('circle'),
     },
     AnimatePresence: ({ children }: { children: ReactNode }) => children,
   }));

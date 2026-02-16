@@ -1,6 +1,6 @@
 # 🗄️ Database Schema
 
-Complete database documentation for Bloomberg Personal (Supabase PostgreSQL).
+Complete database documentation for Prism (Supabase PostgreSQL).
 
 ---
 
@@ -13,6 +13,7 @@ Complete database documentation for Bloomberg Personal (Supabase PostgreSQL).
   - [courses](#courses)
   - [exercise_progress](#exercise_progress)
   - [daily_tasks](#daily_tasks)
+  - [events](#events)
 - [Storage Buckets](#storage-buckets)
 - [RLS Policies](#rls-policies)
 - [Indexes](#indexes)
@@ -81,7 +82,17 @@ erDiagram
         text time_estimate
         timestamp created_at
     }
-    
+
+    events {
+        uuid id PK
+        text title
+        text description
+        timestamp start_time
+        timestamp end_time
+        text type
+        timestamp created_at
+    }
+
     courses ||--o{ exercise_progress : "has many"
     goals ||--o{ daily_tasks : "generates"
     job_applications ||--o{ daily_tasks : "generates"
@@ -100,10 +111,10 @@ Stores user goals with categories, deadlines, and progress metrics.
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
 | `id` | `uuid` | PRIMARY KEY, DEFAULT `uuid_generate_v4()` | Unique identifier |
-| `title` | `text` | NOT NULL | Goal title (1-200 chars) |
+| `title` | `text` | NOT NULL | Goal title (3-100 chars) |
 | `description` | `text` | NULLABLE | Detailed description |
 | `target_date` | `date` | NOT NULL | Deadline for goal completion |
-| `category` | `text` | NOT NULL | One of: `Career`, `Wellness`, `Learning`, `Finance`, `Personal` |
+| `category` | `text` | NOT NULL | One of: `fitness`, `career`, `learning`, `finance` |
 | `metrics_current` | `integer` | NULLABLE | Current progress value |
 | `metrics_target` | `integer` | NULLABLE | Target progress value |
 | `metrics_unit` | `text` | NULLABLE | Unit of measurement (e.g., "hours", "pages") |
@@ -118,7 +129,7 @@ VALUES (
   'Complete TypeScript Course',
   'Finish all 20 modules and build a final project',
   '2024-12-31',
-  'Learning',
+  'learning',
   8,
   20,
   'modules'
@@ -313,6 +324,31 @@ CHECK (source IN ('manual', 'goal', 'application') OR source IS NULL);
 
 ---
 
+### events
+
+Stores calendar/schedule events.
+
+**Columns:**
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | `uuid` | PRIMARY KEY, DEFAULT `uuid_generate_v4()` | Unique identifier |
+| `title` | `text` | NOT NULL | Event title |
+| `description` | `text` | NULLABLE | Event description |
+| `start_time` | `timestamp` | NOT NULL | Event start time |
+| `end_time` | `timestamp` | NOT NULL | Event end time |
+| `type` | `text` | NOT NULL, CHECK | One of: `meeting`, `task`, `break` |
+| `created_at` | `timestamp` | DEFAULT `now()` | Creation timestamp |
+
+**Constraints:**
+```sql
+ALTER TABLE events
+ADD CONSTRAINT type_check
+CHECK (type IN ('meeting', 'task', 'break'));
+```
+
+---
+
 ## Storage Buckets
 
 ### cv-uploads
@@ -366,6 +402,7 @@ ALTER TABLE job_applications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE courses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE exercise_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 
 -- Allow anonymous access (development only)
 CREATE POLICY "Allow all access" ON goals FOR ALL USING (true);
@@ -373,6 +410,7 @@ CREATE POLICY "Allow all access" ON job_applications FOR ALL USING (true);
 CREATE POLICY "Allow all access" ON courses FOR ALL USING (true);
 CREATE POLICY "Allow all access" ON exercise_progress FOR ALL USING (true);
 CREATE POLICY "Allow all access" ON daily_tasks FOR ALL USING (true);
+CREATE POLICY "Allow all access" ON events FOR ALL USING (true);
 ```
 
 ### Recommended Production Policies
@@ -460,10 +498,10 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Goals Table
 CREATE TABLE goals (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  title TEXT NOT NULL CHECK (char_length(title) >= 1 AND char_length(title) <= 200),
+  title TEXT NOT NULL CHECK (char_length(title) >= 3 AND char_length(title) <= 100),
   description TEXT,
   target_date DATE NOT NULL,
-  category TEXT NOT NULL CHECK (category IN ('Career', 'Wellness', 'Learning', 'Finance', 'Personal')),
+  category TEXT NOT NULL CHECK (category IN ('fitness', 'career', 'learning', 'finance')),
   metrics_current INTEGER,
   metrics_target INTEGER,
   metrics_unit TEXT,
@@ -520,6 +558,17 @@ CREATE TABLE daily_tasks (
   time_estimate TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
+
+-- Events Table
+CREATE TABLE events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,
+  description TEXT,
+  start_time TIMESTAMP WITH TIME ZONE NOT NULL,
+  end_time TIMESTAMP WITH TIME ZONE NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('meeting', 'task', 'break')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
 ```
 
 **3. Create Indexes:**
@@ -553,12 +602,14 @@ ALTER TABLE job_applications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE courses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE exercise_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Allow all access" ON goals FOR ALL USING (true);
 CREATE POLICY "Allow all access" ON job_applications FOR ALL USING (true);
 CREATE POLICY "Allow all access" ON courses FOR ALL USING (true);
 CREATE POLICY "Allow all access" ON exercise_progress FOR ALL USING (true);
 CREATE POLICY "Allow all access" ON daily_tasks FOR ALL USING (true);
+CREATE POLICY "Allow all access" ON events FOR ALL USING (true);
 ```
 
 **5. Create Storage Bucket:**
@@ -578,7 +629,7 @@ CREATE POLICY "Allow all access" ON daily_tasks FOR ALL USING (true);
 1. **Use Indexes for Filtering:**
    ```sql
    -- Good: Uses idx_goals_category
-   SELECT * FROM goals WHERE category = 'Career';
+   SELECT * FROM goals WHERE category = 'career';
    
    -- Bad: Full table scan
    SELECT * FROM goals WHERE LOWER(category) = 'career';

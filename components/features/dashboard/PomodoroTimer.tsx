@@ -117,7 +117,7 @@ const PomodoroTimer = memo(function PomodoroTimer({
   // Loading state - conditional RENDERING after all hooks!
   if (isLoading) {
     return (
-      <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
+      <div className="card-surface rounded-xl p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Coffee className="w-5 h-5 text-warning" />
@@ -142,7 +142,7 @@ const PomodoroTimer = memo(function PomodoroTimer({
   }
 
   return (
-    <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
+    <div className="card-surface rounded-xl p-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Coffee className="w-5 h-5 text-warning" />

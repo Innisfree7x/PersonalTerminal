@@ -1,16 +1,19 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Goal, CreateGoalInput, GoalCategory } from '@/lib/schemas/goal.schema';
 import { calculateProgress, goalToCreateInput } from '@/lib/utils/goalUtils';
-import { fetchGoals, createGoal, updateGoal, deleteGoal } from '@/lib/api/goals';
+import { createGoalAction, updateGoalAction, deleteGoalAction, fetchGoalsAction } from '@/app/actions/goals';
+import toast from 'react-hot-toast';
 import GoalsList from '@/components/features/goals/GoalsList';
 import GoalModal from '@/components/features/goals/GoalModal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Plus, Target, Filter } from 'lucide-react';
+import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
 
 type SortOption = 'date' | 'progress' | 'title';
 type FilterOption = GoalCategory | 'all';
@@ -23,7 +26,17 @@ const categoryConfig: Record<FilterOption, { label: string; icon: string; color:
   finance: { label: 'Finance', icon: '💰', color: 'success' },
 };
 
+function normalizeGoal(goal: any): Goal {
+  return {
+    ...goal,
+    targetDate: new Date(goal.targetDate),
+    createdAt: new Date(goal.createdAt),
+  };
+}
+
 export default function GoalsPage() {
+  const router = useRouter();
+  const pathname = usePathname();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
@@ -37,35 +50,102 @@ export default function GoalsPage() {
     error,
   } = useQuery({
     queryKey: ['goals'],
-    queryFn: fetchGoals, // Already returns Goal[] directly
+    queryFn: async () => {
+      const fetchedGoals = await fetchGoalsAction();
+      return fetchedGoals.map(normalizeGoal);
+    },
   });
 
   // Create mutation
   const createMutation = useMutation({
-    mutationFn: createGoal,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
+    mutationFn: createGoalAction,
+    onMutate: async (newGoalInput) => {
+      await queryClient.cancelQueries({ queryKey: ['goals'] });
+      const previousGoals = queryClient.getQueryData<Goal[]>(['goals']) || [];
+      const tempId = crypto.randomUUID();
+      const optimisticGoal: Goal = {
+        id: tempId,
+        ...newGoalInput,
+        createdAt: new Date(),
+      };
+      queryClient.setQueryData<Goal[]>(['goals'], [optimisticGoal, ...previousGoals]);
+      return { previousGoals, tempId };
+    },
+    onSuccess: (createdGoal, _variables, context) => {
+      const normalizedCreatedGoal = normalizeGoal(createdGoal);
+      queryClient.setQueryData<Goal[]>(['goals'], (current = []) => {
+        if (!context?.tempId) return [normalizedCreatedGoal, ...current];
+        const replaced = current.map((goal) =>
+          goal.id === context.tempId ? normalizedCreatedGoal : goal
+        );
+        const hasTemp = current.some((goal) => goal.id === context.tempId);
+        return hasTemp ? replaced : [normalizedCreatedGoal, ...current];
+      });
       setIsModalOpen(false);
       setEditingGoal(null);
+      toast.success('Goal created!');
+    },
+    onError: (err: Error, _variables, context) => {
+      if (context?.previousGoals) {
+        queryClient.setQueryData(['goals'], context.previousGoals);
+      }
+      toast.error(err.message || 'Failed to create goal');
     },
   });
 
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: ({ goalId, data }: { goalId: string; data: CreateGoalInput }) =>
-      updateGoal(goalId, data),
+      updateGoalAction(goalId, data),
+    onMutate: async ({ goalId, data }) => {
+      await queryClient.cancelQueries({ queryKey: ['goals'] });
+      const previousGoals = queryClient.getQueryData<Goal[]>(['goals']) || [];
+      queryClient.setQueryData<Goal[]>(['goals'], (current = []) =>
+        current.map((goal) =>
+          goal.id === goalId
+            ? {
+                ...goal,
+                ...data,
+                targetDate: data.targetDate ?? goal.targetDate,
+              }
+            : goal
+        )
+      );
+      return { previousGoals };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
       setIsModalOpen(false);
       setEditingGoal(null);
+      toast.success('Goal updated!');
+    },
+    onError: (err: Error, _variables, context) => {
+      if (context?.previousGoals) {
+        queryClient.setQueryData(['goals'], context.previousGoals);
+      }
+      toast.error(err.message || 'Failed to update goal');
     },
   });
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: deleteGoal,
+    mutationFn: deleteGoalAction,
+    onMutate: async (goalId) => {
+      await queryClient.cancelQueries({ queryKey: ['goals'] });
+      const previousGoals = queryClient.getQueryData<Goal[]>(['goals']) || [];
+      queryClient.setQueryData<Goal[]>(
+        ['goals'],
+        previousGoals.filter((goal) => goal.id !== goalId)
+      );
+      return { previousGoals };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
+      toast.success('Goal deleted');
+    },
+    onError: (err: Error, _variables, context) => {
+      if (context?.previousGoals) {
+        queryClient.setQueryData(['goals'], context.previousGoals);
+      }
+      toast.error(err.message || 'Failed to delete goal');
     },
   });
 
@@ -131,12 +211,12 @@ export default function GoalsPage() {
       acc[goal.category] = (acc[goal.category] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-    
-    const completed = goals.filter(g => 
+
+    const completed = goals.filter(g =>
       g.metrics && (g.metrics.current / g.metrics.target) >= 1
     ).length;
-    
-    const overdue = goals.filter(g => 
+
+    const overdue = goals.filter(g =>
       g.targetDate < new Date()
     ).length;
 
@@ -145,11 +225,23 @@ export default function GoalsPage() {
 
   const isEditMode = editingGoal !== null;
   const initialData = editingGoal ? goalToCreateInput(editingGoal) : undefined;
-  const saveErrorMessage =
-    (isEditMode ? updateMutation.error : createMutation.error) instanceof Error
-      ? (isEditMode ? updateMutation.error : createMutation.error)!.message
-      : null;
+  const saveError = isEditMode ? updateMutation.error : createMutation.error;
+  const saveErrorMessage = saveError instanceof Error ? saveError.message : null;
   const isSaving = isEditMode ? updateMutation.isPending : createMutation.isPending;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const action = new URLSearchParams(window.location.search).get('action');
+    if (action !== 'new-goal') return;
+    setEditingGoal(null);
+    setIsModalOpen(true);
+    router.replace(pathname);
+  }, [pathname, router]);
+
+  usePrismCommandAction('open-new-goal', () => {
+    setEditingGoal(null);
+    setIsModalOpen(true);
+  });
 
   // Loading state
   if (isLoading) {
@@ -224,7 +316,7 @@ export default function GoalsPage() {
         transition={{ delay: 0.1 }}
         className="grid grid-cols-2 md:grid-cols-4 gap-4"
       >
-        <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-lg p-4">
+        <div className="card-surface p-4">
           <div className="text-2xl font-bold text-text-primary">{stats.total}</div>
           <div className="text-xs text-text-tertiary">Total Goals</div>
         </div>
@@ -259,16 +351,15 @@ export default function GoalsPage() {
             const config = categoryConfig[category];
             const count = category === 'all' ? stats.total : (stats.byCategory[category] || 0);
             const isActive = filterBy === category;
-            
+
             return (
               <motion.button
                 key={category}
                 onClick={() => setFilterBy(category)}
-                className={`relative px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  isActive
+                className={`relative px-4 py-2 rounded-full text-sm font-medium transition-all ${isActive
                     ? 'bg-primary text-white shadow-glow'
                     : 'bg-surface hover:bg-surface-hover text-text-secondary hover:text-text-primary border border-border'
-                }`}
+                  }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -294,7 +385,7 @@ export default function GoalsPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className="px-3 py-2 bg-surface border border-border rounded-lg text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+            className="input-field text-sm"
           >
             <option value="date">Target Date</option>
             <option value="progress">Progress</option>
@@ -353,6 +444,7 @@ export default function GoalsPage() {
         isOpen={isModalOpen}
         onClose={handleModalClose}
         onSubmit={isEditMode ? handleEditGoal : handleAddGoal}
+        {...(editingGoal ? { layoutId: `goal-card-${editingGoal.id}` } : {})}
         initialData={initialData}
         isEdit={isEditMode}
         errorMessage={saveErrorMessage}

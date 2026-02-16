@@ -1,6 +1,6 @@
 # 🔌 API Documentation
 
-Complete reference for all Bloomberg Personal API endpoints.
+Complete reference for all Prism API endpoints.
 
 ---
 
@@ -30,10 +30,13 @@ Fetch all goals from the database.
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "title": "Learn TypeScript",
     "description": "Complete TypeScript course and build a project",
-    "category": "Learning",
-    "priority": "high",
+    "category": "learning",
     "targetDate": "2024-12-31T00:00:00.000Z",
-    "completed": false,
+    "metrics": {
+      "current": 8,
+      "target": 20,
+      "unit": "modules"
+    },
     "createdAt": "2024-01-15T10:30:00.000Z"
   }
 ]
@@ -54,19 +57,22 @@ Create a new goal.
 {
   "title": "Learn TypeScript",
   "description": "Complete TypeScript course and build a project",
-  "category": "Learning",
-  "priority": "high",
-  "targetDate": "2024-12-31"
+  "category": "learning",
+  "targetDate": "2024-12-31",
+  "metrics": {
+    "current": 0,
+    "target": 20,
+    "unit": "modules"
+  }
 }
 ```
 
 **Validation Rules:**
-- `title` (required): String, 1-200 characters
-- `description` (optional): String, max 1000 characters
-- `category` (required): One of `Career`, `Wellness`, `Learning`, `Finance`, `Personal`
-- `priority` (required): One of `low`, `medium`, `high`
-- `targetDate` (optional): ISO date string
-- `completed` (optional): Boolean, defaults to `false`
+- `title` (required): String, 3-100 characters
+- `description` (optional): String
+- `category` (required): One of `fitness`, `career`, `learning`, `finance`
+- `targetDate` (required): ISO date string
+- `metrics` (optional): Object with `current` (number), `target` (number), `unit` (string)
 
 **Response:**
 ```json
@@ -74,10 +80,13 @@ Create a new goal.
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "title": "Learn TypeScript",
   "description": "Complete TypeScript course and build a project",
-  "category": "Learning",
-  "priority": "high",
+  "category": "learning",
   "targetDate": "2024-12-31T00:00:00.000Z",
-  "completed": false,
+  "metrics": {
+    "current": 0,
+    "target": 20,
+    "unit": "modules"
+  },
   "createdAt": "2024-01-15T10:30:00.000Z"
 }
 ```
@@ -85,34 +94,6 @@ Create a new goal.
 **Status Codes:**
 - `201` - Created successfully
 - `400` - Validation error
-- `500` - Server error
-
----
-
-### GET `/api/goals/[id]`
-
-Fetch a single goal by ID.
-
-**URL Parameters:**
-- `id` - Goal UUID
-
-**Response:**
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440000",
-  "title": "Learn TypeScript",
-  "description": "Complete TypeScript course",
-  "category": "Learning",
-  "priority": "high",
-  "targetDate": "2024-12-31T00:00:00.000Z",
-  "completed": false,
-  "createdAt": "2024-01-15T10:30:00.000Z"
-}
-```
-
-**Status Codes:**
-- `200` - Success
-- `404` - Goal not found
 - `500` - Server error
 
 ---
@@ -183,7 +164,7 @@ Fetch all job applications.
     "id": "550e8400-e29b-41d4-a716-446655440001",
     "company": "Google",
     "position": "Software Engineer",
-    "status": "Interview",
+    "status": "interview",
     "location": "Mountain View, CA",
     "jobUrl": "https://careers.google.com/...",
     "applicationDate": "2024-01-10T00:00:00.000Z",
@@ -209,7 +190,7 @@ Create a new job application.
 {
   "company": "Google",
   "position": "Software Engineer",
-  "status": "Applied",
+  "status": "applied",
   "location": "Mountain View, CA",
   "jobUrl": "https://careers.google.com/...",
   "applicationDate": "2024-01-10",
@@ -220,7 +201,7 @@ Create a new job application.
 **Validation Rules:**
 - `company` (required): String, 1-200 characters
 - `position` (required): String, 1-200 characters
-- `status` (required): One of `Applied`, `Interview`, `Offer`, `Rejected`
+- `status` (required): One of `applied`, `interview`, `offer`, `rejected`
 - `location` (optional): String, max 200 characters
 - `jobUrl` (optional): String, valid URL
 - `applicationDate` (optional): ISO date string
@@ -233,7 +214,7 @@ Create a new job application.
   "id": "550e8400-e29b-41d4-a716-446655440001",
   "company": "Google",
   "position": "Software Engineer",
-  "status": "Applied",
+  "status": "applied",
   "...": "..."
 }
 ```
@@ -241,20 +222,6 @@ Create a new job application.
 **Status Codes:**
 - `201` - Created successfully
 - `400` - Validation error
-- `500` - Server error
-
----
-
-### GET `/api/applications/[id]`
-
-Fetch a single application by ID.
-
-**URL Parameters:**
-- `id` - Application UUID
-
-**Status Codes:**
-- `200` - Success
-- `404` - Application not found
 - `500` - Server error
 
 ---
@@ -269,7 +236,7 @@ Update an existing application.
 **Request Body (partial):**
 ```json
 {
-  "status": "Interview",
+  "status": "interview",
   "interviewDate": "2024-01-25T14:00:00.000Z"
 }
 ```
@@ -657,8 +624,8 @@ Fetch aggregated statistics for the dashboard.
     "thisWeek": 3,
     "overdue": 2,
     "byCategory": {
-      "Career": { "total": 5, "completed": 2 },
-      "Learning": { "total": 8, "completed": 4 }
+      "career": { "total": 5, "completed": 2 },
+      "learning": { "total": 8, "completed": 4 }
     }
   },
   "study": {
@@ -729,7 +696,7 @@ Fetch prioritized tasks for today's focus.
     {
       "id": "goal-uuid",
       "title": "Finish presentation",
-      "priority": "high"
+      "category": "career"
     }
   ],
   "upcomingInterviews": [
@@ -928,11 +895,7 @@ Generic server errors return a message:
 
 ## Authentication
 
-Currently, the API uses **public/anonymous access** via Supabase RLS policies. Future versions may implement:
-
-- User authentication (Supabase Auth)
-- JWT tokens
-- Row-level security based on user ID
+All API routes are protected with `requireApiAuth()` middleware from `lib/api/auth.ts`. Requests without valid authentication will receive a `401` response.
 
 ---
 

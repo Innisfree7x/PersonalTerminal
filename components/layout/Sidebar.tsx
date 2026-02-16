@@ -1,33 +1,81 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  Target, 
-  GraduationCap, 
+import {
+  LayoutDashboard,
+  Calendar,
+  Target,
+  GraduationCap,
   Briefcase,
+  BarChart3,
+  ShieldCheck,
   ChevronLeft,
-  User,
-  Settings
+  Settings,
+  LogOut
 } from 'lucide-react';
 import { useSidebar } from './SidebarProvider';
+import { useAuth } from '@/lib/auth/AuthProvider';
+import { isAdminUser } from '@/lib/auth/authorization';
 
-const navigation = [
-  { name: 'Today', href: '/today', icon: LayoutDashboard },
-  { name: 'Calendar', href: '/calendar', icon: Calendar },
-  { name: 'Goals', href: '/goals', icon: Target },
-  { name: 'University', href: '/university', icon: GraduationCap },
-  { name: 'Career', href: '/career', icon: Briefcase },
+const baseNavigation = [
+  { name: 'Today', href: '/today', icon: LayoutDashboard, shortcut: '1' },
+  { name: 'Calendar', href: '/calendar', icon: Calendar, shortcut: '2' },
+  { name: 'Goals', href: '/goals', icon: Target, shortcut: '3' },
+  { name: 'University', href: '/university', icon: GraduationCap, shortcut: '4' },
+  { name: 'Career', href: '/career', icon: Briefcase, shortcut: '5' },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3, shortcut: '6' },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const { isCollapsed, setIsCollapsed } = useSidebar();
+  const { user, signOut } = useAuth();
+  const isAdmin = isAdminUser(user);
+  const navigation = useMemo(
+    () =>
+      isAdmin
+        ? [...baseNavigation, { name: 'Ops Health', href: '/analytics/ops', icon: ShieldCheck, shortcut: '7' }]
+        : baseNavigation,
+    [isAdmin]
+  );
+
+  // Extract display name from user metadata or email
+  const displayName = user?.user_metadata?.full_name
+    || user?.user_metadata?.name
+    || user?.email?.split('@')[0]
+    || 'User';
+  const displayEmail = user?.email || '';
+  const avatarInitial = displayName.charAt(0).toUpperCase();
+
+  // Keyboard shortcuts: Alt+1..n for navigation (avoid hijacking browser/OS shortcuts).
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isTypingTarget =
+        target?.tagName === 'INPUT' ||
+        target?.tagName === 'TEXTAREA' ||
+        target?.tagName === 'SELECT' ||
+        target?.isContentEditable;
+
+      if (isTypingTarget) return;
+
+      if (!e.altKey || e.metaKey || e.ctrlKey || e.shiftKey) return;
+
+      const navItem = navigation.find(item => item.shortcut === e.key);
+      if (navItem) {
+        e.preventDefault();
+        router.push(navItem.href);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [navigation, router]);
 
   return (
     <>
@@ -78,9 +126,8 @@ export default function Sidebar() {
         animate={{
           width: isCollapsed ? '80px' : '240px',
         }}
-        className={`fixed top-0 left-0 z-40 h-screen transition-all ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 bg-surface/80 backdrop-blur-xl border-r border-border`}
+        className={`fixed top-0 left-0 z-40 h-screen transition-all ${isOpen ? 'translate-x-0' : '-translate-x-full'
+          } lg:translate-x-0 bg-surface/80 backdrop-blur-xl border-r border-border`}
       >
         <div className="h-full flex flex-col">
           {/* Logo / Brand */}
@@ -109,8 +156,8 @@ export default function Sidebar() {
                 </div>
               </motion.div>
             )}
-            
-            {/* Collapse button (desktop only) - Always visible */}
+
+            {/* Collapse button (desktop only) */}
             {!isCollapsed && (
               <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
@@ -140,7 +187,7 @@ export default function Sidebar() {
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               const Icon = item.icon;
-              
+
               return (
                 <Link
                   key={item.name}
@@ -156,24 +203,29 @@ export default function Sidebar() {
                       transition={{ type: "spring", stiffness: 500, damping: 30 }}
                     />
                   )}
-                  
+
                   <div
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                      isActive
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive
                         ? 'bg-primary/10 text-primary'
                         : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
-                    } ${isCollapsed ? 'justify-center' : ''}`}
+                      } ${isCollapsed ? 'justify-center' : ''}`}
                   >
                     <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-primary' : ''}`} />
                     {!isCollapsed && (
-                      <span className="truncate">{item.name}</span>
+                      <>
+                        <span className="flex-1 truncate">{item.name}</span>
+                        <kbd className="hidden sm:inline-flex px-1.5 py-0.5 rounded text-[10px] font-mono bg-surface-hover border border-border text-text-tertiary opacity-0 group-hover:opacity-100 transition-opacity">
+                          ⌥{item.shortcut}
+                        </kbd>
+                      </>
                     )}
                   </div>
-                  
+
                   {/* Tooltip for collapsed state */}
                   {isCollapsed && (
                     <div className="absolute left-full ml-2 px-2 py-1 bg-surface border border-border rounded-md text-xs text-text-primary whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
                       {item.name}
+                      <span className="ml-2 text-text-tertiary font-mono">⌥{item.shortcut}</span>
                     </div>
                   )}
                 </Link>
@@ -181,34 +233,64 @@ export default function Sidebar() {
             })}
           </nav>
 
-          {/* User Profile Card */}
-          <div className="p-3 border-t border-border">
-            <motion.div
-              className={`flex items-center gap-3 p-2.5 rounded-lg hover:bg-surface-hover cursor-pointer transition-colors ${
-                isCollapsed ? 'justify-center' : ''
-              }`}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+          {/* User Profile section */}
+          <div className="p-3 border-t border-border space-y-1">
+            {/* Settings link */}
+            <Link
+              href="/settings"
+              onClick={() => setIsOpen(false)}
+              className="relative block group"
             >
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-light to-primary flex items-center justify-center flex-shrink-0">
-                <User className="w-5 h-5 text-white" />
+              <div
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${pathname === '/settings'
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
+                  } ${isCollapsed ? 'justify-center' : ''}`}
+              >
+                <Settings className={`w-4 h-4 flex-shrink-0 ${pathname === '/settings' ? 'text-primary' : ''}`} />
+                {!isCollapsed && <span className="truncate">Settings</span>}
               </div>
-              
-              {!isCollapsed && (
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-text-primary truncate">
-                    User
-                  </p>
-                  <p className="text-xs text-text-tertiary truncate">
-                    user@example.com
-                  </p>
+              {isCollapsed && (
+                <div className="absolute left-full ml-2 px-2 py-1 bg-surface border border-border rounded-md text-xs text-text-primary whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                  Settings
                 </div>
               )}
-              
+            </Link>
+
+            {/* User profile */}
+            <div
+              className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${isCollapsed ? 'justify-center' : ''
+                }`}
+            >
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center flex-shrink-0 ring-2 ring-primary/20">
+                <span className="text-white font-bold text-sm">{avatarInitial}</span>
+              </div>
+
               {!isCollapsed && (
-                <Settings className="w-4 h-4 text-text-tertiary hover:text-text-primary transition-colors" />
+                <>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-text-primary truncate">
+                      {displayName}
+                    </p>
+                    <p className="text-xs text-text-tertiary truncate">
+                      {displayEmail}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      signOut();
+                    }}
+                    className="p-1.5 rounded-md text-text-tertiary hover:text-error hover:bg-error/10 transition-colors"
+                    aria-label="Sign out"
+                    title="Sign out"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </>
               )}
-            </motion.div>
+            </div>
           </div>
         </div>
       </motion.aside>

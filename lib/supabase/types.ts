@@ -14,6 +14,7 @@ export interface Database {
       goals: {
         Row: {
           id: string;
+          user_id: string;
           title: string;
           description: string | null;
           target_date: string;
@@ -26,6 +27,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          user_id: string;
           title: string;
           description?: string | null;
           target_date: string;
@@ -38,6 +40,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          user_id?: string;
           title?: string;
           description?: string | null;
           target_date?: string;
@@ -83,6 +86,7 @@ export interface Database {
       job_applications: {
         Row: {
           id: string;
+          user_id: string;
           company: string;
           position: string;
           status: 'applied' | 'interview' | 'offer' | 'rejected';
@@ -97,6 +101,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          user_id: string;
           company: string;
           position: string;
           status: 'applied' | 'interview' | 'offer' | 'rejected';
@@ -111,6 +116,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          user_id?: string;
           company?: string;
           position?: string;
           status?: 'applied' | 'interview' | 'offer' | 'rejected';
@@ -128,6 +134,7 @@ export interface Database {
       daily_tasks: {
         Row: {
           id: string;
+          user_id: string;
           date: string; // ISO date string
           title: string;
           completed: boolean;
@@ -138,6 +145,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          user_id: string;
           date: string; // ISO date string
           title: string;
           completed?: boolean;
@@ -148,6 +156,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          user_id?: string;
           date?: string; // ISO date string
           title?: string;
           completed?: boolean;
@@ -161,6 +170,7 @@ export interface Database {
       courses: {
         Row: {
           id: string;
+          user_id: string;
           name: string;
           ects: number;
           num_exercises: number;
@@ -170,6 +180,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          user_id: string;
           name: string;
           ects: number;
           num_exercises: number;
@@ -179,6 +190,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          user_id?: string;
           name?: string;
           ects?: number;
           num_exercises?: number;
@@ -188,9 +200,52 @@ export interface Database {
         };
         Relationships: [];
       };
+      focus_sessions: {
+        Row: {
+          id: string;
+          user_id: string;
+          session_type: 'focus' | 'break';
+          duration_seconds: number;
+          planned_duration_seconds: number;
+          started_at: string;
+          ended_at: string;
+          completed: boolean;
+          label: string | null;
+          category: 'study' | 'work' | 'exercise' | 'reading' | 'other' | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          session_type?: 'focus' | 'break';
+          duration_seconds: number;
+          planned_duration_seconds: number;
+          started_at: string;
+          ended_at: string;
+          completed?: boolean;
+          label?: string | null;
+          category?: 'study' | 'work' | 'exercise' | 'reading' | 'other' | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          session_type?: 'focus' | 'break';
+          duration_seconds?: number;
+          planned_duration_seconds?: number;
+          started_at?: string;
+          ended_at?: string;
+          completed?: boolean;
+          label?: string | null;
+          category?: 'study' | 'work' | 'exercise' | 'reading' | 'other' | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       exercise_progress: {
         Row: {
           id: string;
+          user_id: string;
           course_id: string;
           exercise_number: number;
           completed: boolean;
@@ -199,6 +254,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          user_id: string;
           course_id: string;
           exercise_number: number;
           completed?: boolean;
@@ -207,6 +263,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          user_id?: string;
           course_id?: string;
           exercise_number?: number;
           completed?: boolean;
@@ -221,6 +278,33 @@ export interface Database {
             referencedColumns: ['id'];
           }
         ];
+      };
+      admin_audit_logs: {
+        Row: {
+          id: string;
+          actor_user_id: string;
+          action: string;
+          resource: string;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          actor_user_id: string;
+          action: string;
+          resource: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          actor_user_id?: string;
+          action?: string;
+          resource?: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [];
       };
     };
     Views: {
@@ -249,3 +333,7 @@ export type SupabaseCourse = Database['public']['Tables']['courses']['Row'];
 
 // Helper type to convert Supabase ExerciseProgress Row to our ExerciseProgress type
 export type SupabaseExerciseProgress = Database['public']['Tables']['exercise_progress']['Row'];
+
+// Helper type for Focus Session
+export type SupabaseFocusSession = Database['public']['Tables']['focus_sessions']['Row'];
+export type SupabaseAdminAuditLog = Database['public']['Tables']['admin_audit_logs']['Row'];

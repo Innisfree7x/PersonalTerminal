@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchCoursesWithExercises } from '@/lib/supabase/courses';
 import { startOfDay, differenceInDays } from 'date-fns';
+import { requireApiAuth } from '@/lib/api/auth';
+import { handleRouteError } from '@/lib/api/server-errors';
 
 interface StudyTask {
   id: string;
@@ -16,16 +18,15 @@ interface StudyTask {
  * GET /api/dashboard/study-tasks - Fetch incomplete exercises prioritized by exam date
  */
 export async function GET(_request: NextRequest) {
+  const { user, errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const today = startOfDay(new Date());
 
-    // Fetch all courses with exercises (reuse working function!)
-    const coursesWithExercises = await fetchCoursesWithExercises();
-
-    console.log('📚 COURSES FETCHED:', coursesWithExercises.length);
+    const coursesWithExercises = await fetchCoursesWithExercises(user.id);
 
     if (coursesWithExercises.length === 0) {
-      console.log('❌ NO COURSES FOUND - returning empty');
       return NextResponse.json([]);
     }
 
@@ -57,7 +58,7 @@ export async function GET(_request: NextRequest) {
         courseId: course.id,
         courseName: course.name,
         exerciseNumber: firstIncomplete.exerciseNumber,
-        examDate: course.examDate ? course.examDate.toISOString().split('T')[0]! : null,
+        examDate: course.examDate ? (course.examDate.toISOString().split('T')[0] ?? '') : null,
         daysUntilExam,
         urgency,
       });
@@ -83,15 +84,8 @@ export async function GET(_request: NextRequest) {
       return a.exerciseNumber - b.exerciseNumber;
     });
 
-    // Top 5
-    console.log('✅ RETURNING STUDY TASKS:', studyTasks.length, 'tasks');
-    console.log('Tasks:', studyTasks);
     return NextResponse.json(studyTasks.slice(0, 5));
   } catch (error) {
-    console.error('Error fetching study tasks:', error);
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to fetch study tasks' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Failed to fetch study tasks', 'Error fetching study tasks');
   }
 }

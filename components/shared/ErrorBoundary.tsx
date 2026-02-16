@@ -3,6 +3,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { captureClientError } from '@/lib/monitoring';
 
 interface Props {
   children: ReactNode;
@@ -56,8 +57,16 @@ export class ErrorBoundary extends Component<Props, State> {
       errorInfo,
     });
 
-    // TODO: Send error to monitoring service (e.g., Sentry)
-    // logErrorToService(error, errorInfo);
+    captureClientError({
+      message: error.message,
+      errorName: error.name,
+      severity: 'error',
+      context: {
+        componentStack: errorInfo.componentStack,
+      },
+      source: 'client',
+      ...(error.stack ? { stack: error.stack } : {}),
+    });
   }
 
   handleReset = () => {
@@ -80,6 +89,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       const { fallbackTitle, fallbackMessage } = this.props;
       const { error, errorInfo } = this.state;
+      const showErrorDetails = process.env.NODE_ENV === 'development';
 
       return (
         <motion.div
@@ -108,7 +118,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
 
               {/* Error Details (only in development) */}
-              {(typeof window === 'undefined' ? require('@/lib/env').isDevelopment : process.env.NODE_ENV === 'development') && error && (
+              {showErrorDetails && error && (
                 <div className="mb-6 p-4 bg-background/50 border border-border rounded-lg">
                   <h3 className="text-sm font-semibold text-text-primary mb-2">
                     Error Details (Development Only):

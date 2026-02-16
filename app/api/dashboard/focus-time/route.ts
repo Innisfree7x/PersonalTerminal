@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/auth/server';
 import { format } from 'date-fns';
+import { requireApiAuth } from '@/lib/api/auth';
+import { handleRouteError } from '@/lib/api/server-errors';
 
 /**
  * GET /api/dashboard/focus-time
@@ -17,25 +19,25 @@ import { format } from 'date-fns';
  * - totalMinutes: total focus time in minutes
  */
 export async function GET(request: Request) {
+  const { user, errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const { searchParams } = new URL(request.url);
     const date = searchParams.get('date') || format(new Date(), 'yyyy-MM-dd');
-    
-    // For now, we'll use a dummy userId since we don't have auth yet
-    // TODO: Implement proper authentication
-    const userId = 'anonymous';
+
+    const supabase = createClient();
 
     // Fetch completed tasks for the day with time estimates
     const { data: tasks, error: tasksError } = await supabase
       .from('daily_tasks')
       .select('id, title, completed, time_estimate, created_at')
-      .eq('user_id', userId)
+      .eq('user_id', user.id)
       .eq('date', date)
       .eq('completed', true);
 
     if (tasksError) {
-      console.error('Focus time error:', tasksError);
-      return NextResponse.json({ error: 'Failed to fetch focus time' }, { status: 500 });
+      throw new Error(`Failed to fetch focus time: ${tasksError.message}`);
     }
 
     // Initialize time blocks (in minutes)
@@ -98,10 +100,6 @@ export async function GET(request: Request) {
     });
 
   } catch (error) {
-    console.error('Focus time API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Internal server error', 'Focus time API error');
   }
 }

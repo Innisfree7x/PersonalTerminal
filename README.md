@@ -11,6 +11,15 @@
 
 ## ✨ Features
 
+### ✅ Recent Updates
+- **Onboarding gate** (`/onboarding`) with profile completion before dashboard access.
+- **Persistent profile settings** (display name saved in Supabase `user_metadata`).
+- **Command Bar V2** with direct actions: New Goal/Course/Application, Theme Cycle, Focus presets.
+- **Server Actions migration** for key mutations (daily tasks, focus sessions, notes, calendar disconnect).
+- **Layout identity transitions** for University cards (card-to-modal morph with `layoutId`).
+- **Performance monitor** (Web Vitals + navigation timing capture).
+- **E2E coverage** for auth/onboarding/settings profile flow.
+
 ### 🎯 Dashboard Command Center (`/today`)
 - **Smart 3-column layout** with Focus Tasks, Schedule, and Dynamic Widgets
 - **8 Productivity Widgets:**
@@ -34,7 +43,7 @@
 - **Auto-populated study tasks** on the Dashboard
 
 ### 🎯 Goals Tracking (`/goals`)
-- **CRUD operations** with categories (Career, Wellness, Learning, Finance, Personal)
+- **CRUD operations** with categories (Career, Fitness, Learning, Finance)
 - **Priority levels** (Low, Medium, High) with visual indicators
 - **Progress tracking** with completion statistics
 - **Weekly/Monthly/Yearly views**
@@ -59,8 +68,10 @@
 ```mermaid
 graph LR
     User[User Browser] --> NextJS[Next.js 14 App]
-    NextJS --> API[API Routes]
+    NextJS --> API[API Routes (reads + integrations)]
+    NextJS --> SA[Server Actions (mutations)]
     API --> Supabase[(Supabase PostgreSQL)]
+    SA --> Supabase
     API --> Google[Google Calendar API]
     NextJS --> RQ[React Query Cache]
     Supabase --> Storage[Supabase Storage]
@@ -162,6 +173,10 @@ graph LR
 | `GOOGLE_CLIENT_ID` | Google OAuth 2.0 Client ID | ⚠️ For Calendar |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth 2.0 Client Secret | ⚠️ For Calendar |
 | `GOOGLE_REDIRECT_URI` | OAuth callback URL | ⚠️ For Calendar |
+| `MONITORING_ALERT_WEBHOOK_URL` | Webhook URL for critical error alerts | ⚠️ Optional |
+| `SENTRY_DSN` | Sentry DSN for error ingestion (if Sentry package is installed) | ⚠️ Optional |
+| `ADMIN_EMAILS` | Comma-separated admin emails for server-side RBAC | ⚠️ Optional |
+| `NEXT_PUBLIC_ADMIN_EMAILS` | Comma-separated admin emails for client-side nav visibility | ⚠️ Optional |
 
 ---
 
@@ -171,9 +186,14 @@ graph LR
 |---------|-------------|
 | `npm run dev` | Start development server (localhost:3000) |
 | `npm run build` | Build production bundle |
+| `npm run build:analyze` | Build with bundle analyzer (`ANALYZE=true`) |
 | `npm run test` | Run unit tests with Vitest |
+| `npm run test:watch` | Run Vitest in watch mode |
 | `npm run test:ui` | Open Vitest UI |
 | `npm run test:coverage` | Generate test coverage report |
+| `npm run test:e2e` | Run Playwright E2E tests |
+| `npm run test:e2e:headed` | Run Playwright E2E in headed mode |
+| `npm run test:e2e:ui` | Open Playwright UI mode |
 | `npm run seed` | Seed database with sample goals |
 | `npm run fix-courses` | Fix missing exercise_progress entries |
 | `npm run type-check` | Run TypeScript compiler checks |

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/auth/server';
 import { startOfDay, subDays, format } from 'date-fns';
+import { requireApiAuth } from '@/lib/api/auth';
+import { handleRouteError } from '@/lib/api/server-errors';
 
 /**
  * GET /api/user/streak
@@ -17,25 +19,25 @@ import { startOfDay, subDays, format } from 'date-fns';
  * - longestStreak: highest streak ever (future enhancement)
  */
 export async function GET() {
+  const { user, errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
-    // For now, we'll use a dummy userId since we don't have auth yet
-    // TODO: Implement proper authentication
-    const userId = 'anonymous';
     const today = startOfDay(new Date());
+    const supabase = createClient();
 
     // Fetch all completed tasks for the last 365 days
     const oneYearAgo = format(subDays(today, 365), 'yyyy-MM-dd');
     const { data: completedTasks, error: tasksError } = await supabase
       .from('daily_tasks')
       .select('date, completed')
-      .eq('user_id', userId)
+      .eq('user_id', user.id)
       .eq('completed', true)
       .gte('date', oneYearAgo)
       .order('date', { ascending: false });
 
     if (tasksError) {
-      console.error('Streak calculation error:', tasksError);
-      return NextResponse.json({ error: 'Failed to calculate streak' }, { status: 500 });
+      throw new Error(`Failed to calculate streak: ${tasksError.message}`);
     }
 
     if (!completedTasks || completedTasks.length === 0) {
@@ -91,10 +93,6 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Streak API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Internal server error', 'Streak API error');
   }
 }

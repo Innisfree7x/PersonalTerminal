@@ -47,44 +47,59 @@ const ActivityFeed = memo(function ActivityFeed({ activities: propActivities, ma
 
   // Fetch activities from API if not provided via props
   useEffect(() => {
-    if (propActivities && propActivities.length > 0) {
-      // Use prop activities if provided
+    if (propActivities !== undefined) {
       setActivities(propActivities);
+      setIsLoading(propIsLoading);
       return;
     }
+
+    if (propIsLoading) {
+      setIsLoading(true);
+      return;
+    }
+
+    let isCancelled = false;
 
     // Fetch from API
     const fetchActivities = async () => {
       try {
-        setIsLoading(true);
-        const response = await fetch(`/api/activity/recent?limit=${maxItems}`);
+        if (!isCancelled) setIsLoading(true);
+        const endpoint =
+          typeof window !== 'undefined'
+            ? new URL(`/api/activity/recent?limit=${maxItems}`, window.location.origin).toString()
+            : `/api/activity/recent?limit=${maxItems}`;
+        const response = await fetch(endpoint);
         
         if (!response.ok) {
           throw new Error('Failed to fetch activities');
         }
 
         const data = await response.json();
-        const parsedActivities = data.activities.map((activity: any) => ({
+        const parsedActivities = data.activities.map((activity: { timestamp: string }) => ({
           ...activity,
           timestamp: new Date(activity.timestamp),
         }));
         
-        setActivities(parsedActivities);
+        if (!isCancelled) setActivities(parsedActivities);
       } catch (err) {
         console.error('ActivityFeed fetch error:', err);
         // Fallback to mock data on error
-        setActivities([
+        if (!isCancelled) setActivities([
           { id: '1', type: 'exercise', action: 'Completed Exercise 3 for GDI 2', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) },
           { id: '2', type: 'goal', action: 'Added new goal: Learn TypeScript', timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000) },
           { id: '3', type: 'task', action: 'Completed task: Review PRs', timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) },
         ] as ActivityItem[]);
       } finally {
-        setIsLoading(false);
+        if (!isCancelled) setIsLoading(false);
       }
     };
 
     fetchActivities();
-  }, [propActivities, maxItems]);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [propActivities, propIsLoading, maxItems]);
 
   const getIcon = (type: ActivityItem['type']) => {
     switch (type) {
@@ -106,7 +121,7 @@ const ActivityFeed = memo(function ActivityFeed({ activities: propActivities, ma
   const displayActivities = activities.slice(0, maxItems);
 
   return (
-    <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
+    <div className="card-surface rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4">
         <Activity className="w-5 h-5 text-info" />
         <h3 className="text-base font-semibold text-text-primary">Recent Activity</h3>

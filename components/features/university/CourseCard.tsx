@@ -5,26 +5,19 @@ import { format, differenceInDays, startOfDay } from 'date-fns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { CourseWithExercises } from '@/lib/schemas/course.schema';
+import { toggleExerciseCompletionAction } from '@/app/actions/university';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Badge } from '@/components/ui/Badge';
 import { ChevronDown, ChevronUp, Edit2, Trash2, Calendar, BookOpen } from 'lucide-react';
 
 interface CourseCardProps {
   course: CourseWithExercises;
+  onOpen: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-async function toggleExercise(courseId: string, exerciseNumber: number, completed: boolean): Promise<void> {
-  const response = await fetch(`/api/courses/${courseId}/exercises/${exerciseNumber}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ completed }),
-  });
-  if (!response.ok) throw new Error('Failed to toggle exercise');
-}
-
-export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps) {
+export default function CourseCard({ course, onOpen, onEdit, onDelete }: CourseCardProps) {
   const queryClient = useQueryClient();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -33,7 +26,7 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   // Calculate days until exam
-  const daysUntilExam = course.examDate 
+  const daysUntilExam = course.examDate
     ? differenceInDays(startOfDay(course.examDate), startOfDay(new Date()))
     : null;
 
@@ -46,18 +39,9 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
 
   const toggleMutation = useMutation({
     mutationFn: async ({ exerciseNumber, completed }: { exerciseNumber: number; completed: boolean }) => {
-      console.log('🔵 [CourseCard] toggleMutation started:', { 
-        course: course.name, 
-        courseId: course.id,
-        exerciseNumber, 
-        completed 
-      });
-      const result = await toggleExercise(course.id, exerciseNumber, completed);
-      console.log('✅ [CourseCard] toggleMutation success!', result);
-      return result;
+      return toggleExerciseCompletionAction(course.id, exerciseNumber, completed);
     },
     onMutate: async ({ exerciseNumber, completed }) => {
-      console.log('🟡 [CourseCard] onMutate - Optimistic update', { exerciseNumber, completed });
       await queryClient.cancelQueries({ queryKey: ['courses'] });
       const previousCourses = queryClient.getQueryData(['courses']);
 
@@ -78,34 +62,28 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
 
       return { previousCourses };
     },
-    onError: (err, variables, context) => {
-      console.error('❌ [CourseCard] toggleMutation ERROR:', err);
-      console.error('Variables:', variables);
+    onError: (_err, _variables, context) => {
       if (context?.previousCourses) {
         queryClient.setQueryData(['courses'], context.previousCourses);
-        console.log('🔄 [CourseCard] Restored previous data due to error');
       }
     },
-    onSettled: async () => {
-      console.log('🟢 [CourseCard] onSettled - Refetching queries');
-      // CRITICAL: Use refetchQueries to force immediate refetch
-      // invalidateQueries only marks as stale, doesn't refetch if component unmounted!
-      await queryClient.refetchQueries({ queryKey: ['courses'] });
-      await queryClient.refetchQueries({ queryKey: ['study-tasks'] });
-      await queryClient.refetchQueries({ queryKey: ['dashboard'] });
-      console.log('✅ [CourseCard] Refetch complete!');
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
     },
   });
 
   return (
     <motion.div
-      className="group relative bg-gradient-to-br from-university-accent/10 to-transparent backdrop-blur-sm border border-university-accent/30 rounded-xl overflow-hidden"
+      layoutId={`course-card-${course.id}`}
+      className="group relative bg-gradient-to-br from-university-accent/10 to-transparent backdrop-blur-sm border border-university-accent/30 rounded-xl overflow-hidden card-hover-glow cursor-pointer"
       whileHover={{ y: -2 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      onClick={onOpen}
     >
       {/* Animated glow on hover */}
       <div className="absolute inset-0 bg-gradient-to-br from-university-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      
+
       {/* Left border accent */}
       <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-university-accent to-university-accent/70" />
 
@@ -115,12 +93,14 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <BookOpen className="w-5 h-5 text-university-accent" />
-              <h3 className="text-lg font-semibold text-text-primary">
+              <motion.h3 layoutId={`course-title-${course.id}`} className="text-lg font-semibold text-text-primary">
                 {course.name}
-              </h3>
-              <Badge variant="info" size="sm">
+              </motion.h3>
+              <motion.div layoutId={`course-ects-${course.id}`}>
+                <Badge variant="info" size="sm">
                 {course.ects} ECTS
-              </Badge>
+                </Badge>
+              </motion.div>
             </div>
 
             {/* Progress & Exam Info */}
@@ -151,7 +131,10 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
           {/* Action Buttons */}
           <div className="flex items-center gap-2 ml-4">
             <motion.button
-              onClick={onEdit}
+              onClick={(event) => {
+                event.stopPropagation();
+                onEdit();
+              }}
               className="p-2 text-text-tertiary hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -160,7 +143,10 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
               <Edit2 className="w-4 h-4" />
             </motion.button>
             <motion.button
-              onClick={onDelete}
+              onClick={(event) => {
+                event.stopPropagation();
+                onDelete();
+              }}
               className="p-2 text-text-tertiary hover:text-error hover:bg-error/10 rounded-lg transition-colors"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -169,7 +155,10 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
               <Trash2 className="w-4 h-4" />
             </motion.button>
             <motion.button
-              onClick={() => setIsExpanded(!isExpanded)}
+              onClick={(event) => {
+                event.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
               className="p-2 text-text-tertiary hover:text-text-primary hover:bg-surface-hover rounded-lg transition-colors"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -186,8 +175,9 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
             <span className="font-mono font-semibold text-text-primary">{progressPercent}% Complete</span>
             <span className="text-text-secondary">{completedCount} of {totalCount}</span>
           </div>
-          <div className="relative w-full h-4 bg-gray-800/80 rounded-full overflow-hidden border-2 border-gray-700/50">
+          <motion.div layoutId={`course-progress-shell-${course.id}`} className="relative w-full h-4 bg-gray-800/80 rounded-full overflow-hidden border-2 border-gray-700/50">
             <motion.div
+              layoutId={`course-progress-fill-${course.id}`}
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.8, ease: "easeOut" }}
@@ -198,12 +188,12 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
             />
             {/* Shine effect */}
             {progressPercent > 0 && (
-              <div 
+              <div
                 className="absolute top-0 left-0 h-full w-full bg-gradient-to-b from-white/30 via-transparent to-transparent rounded-full pointer-events-none"
                 style={{ width: `${progressPercent}%` }}
               />
             )}
-          </div>
+          </motion.div>
         </div>
 
         {/* Expandable Exercise Grid */}
@@ -215,6 +205,7 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="pt-4 border-t border-border/50 overflow-hidden"
+              onClick={(event) => event.stopPropagation()}
             >
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
                 {course.exercises.map((exercise, index) => (
@@ -223,11 +214,10 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.02 }}
-                    className={`relative p-3 rounded-lg border transition-all cursor-pointer group/ex ${
-                      exercise.completed
+                    className={`relative p-3 rounded-lg border transition-all cursor-pointer group/ex ${exercise.completed
                         ? 'bg-success/10 border-success/30'
                         : 'bg-surface border-border hover:border-primary/50'
-                    }`}
+                      }`}
                     onClick={() =>
                       toggleMutation.mutate({
                         exerciseNumber: exercise.exerciseNumber,
@@ -238,18 +228,11 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
                     <div className="flex items-center justify-between mb-2">
                       <Checkbox
                         checked={exercise.completed}
-                        onCheckedChange={(checked) =>
-                          toggleMutation.mutate({
-                            exerciseNumber: exercise.exerciseNumber,
-                            completed: checked,
-                          })
-                        }
                         className="pointer-events-none"
                       />
                     </div>
-                    <span className={`text-sm font-medium ${
-                      exercise.completed ? 'text-success' : 'text-text-primary'
-                    }`}>
+                    <span className={`text-sm font-medium ${exercise.completed ? 'text-success' : 'text-text-primary'
+                      }`}>
                       Blatt {exercise.exerciseNumber}
                     </span>
                     {exercise.completedAt && (

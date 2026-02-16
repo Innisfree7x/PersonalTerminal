@@ -13,6 +13,7 @@ interface GoalModalProps {
   isEdit?: boolean;
   errorMessage?: string | null | undefined;
   isSaving?: boolean;
+  layoutId?: string;
 }
 
 export default function GoalModal({
@@ -23,6 +24,7 @@ export default function GoalModal({
   isEdit = false,
   errorMessage,
   isSaving = false,
+  layoutId,
 }: GoalModalProps) {
   return (
     <AnimatePresence>
@@ -41,6 +43,7 @@ export default function GoalModal({
           {/* Modal */}
           <div className="flex min-h-full items-center justify-center p-4">
             <motion.div
+              {...(layoutId ? { layoutId } : {})}
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}

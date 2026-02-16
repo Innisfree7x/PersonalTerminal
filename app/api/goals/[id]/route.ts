@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateGoal, deleteGoal } from '@/lib/supabase/goals';
 import { createGoalSchema } from '@/lib/schemas/goal.schema';
+import { requireApiAuth } from '@/lib/api/auth';
+import { handleRouteError, apiErrorResponse } from '@/lib/api/server-errors';
 
 /**
  * PATCH /api/goals/[id] - Update a goal
@@ -9,6 +11,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { user, errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const goalId = params.id;
     const body = await request.json();
@@ -35,32 +40,16 @@ export async function PATCH(
     
     // Ensure at least one field to update
     if (Object.keys(dataToUpdate).length === 0) {
-      return NextResponse.json(
-        { message: 'No fields to update' },
-        { status: 400 }
-      );
+      return apiErrorResponse(400, 'BAD_REQUEST', 'No fields to update');
     }
     
     // For partial updates, use partial schema validation
     const validatedData = createGoalSchema.partial().parse(dataToUpdate) as Partial<import('@/lib/schemas/goal.schema').CreateGoalInput>;
     
-    const goal = await updateGoal(goalId, validatedData);
+    const goal = await updateGoal(user.id, goalId, validatedData);
     return NextResponse.json(goal);
   } catch (error) {
-    console.error('Error updating goal:', error);
-    
-    // Check if it's a Zod validation error
-    if (error && typeof error === 'object' && 'issues' in error) {
-      return NextResponse.json(
-        { message: 'Validation error', errors: error },
-        { status: 400 }
-      );
-    }
-    
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to update goal' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Failed to update goal', 'Error updating goal');
   }
 }
 
@@ -71,15 +60,14 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { user, errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   try {
     const goalId = params.id;
-    await deleteGoal(goalId);
+    await deleteGoal(user.id, goalId);
     return NextResponse.json({ message: 'Goal deleted successfully' }, { status: 200 });
   } catch (error) {
-    console.error('Error deleting goal:', error);
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to delete goal' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Failed to delete goal', 'Error deleting goal');
   }
 }

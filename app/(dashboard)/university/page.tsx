@@ -1,71 +1,172 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfDay, differenceInDays } from 'date-fns';
-import { motion } from 'framer-motion';
+import { LayoutGroup, motion } from 'framer-motion';
+import { usePathname, useRouter } from 'next/navigation';
 import type { CourseWithExercises, CreateCourseInput } from '@/lib/schemas/course.schema';
+import {
+  createCourseAction,
+  deleteCourseAction,
+  fetchCoursesAction,
+  updateCourseAction
+} from '@/app/actions/university';
 import CourseCard from '@/components/features/university/CourseCard';
 import CourseModal from '@/components/features/university/CourseModal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Plus, GraduationCap, BookOpen, Calendar, TrendingUp } from 'lucide-react';
+import toast from 'react-hot-toast';
+import AnimatedCounter from '@/components/ui/AnimatedCounter';
+import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
 
-async function fetchCourses(): Promise<CourseWithExercises[]> {
-  const response = await fetch('/api/courses');
-  if (!response.ok) throw new Error('Failed to fetch courses');
-  const data = await response.json();
-  return data.map((course: any) => ({
+function normalizeCourse(course: any): CourseWithExercises {
+  return {
     ...course,
     examDate: course.examDate ? new Date(course.examDate) : undefined,
     createdAt: new Date(course.createdAt),
-    exercises: course.exercises.map((ex: any) => ({
+    exercises: (course.exercises || []).map((ex: any) => ({
       ...ex,
       completedAt: ex.completedAt ? new Date(ex.completedAt) : undefined,
       createdAt: new Date(ex.createdAt),
     })),
-  }));
+  };
 }
 
-async function createCourse(data: CreateCourseInput): Promise<CourseWithExercises> {
-  const response = await fetch('/api/courses', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!response.ok) throw new Error('Failed to create course');
-  return response.json();
+async function updateCourse({
+  id,
+  data,
+}: {
+  id: string;
+  data: Partial<CreateCourseInput>;
+}): Promise<void> {
+  await updateCourseAction(id, data);
 }
 
 async function deleteCourse(id: string): Promise<void> {
-  const response = await fetch(`/api/courses/${id}`, {
-    method: 'DELETE',
-  });
-  if (!response.ok) throw new Error('Failed to delete course');
+  await deleteCourseAction(id);
 }
 
 export default function UniversityPage() {
+  const router = useRouter();
+  const pathname = usePathname();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<CourseWithExercises | null>(null);
 
-  const { data: courses = [], isLoading } = useQuery({
+  const { data: courses = [], isLoading, error } = useQuery({
     queryKey: ['courses'],
-    queryFn: fetchCourses,
+    queryFn: async () => {
+      const data = await fetchCoursesAction();
+      return data.map(normalizeCourse);
+    },
   });
 
   const createMutation = useMutation({
-    mutationFn: createCourse,
+    mutationFn: createCourseAction,
+    onMutate: async (newCourseInput) => {
+      await queryClient.cancelQueries({ queryKey: ['courses'] });
+      const previousCourses = queryClient.getQueryData<CourseWithExercises[]>(['courses']) || [];
+
+      const now = new Date();
+      const tempId = crypto.randomUUID();
+      const optimisticCourse: CourseWithExercises = {
+        id: tempId,
+        name: newCourseInput.name,
+        ects: newCourseInput.ects,
+        numExercises: newCourseInput.numExercises,
+        examDate: newCourseInput.examDate,
+        semester: newCourseInput.semester,
+        createdAt: now,
+        exercises: Array.from({ length: newCourseInput.numExercises }, (_, index) => ({
+          id: crypto.randomUUID(),
+          courseId: tempId,
+          exerciseNumber: index + 1,
+          completed: false,
+          completedAt: undefined,
+          createdAt: now,
+        })),
+      };
+
+      queryClient.setQueryData<CourseWithExercises[]>(['courses'], [optimisticCourse, ...previousCourses]);
+      return { previousCourses, tempId };
+    },
+    onSuccess: (createdCourse, _variables, context) => {
+      const normalizedCreatedCourse = normalizeCourse(createdCourse);
+      queryClient.setQueryData<CourseWithExercises[]>(['courses'], (current = []) => {
+        if (!context?.tempId) return [normalizedCreatedCourse, ...current];
+        const replaced = current.map((course) =>
+          course.id === context.tempId ? normalizedCreatedCourse : course
+        );
+        const hasTemp = current.some((course) => course.id === context.tempId);
+        return hasTemp ? replaced : [normalizedCreatedCourse, ...current];
+      });
+      setIsModalOpen(false);
+      setEditingCourse(null);
+      toast.success('Course created!');
+    },
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousCourses) {
+        queryClient.setQueryData(['courses'], context.previousCourses);
+      }
+      toast.error(error.message || 'Failed to create course');
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: updateCourse,
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: ['courses'] });
+      const previousCourses = queryClient.getQueryData<CourseWithExercises[]>(['courses']) || [];
+
+      queryClient.setQueryData<CourseWithExercises[]>(['courses'], (current = []) =>
+        current.map((course) =>
+          course.id === id
+            ? {
+                ...course,
+                ...data,
+                examDate: data.examDate === undefined ? course.examDate : data.examDate,
+              }
+            : course
+        )
+      );
+
+      return { previousCourses };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
       setIsModalOpen(false);
+      setEditingCourse(null);
+      toast.success('Course updated!');
+    },
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousCourses) {
+        queryClient.setQueryData(['courses'], context.previousCourses);
+      }
+      toast.error(error.message || 'Failed to update course');
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteCourse,
+    onMutate: async (courseId) => {
+      await queryClient.cancelQueries({ queryKey: ['courses'] });
+      const previousCourses = queryClient.getQueryData<CourseWithExercises[]>(['courses']) || [];
+      queryClient.setQueryData<CourseWithExercises[]>(
+        ['courses'],
+        previousCourses.filter((course) => course.id !== courseId)
+      );
+      return { previousCourses };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      toast.success('Course deleted');
+    },
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousCourses) {
+        queryClient.setQueryData(['courses'], context.previousCourses);
+      }
+      toast.error(error.message || 'Failed to delete course');
     },
   });
 
@@ -88,12 +189,16 @@ export default function UniversityPage() {
       return a.examDate.getTime() - b.examDate.getTime();
     });
   const nextExam = upcomingExams[0];
-  const daysUntilNextExam = nextExam?.examDate 
+  const daysUntilNextExam = nextExam?.examDate
     ? differenceInDays(nextExam.examDate, today)
     : null;
 
-  const handleAddCourse = (data: CreateCourseInput) => {
-    createMutation.mutate(data);
+  const handleSubmitCourse = (data: CreateCourseInput) => {
+    if (editingCourse) {
+      updateMutation.mutate({ id: editingCourse.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
   };
 
   const handleEditCourse = (course: CourseWithExercises) => {
@@ -112,6 +217,20 @@ export default function UniversityPage() {
     setEditingCourse(null);
   };
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const action = new URLSearchParams(window.location.search).get('action');
+    if (action !== 'new-course') return;
+    setEditingCourse(null);
+    setIsModalOpen(true);
+    router.replace(pathname);
+  }, [pathname, router]);
+
+  usePrismCommandAction('open-new-course', () => {
+    setEditingCourse(null);
+    setIsModalOpen(true);
+  });
+
   // Loading state
   if (isLoading) {
     return (
@@ -125,6 +244,15 @@ export default function UniversityPage() {
             ))}
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="rounded-lg border border-error/30 bg-error/10 px-6 py-4 text-error">
+        Error loading courses: {error instanceof Error ? error.message : 'Unknown error'}
       </div>
     );
   }
@@ -143,10 +271,11 @@ export default function UniversityPage() {
             University
           </h1>
           <p className="text-text-secondary">
-            WS 2024/25 · Track courses and exercise progress
+            WS 2025/26 · Track courses and exercise progress
           </p>
         </div>
         <Button
+          data-testid="add-course-button"
           onClick={() => {
             setEditingCourse(null);
             setIsModalOpen(true);
@@ -177,7 +306,7 @@ export default function UniversityPage() {
             </div>
             <div>
               <div className="text-3xl font-bold text-university-accent mb-1">
-                {totalECTS}
+                <AnimatedCounter to={totalECTS} />
               </div>
               <div className="text-sm text-text-tertiary">Total ECTS</div>
             </div>
@@ -195,7 +324,7 @@ export default function UniversityPage() {
             </div>
             <div>
               <div className="text-3xl font-bold text-primary mb-1">
-                {completionPercent}%
+                <AnimatedCounter to={completionPercent} suffix="%" />
               </div>
               <div className="text-sm text-text-tertiary mb-3">
                 {completedExercises}/{totalExercises} Exercises
@@ -214,27 +343,24 @@ export default function UniversityPage() {
         </div>
 
         {/* Next Exam */}
-        <div className={`relative overflow-hidden bg-gradient-to-br ${
-          daysUntilNextExam !== null && daysUntilNextExam < 45 
-            ? 'from-error/20 to-error/10 border-error/30' 
-            : 'from-warning/20 to-warning/10 border-warning/30'
-        } backdrop-blur-sm border rounded-lg p-6 group col-span-1 sm:col-span-2 lg:col-span-2`}>
+        <div className={`relative overflow-hidden bg-gradient-to-br ${daysUntilNextExam !== null && daysUntilNextExam < 45
+          ? 'from-error/20 to-error/10 border-error/30'
+          : 'from-warning/20 to-warning/10 border-warning/30'
+          } backdrop-blur-sm border rounded-lg p-6 group col-span-1 sm:col-span-2 lg:col-span-2`}>
           <div className="absolute inset-0 bg-gradient-to-br from-warning/20 to-warning/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           <div className="relative z-10">
             <div className="flex items-start justify-between mb-4">
-              <div className={`p-2 rounded-lg ${
-                daysUntilNextExam !== null && daysUntilNextExam < 45 
-                  ? 'bg-error/20 border-error/30' 
-                  : 'bg-warning/20 border-warning/30'
-              } border`}>
-                <Calendar className={`w-5 h-5 ${
-                  daysUntilNextExam !== null && daysUntilNextExam < 45 
-                    ? 'text-error' 
-                    : 'text-warning'
-                }`} />
+              <div className={`p-2 rounded-lg ${daysUntilNextExam !== null && daysUntilNextExam < 45
+                ? 'bg-error/20 border-error/30'
+                : 'bg-warning/20 border-warning/30'
+                } border`}>
+                <Calendar className={`w-5 h-5 ${daysUntilNextExam !== null && daysUntilNextExam < 45
+                  ? 'text-error'
+                  : 'text-warning'
+                  }`} />
               </div>
               {daysUntilNextExam !== null && (
-                <Badge 
+                <Badge
                   variant={daysUntilNextExam < 45 ? 'error' : 'warning'}
                   size="sm"
                 >
@@ -244,11 +370,10 @@ export default function UniversityPage() {
             </div>
             {nextExam && nextExam.examDate ? (
               <div>
-                <div className={`text-2xl font-bold mb-1 ${
-                  daysUntilNextExam !== null && daysUntilNextExam < 45 
-                    ? 'text-error' 
-                    : 'text-warning'
-                }`}>
+                <div className={`text-2xl font-bold mb-1 ${daysUntilNextExam !== null && daysUntilNextExam < 45
+                  ? 'text-error'
+                  : 'text-warning'
+                  }`}>
                   {nextExam.name}
                 </div>
                 <div className="text-sm text-text-tertiary">
@@ -269,69 +394,76 @@ export default function UniversityPage() {
         </div>
       </motion.div>
 
-      {/* Course Cards */}
-      {courses.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-center py-20 bg-surface/50 backdrop-blur-sm border border-border rounded-lg"
-        >
-          <div className="text-6xl mb-4">🎓</div>
-          <h3 className="text-xl font-semibold text-text-primary mb-2">
-            No courses yet
-          </h3>
-          <p className="text-text-tertiary mb-6">
-            Add your first course to start tracking your semester progress
-          </p>
-          <Button
-            onClick={() => {
-              setEditingCourse(null);
-              setIsModalOpen(true);
-            }}
-            variant="primary"
+      <LayoutGroup id="university-cards">
+        {/* Course Cards */}
+        {courses.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-center py-20 bg-surface/50 backdrop-blur-sm border border-border rounded-lg"
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Add First Course
-          </Button>
-        </motion.div>
-      ) : (
-        <div className="space-y-4">
-          {courses.map((course, index) => (
-            <motion.div
-              key={course.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 + index * 0.05 }}
+            <div className="text-6xl mb-4">🎓</div>
+            <h3 className="text-xl font-semibold text-text-primary mb-2">
+              No courses yet
+            </h3>
+            <p className="text-text-tertiary mb-6">
+              Add your first course to start tracking your semester progress
+            </p>
+            <Button
+              onClick={() => {
+                setEditingCourse(null);
+                setIsModalOpen(true);
+              }}
+              variant="primary"
             >
-              <CourseCard
-                course={course}
-                onEdit={() => handleEditCourse(course)}
-                onDelete={() => handleDeleteCourse(course.id)}
-              />
-            </motion.div>
-          ))}
-        </div>
-      )}
+              <Plus className="w-4 h-4 mr-2" />
+              Add First Course
+            </Button>
+          </motion.div>
+        ) : (
+          <div className="space-y-4">
+            {courses.map((course, index) => (
+              <motion.div
+                key={course.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + index * 0.05 }}
+              >
+                <CourseCard
+                  course={course}
+                  onOpen={() => handleEditCourse(course)}
+                  onEdit={() => handleEditCourse(course)}
+                  onDelete={() => handleDeleteCourse(course.id)}
+                />
+              </motion.div>
+            ))}
+          </div>
+        )}
 
-      {/* Course Modal */}
-      <CourseModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onSubmit={handleAddCourse}
-        initialData={
-          editingCourse
-            ? {
+        {/* Course Modal */}
+        <CourseModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onSubmit={handleSubmitCourse}
+          {...(editingCourse ? { layoutId: `course-card-${editingCourse.id}` } : {})}
+          layoutCourse={editingCourse}
+          initialData={
+            editingCourse
+              ? {
                 name: editingCourse.name,
                 ects: editingCourse.ects,
                 numExercises: editingCourse.numExercises,
                 examDate: editingCourse.examDate,
                 semester: editingCourse.semester,
               }
-            : undefined
-        }
-        isEdit={!!editingCourse}
-      />
+              : undefined
+          }
+          isEdit={!!editingCourse}
+          isSaving={createMutation.isPending || updateMutation.isPending}
+          error={null}
+        />
+      </LayoutGroup>
     </div>
   );
 }

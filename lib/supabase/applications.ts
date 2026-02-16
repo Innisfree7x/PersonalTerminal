@@ -1,4 +1,4 @@
-import { supabase } from './client';
+import { createClient } from '@/lib/auth/server';
 import { Application, CreateApplicationInput } from '@/lib/schemas/application.schema';
 import { SupabaseApplication, Database } from './types';
 
@@ -30,14 +30,14 @@ export function supabaseApplicationToApplication(row: SupabaseApplication): Appl
  */
 export function applicationToSupabaseInsert(
   application: CreateApplicationInput
-): ApplicationInsert {
+): Omit<ApplicationInsert, 'user_id'> {
   return {
     company: application.company,
     position: application.position,
     status: application.status,
-    application_date: application.applicationDate.toISOString().split('T')[0]!, // YYYY-MM-DD
+    application_date: application.applicationDate.toISOString().split('T')[0] ?? '', // YYYY-MM-DD
     interview_date: application.interviewDate
-      ? application.interviewDate.toISOString().split('T')[0]!
+      ? (application.interviewDate.toISOString().split('T')[0] ?? '')
       : null,
     notes: application.notes || null,
     salary_range: application.salaryRange || null,
@@ -50,17 +50,20 @@ export function applicationToSupabaseInsert(
 /**
  * Fetch applications from Supabase with optional pagination and filters
  */
-export async function fetchApplications(options?: {
+export async function fetchApplications(options: {
+  userId: string;
   page?: number;
   limit?: number;
   status?: 'applied' | 'interview' | 'offer' | 'rejected' | undefined;
 }): Promise<{ applications: Application[]; total: number }> {
-  const { page = 1, limit = 20, status } = options || {};
+  const { userId, page = 1, limit = 20, status } = options;
+  const supabase = createClient();
 
   // Build query
   let query = supabase
     .from('job_applications')
-    .select('*', { count: 'exact' });
+    .select('*', { count: 'exact' })
+    .eq('user_id', userId);
 
   // Apply filters
   if (status) {
@@ -90,13 +93,15 @@ export async function fetchApplications(options?: {
  * Create a new application in Supabase
  */
 export async function createApplication(
+  userId: string,
   application: CreateApplicationInput
 ): Promise<Application> {
+  const supabase = createClient();
   const insertData = applicationToSupabaseInsert(application);
 
   const { data, error } = await supabase
     .from('job_applications')
-    .insert(insertData)
+    .insert({ ...insertData, user_id: userId })
     .select()
     .single();
 
@@ -111,9 +116,11 @@ export async function createApplication(
  * Update an existing application in Supabase
  */
 export async function updateApplication(
+  userId: string,
   applicationId: string,
   application: CreateApplicationInput
 ): Promise<Application> {
+  const supabase = createClient();
   const updateData: ApplicationUpdate = {
     ...applicationToSupabaseInsert(application),
     updated_at: new Date().toISOString(),
@@ -123,6 +130,7 @@ export async function updateApplication(
     .from('job_applications')
     .update(updateData)
     .eq('id', applicationId)
+    .eq('user_id', userId)
     .select()
     .single();
 
@@ -136,8 +144,13 @@ export async function updateApplication(
 /**
  * Delete an application from Supabase
  */
-export async function deleteApplication(applicationId: string): Promise<void> {
-  const { error } = await supabase.from('job_applications').delete().eq('id', applicationId);
+export async function deleteApplication(userId: string, applicationId: string): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('job_applications')
+    .delete()
+    .eq('id', applicationId)
+    .eq('user_id', userId);
 
   if (error) {
     throw new Error(`Failed to delete application: ${error.message}`);

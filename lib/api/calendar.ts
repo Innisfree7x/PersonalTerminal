@@ -4,6 +4,10 @@
  */
 
 import { CalendarEvent } from '@/lib/data/mockEvents';
+import {
+  checkGoogleCalendarConnectionAction,
+  fetchTodayCalendarEventsAction,
+} from '@/app/actions/calendar';
 
 /**
  * Check if user is connected to Google Calendar
@@ -17,12 +21,7 @@ import { CalendarEvent } from '@/lib/data/mockEvents';
  * }
  */
 export async function checkGoogleCalendarConnection(): Promise<boolean> {
-  try {
-    const response = await fetch('/api/calendar/today');
-    return response.status !== 401;
-  } catch {
-    return false;
-  }
+  return checkGoogleCalendarConnectionAction();
 }
 
 /**
@@ -43,16 +42,7 @@ export async function checkGoogleCalendarConnection(): Promise<boolean> {
  * }
  */
 export async function fetchTodayCalendarEvents(): Promise<CalendarEvent[]> {
-  const response = await fetch('/api/calendar/today');
-
-  if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error('UNAUTHORIZED');
-    }
-    throw new Error('Failed to fetch events');
-  }
-
-  const data = await response.json();
+  const data = await fetchTodayCalendarEventsAction();
   
   // Transform API response to CalendarEvent with proper Date objects
   return data.map((event: any) => ({
@@ -60,31 +50,6 @@ export async function fetchTodayCalendarEvents(): Promise<CalendarEvent[]> {
     startTime: new Date(event.startTime),
     endTime: new Date(event.endTime),
   }));
-}
-
-/**
- * Disconnect Google Calendar integration
- * Revokes access and clears stored tokens
- * 
- * @returns Promise that resolves when disconnection is complete
- * @throws Error if disconnection fails
- * 
- * @example
- * try {
- *   await disconnectGoogleCalendar();
- *   console.log('Successfully disconnected');
- * } catch (error) {
- *   console.error('Failed to disconnect:', error);
- * }
- */
-export async function disconnectGoogleCalendar(): Promise<void> {
-  const response = await fetch('/api/auth/google/disconnect', { 
-    method: 'POST' 
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to disconnect');
-  }
 }
 
 /**

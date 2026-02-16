@@ -1,6 +1,6 @@
 # ✨ Features Guide
 
-Comprehensive guide to all Bloomberg Personal features with workflows and usage examples.
+Comprehensive guide to all Prism features with workflows and usage examples.
 
 ---
 
@@ -11,7 +11,51 @@ Comprehensive guide to all Bloomberg Personal features with workflows and usage 
 - [Career Management](#career-management)
 - [University System](#university-system)
 - [Calendar Integration](#calendar-integration)
+- [Onboarding & Profile](#onboarding--profile)
+- [Command Bar V2](#command-bar-v2)
 - [User Workflows](#user-workflows)
+
+---
+
+## Onboarding & Profile
+
+### Onboarding Gate
+
+- Route: `/onboarding`
+- Trigger: authenticated user with `user_metadata.onboarding_completed !== true`
+- Purpose: ensure every account has initial personalization before entering dashboard routes.
+
+### Profile Persistence
+
+- Route: `/settings`
+- Display name is persisted via Server Action to Supabase auth `user_metadata.full_name`.
+- Successful update refreshes auth context, so sidebar/header pick up the change immediately.
+
+---
+
+## Command Bar V2
+
+### Open
+
+- Shortcut: `Cmd+K` (macOS) / `Ctrl+K` (Windows/Linux)
+
+### Action Groups
+
+- Navigation: jump directly to all dashboard areas.
+- Themes: switch or cycle themes (includes Gold mode).
+- Focus Timer: start/pause/resume/stop timer.
+- Quick Actions:
+  - New Goal
+  - New Course
+  - New Application
+  - Start Next Best Action
+  - Start Focus Session (25m)
+  - Start Deep Focus (50m)
+
+### In-App Action Bridge
+
+- Commands trigger page-level actions directly (not URL query hacks).
+- If action is triggered from another route, it is queued and executed on arrival.
 
 ---
 
@@ -45,6 +89,21 @@ The main command center that aggregates all tasks, events, and progress in one p
 
 Aggregates high-priority tasks from multiple sources.
 
+### Next Best Action Engine
+
+- A dedicated widget surfaces exactly one recommended action with the highest current impact.
+- Uses clean-architecture ranking logic (`lib/application/use-cases/execution-engine.ts`) based on:
+  - urgency (overdue/today/soon)
+  - impact
+  - effort
+- Includes two fallback alternatives if the primary action is dropped.
+- Displays risk alerts (exam/interview/backlog/low execution score) to prevent silent drift.
+- 3 action modes:
+  - `Do now`: executes directly where possible (task complete, exercise complete, or context jump)
+  - `Plan later`: converts the action into a tomorrow task
+  - `Drop`: dismisses recommendation for the current day session
+- Shows a `Daily Execution Score` (0-100) derived from completion momentum and backlog pressure.
+
 #### Task Sources
 
 1. **🎓 Study Tasks**
@@ -62,7 +121,7 @@ Aggregates high-priority tasks from multiple sources.
 
 3. **🎯 Goal Tasks**
    - Goals due today or overdue
-   - Sorted by priority (High → Medium → Low)
+   - Sorted by target date
 
 4. **✍️ Manual Tasks**
    - User-created daily tasks
@@ -130,7 +189,7 @@ Google - 2 days
 ```
 
 **Metrics:**
-- Total applications by status (Applied, Interview, Offer, Rejected)
+- Total applications by status (applied, interview, offer, rejected)
 - Success rate: `(Offers / Total Applications) × 100`
 - Next upcoming interview with countdown
 
@@ -203,8 +262,8 @@ Comprehensive goal management with categories, priorities, and progress tracking
 
 ```
 ┌─────────────────────────────────────┐
-│ 🎯 Learn TypeScript          [HIGH] │
-│ Category: Learning                  │
+│ 🎯 Learn TypeScript                │
+│ Category: learning                  │
 │ Due: Dec 31, 2024 (41 days left)   │
 │                                     │
 │ Progress: ████████░░ 8/10 modules  │
@@ -218,24 +277,10 @@ Comprehensive goal management with categories, priorities, and progress tracking
 
 ### Categories
 
-- **Career:** Job applications, networking, skill development
-- **Wellness:** Exercise, meditation, sleep goals
-- **Learning:** Courses, books, certifications
-- **Finance:** Savings, investments, budgeting
-- **Personal:** Hobbies, relationships, self-improvement
-
-**Color Coding:**
-- Career: Blue
-- Wellness: Green
-- Learning: Purple
-- Finance: Yellow
-- Personal: Orange
-
-### Priority Levels
-
-- **High:** Red flag, top of list
-- **Medium:** Yellow flag, standard priority
-- **Low:** Gray flag, when time allows
+- **fitness:** Exercise, sports, health goals
+- **career:** Job applications, networking, skill development
+- **learning:** Courses, books, certifications
+- **finance:** Savings, investments, budgeting
 
 ### Progress Tracking
 
@@ -267,11 +312,10 @@ stateDiagram-v2
 **Create Goal:**
 1. Click "+ Add Goal" button
 2. Fill form:
-   - Title (required)
+   - Title (required, 3-100 chars)
    - Description (optional)
-   - Category (required, dropdown)
-   - Priority (required, dropdown)
-   - Target Date (optional, date picker)
+   - Category (required, dropdown: fitness, career, learning, finance)
+   - Target Date (required, date picker)
    - Metrics (optional: current, target, unit)
 3. Click "Save" → Goal appears in list
 
@@ -294,10 +338,10 @@ stateDiagram-v2
 
 **All Goals (Default):**
 - Shows all active goals
-- Sorted by: Priority (High → Low) → Due Date (Nearest → Farthest)
+- Sorted by: Due Date (Nearest → Farthest)
 
 **By Category:**
-- Tabs: All | Career | Wellness | Learning | Finance | Personal
+- Tabs: All | fitness | career | learning | finance
 - Filter by selected category
 
 **Completed Goals:**
@@ -333,10 +377,10 @@ stateDiagram-v2
 ```
 
 **Status Labels:**
-- **Applied** (Blue): Application submitted, awaiting response
-- **Interview** (Yellow): Interview scheduled or completed
-- **Offer** (Green): Job offer received
-- **Rejected** (Red): Application unsuccessful
+- **applied** (Blue): Application submitted, awaiting response
+- **interview** (Yellow): Interview scheduled or completed
+- **offer** (Green): Job offer received
+- **rejected** (Red): Application unsuccessful
 
 ---
 

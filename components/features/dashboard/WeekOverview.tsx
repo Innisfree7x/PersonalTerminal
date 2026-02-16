@@ -6,6 +6,7 @@ import { format, addDays, startOfWeek, isSameDay, isToday } from 'date-fns';
 import { useState, memo, useCallback, useEffect } from 'react';
 import { Skeleton } from '@/components/ui';
 import { getEventDensityColor, getEventDensityEmoji, EventDensity } from '@/lib/utils/colors';
+import { fetchDashboardWeekEventsAction } from '@/app/actions/dashboard';
 
 /**
  * Day event data for calendar display
@@ -51,13 +52,7 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
     const fetchWeekEvents = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/dashboard/week-events?offset=${weekOffset}`);
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch week events');
-        }
-
-        const data = await response.json();
+        const data = await fetchDashboardWeekEventsAction(weekOffset);
         const parsedEvents = data.events.map((event: any) => ({
           ...event,
           date: new Date(event.date),
@@ -106,7 +101,7 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
   }, []);
 
   return (
-    <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
+    <div className="card-surface rounded-xl p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">

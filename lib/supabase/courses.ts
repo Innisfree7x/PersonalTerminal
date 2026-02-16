@@ -1,4 +1,4 @@
-import { supabase } from './client';
+import { createClient } from '@/lib/auth/server';
 import type { Database, SupabaseCourse, SupabaseExerciseProgress } from './types';
 import type { Course, CreateCourseInput, ExerciseProgress, CourseWithExercises } from '../schemas/course.schema';
 
@@ -38,12 +38,12 @@ export function supabaseExerciseProgressToExerciseProgress(row: SupabaseExercise
 /**
  * Converts our Course type to Supabase Insert format
  */
-export function courseToSupabaseInsert(course: CreateCourseInput): CourseInsert {
+export function courseToSupabaseInsert(course: CreateCourseInput): Omit<CourseInsert, 'user_id'> {
   return {
     name: course.name,
     ects: course.ects,
     num_exercises: course.numExercises,
-    exam_date: course.examDate ? course.examDate.toISOString().split('T')[0]! : null,
+    exam_date: course.examDate ? (course.examDate.toISOString().split('T')[0] ?? '') : null,
     semester: course.semester,
   };
 }
@@ -51,11 +51,14 @@ export function courseToSupabaseInsert(course: CreateCourseInput): CourseInsert 
 /**
  * Fetch all courses with their exercise progress
  */
-export async function fetchCoursesWithExercises(): Promise<CourseWithExercises[]> {
+export async function fetchCoursesWithExercises(userId: string): Promise<CourseWithExercises[]> {
+  const supabase = createClient();
+
   // Fetch all courses
   const { data: coursesData, error: coursesError } = await supabase
     .from('courses')
     .select('*')
+    .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
   if (coursesError) {
@@ -71,6 +74,7 @@ export async function fetchCoursesWithExercises(): Promise<CourseWithExercises[]
   const { data: exercisesData, error: exercisesError } = await supabase
     .from('exercise_progress')
     .select('*')
+    .eq('user_id', userId)
     .in('course_id', courseIds)
     .order('exercise_number', { ascending: true });
 
@@ -85,7 +89,7 @@ export async function fetchCoursesWithExercises(): Promise<CourseWithExercises[]
     if (!exercisesByCourse[courseId]) {
       exercisesByCourse[courseId] = [];
     }
-    exercisesByCourse[courseId]!.push(supabaseExerciseProgressToExerciseProgress(ex));
+    exercisesByCourse[courseId]?.push(supabaseExerciseProgressToExerciseProgress(ex));
   });
 
   // Combine courses with exercises
@@ -98,13 +102,14 @@ export async function fetchCoursesWithExercises(): Promise<CourseWithExercises[]
 /**
  * Create a new course with exercise progress entries
  */
-export async function createCourse(course: CreateCourseInput): Promise<CourseWithExercises> {
+export async function createCourse(userId: string, course: CreateCourseInput): Promise<CourseWithExercises> {
+  const supabase = createClient();
   const insertData = courseToSupabaseInsert(course);
 
   // Insert course
   const { data: courseData, error: courseError } = await supabase
     .from('courses')
-    .insert(insertData)
+    .insert({ ...insertData, user_id: userId })
     .select()
     .single();
 
@@ -115,7 +120,8 @@ export async function createCourse(course: CreateCourseInput): Promise<CourseWit
   // Create exercise progress entries
   const exerciseProgressInserts: ExerciseProgressInsert[] = [];
   for (let i = 1; i <= course.numExercises; i++) {
-    exerciseProgressInserts.push({
+        exerciseProgressInserts.push({
+      user_id: userId,
       course_id: courseData.id,
       exercise_number: i,
       completed: false,
@@ -140,13 +146,14 @@ export async function createCourse(course: CreateCourseInput): Promise<CourseWit
 /**
  * Update a course
  */
-export async function updateCourse(id: string, updates: Partial<CreateCourseInput>): Promise<Course> {
+export async function updateCourse(userId: string, id: string, updates: Partial<CreateCourseInput>): Promise<Course> {
+  const supabase = createClient();
   const updateData: CourseUpdate = {};
   if (updates.name !== undefined) updateData.name = updates.name;
   if (updates.ects !== undefined) updateData.ects = updates.ects;
   if (updates.numExercises !== undefined) updateData.num_exercises = updates.numExercises;
   if (updates.examDate !== undefined) {
-    updateData.exam_date = updates.examDate ? updates.examDate.toISOString().split('T')[0]! : null;
+    updateData.exam_date = updates.examDate ? (updates.examDate.toISOString().split('T')[0] ?? '') : null;
   }
   if (updates.semester !== undefined) updateData.semester = updates.semester;
 
@@ -154,11 +161,63 @@ export async function updateCourse(id: string, updates: Partial<CreateCourseInpu
     .from('courses')
     .update(updateData)
     .eq('id', id)
+    .eq('user_id', userId)
     .select()
     .single();
 
   if (error) {
     throw new Error(`Failed to update course: ${error.message}`);
+  }
+
+  // Sync exercise_progress entries when numExercises changes
+  if (updates.numExercises !== undefined) {
+    const newCount = updates.numExercises;
+
+    // Get current exercise entries
+    const { data: existingExercises, error: fetchError } = await supabase
+      .from('exercise_progress')
+      .select('exercise_number')
+      .eq('course_id', id)
+      .eq('user_id', userId)
+      .order('exercise_number', { ascending: true });
+
+    if (fetchError) {
+      throw new Error(`Failed to fetch exercises: ${fetchError.message}`);
+    }
+
+    const currentCount = existingExercises?.length ?? 0;
+
+    if (newCount > currentCount) {
+      // Add missing exercise entries
+      const newExercises: ExerciseProgressInsert[] = [];
+      for (let i = currentCount + 1; i <= newCount; i++) {
+        newExercises.push({
+          user_id: userId,
+          course_id: id,
+          exercise_number: i,
+          completed: false,
+        });
+      }
+      const { error: insertError } = await supabase
+        .from('exercise_progress')
+        .insert(newExercises);
+
+      if (insertError) {
+        throw new Error(`Failed to create new exercises: ${insertError.message}`);
+      }
+    } else if (newCount < currentCount) {
+      // Remove excess exercise entries (highest numbers first)
+      const { error: deleteError } = await supabase
+        .from('exercise_progress')
+        .delete()
+        .eq('course_id', id)
+        .eq('user_id', userId)
+        .gt('exercise_number', newCount);
+
+      if (deleteError) {
+        throw new Error(`Failed to remove excess exercises: ${deleteError.message}`);
+      }
+    }
   }
 
   return supabaseCoursetoCourse(data);
@@ -167,8 +226,13 @@ export async function updateCourse(id: string, updates: Partial<CreateCourseInpu
 /**
  * Delete a course (CASCADE deletes exercise_progress)
  */
-export async function deleteCourse(id: string): Promise<void> {
-  const { error } = await supabase.from('courses').delete().eq('id', id);
+export async function deleteCourse(userId: string, id: string): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('courses')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId);
 
   if (error) {
     throw new Error(`Failed to delete course: ${error.message}`);
@@ -179,36 +243,33 @@ export async function deleteCourse(id: string): Promise<void> {
  * Toggle exercise completion
  */
 export async function toggleExerciseCompletion(
+  userId: string,
   courseId: string,
   exerciseNumber: number,
   completed: boolean
 ): Promise<ExerciseProgress> {
-  console.log('💾 [DB] toggleExerciseCompletion called:', { courseId, exerciseNumber, completed });
-  
+  const supabase = createClient();
   const updateData = {
     completed,
     completed_at: completed ? new Date().toISOString() : null,
   };
-  console.log('💾 [DB] Update data:', updateData);
-  
+
   const { data, error } = await supabase
     .from('exercise_progress')
     .update(updateData)
     .eq('course_id', courseId)
+    .eq('user_id', userId)
     .eq('exercise_number', exerciseNumber)
     .select()
     .single();
 
   if (error) {
-    console.error('❌ [DB] Supabase error:', error);
     throw new Error(`Failed to toggle exercise: ${error.message}`);
   }
 
   if (!data) {
-    console.error('❌ [DB] No data returned from Supabase!');
     throw new Error('No data returned from database');
   }
 
-  console.log('✅ [DB] Exercise updated in DB:', data);
   return supabaseExerciseProgressToExerciseProgress(data);
 }

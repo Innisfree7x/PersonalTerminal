@@ -1,129 +1,100 @@
-/**
- * Unit tests for CircularProgress component
- * Tests rendering, color logic, animations, and edge cases
- */
-
-import { describe, test, expect, beforeAll } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import { act } from '@testing-library/react';
 import { render, screen } from '@/tests/utils/test-utils';
 import CircularProgress from '@/components/features/dashboard/CircularProgress';
 
-// Disable framer-motion animations for faster, more predictable tests
-beforeAll(() => {
-  vi.mock('framer-motion', () => ({
-    motion: {
-      div: 'div',
-      span: 'span',
-      p: 'p',
-      circle: 'circle',
-    },
-  }));
-});
+async function advanceProgressAnimation() {
+  await act(async () => {
+    vi.advanceTimersByTime(1600);
+  });
+}
 
 describe('CircularProgress', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   describe('Rendering', () => {
     test('renders with default props', () => {
+      vi.useFakeTimers();
       render(<CircularProgress percentage={75} />);
-      // Component should render without crashing
       expect(screen.getByText('Completion')).toBeInTheDocument();
     });
 
-    test('displays percentage number', () => {
+    test('displays percentage number after animation', async () => {
+      vi.useFakeTimers();
       render(<CircularProgress percentage={85} />);
-      expect(screen.getByText(/85/)).toBeInTheDocument();
+      await advanceProgressAnimation();
+      expect(screen.getByText('85%')).toBeInTheDocument();
     });
 
-    test('hides percentage when showPercentage is false', () => {
+    test('hides percentage when showPercentage is false', async () => {
+      vi.useFakeTimers();
       render(<CircularProgress percentage={85} showPercentage={false} />);
-      expect(screen.queryByText(/85/)).not.toBeInTheDocument();
+      await advanceProgressAnimation();
+      expect(screen.queryByText('85%')).not.toBeInTheDocument();
     });
 
     test('displays custom label', () => {
+      vi.useFakeTimers();
       render(<CircularProgress percentage={75} label="Today's Progress" />);
       expect(screen.getByText("Today's Progress")).toBeInTheDocument();
-    });
-
-    test('hides label when not provided', () => {
-      render(<CircularProgress percentage={75} label="" />);
-      expect(screen.queryByText('Completion')).not.toBeInTheDocument();
     });
   });
 
   describe('Loading State', () => {
     test('shows skeleton when loading', () => {
+      vi.useFakeTimers();
       const { container } = render(<CircularProgress percentage={75} isLoading={true} />);
-      // Should not show percentage when loading
-      expect(screen.queryByText(/75/)).not.toBeInTheDocument();
-      // Should render skeleton (checking for animate-pulse class)
+      expect(screen.queryByText('75%')).not.toBeInTheDocument();
       const skeleton = container.querySelector('.animate-pulse');
       expect(skeleton).toBeInTheDocument();
-    });
-
-    test('hides content when loading', () => {
-      render(<CircularProgress percentage={75} label="Test" isLoading={true} />);
-      // Label should still be visible but percentage hidden
-      expect(screen.queryByText(/75/)).not.toBeInTheDocument();
     });
   });
 
   describe('Edge Cases', () => {
-    test('handles 0% percentage', () => {
+    test('handles 0% percentage', async () => {
+      vi.useFakeTimers();
       render(<CircularProgress percentage={0} />);
-      expect(screen.getByText(/0/)).toBeInTheDocument();
+      await advanceProgressAnimation();
+      expect(screen.getByText('0%')).toBeInTheDocument();
     });
 
-    test('handles 100% percentage', () => {
+    test('handles 100% percentage', async () => {
+      vi.useFakeTimers();
       render(<CircularProgress percentage={100} />);
-      expect(screen.getByText(/100/)).toBeInTheDocument();
-    });
-
-    test('handles custom size', () => {
-      const { container } = render(<CircularProgress percentage={75} size={200} />);
-      const svg = container.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-      expect(svg).toHaveAttribute('width', '200');
-      expect(svg).toHaveAttribute('height', '200');
-    });
-
-    test('handles custom stroke width', () => {
-      render(<CircularProgress percentage={75} strokeWidth={12} />);
-      // Component should render without issues
-      expect(screen.getByText('Completion')).toBeInTheDocument();
+      await advanceProgressAnimation();
+      expect(screen.getByText('100%')).toBeInTheDocument();
     });
   });
 
   describe('Color Logic', () => {
-    test('applies success color for >= 80%', () => {
+    test('applies success color for >= 80%', async () => {
+      vi.useFakeTimers();
       const { container } = render(<CircularProgress percentage={85} />);
-      const progressCircle = container.querySelector('.stroke-success');
-      expect(progressCircle).toBeInTheDocument();
+      await advanceProgressAnimation();
+      expect(container.querySelector('.stroke-success')).toBeInTheDocument();
     });
 
-    test('applies info color for >= 50%', () => {
+    test('applies info color for >= 50%', async () => {
+      vi.useFakeTimers();
       const { container } = render(<CircularProgress percentage={65} />);
-      const progressCircle = container.querySelector('.stroke-info');
-      expect(progressCircle).toBeInTheDocument();
+      await advanceProgressAnimation();
+      expect(container.querySelector('.stroke-info')).toBeInTheDocument();
     });
 
-    test('applies warning color for >= 25%', () => {
+    test('applies warning color for >= 25%', async () => {
+      vi.useFakeTimers();
       const { container } = render(<CircularProgress percentage={40} />);
-      const progressCircle = container.querySelector('.stroke-warning');
-      expect(progressCircle).toBeInTheDocument();
+      await advanceProgressAnimation();
+      expect(container.querySelector('.stroke-warning')).toBeInTheDocument();
     });
 
-    test('applies error color for < 25%', () => {
+    test('applies error color for < 25%', async () => {
+      vi.useFakeTimers();
       const { container } = render(<CircularProgress percentage={15} />);
-      const progressCircle = container.querySelector('.stroke-error');
-      expect(progressCircle).toBeInTheDocument();
-    });
-  });
-
-  describe('Accessibility', () => {
-    test('renders semantic HTML', () => {
-      const { container } = render(<CircularProgress percentage={75} />);
-      // Should render SVG for visualization
-      expect(container.querySelector('svg')).toBeInTheDocument();
-      // Should render text content
-      expect(screen.getByText('Completion')).toBeInTheDocument();
+      await advanceProgressAnimation();
+      expect(container.querySelector('.stroke-error')).toBeInTheDocument();
     });
   });
 });

@@ -5,6 +5,7 @@ import { Clock, Sunrise, Sun, Moon } from 'lucide-react';
 import { Skeleton } from '@/components/ui';
 import { memo, useEffect, useState } from 'react';
 import { format } from 'date-fns';
+import { fetchDashboardFocusTimeAction } from '@/app/actions/dashboard';
 
 /**
  * Time block configuration for a period of the day
@@ -68,13 +69,7 @@ const TimeBlockVisualizer = memo(function TimeBlockVisualizer({
       try {
         setIsLoading(true);
         const today = format(new Date(), 'yyyy-MM-dd');
-        const response = await fetch(`/api/dashboard/focus-time?date=${today}`);
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch focus time');
-        }
-
-        const data = await response.json();
+        const data = await fetchDashboardFocusTimeAction(today);
         setMorningProgress(data.morning || 0);
         setAfternoonProgress(data.afternoon || 0);
         setEveningProgress(data.evening || 0);
@@ -131,7 +126,7 @@ const TimeBlockVisualizer = memo(function TimeBlockVisualizer({
   const currentPeriod = getCurrentPeriod();
 
   return (
-    <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4">
+    <div className="card-surface rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4">
         <Clock className="w-5 h-5 text-info" />
         <h3 className="text-base font-semibold text-text-primary">Focus Time Today</h3>

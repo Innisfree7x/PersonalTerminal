@@ -13,6 +13,11 @@ interface GoalApiResponse {
   createdAt: string;
 }
 
+interface ApiErrorResponse {
+  message?: string;
+  error?: { message?: string };
+}
+
 /**
  * Fetch all goals from the API
  */
@@ -46,8 +51,8 @@ export async function createGoal(goal: CreateGoalInput): Promise<Goal> {
   });
   
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || `Failed to create goal: ${response.statusText}`);
+    const error: ApiErrorResponse = await response.json();
+    throw new Error(error.message || error.error?.message || `Failed to create goal: ${response.statusText}`);
   }
   
   const data: GoalApiResponse = await response.json();
@@ -71,8 +76,8 @@ export async function updateGoal(goalId: string, goal: CreateGoalInput): Promise
   });
   
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || `Failed to update goal: ${response.statusText}`);
+    const error: ApiErrorResponse = await response.json();
+    throw new Error(error.message || error.error?.message || `Failed to update goal: ${response.statusText}`);
   }
   
   const data: GoalApiResponse = await response.json();
@@ -92,7 +97,7 @@ export async function deleteGoal(goalId: string): Promise<void> {
   });
   
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || `Failed to delete goal: ${response.statusText}`);
+    const error: ApiErrorResponse = await response.json();
+    throw new Error(error.message || error.error?.message || `Failed to delete goal: ${response.statusText}`);
   }
 }

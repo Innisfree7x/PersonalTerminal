@@ -1,4 +1,4 @@
-import { supabase } from './client';
+import { createClient } from '@/lib/auth/server';
 import { Goal, CreateGoalInput } from '@/lib/schemas/goal.schema';
 import { SupabaseGoal, Database } from './types';
 
@@ -28,11 +28,11 @@ export function supabaseGoalToGoal(row: SupabaseGoal): Goal {
 /**
  * Converts our Goal type to Supabase Insert format
  */
-export function goalToSupabaseInsert(goal: CreateGoalInput): GoalInsert {
+export function goalToSupabaseInsert(goal: CreateGoalInput): Omit<GoalInsert, 'user_id'> {
   return {
     title: goal.title,
     description: goal.description || null,
-    target_date: goal.targetDate.toISOString().split('T')[0]!, // YYYY-MM-DD format
+    target_date: goal.targetDate.toISOString().split('T')[0] ?? '', // YYYY-MM-DD format
     category: goal.category,
     metrics_current: goal.metrics?.current ?? null,
     metrics_target: goal.metrics?.target ?? null,
@@ -43,18 +43,21 @@ export function goalToSupabaseInsert(goal: CreateGoalInput): GoalInsert {
 /**
  * Fetch goals from Supabase with optional pagination and filters
  */
-export async function fetchGoals(options?: {
+export async function fetchGoals(options: {
+  userId: string;
   page?: number;
   limit?: number;
   status?: 'active' | 'completed' | 'archived' | undefined;
   category?: 'career' | 'fitness' | 'learning' | 'finance' | undefined;
 }): Promise<{ goals: Goal[]; total: number }> {
-  const { page = 1, limit = 20, status, category } = options || {};
+  const { userId, page = 1, limit = 20, status, category } = options;
+  const supabase = createClient();
 
   // Build query
   let query = supabase
     .from('goals')
-    .select('*', { count: 'exact' });
+    .select('*', { count: 'exact' })
+    .eq('user_id', userId);
 
   // Apply filters
   if (status) {
@@ -86,12 +89,13 @@ export async function fetchGoals(options?: {
 /**
  * Create a new goal in Supabase
  */
-export async function createGoal(goal: CreateGoalInput): Promise<Goal> {
+export async function createGoal(userId: string, goal: CreateGoalInput): Promise<Goal> {
+  const supabase = createClient();
   const insertData = goalToSupabaseInsert(goal);
 
   const { data, error } = await supabase
     .from('goals')
-    .insert(insertData)
+    .insert({ ...insertData, user_id: userId })
     .select()
     .single();
 
@@ -105,21 +109,29 @@ export async function createGoal(goal: CreateGoalInput): Promise<Goal> {
 /**
  * Update an existing goal in Supabase
  */
-export async function updateGoal(goalId: string, goal: Partial<CreateGoalInput>): Promise<Goal> {
+export async function updateGoal(userId: string, goalId: string, goal: Partial<CreateGoalInput>): Promise<Goal> {
+  const supabase = createClient();
   const updateData: Record<string, any> = {
     updated_at: new Date().toISOString(),
   };
   
   if (goal.title !== undefined) updateData.title = goal.title;
   if (goal.description !== undefined) updateData.description = goal.description;
-  if (goal.targetDate !== undefined) updateData.target_date = goal.targetDate.toISOString();
+  if (goal.targetDate !== undefined) {
+    updateData.target_date = goal.targetDate.toISOString().split('T')[0] ?? '';
+  }
   if (goal.category !== undefined) updateData.category = goal.category;
-  if (goal.metrics !== undefined) updateData.metrics = goal.metrics;
+  if (goal.metrics !== undefined) {
+    updateData.metrics_current = goal.metrics?.current ?? null;
+    updateData.metrics_target = goal.metrics?.target ?? null;
+    updateData.metrics_unit = goal.metrics?.unit ?? null;
+  }
 
   const { data, error } = await supabase
     .from('goals')
     .update(updateData)
     .eq('id', goalId)
+    .eq('user_id', userId)
     .select()
     .single();
 
@@ -133,11 +145,13 @@ export async function updateGoal(goalId: string, goal: Partial<CreateGoalInput>)
 /**
  * Delete a goal from Supabase
  */
-export async function deleteGoal(goalId: string): Promise<void> {
+export async function deleteGoal(userId: string, goalId: string): Promise<void> {
+  const supabase = createClient();
   const { error } = await supabase
     .from('goals')
     .delete()
-    .eq('id', goalId);
+    .eq('id', goalId)
+    .eq('user_id', userId);
 
   if (error) {
     throw new Error(`Failed to delete goal: ${error.message}`);
