@@ -78,9 +78,9 @@ lib/
 |------|---------|
 | `lib/auth/server.ts` | `createClient()` — server-side `createServerClient` from `@supabase/ssr`. Per-function, NOT singleton. Also exports `getCurrentUser()`, `requireAuth()`, `getUserId()` |
 | `lib/auth/client.ts` | `createClient()` — browser `createBrowserClient`. Also exports `signIn()`, `signUp()`, `signOut()`, `resetPassword()`, `updatePassword()` |
-| `lib/auth/AuthProvider.tsx` | React context — `useAuth()` hook returns `{ user, loading, signOut }`. Listens to `onAuthStateChange` |
+| `lib/auth/AuthProvider.tsx` | React context — `useAuth()` hook returns `{ user, loading, signOut, refreshUser }`. Listens to `onAuthStateChange` |
 | `lib/api/auth.ts` | `requireApiAuth()` — returns `{ user, errorResponse }`. If no user, `errorResponse` is 401 JSON. Used in every API route |
-| `middleware.ts` | Protects `/today`, `/calendar`, `/goals`, `/university`, `/career` — redirects to `/auth/login`. Also redirects authenticated users away from auth pages |
+| `middleware.ts` | Protects dashboard routes and onboarding gate. Redirects unauthenticated users to `/auth/login` and non-onboarded users to `/onboarding` |
 | `lib/supabase/client.ts` | **DEPRECATED** bare Supabase client. DO NOT use in API routes (bypasses RLS) |
 
 ### Google Calendar OAuth (separate system)
@@ -95,10 +95,8 @@ lib/
 ### Middleware matcher
 
 ```
-/today/:path*, /calendar/:path*, /goals/:path*, /university/:path*, /career/:path*, /auth/:path*, /api/:path*
+/today/:path*, /calendar/:path*, /goals/:path*, /university/:path*, /career/:path*, /analytics/:path*, /settings/:path*, /onboarding/:path*, /auth/:path*, /api/:path*
 ```
-
-Note: `/analytics` is NOT in the middleware matcher — unprotected at middleware level (but API routes still require auth).
 
 ## Database Layer
 
@@ -113,7 +111,11 @@ Note: `/analytics` is NOT in the middleware matcher — unprotected at middlewar
 ### Data flow
 
 ```
+Reads:
 React Component → lib/api/*.ts (fetch wrapper) → /api/* route → lib/supabase/*.ts → Supabase DB
+
+Writes (modern path):
+React Component → app/actions/*.ts (Server Action) → lib/supabase/*.ts / auth update → Supabase DB
 ```
 
 ### Conversion pattern
@@ -127,7 +129,7 @@ Supabase uses `snake_case`, TypeScript uses `camelCase`. Each `lib/supabase/*.ts
 ### Provider tree (app/layout.tsx)
 
 ```
-AuthProvider > QueryProvider > FocusTimerProvider > CommandPaletteProvider
+AuthProvider > ThemeProvider > SoundProvider > QueryProvider > FocusTimerProvider > CommandPaletteProvider
 ```
 
 Dashboard layout adds `SidebarProvider` inside `(dashboard)/layout.tsx`.
@@ -157,7 +159,7 @@ staleTime: 60_000, refetchOnWindowFocus: false
 
 | Context | Hook | State |
 |---------|------|-------|
-| `AuthContext` | `useAuth()` | `{ user, loading, signOut }` |
+| `AuthContext` | `useAuth()` | `{ user, loading, signOut, refreshUser }` |
 | `FocusTimerContext` | `useFocusTimer()` | Timer status, timeLeft, totalTime, sessionType, label, category, completedPomodoros, settings, controls |
 | `CommandPaletteContext` | `useCommandPalette()` | `{ isOpen, open, close, toggle }` |
 | `SidebarContext` | `useSidebar()` | `{ isCollapsed, setIsCollapsed, toggleCollapsed }` |
@@ -175,18 +177,17 @@ staleTime: 60_000, refetchOnWindowFocus: false
 
 | Route | Auth | Description |
 |-------|------|-------------|
-| `/` | No | Server redirect to `/today` |
+| `/` | No | Server redirect to `/auth/login`, `/onboarding`, or `/today` depending on auth/onboarding |
+| `/onboarding` | Yes | One-time onboarding gate; sets display name and completion metadata |
 | `/today` | Yes | Dashboard: tasks, calendar, stats, pomodoro, study progress, deadlines |
 | `/calendar` | Yes | Week view with Google Calendar events |
 | `/goals` | Yes | Goal CRUD with category filter and sort |
 | `/university` | Yes | Course + exercise tracking, ECTS counter |
 | `/career` | Yes | Job application Kanban (4 columns) |
-| `/analytics` | Yes* | Focus session charts (4 charts + recent sessions) |
+| `/analytics` | Yes | Focus session charts (4 charts + recent sessions) |
 | `/auth/login` | No | Email/password login |
 | `/auth/signup` | No | Email/password signup |
 | `/auth/callback` | No | Supabase OAuth callback |
-
-*`/analytics` is not in middleware matcher but API routes require auth.
 
 ### API Routes — see `docs/API.md`
 
@@ -274,7 +275,7 @@ Inconsistent across routes:
 - Settings: focus duration, break durations, sessions before long break, auto-start break, sound
 - Persists to localStorage — survives page refresh and navigation
 - Calculates elapsed time from `startedAt` timestamp on restore
-- Saves sessions to `/api/focus-sessions` on completion (or stop if >10s elapsed)
+- Saves sessions via Server Action (`app/actions/focus-sessions.ts`) on completion (or stop if >10s elapsed)
 - Sound: Web Audio API oscillator
 - Keyboard: `Alt+F` toggle
 - UI: floating pill (bottom-right), expands to full timer
@@ -282,7 +283,7 @@ Inconsistent across routes:
 ### Command Palette (`CommandPaletteProvider` + `CommandPalette`)
 
 - `Cmd+K` / `Ctrl+K` to open
-- Sections: Navigation (6 routes), Focus Timer controls, Quick Actions (add goal/app/course/task)
+- Sections: Navigation, Themes, Focus Timer controls, Quick Actions (new goal/course/application, theme cycle, focus presets)
 - Built on `cmdk`
 
 ## Known Issues / TODOs
@@ -293,7 +294,6 @@ Inconsistent across routes:
 | `events` table | Defined in `lib/supabase/types.ts` but does NOT exist in Supabase. Calendar uses Google Calendar API only |
 | `notes` API | `/api/notes` exists but returns empty array (GET) and does nothing (POST). No `notes` table in DB |
 | `activity/recent` API | Returns hardcoded mock data, no real DB query |
-| `/analytics` unprotected | Not in middleware matcher. API routes still require auth, but page itself isn't redirected |
 | Error format inconsistent | Mix of `{ message }`, `{ error }`, plain text across API routes |
 | PATCH /applications | Uses full `createApplicationSchema` instead of `.partial()` — requires all fields on update |
 | PATCH /courses/[id] | No Zod validation — manual field assembly |

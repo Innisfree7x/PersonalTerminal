@@ -11,7 +11,50 @@ Comprehensive guide to all Prism features with workflows and usage examples.
 - [Career Management](#career-management)
 - [University System](#university-system)
 - [Calendar Integration](#calendar-integration)
+- [Onboarding & Profile](#onboarding--profile)
+- [Command Bar V2](#command-bar-v2)
 - [User Workflows](#user-workflows)
+
+---
+
+## Onboarding & Profile
+
+### Onboarding Gate
+
+- Route: `/onboarding`
+- Trigger: authenticated user with `user_metadata.onboarding_completed !== true`
+- Purpose: ensure every account has initial personalization before entering dashboard routes.
+
+### Profile Persistence
+
+- Route: `/settings`
+- Display name is persisted via Server Action to Supabase auth `user_metadata.full_name`.
+- Successful update refreshes auth context, so sidebar/header pick up the change immediately.
+
+---
+
+## Command Bar V2
+
+### Open
+
+- Shortcut: `Cmd+K` (macOS) / `Ctrl+K` (Windows/Linux)
+
+### Action Groups
+
+- Navigation: jump directly to all dashboard areas.
+- Themes: switch or cycle themes (includes Gold mode).
+- Focus Timer: start/pause/resume/stop timer.
+- Quick Actions:
+  - New Goal
+  - New Course
+  - New Application
+  - Start Focus Session (25m)
+  - Start Deep Focus (50m)
+
+### In-App Action Bridge
+
+- Commands trigger page-level actions directly (not URL query hacks).
+- If action is triggered from another route, it is queued and executed on arrival.
 
 ---
 

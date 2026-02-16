@@ -50,8 +50,8 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/prism.git
-cd prism
+git clone https://github.com/Innisfree7x/PersonalTerminal.git
+cd bloomberg-personal
 ```
 
 ### 2. Install Dependencies
@@ -381,11 +381,18 @@ npm run dev
 Navigate to [http://localhost:3000](http://localhost:3000)
 
 **You should see:**
-- Landing page with "Prism" branding
-- Navigation sidebar (left)
-- Dashboard layout
+- Auth login page if not signed in
+- Onboarding page after first successful login/signup
+- Dashboard layout after onboarding completion
 
-### 3. Test Database Connection
+### 3. Complete Auth + Onboarding Flow
+
+1. Create account at `/auth/signup` (or sign in at `/auth/login`)
+2. If email confirmation is enabled, verify email and continue
+3. Complete `/onboarding` once
+4. Confirm redirect to `/today`
+
+### 4. Test Database Connection
 
 1. Click "Goals" in sidebar
 2. Click "+ Add Goal"
@@ -460,6 +467,22 @@ npm run test:coverage
 ```
 
 Creates `coverage/` directory with HTML report.
+
+### Run E2E (Playwright)
+
+```bash
+npx playwright install
+npm run test:e2e
+```
+
+Optional credentials for authenticated E2E specs:
+
+```bash
+export E2E_EMAIL="your-test-user@example.com"
+export E2E_PASSWORD="your-test-password"
+```
+
+If credentials are missing, authenticated specs are skipped.
 
 ---
 
@@ -666,8 +689,8 @@ After successful setup:
 ### Resources
 
 - **Documentation:** [`/docs`](./README.md)
-- **Issues:** [GitHub Issues](https://github.com/yourusername/prism/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/yourusername/prism/discussions)
+- **Issues:** [GitHub Issues](https://github.com/Innisfree7x/PersonalTerminal/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/Innisfree7x/PersonalTerminal/discussions)
 
 ### Common Questions
 
