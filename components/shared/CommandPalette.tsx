@@ -18,6 +18,7 @@ import {
   Palette,
   Settings,
   Moon,
+  type LucideIcon,
 } from 'lucide-react';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import { useTheme } from '@/components/providers/ThemeProvider';
@@ -27,6 +28,17 @@ interface CommandPaletteProps {
   onClose: () => void;
 }
 
+type CommandItem = {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  action: () => void;
+  keywords: string[];
+  shortcut?: string;
+};
+
+const THEME_CYCLE = ['midnight', 'nord', 'gold'] as const;
+
 export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const router = useRouter();
   const [search, setSearch] = useState('');
@@ -34,7 +46,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   const { setTheme, theme } = useTheme();
 
   // Navigation commands
-  const navigationCommands = [
+  const navigationCommands: CommandItem[] = [
     {
       id: 'nav-today',
       label: 'Dashboard',
@@ -87,16 +99,17 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   ];
 
   // Theme commands
-  const themeCommands = [
+  const themeCommands: CommandItem[] = [
     { id: 'theme-midnight', label: 'Theme: Midnight', icon: Moon, action: () => setTheme('midnight'), keywords: ['theme', 'dark', 'midnight'] },
     { id: 'theme-nord', label: 'Theme: Nord', icon: Palette, action: () => setTheme('nord'), keywords: ['theme', 'nord', 'blue', 'gray'] },
+    { id: 'theme-gold', label: 'Theme: Gold', icon: Palette, action: () => setTheme('gold'), keywords: ['theme', 'gold', 'premium', 'warm'] },
     { id: 'theme-dracula', label: 'Theme: Dracula', icon: Palette, action: () => setTheme('dracula'), keywords: ['theme', 'dracula', 'purple', 'vampire'] },
     { id: 'theme-ocean', label: 'Theme: Ocean', icon: Palette, action: () => setTheme('ocean'), keywords: ['theme', 'ocean', 'blue', 'deep'] },
     { id: 'theme-emerald', label: 'Theme: Emerald', icon: Palette, action: () => setTheme('emerald'), keywords: ['theme', 'emerald', 'green', 'nature'] },
   ];
 
   // Quick action commands
-  const quickActions = [
+  const quickActions: CommandItem[] = [
     {
       id: 'action-add-goal',
       label: 'Add New Goal',
@@ -128,19 +141,42 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       shortcut: 'C',
     },
     {
-      id: 'action-theme-toggle',
-      label: 'Toggle Theme (Midnight/Nord)',
+      id: 'action-theme-cycle',
+      label: 'Cycle Theme (Midnight → Nord → Gold)',
       icon: Palette,
       action: () => {
-        setTheme(theme === 'midnight' ? 'nord' : 'midnight');
+        const currentIndex = THEME_CYCLE.indexOf(theme as (typeof THEME_CYCLE)[number]);
+        const nextTheme = THEME_CYCLE[(currentIndex + 1) % THEME_CYCLE.length] || 'midnight';
+        setTheme(nextTheme);
       },
-      keywords: ['theme', 'toggle', 'switch', 'dark', 'light', 'midnight', 'nord'],
+      keywords: ['theme', 'toggle', 'switch', 'cycle', 'midnight', 'nord', 'gold'],
       shortcut: 'T',
+    },
+    {
+      id: 'action-focus-25',
+      label: 'Start Focus Session (25m)',
+      icon: Play,
+      action: () => {
+        startTimer();
+        setTimerExpanded(true);
+      },
+      keywords: ['focus', 'start', 'pomodoro', '25', 'study'],
+      shortcut: 'F',
+    },
+    {
+      id: 'action-focus-50',
+      label: 'Start Deep Focus (50m)',
+      icon: Zap,
+      action: () => {
+        startTimer({ duration: 50 });
+        setTimerExpanded(true);
+      },
+      keywords: ['focus', 'start', 'deep', '50', 'work'],
     },
   ];
 
   // Focus timer commands
-  const focusCommands = [
+  const focusCommands: CommandItem[] = [
     ...(timerStatus === 'idle'
       ? [
         {
