@@ -13,6 +13,7 @@ import GoalModal from '@/components/features/goals/GoalModal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Plus, Target, Filter } from 'lucide-react';
+import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
 
 type SortOption = 'date' | 'progress' | 'title';
 type FilterOption = GoalCategory | 'all';
@@ -236,6 +237,11 @@ export default function GoalsPage() {
     setIsModalOpen(true);
     router.replace(pathname);
   }, [pathname, router]);
+
+  usePrismCommandAction('open-new-goal', () => {
+    setEditingGoal(null);
+    setIsModalOpen(true);
+  });
 
   // Loading state
   if (isLoading) {

@@ -8,6 +8,7 @@ import { AuthProvider } from "@/lib/auth/AuthProvider";
 import ToastProvider from "@/components/providers/ToastProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { SoundProvider } from "@/components/providers/SoundProvider";
+import PerformanceMonitor from "@/components/providers/PerformanceMonitor";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -38,6 +39,7 @@ export default function RootLayout({
                   <CommandPaletteProvider>
                     {children}
                   </CommandPaletteProvider>
+                  <PerformanceMonitor />
                 </FocusTimerProvider>
               </QueryProvider>
             </SoundProvider>

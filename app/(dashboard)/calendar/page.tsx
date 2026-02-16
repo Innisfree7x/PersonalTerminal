@@ -4,6 +4,7 @@ import { CalendarEvent } from '@/lib/data/mockEvents';
 import { format, startOfWeek, addWeeks, subWeeks, isSameDay, getWeek } from 'date-fns';
 import { useMemo, useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { disconnectGoogleCalendarAction } from '@/app/actions/calendar';
 
 /**
  * Get Monday of the week for a given date
@@ -88,16 +89,6 @@ async function fetchWeekEvents(weekStart: Date): Promise<CalendarEvent[]> {
   }));
 }
 
-/**
- * Disconnect Google Calendar
- */
-async function disconnectGoogle(): Promise<void> {
-  const response = await fetch('/api/auth/google/disconnect', { method: 'POST' });
-  if (!response.ok) {
-    throw new Error('Failed to disconnect');
-  }
-}
-
 export default function CalendarPage() {
   const queryClient = useQueryClient();
   const [selectedWeek, setSelectedWeek] = useState<Date>(() => getWeekStart(new Date()));
@@ -148,7 +139,7 @@ export default function CalendarPage() {
 
   // Disconnect mutation
   const disconnectMutation = useMutation({
-    mutationFn: disconnectGoogle,
+    mutationFn: disconnectGoogleCalendarAction,
     onSuccess: () => {
       setIsConnected(false);
       queryClient.setQueryData(['calendar', 'week'], []);

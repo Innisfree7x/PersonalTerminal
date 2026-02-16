@@ -81,9 +81,42 @@ export default function FocusTasks() {
 
   const createMutation = useMutation({
     mutationFn: createDailyTaskAction,
-    onSuccess: () => {
+    onMutate: async (taskInput) => {
+      await queryClient.cancelQueries({ queryKey: ['daily-tasks', today] });
+      const previousDailyTasks =
+        queryClient.getQueryData<DailyTask[]>(['daily-tasks', today]) || [];
+      const tempId = crypto.randomUUID();
+
+      const optimisticTask: DailyTask = {
+        id: tempId,
+        date: taskInput.date,
+        title: taskInput.title,
+        completed: false,
+        source: 'manual',
+        sourceId: null,
+        timeEstimate: taskInput.timeEstimate ?? null,
+        createdAt: new Date().toISOString(),
+      };
+
+      queryClient.setQueryData<DailyTask[]>(
+        ['daily-tasks', today],
+        [optimisticTask, ...previousDailyTasks]
+      );
+
+      return { previousDailyTasks, tempId };
+    },
+    onSuccess: (createdTask, _variables, context) => {
+      queryClient.setQueryData<DailyTask[]>(['daily-tasks', today], (current = []) => {
+        if (!context?.tempId) return [createdTask as DailyTask, ...current];
+        return current.map((task) => (task.id === context.tempId ? (createdTask as DailyTask) : task));
+      });
       queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousDailyTasks) {
+        queryClient.setQueryData(['daily-tasks', today], context.previousDailyTasks);
+      }
     },
   });
 

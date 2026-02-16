@@ -63,31 +63,6 @@ export async function fetchTodayCalendarEvents(): Promise<CalendarEvent[]> {
 }
 
 /**
- * Disconnect Google Calendar integration
- * Revokes access and clears stored tokens
- * 
- * @returns Promise that resolves when disconnection is complete
- * @throws Error if disconnection fails
- * 
- * @example
- * try {
- *   await disconnectGoogleCalendar();
- *   console.log('Successfully disconnected');
- * } catch (error) {
- *   console.error('Failed to disconnect:', error);
- * }
- */
-export async function disconnectGoogleCalendar(): Promise<void> {
-  const response = await fetch('/api/auth/google/disconnect', { 
-    method: 'POST' 
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to disconnect');
-  }
-}
-
-/**
  * Initiate Google Calendar OAuth flow
  * Redirects user to Google authentication page
  * 

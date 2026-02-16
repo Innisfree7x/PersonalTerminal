@@ -18,10 +18,10 @@ import PomodoroTimer from '@/components/features/dashboard/PomodoroTimer';
 import {
   checkGoogleCalendarConnection,
   fetchTodayCalendarEvents,
-  disconnectGoogleCalendar,
   connectGoogleCalendar,
 } from '@/lib/api/calendar';
 import { parseOAuthCallbackParams } from '@/lib/hooks/useNotifications';
+import { disconnectGoogleCalendarAction } from '@/app/actions/calendar';
 
 export default function TodayPage() {
   const queryClient = useQueryClient();
@@ -76,7 +76,7 @@ export default function TodayPage() {
 
   // Disconnect mutation
   const disconnectMutation = useMutation({
-    mutationFn: disconnectGoogleCalendar,
+    mutationFn: disconnectGoogleCalendarAction,
     onSuccess: () => {
       setIsConnected(false);
       queryClient.setQueryData(['calendar', 'today'], []);

@@ -38,6 +38,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Plus, Briefcase, Upload } from 'lucide-react';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
 
 // --- Helper Functions ---
 
@@ -176,6 +177,11 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
         setIsModalOpen(true);
         router.replace(pathname);
     }, [openCreateOnLoad, pathname, router]);
+
+    usePrismCommandAction('open-new-application', () => {
+        setEditingApplication(null);
+        setIsModalOpen(true);
+    });
 
     // Sensors
     const sensors = useSensors(

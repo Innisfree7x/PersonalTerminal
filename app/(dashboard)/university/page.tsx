@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Plus, GraduationCap, BookOpen, Calendar, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AnimatedCounter from '@/components/ui/AnimatedCounter';
+import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
 
 function normalizeCourse(course: any): CourseWithExercises {
   return {
@@ -224,6 +225,11 @@ export default function UniversityPage() {
     setIsModalOpen(true);
     router.replace(pathname);
   }, [pathname, router]);
+
+  usePrismCommandAction('open-new-course', () => {
+    setEditingCourse(null);
+    setIsModalOpen(true);
+  });
 
   // Loading state
   if (isLoading) {

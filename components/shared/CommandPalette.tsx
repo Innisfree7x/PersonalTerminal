@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Command } from 'cmdk';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -22,6 +22,11 @@ import {
 } from 'lucide-react';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import { useTheme } from '@/components/providers/ThemeProvider';
+import {
+  dispatchPrismCommandAction,
+  queuePrismCommandAction,
+  type PrismCommandAction,
+} from '@/lib/hooks/useCommandActions';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -41,6 +46,7 @@ const THEME_CYCLE = ['midnight', 'nord', 'gold'] as const;
 
 export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [search, setSearch] = useState('');
   const { status: timerStatus, startTimer, pauseTimer, resumeTimer, stopTimer, setIsExpanded: setTimerExpanded } = useFocusTimer();
   const { setTheme, theme } = useTheme();
@@ -108,6 +114,18 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     { id: 'theme-emerald', label: 'Theme: Emerald', icon: Palette, action: () => setTheme('emerald'), keywords: ['theme', 'emerald', 'green', 'nature'] },
   ];
 
+  const triggerPageAction = useCallback(
+    (targetPath: string, action: PrismCommandAction) => {
+      if (pathname === targetPath) {
+        dispatchPrismCommandAction(action);
+        return;
+      }
+      queuePrismCommandAction(action);
+      router.push(targetPath);
+    },
+    [pathname, router]
+  );
+
   // Quick action commands
   const quickActions: CommandItem[] = [
     {
@@ -115,7 +133,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       label: 'Add New Goal',
       icon: Plus,
       action: () => {
-        router.push('/goals?action=new-goal');
+        triggerPageAction('/goals', 'open-new-goal');
       },
       keywords: ['add', 'new', 'create', 'goal'],
       shortcut: 'G',
@@ -125,7 +143,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       label: 'Add Job Application',
       icon: Plus,
       action: () => {
-        router.push('/career?action=new-application');
+        triggerPageAction('/career', 'open-new-application');
       },
       keywords: ['add', 'new', 'create', 'job', 'application'],
       shortcut: 'A',
@@ -135,7 +153,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       label: 'Add Course',
       icon: Plus,
       action: () => {
-        router.push('/university?action=new-course');
+        triggerPageAction('/university', 'open-new-course');
       },
       keywords: ['add', 'new', 'create', 'course'],
       shortcut: 'C',
