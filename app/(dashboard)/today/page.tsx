@@ -150,7 +150,7 @@ export default function TodayPage() {
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ duration: 0.12 }}
           className="space-y-6"
         >
           <ErrorBoundary fallbackTitle="Tasks Error">
@@ -169,7 +169,7 @@ export default function TodayPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ duration: 0.12 }}
           className="space-y-6"
         >
           <ErrorBoundary fallbackTitle="Schedule Error">
@@ -195,7 +195,7 @@ export default function TodayPage() {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ duration: 0.12 }}
           className="space-y-6"
         >
           <ErrorBoundary fallbackTitle="Widgets Error">
@@ -216,7 +216,7 @@ export default function TodayPage() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
+          transition={{ duration: 0.1 }}
           className="text-center pt-4 border-t border-border"
         >
           <Link

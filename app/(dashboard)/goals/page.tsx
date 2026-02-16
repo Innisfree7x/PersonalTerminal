@@ -321,7 +321,7 @@ export default function GoalsPage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+        transition={{ duration: 0.12 }}
         className="grid grid-cols-2 md:grid-cols-4 gap-4"
       >
         <div className="card-surface p-4">
@@ -350,7 +350,7 @@ export default function GoalsPage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
+        transition={{ duration: 0.12 }}
         className="flex flex-wrap items-center gap-4"
       >
         {/* Category Pills */}
@@ -410,7 +410,7 @@ export default function GoalsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ duration: 0.1 }}
           >
             <GoalsList
               goals={filteredAndSortedGoals}

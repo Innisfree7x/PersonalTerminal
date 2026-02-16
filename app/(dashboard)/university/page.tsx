@@ -300,7 +300,7 @@ export default function UniversityPage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+        transition={{ duration: 0.12 }}
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
       >
         {/* Total ECTS */}
@@ -408,7 +408,7 @@ export default function UniversityPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ duration: 0.12 }}
             className="text-center py-20 bg-surface/50 backdrop-blur-sm border border-border rounded-lg"
           >
             <div className="text-6xl mb-4">🎓</div>
@@ -431,12 +431,12 @@ export default function UniversityPage() {
           </motion.div>
         ) : (
           <div className="space-y-4">
-            {courses.map((course, index) => (
+            {courses.map((course) => (
               <motion.div
                 key={course.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + index * 0.05 }}
+                transition={{ duration: 0.12 }}
               >
                 <CourseCard
                   course={course}
