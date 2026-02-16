@@ -63,8 +63,22 @@
   - `Next Best Action` ranking engine in application layer (`lib/application/use-cases/execution-engine.ts`)
   - `/today` widget with `Do now`, `Plan later`, `Drop` decisions
   - `Daily Execution Score` (0-100) based on completion, momentum, and backlog penalties
+  - Engine v2 ranking reasons + risk signals (exam/interview/backlog/low-score)
   - Command bar action: `Start Next Best Action`
 - Validation:
   - `npm run type-check` ✅
   - `npm run lint` ✅
   - `npm run test -- --run` ✅
+
+## Reliability + Speed Track
+
+- Reliability:
+  - Central monitoring utility (`lib/monitoring/index.ts`) with optional Sentry capture.
+  - Client error ingestion endpoint (`app/api/monitoring/error/route.ts`).
+  - ErrorBoundary and global error screen now report incidents.
+  - Optional critical alerting via `MONITORING_ALERT_WEBHOOK_URL`.
+- Speed:
+  - Dashboard aggregation queries parallelized in `lib/dashboard/queries.ts`.
+  - `/api/dashboard/next-tasks` now exposes `Server-Timing` header.
+  - Build analyzer script added: `npm run build:analyze`.
+  - `next.config.js` tuned (`compress`, `poweredByHeader=false`, package import optimization).

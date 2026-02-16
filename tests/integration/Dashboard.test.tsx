@@ -74,7 +74,12 @@ describe('Dashboard Integration', () => {
         interviews: [],
         nextBestAction: null,
         nextBestAlternatives: [],
+        riskSignals: [],
         executionScore: 0,
+        meta: {
+          generatedAt: new Date().toISOString(),
+          queryDurationMs: 10,
+        },
       }),
     } as Response);
   });

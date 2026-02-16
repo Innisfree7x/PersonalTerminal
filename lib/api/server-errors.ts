@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 import { ApiError, isApiError } from './errors';
+import { captureServerError } from '@/lib/monitoring';
 
 interface ErrorBody {
   error: {
@@ -31,7 +32,14 @@ export function handleRouteError(
   userMessage: string,
   logMessage: string
 ) {
-  console.error(`[API Error] ${logMessage}:`, error);
+  void captureServerError(error, {
+    message: `[API Error] ${logMessage}`,
+    severity: 'error',
+    source: 'api',
+    context: {
+      userMessage,
+    },
+  });
 
   if (error instanceof ZodError) {
     return apiErrorResponse(400, 'VALIDATION_ERROR', 'Validation error', error.flatten());

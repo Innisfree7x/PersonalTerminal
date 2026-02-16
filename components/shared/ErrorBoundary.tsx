@@ -3,6 +3,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { captureClientError } from '@/lib/monitoring';
 
 interface Props {
   children: ReactNode;
@@ -56,8 +57,16 @@ export class ErrorBoundary extends Component<Props, State> {
       errorInfo,
     });
 
-    // TODO: Send error to monitoring service (e.g., Sentry)
-    // logErrorToService(error, errorInfo);
+    captureClientError({
+      message: error.message,
+      errorName: error.name,
+      severity: 'error',
+      context: {
+        componentStack: errorInfo.componentStack,
+      },
+      source: 'client',
+      ...(error.stack ? { stack: error.stack } : {}),
+    });
   }
 
   handleReset = () => {

@@ -8,6 +8,7 @@ import {
   pickNextBestAction,
   type ExecutionCandidate,
   type ExecutionActionType,
+  type ExecutionRiskSignal,
   type RankedExecutionCandidate,
 } from '@/lib/application/use-cases/execution-engine';
 
@@ -95,7 +96,12 @@ export interface DashboardNextTasksResponse {
   studyProgress: StudyProgressCourse[];
   nextBestAction: RankedExecutionCandidate | null;
   nextBestAlternatives: RankedExecutionCandidate[];
+  riskSignals: ExecutionRiskSignal[];
   executionScore: number;
+  meta: {
+    generatedAt: string;
+    queryDurationMs: number;
+  };
   stats: DashboardTaskStats;
 }
 
@@ -112,8 +118,10 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
 
-  const { goals: allGoals } = await fetchGoals({ userId });
-  const { applications: allApplications } = await fetchApplications({ userId });
+  const [{ goals: allGoals }, { applications: allApplications }] = await Promise.all([
+    fetchGoals({ userId }),
+    fetchApplications({ userId }),
+  ]);
 
   const interviews = allApplications.filter((app) => app.status === 'interview');
   const upcomingInterviews = interviews
@@ -187,15 +195,16 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
   else if (hour >= 20 && hour < 23) focusTime = 'Evening - time for side projects';
 
   const supabase = createClient();
-  const { data: coursesData } = await supabase
-    .from('courses')
-    .select('id, name, exam_date')
-    .eq('user_id', userId);
-
-  const { data: exercisesData } = await supabase
-    .from('exercise_progress')
-    .select('*')
-    .eq('user_id', userId);
+  const [{ data: coursesData }, { data: exercisesData }] = await Promise.all([
+    supabase
+      .from('courses')
+      .select('id, name, exam_date')
+      .eq('user_id', userId),
+    supabase
+      .from('exercise_progress')
+      .select('*')
+      .eq('user_id', userId),
+  ]);
 
   const weekStartDate = startOfWeek(today, { weekStartsOn: 1 });
   const weekCompletedExercises = (exercisesData || []).filter((ex) => {
@@ -253,10 +262,16 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
 }
 
 export async function getDashboardNextTasks(userId: string): Promise<DashboardNextTasksResponse> {
+  const startedAt = Date.now();
   const today = new Date();
   const todayStart = startOfDay(today);
+  const todayIsoDate = today.toISOString().split('T')[0] ?? '';
 
-  const courses = await fetchCoursesWithExercises(userId);
+  const [courses, { goals: allGoals }, { applications }] = await Promise.all([
+    fetchCoursesWithExercises(userId),
+    fetchGoals({ userId }),
+    fetchApplications({ userId }),
+  ]);
   const homeworks: NextHomework[] = [];
 
   for (const course of courses) {
@@ -292,7 +307,6 @@ export async function getDashboardNextTasks(userId: string): Promise<DashboardNe
     return 0;
   });
 
-  const { goals: allGoals } = await fetchGoals({ userId });
   const upcomingGoals: NextGoal[] = allGoals
     .filter((goal) => {
       const goalDate = startOfDay(goal.targetDate);
@@ -318,7 +332,6 @@ export async function getDashboardNextTasks(userId: string): Promise<DashboardNe
     }))
     .sort((a, b) => a.daysUntil - b.daysUntil);
 
-  const { applications } = await fetchApplications({ userId });
   const upcomingInterviews: NextInterview[] = applications
     .filter((app) => {
       if (!app.interviewDate || app.status !== 'interview') return false;
@@ -355,11 +368,20 @@ export async function getDashboardNextTasks(userId: string): Promise<DashboardNe
   });
 
   const supabase = createClient();
-  const { data: dailyTasksData } = await supabase
-    .from('daily_tasks')
-    .select('id, title, completed, date, time_estimate')
-    .eq('user_id', userId)
-    .eq('date', today.toISOString().split('T')[0] ?? '');
+  const [{ data: dailyTasksData }, { data: completedExercisesTodayData }] = await Promise.all([
+    supabase
+      .from('daily_tasks')
+      .select('id, title, completed, date, time_estimate')
+      .eq('user_id', userId)
+      .eq('date', todayIsoDate),
+    supabase
+      .from('exercise_progress')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('completed', true)
+      .gte('completed_at', todayStart.toISOString())
+      .lt('completed_at', new Date(todayStart.getTime() + 24 * 60 * 60 * 1000).toISOString()),
+  ]);
 
   const dailyTasks: DashboardDailyTask[] = (dailyTasksData || []).map((task) => ({
     id: task.id,
@@ -368,14 +390,6 @@ export async function getDashboardNextTasks(userId: string): Promise<DashboardNe
     date: task.date,
     timeEstimate: task.time_estimate,
   }));
-
-  const { data: completedExercisesTodayData } = await supabase
-    .from('exercise_progress')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('completed', true)
-    .gte('completed_at', todayStart.toISOString())
-    .lt('completed_at', new Date(todayStart.getTime() + 24 * 60 * 60 * 1000).toISOString());
 
   const executionCandidates: ExecutionCandidate[] = [];
 
@@ -467,6 +481,49 @@ export async function getDashboardNextTasks(userId: string): Promise<DashboardNe
     plannedToday: tasksTotal,
   });
 
+  const riskSignals: ExecutionRiskSignal[] = [];
+  if (studyProgress.some((course) => typeof course.daysUntilExam === 'number' && course.daysUntilExam <= 14)) {
+    const criticalExam = studyProgress
+      .filter((course) => typeof course.daysUntilExam === 'number')
+      .sort((a, b) => (a.daysUntilExam ?? 999) - (b.daysUntilExam ?? 999))[0];
+    if (criticalExam) {
+      riskSignals.push({
+        id: 'exam-window',
+        severity: (criticalExam.daysUntilExam ?? 0) <= 7 ? 'critical' : 'high',
+        title: 'Exam risk window',
+        detail: `${criticalExam.name} in ${criticalExam.daysUntilExam}d`,
+      });
+    }
+  }
+
+  const urgentInterview = upcomingInterviews.find((interview) => interview.daysUntil <= 3);
+  if (urgentInterview) {
+    riskSignals.push({
+      id: `interview-${urgentInterview.id}`,
+      severity: urgentInterview.daysUntil <= 1 ? 'critical' : 'high',
+      title: 'Interview preparation urgency',
+      detail: `${urgentInterview.company} in ${urgentInterview.daysUntil}d`,
+    });
+  }
+
+  if (overdueCandidates >= 4) {
+    riskSignals.push({
+      id: 'overdue-backlog',
+      severity: overdueCandidates >= 8 ? 'critical' : 'high',
+      title: 'Backlog pressure rising',
+      detail: `${overdueCandidates} overdue actions detected`,
+    });
+  }
+
+  if (executionScore < 45) {
+    riskSignals.push({
+      id: 'execution-score',
+      severity: executionScore < 30 ? 'critical' : 'medium',
+      title: 'Execution score is low',
+      detail: `Current score ${executionScore}/100`,
+    });
+  }
+
   return {
     homeworks,
     goals: upcomingGoals,
@@ -474,7 +531,12 @@ export async function getDashboardNextTasks(userId: string): Promise<DashboardNe
     studyProgress,
     nextBestAction: nextBest.primary,
     nextBestAlternatives: nextBest.alternatives,
+    riskSignals,
     executionScore,
+    meta: {
+      generatedAt: new Date().toISOString(),
+      queryDurationMs: Date.now() - startedAt,
+    },
     stats: {
       tasksToday: tasksTotal,
       tasksCompleted,

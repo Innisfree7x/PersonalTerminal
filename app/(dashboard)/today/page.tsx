@@ -127,6 +127,7 @@ export default function TodayPage() {
         executionScore={nextTasksData?.executionScore ?? 0}
         nextBestAction={nextTasksData?.nextBestAction ?? null}
         alternatives={nextTasksData?.nextBestAlternatives ?? []}
+        riskSignals={nextTasksData?.riskSignals ?? []}
         onChanged={() => {
           queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
           queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });

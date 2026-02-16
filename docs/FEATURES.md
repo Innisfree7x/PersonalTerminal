@@ -97,6 +97,7 @@ Aggregates high-priority tasks from multiple sources.
   - impact
   - effort
 - Includes two fallback alternatives if the primary action is dropped.
+- Displays risk alerts (exam/interview/backlog/low execution score) to prevent silent drift.
 - 3 action modes:
   - `Do now`: executes directly where possible (task complete, exercise complete, or context jump)
   - `Plan later`: converts the action into a tomorrow task

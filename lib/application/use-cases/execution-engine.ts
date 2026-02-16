@@ -1,6 +1,7 @@
 import { differenceInDays, startOfDay } from 'date-fns';
 
 export type ExecutionActionType = 'daily-task' | 'homework' | 'goal' | 'interview';
+export type RiskSeverity = 'low' | 'medium' | 'high' | 'critical';
 
 export interface ExecutionCandidate {
   id: string;
@@ -17,11 +18,19 @@ export interface RankedExecutionCandidate extends ExecutionCandidate {
   score: number;
   urgencyLabel: 'overdue' | 'today' | 'soon' | 'normal';
   daysUntilDue?: number;
+  reasons: string[];
 }
 
 export interface NextBestActionResult {
   primary: RankedExecutionCandidate | null;
   alternatives: RankedExecutionCandidate[];
+}
+
+export interface ExecutionRiskSignal {
+  id: string;
+  severity: RiskSeverity;
+  title: string;
+  detail: string;
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -62,10 +71,20 @@ export function rankExecutionCandidates(candidates: ExecutionCandidate[]): Ranke
         candidate.effort * 2.5 +
         (candidate.type === 'interview' ? 6 : 0);
 
+      const reasons: string[] = [];
+      if (daysUntilDue !== undefined && daysUntilDue < 0) reasons.push('Overdue item');
+      else if (daysUntilDue === 0) reasons.push('Due today');
+      else if (daysUntilDue !== undefined && daysUntilDue <= 3) reasons.push('Due very soon');
+
+      if (candidate.impact >= 4) reasons.push('High impact');
+      if (candidate.effort <= 2) reasons.push('Low effort quick win');
+      if (candidate.type === 'interview') reasons.push('Interview preparation');
+
       return {
         ...candidate,
         urgencyLabel: getUrgencyLabel(candidate.dueDate),
         score: Number(score.toFixed(2)),
+        reasons,
         ...(daysUntilDue !== undefined ? { daysUntilDue } : {}),
       };
     })
@@ -93,6 +112,7 @@ export interface ExecutionScoreInput {
   overdueCandidates: number;
   completedToday: number;
   plannedToday: number;
+  droppedToday?: number;
 }
 
 export function computeDailyExecutionScore(input: ExecutionScoreInput): number {
@@ -102,7 +122,8 @@ export function computeDailyExecutionScore(input: ExecutionScoreInput): number {
   const momentumBonus = Math.min(input.completedToday * 4, 20);
   const backlogPenalty = Math.min(input.overdueCandidates * 6, 30);
   const openLoadPenalty = Math.min(Math.max(input.openCandidates - 8, 0) * 1.5, 12);
+  const dropPenalty = Math.min((input.droppedToday ?? 0) * 2.5, 10);
 
-  const score = 15 + completionComponent + momentumBonus - backlogPenalty - openLoadPenalty;
+  const score = 15 + completionComponent + momentumBonus - backlogPenalty - openLoadPenalty - dropPenalty;
   return Math.round(clamp(score, 0, 100));
 }

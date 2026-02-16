@@ -1,5 +1,24 @@
+let withBundleAnalyzer = (config) => config;
+if (process.env.ANALYZE === 'true') {
+  try {
+    // Optional dependency. If absent, build still works without analyzer output.
+    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
+    withBundleAnalyzer = require('@next/bundle-analyzer')({
+      enabled: true,
+    });
+  } catch {
+    // eslint-disable-next-line no-console
+    console.warn('ANALYZE=true set but @next/bundle-analyzer is not installed.');
+  }
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  compress: true,
+  poweredByHeader: false,
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'date-fns'],
+  },
   async headers() {
     return [
       {
@@ -28,4 +47,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+module.exports = withBundleAnalyzer(nextConfig);

@@ -76,6 +76,24 @@ describe('execution-engine', () => {
     expect(result.alternatives).toHaveLength(2);
   });
 
+  test('adds human-readable ranking reasons', () => {
+    const result = rankExecutionCandidates([
+      {
+        id: 'i1',
+        type: 'interview',
+        title: 'Interview prep',
+        dueDate: addDays(new Date(), 0),
+        impact: 5,
+        effort: 2,
+        payload: { applicationId: 'i1' },
+      },
+    ]);
+
+    expect(result[0]?.reasons).toContain('Due today');
+    expect(result[0]?.reasons).toContain('High impact');
+    expect(result[0]?.reasons).toContain('Interview preparation');
+  });
+
   test('computes execution score with penalties and bonuses', () => {
     const high = computeDailyExecutionScore({
       openCandidates: 4,

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useReportWebVitals } from 'next/web-vitals';
+import { captureClientError } from '@/lib/monitoring';
 
 declare global {
   interface Window {
@@ -30,6 +31,18 @@ export default function PerformanceMonitor() {
       // eslint-disable-next-line no-console
       console.debug('[Perf][WebVital]', metric.name, metric.value, metric.rating);
     }
+
+    if (metric.rating === 'poor') {
+      captureClientError({
+        message: `Poor Web Vital detected: ${metric.name}`,
+        severity: 'warning',
+        context: {
+          id: metric.id,
+          value: metric.value,
+          rating: metric.rating,
+        },
+      });
+    }
   });
 
   useEffect(() => {
@@ -46,6 +59,37 @@ export default function PerformanceMonitor() {
       loadEventMs: nav.loadEventEnd - nav.fetchStart,
       ts: Date.now(),
     });
+  }, []);
+
+  useEffect(() => {
+    const onError = (event: ErrorEvent) => {
+      captureClientError({
+        message: event.message || 'Unhandled browser error',
+        severity: 'error',
+        stack: event.error?.stack,
+        context: {
+          filename: event.filename,
+          line: event.lineno,
+          col: event.colno,
+        },
+      });
+    };
+
+    const onUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const reason = event.reason instanceof Error ? event.reason.message : String(event.reason);
+      captureClientError({
+        message: `Unhandled promise rejection: ${reason}`,
+        severity: 'error',
+      });
+    };
+
+    window.addEventListener('error', onError);
+    window.addEventListener('unhandledrejection', onUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('error', onError);
+      window.removeEventListener('unhandledrejection', onUnhandledRejection);
+    };
   }, []);
 
   return null;

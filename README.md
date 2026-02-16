@@ -173,6 +173,8 @@ graph LR
 | `GOOGLE_CLIENT_ID` | Google OAuth 2.0 Client ID | ⚠️ For Calendar |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth 2.0 Client Secret | ⚠️ For Calendar |
 | `GOOGLE_REDIRECT_URI` | OAuth callback URL | ⚠️ For Calendar |
+| `MONITORING_ALERT_WEBHOOK_URL` | Webhook URL for critical error alerts | ⚠️ Optional |
+| `SENTRY_DSN` | Sentry DSN for error ingestion (if Sentry package is installed) | ⚠️ Optional |
 
 ---
 
@@ -182,6 +184,7 @@ graph LR
 |---------|-------------|
 | `npm run dev` | Start development server (localhost:3000) |
 | `npm run build` | Build production bundle |
+| `npm run build:analyze` | Build with bundle analyzer (`ANALYZE=true`) |
 | `npm run test` | Run unit tests with Vitest |
 | `npm run test:watch` | Run Vitest in watch mode |
 | `npm run test:ui` | Open Vitest UI |

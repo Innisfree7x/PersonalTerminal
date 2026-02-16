@@ -49,6 +49,8 @@ const serverSchema = z.object({
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_REDIRECT_URI: z.string().optional(),
+  MONITORING_ALERT_WEBHOOK_URL: z.string().url().optional(),
+  SENTRY_DSN: z.string().url().optional(),
 
   // Node environment
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -83,6 +85,8 @@ export const serverEnv = serverSchema.parse({
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
   GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
+  MONITORING_ALERT_WEBHOOK_URL: process.env.MONITORING_ALERT_WEBHOOK_URL,
+  SENTRY_DSN: process.env.SENTRY_DSN,
   NODE_ENV: process.env.NODE_ENV,
 });
 

@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { useAppSound } from '@/lib/hooks/useAppSound';
 import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
 import type { RankedExecutionCandidate } from '@/lib/application/use-cases/execution-engine';
+import type { ExecutionRiskSignal } from '@/lib/application/use-cases/execution-engine';
 import { createDailyTaskAction, updateDailyTaskAction } from '@/app/actions/daily-tasks';
 import { toggleExerciseCompletionAction } from '@/app/actions/university';
 
@@ -17,6 +18,7 @@ interface NextBestActionWidgetProps {
   executionScore: number;
   nextBestAction: RankedExecutionCandidate | null;
   alternatives: RankedExecutionCandidate[];
+  riskSignals?: ExecutionRiskSignal[];
   onChanged?: () => void;
 }
 
@@ -64,6 +66,7 @@ export default function NextBestActionWidget({
   executionScore,
   nextBestAction,
   alternatives,
+  riskSignals = [],
   onChanged,
 }: NextBestActionWidgetProps) {
   const router = useRouter();
@@ -82,6 +85,7 @@ export default function NextBestActionWidget({
   );
 
   const tone = scoreTone(executionScore);
+  const topRisk = riskSignals[0];
 
   const dismissCandidate = (id: string) => {
     setDismissedIds((prev) => {
@@ -222,7 +226,29 @@ export default function NextBestActionWidget({
             {activeCandidate.subtitle && (
               <div className="text-xs text-text-tertiary mt-1">{activeCandidate.subtitle}</div>
             )}
+            {activeCandidate.reasons.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {activeCandidate.reasons.slice(0, 3).map((reason) => (
+                  <span
+                    key={reason}
+                    className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wider text-text-tertiary"
+                  >
+                    {reason}
+                  </span>
+                ))}
+              </div>
+            )}
           </motion.div>
+
+          {topRisk && (
+            <div className="mb-4 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2">
+              <div className="text-[11px] uppercase tracking-wider text-warning font-semibold">
+                Risk: {topRisk.severity}
+              </div>
+              <div className="text-sm text-text-primary">{topRisk.title}</div>
+              <div className="text-xs text-text-tertiary">{topRisk.detail}</div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <Button onClick={handleDoNow} disabled={isPending} variant="primary" className="w-full">
