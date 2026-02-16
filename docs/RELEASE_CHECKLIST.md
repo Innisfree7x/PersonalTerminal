@@ -1,6 +1,7 @@
 # Release Checklist
 
 Use this checklist before promoting a build to production.
+Execution steps live in `docs/GO_LIVE_RUNBOOK.md`.
 
 ## 1. Scope Freeze
 
