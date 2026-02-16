@@ -4,6 +4,10 @@
  */
 
 import { CalendarEvent } from '@/lib/data/mockEvents';
+import {
+  checkGoogleCalendarConnectionAction,
+  fetchTodayCalendarEventsAction,
+} from '@/app/actions/calendar';
 
 /**
  * Check if user is connected to Google Calendar
@@ -17,12 +21,7 @@ import { CalendarEvent } from '@/lib/data/mockEvents';
  * }
  */
 export async function checkGoogleCalendarConnection(): Promise<boolean> {
-  try {
-    const response = await fetch('/api/calendar/today');
-    return response.status !== 401;
-  } catch {
-    return false;
-  }
+  return checkGoogleCalendarConnectionAction();
 }
 
 /**
@@ -43,16 +42,7 @@ export async function checkGoogleCalendarConnection(): Promise<boolean> {
  * }
  */
 export async function fetchTodayCalendarEvents(): Promise<CalendarEvent[]> {
-  const response = await fetch('/api/calendar/today');
-
-  if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error('UNAUTHORIZED');
-    }
-    throw new Error('Failed to fetch events');
-  }
-
-  const data = await response.json();
+  const data = await fetchTodayCalendarEventsAction();
   
   // Transform API response to CalendarEvent with proper Date objects
   return data.map((event: any) => ({

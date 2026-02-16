@@ -4,7 +4,11 @@ import { CalendarEvent } from '@/lib/data/mockEvents';
 import { format, startOfWeek, addWeeks, subWeeks, isSameDay, getWeek } from 'date-fns';
 import { useMemo, useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { disconnectGoogleCalendarAction } from '@/app/actions/calendar';
+import {
+  checkGoogleCalendarConnectionAction,
+  disconnectGoogleCalendarAction,
+  fetchWeekCalendarEventsAction,
+} from '@/app/actions/calendar';
 
 /**
  * Get Monday of the week for a given date
@@ -53,42 +57,6 @@ function groupEventsByDay(events: CalendarEvent[]): Record<string, CalendarEvent
   return groups;
 }
 
-/**
- * Check if user is connected to Google Calendar
- */
-async function checkConnection(): Promise<boolean> {
-  try {
-    const response = await fetch('/api/calendar/today');
-    return response.status !== 401; // 401 = not authenticated
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Fetch week's events from Google Calendar
- */
-async function fetchWeekEvents(weekStart: Date): Promise<CalendarEvent[]> {
-  const response = await fetch(
-    `/api/calendar/week?weekStart=${weekStart.toISOString()}`
-  );
-
-  if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error('UNAUTHORIZED');
-    }
-    throw new Error('Failed to fetch events');
-  }
-
-  const data = await response.json();
-  // Convert date strings to Date objects
-  return data.map((event: any) => ({
-    ...event,
-    startTime: new Date(event.startTime),
-    endTime: new Date(event.endTime),
-  }));
-}
-
 export default function CalendarPage() {
   const queryClient = useQueryClient();
   const [selectedWeek, setSelectedWeek] = useState<Date>(() => getWeekStart(new Date()));
@@ -111,14 +79,14 @@ export default function CalendarPage() {
       window.history.replaceState({}, '', '/calendar');
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['calendar', 'week'] });
-        checkConnection().then(setIsConnected);
+        checkGoogleCalendarConnectionAction().then(setIsConnected);
       }, 1000);
     }
   }, [queryClient]);
 
   // Check connection status on mount
   useEffect(() => {
-    checkConnection().then(setIsConnected);
+    checkGoogleCalendarConnectionAction().then(setIsConnected);
   }, []);
 
   const weekDays = useMemo(() => getWeekDays(selectedWeek), [selectedWeek]);
@@ -131,7 +99,14 @@ export default function CalendarPage() {
     error: fetchError,
   } = useQuery<CalendarEvent[]>({
     queryKey: ['calendar', 'week', selectedWeek.toISOString()],
-    queryFn: () => fetchWeekEvents(selectedWeek),
+    queryFn: async () => {
+      const data = await fetchWeekCalendarEventsAction(selectedWeek.toISOString());
+      return data.map((event) => ({
+        ...event,
+        startTime: new Date(event.startTime),
+        endTime: new Date(event.endTime),
+      }));
+    },
     enabled: isConnected === true,
     retry: false,
     refetchOnWindowFocus: false,

@@ -17,12 +17,14 @@ import UpcomingDeadlines from '@/components/features/dashboard/UpcomingDeadlines
 import WeekOverview from '@/components/features/dashboard/WeekOverview';
 import PomodoroTimer from '@/components/features/dashboard/PomodoroTimer';
 import {
-  checkGoogleCalendarConnection,
-  fetchTodayCalendarEvents,
   connectGoogleCalendar,
 } from '@/lib/api/calendar';
 import { parseOAuthCallbackParams } from '@/lib/hooks/useNotifications';
-import { disconnectGoogleCalendarAction } from '@/app/actions/calendar';
+import {
+  checkGoogleCalendarConnectionAction,
+  disconnectGoogleCalendarAction,
+  fetchTodayCalendarEventsAction,
+} from '@/app/actions/calendar';
 import { fetchDashboardNextTasksAction } from '@/app/actions/dashboard';
 import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 
@@ -43,20 +45,27 @@ export default function TodayPage() {
       window.history.replaceState({}, '', '/today');
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['calendar', 'today'] });
-        checkGoogleCalendarConnection().then(setIsConnected);
+        checkGoogleCalendarConnectionAction().then(setIsConnected);
       }, 1000);
     }
   }, [queryClient]);
 
   // Check connection status on mount
   useEffect(() => {
-    checkGoogleCalendarConnection().then(setIsConnected);
+    checkGoogleCalendarConnectionAction().then(setIsConnected);
   }, []);
 
   // Fetch events if connected
   const { data: events = [], isLoading } = useQuery<CalendarEvent[]>({
     queryKey: ['calendar', 'today'],
-    queryFn: fetchTodayCalendarEvents,
+    queryFn: async () => {
+      const events = await fetchTodayCalendarEventsAction();
+      return events.map((event) => ({
+        ...event,
+        startTime: new Date(event.startTime),
+        endTime: new Date(event.endTime),
+      }));
+    },
     enabled: isConnected === true,
     retry: false,
     staleTime: 30 * 1000,
