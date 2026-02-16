@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { requireApiAdmin } from '@/lib/api/auth';
 import { getMonitoringHealth, isMonitoringEnabled } from '@/lib/monitoring';
 import { createAdminAuditLog, fetchRecentAdminAuditLogs } from '@/lib/monitoring/audit';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const { user, errorResponse } = await requireApiAdmin();
   if (errorResponse) return errorResponse;
 
@@ -18,14 +18,17 @@ export async function GET() {
   }
 
   const snapshot = getMonitoringHealth();
-  await createAdminAuditLog({
-    actorUserId: user.id,
-    action: 'monitoring.health.view',
-    resource: 'monitoring/health',
-    metadata: {
-      userEmail: user.email || null,
-    },
-  });
+  const shouldAudit = request.nextUrl.searchParams.get('audit') === '1';
+  if (shouldAudit) {
+    await createAdminAuditLog({
+      actorUserId: user.id,
+      action: 'monitoring.health.view',
+      resource: 'monitoring/health',
+      metadata: {
+        userEmail: user.email || null,
+      },
+    });
+  }
   const { migrationApplied, logs: recentAdminAuditLogs } = await fetchRecentAdminAuditLogs(25);
   return NextResponse.json(
     {

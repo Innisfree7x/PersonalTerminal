@@ -6,6 +6,7 @@ export type PrismCommandAction =
   | 'open-new-goal'
   | 'open-new-course'
   | 'open-new-application'
+  | 'open-new-task'
   | 'start-next-best-action';
 
 const PRISM_COMMAND_EVENT = 'prism:command-action';

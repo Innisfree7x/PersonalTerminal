@@ -7,6 +7,7 @@ export interface MonitoringIncident {
   errorName: string;
   source: 'client' | 'server' | 'api';
   severity: MonitoringSeverity;
+  status: 'open' | 'acknowledged' | 'resolved';
   count: number;
   firstSeenAt: string;
   lastSeenAt: string;
@@ -88,6 +89,7 @@ export function upsertIncident(input: {
       errorName: input.errorName,
       source: input.source,
       severity: input.severity,
+      status: 'open',
       count: 1,
       firstSeenAt: nowIso,
       lastSeenAt: nowIso,
@@ -104,6 +106,7 @@ export function upsertIncident(input: {
   const merged: MonitoringIncident = {
     ...existing,
     severity: input.severity === 'critical' ? 'critical' : existing.severity,
+    status: existing.status === 'resolved' ? 'open' : existing.status,
     count: existing.count + 1,
     lastSeenAt: nowIso,
     ...(input.context ? { context: input.context } : {}),
@@ -156,4 +159,34 @@ export function getMonitoringHealthSnapshot() {
     },
     topIncidents: incidents.slice(0, 20),
   };
+}
+
+export function acknowledgeIncident(fingerprint: string): boolean {
+  const existing = store.incidents.get(fingerprint);
+  if (!existing) return false;
+  store.incidents.set(fingerprint, {
+    ...existing,
+    status: 'acknowledged',
+  });
+  return true;
+}
+
+export function resolveIncident(fingerprint: string): boolean {
+  const existing = store.incidents.get(fingerprint);
+  if (!existing) return false;
+  store.incidents.set(fingerprint, {
+    ...existing,
+    status: 'resolved',
+  });
+  return true;
+}
+
+export function dismissIncident(fingerprint: string): boolean {
+  return store.incidents.delete(fingerprint);
+}
+
+export function clearAllIncidents(): number {
+  const total = store.incidents.size;
+  store.incidents.clear();
+  return total;
 }

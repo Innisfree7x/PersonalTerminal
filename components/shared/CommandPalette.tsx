@@ -18,6 +18,7 @@ import {
   Palette,
   Settings,
   Moon,
+  ShieldCheck,
   type LucideIcon,
 } from 'lucide-react';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
@@ -98,6 +99,13 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       keywords: ['analytics', 'stats', 'focus', 'charts', 'productivity'],
     },
     {
+      id: 'nav-ops-health',
+      label: 'Ops Health',
+      icon: ShieldCheck,
+      action: () => router.push('/analytics/ops'),
+      keywords: ['ops', 'health', 'monitoring', 'incidents', 'admin'],
+    },
+    {
       id: 'nav-settings',
       label: 'Settings',
       icon: Settings,
@@ -130,6 +138,16 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
 
   // Quick action commands
   const quickActions: CommandItem[] = [
+    {
+      id: 'action-add-task',
+      label: 'Add Daily Task',
+      icon: Plus,
+      action: () => {
+        triggerPageAction('/today', 'open-new-task');
+      },
+      keywords: ['add', 'new', 'create', 'task', 'todo', 'today'],
+      shortcut: 'D',
+    },
     {
       id: 'action-add-goal',
       label: 'Add New Goal',

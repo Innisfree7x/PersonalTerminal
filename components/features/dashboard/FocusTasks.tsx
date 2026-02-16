@@ -9,6 +9,7 @@ import { Plus, Clock, Target, Briefcase, GraduationCap, BookOpen } from 'lucide-
 import { useAppSound } from '@/lib/hooks/useAppSound';
 import { createDailyTaskAction, updateDailyTaskAction } from '@/app/actions/daily-tasks';
 import { toggleExerciseCompletionAction } from '@/app/actions/university';
+import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
 
 interface DailyTask {
   id: string;
@@ -62,6 +63,10 @@ export default function FocusTasks() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskTime, setNewTaskTime] = useState('');
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+
+  usePrismCommandAction('open-new-task', () => {
+    setShowAddInput(true);
+  });
 
   const { data: dailyTasks = [] } = useQuery({
     queryKey: ['daily-tasks', today],

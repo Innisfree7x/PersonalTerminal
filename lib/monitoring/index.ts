@@ -1,9 +1,13 @@
 import { buildMonitoringFingerprint, inferSeverity } from '@/lib/monitoring/rules';
 import {
   type MonitoringIncident,
+  acknowledgeIncident,
   allowIngress,
+  clearAllIncidents,
+  dismissIncident,
   getMonitoringHealthSnapshot,
   markIncidentAlerted,
+  resolveIncident,
   upsertIncident,
 } from '@/lib/monitoring/store';
 import type { AdminAuditLogRecord } from '@/lib/monitoring/audit';
@@ -176,4 +180,20 @@ export function getMonitoringHealth() {
 
 export function isMonitoringIngressAllowed(key: string): boolean {
   return allowIngress(key);
+}
+
+export function acknowledgeMonitoringIncident(fingerprint: string): boolean {
+  return acknowledgeIncident(fingerprint);
+}
+
+export function resolveMonitoringIncident(fingerprint: string): boolean {
+  return resolveIncident(fingerprint);
+}
+
+export function dismissMonitoringIncident(fingerprint: string): boolean {
+  return dismissIncident(fingerprint);
+}
+
+export function clearMonitoringIncidents(): number {
+  return clearAllIncidents();
 }
