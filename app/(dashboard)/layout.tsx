@@ -7,6 +7,7 @@ import { SidebarProvider, useSidebar } from '@/components/layout/SidebarProvider
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
+import PowerHotkeysProvider from '@/components/providers/PowerHotkeysProvider';
 
 const pageVariants = {
   initial: {
@@ -89,7 +90,9 @@ export default function DashboardLayout({
 }) {
   return (
     <SidebarProvider>
-      <DashboardLayoutInner>{children}</DashboardLayoutInner>
+      <PowerHotkeysProvider>
+        <DashboardLayoutInner>{children}</DashboardLayoutInner>
+      </PowerHotkeysProvider>
     </SidebarProvider>
   );
 }

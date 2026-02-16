@@ -10,6 +10,7 @@ import { useAppSound } from '@/lib/hooks/useAppSound';
 import { createDailyTaskAction, updateDailyTaskAction } from '@/app/actions/daily-tasks';
 import { toggleExerciseCompletionAction } from '@/app/actions/university';
 import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
+import { useListNavigation } from '@/lib/hooks/useListNavigation';
 
 interface DailyTask {
   id: string;
@@ -292,16 +293,34 @@ export default function FocusTasks() {
     // Goals and interviews: just hide for now (they're reminders, not completable here)
   };
 
+  const { focusedId, setFocusedId } = useListNavigation<TaskItem>({
+    items: sortedTasks,
+    getId: (task) => task.id,
+    enabled: sortedTasks.length > 0,
+    onEnter: handleCheck,
+    onSpace: handleCheck,
+  });
+
   const renderTaskRow = (task: TaskItem, index: number) => (
     <motion.div
       key={task.id}
+      data-list-nav-id={task.id}
+      data-focused={focusedId === task.id ? 'true' : 'false'}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ delay: index * 0.03 }}
-      className="group"
+      className="group relative"
+      onMouseEnter={() => setFocusedId(task.id)}
     >
-      <div className="flex items-start gap-3 p-3 rounded-lg bg-surface border border-border hover:border-primary/50 transition-all">
+      {focusedId === task.id && (
+        <div className="absolute left-1 top-1/2 -translate-y-1/2 text-primary/80 text-xs font-mono">▶</div>
+      )}
+      <div
+        className={`flex items-start gap-3 p-3 rounded-lg bg-surface border transition-all ${
+          focusedId === task.id ? 'border-primary/70 ring-1 ring-primary/30' : 'border-border hover:border-primary/50'
+        }`}
+      >
         <Checkbox
           checked={hiddenIds.has(task.id)}
           onCheckedChange={() => handleCheck(task)}

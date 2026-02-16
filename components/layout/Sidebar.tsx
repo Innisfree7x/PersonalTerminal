@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useState, useEffect, useMemo } from 'react';
+import { usePathname } from 'next/navigation';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -31,7 +31,6 @@ const baseNavigation = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const { user, signOut } = useAuth();
@@ -51,31 +50,6 @@ export default function Sidebar() {
     || 'User';
   const displayEmail = user?.email || '';
   const avatarInitial = displayName.charAt(0).toUpperCase();
-
-  // Keyboard shortcuts: Alt+1..n for navigation (avoid hijacking browser/OS shortcuts).
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      const isTypingTarget =
-        target?.tagName === 'INPUT' ||
-        target?.tagName === 'TEXTAREA' ||
-        target?.tagName === 'SELECT' ||
-        target?.isContentEditable;
-
-      if (isTypingTarget) return;
-
-      if (!e.altKey || e.metaKey || e.ctrlKey || e.shiftKey) return;
-
-      const navItem = navigation.find(item => item.shortcut === e.key);
-      if (navItem) {
-        e.preventDefault();
-        router.push(navItem.href);
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [navigation, router]);
 
   return (
     <>
@@ -215,7 +189,7 @@ export default function Sidebar() {
                       <>
                         <span className="flex-1 truncate">{item.name}</span>
                         <kbd className="hidden sm:inline-flex px-1.5 py-0.5 rounded text-[10px] font-mono bg-surface-hover border border-border text-text-tertiary opacity-0 group-hover:opacity-100 transition-opacity">
-                          ⌥{item.shortcut}
+                          {item.shortcut}
                         </kbd>
                       </>
                     )}
@@ -225,7 +199,7 @@ export default function Sidebar() {
                   {isCollapsed && (
                     <div className="absolute left-full ml-2 px-2 py-1 bg-surface border border-border rounded-md text-xs text-text-primary whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
                       {item.name}
-                      <span className="ml-2 text-text-tertiary font-mono">⌥{item.shortcut}</span>
+                      <span className="ml-2 text-text-tertiary font-mono">{item.shortcut}</span>
                     </div>
                   )}
                 </Link>

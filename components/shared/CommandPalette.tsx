@@ -316,7 +316,10 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
           />
 
           {/* Command Palette */}
-          <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] pointer-events-none">
+          <div
+            data-hotkeys-disabled="true"
+            className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] pointer-events-none"
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: -20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
