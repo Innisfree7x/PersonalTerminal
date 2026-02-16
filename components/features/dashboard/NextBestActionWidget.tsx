@@ -186,87 +186,93 @@ export default function NextBestActionWidget({
   });
 
   return (
-    <div className="card-surface rounded-xl p-5 border border-border">
-      <div className="flex items-start justify-between gap-4 mb-4">
+    <div className="card-surface rounded-xl p-3 border border-border">
+      <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-primary/15 border border-primary/30">
+          <div className="p-1.5 rounded-lg bg-primary/15 border border-primary/30">
             <Zap className="w-4 h-4 text-primary" />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-text-primary">Next Best Action</h2>
-            <p className="text-xs text-text-tertiary">One high-impact move for right now</p>
+            <h2 className="text-sm font-semibold text-text-primary">Next Best Action</h2>
+            <p className="text-[10px] text-text-tertiary">One high-impact move for right now</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant={tone.badgeVariant} size="sm">
             {tone.label}
           </Badge>
-          <div className="text-right">
-            <div className="text-lg font-bold text-text-primary">{executionScore}</div>
-            <div className="text-[10px] uppercase tracking-wider text-text-tertiary">Execution</div>
+          <div className="text-right leading-tight">
+            <div className="text-base font-bold text-text-primary">{executionScore}</div>
+            <div className="text-[9px] uppercase tracking-wider text-text-tertiary">Execution</div>
           </div>
         </div>
       </div>
 
       {activeCandidate ? (
         <>
-          <motion.div
-            key={activeCandidate.id}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-lg border border-primary/30 bg-primary/5 p-4 mb-4"
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <Badge variant="primary" size="sm">
-                {activeCandidate.urgencyLabel}
-              </Badge>
-              <span className="text-xs text-text-tertiary">score {Math.round(activeCandidate.score)}</span>
-            </div>
-            <div className="text-sm font-semibold text-text-primary">{activeCandidate.title}</div>
-            {activeCandidate.subtitle && (
-              <div className="text-xs text-text-tertiary mt-1">{activeCandidate.subtitle}</div>
-            )}
-            {activeCandidate.reasons.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {activeCandidate.reasons.slice(0, 3).map((reason) => (
-                  <span
-                    key={reason}
-                    className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wider text-text-tertiary"
-                  >
-                    {reason}
-                  </span>
-                ))}
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-1.5 mb-2">
+            <motion.div
+              key={activeCandidate.id}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-lg border border-primary/30 bg-primary/5 p-2.5"
+            >
+              <div className="flex items-center gap-1.5 mb-1">
+                <Badge variant="primary" size="sm">
+                  {activeCandidate.urgencyLabel}
+                </Badge>
+                <span className="text-[11px] text-text-tertiary">score {Math.round(activeCandidate.score)}</span>
+              </div>
+              <div className="text-base font-semibold text-text-primary leading-tight">{activeCandidate.title}</div>
+              {activeCandidate.subtitle && (
+                <div className="text-[11px] text-text-tertiary mt-0.5">{activeCandidate.subtitle}</div>
+              )}
+              {activeCandidate.reasons.length > 0 && (
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {activeCandidate.reasons.slice(0, 1).map((reason) => (
+                    <span
+                      key={reason}
+                      className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[9px] uppercase tracking-wider text-text-tertiary"
+                    >
+                      {reason}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+
+            {topRisk ? (
+              <div className="rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-2">
+                <div className="text-[10px] uppercase tracking-wider text-warning font-semibold">
+                  Risk: {topRisk.severity}
+                </div>
+                <div className="text-sm text-text-primary leading-tight">{topRisk.title}</div>
+                <div className="text-[11px] text-text-tertiary">{topRisk.detail}</div>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-border bg-surface/40 px-2.5 py-2 text-[11px] text-text-tertiary flex items-center">
+                No high risk signal right now.
               </div>
             )}
-          </motion.div>
+          </div>
 
-          {topRisk && (
-            <div className="mb-4 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2">
-              <div className="text-[11px] uppercase tracking-wider text-warning font-semibold">
-                Risk: {topRisk.severity}
-              </div>
-              <div className="text-sm text-text-primary">{topRisk.title}</div>
-              <div className="text-xs text-text-tertiary">{topRisk.detail}</div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <Button onClick={handleDoNow} disabled={isPending} variant="primary" className="w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1">
+            <Button onClick={handleDoNow} disabled={isPending} variant="primary" size="sm" className="w-full h-9">
               <ArrowRight className="w-4 h-4 mr-2" />
               Do now
             </Button>
-            <Button onClick={handlePlanLater} disabled={isPending} variant="secondary" className="w-full">
+            <Button onClick={handlePlanLater} disabled={isPending} variant="secondary" size="sm" className="w-full h-9">
               <CalendarClock className="w-4 h-4 mr-2" />
               Plan later
             </Button>
-            <Button onClick={handleDrop} disabled={isPending} variant="ghost" className="w-full">
+            <Button onClick={handleDrop} disabled={isPending} variant="ghost" size="sm" className="w-full h-9">
               <XCircle className="w-4 h-4 mr-2" />
               Drop
             </Button>
           </div>
         </>
       ) : (
-        <div className="rounded-lg border border-border bg-surface/50 p-4 text-sm text-text-tertiary">
+        <div className="rounded-lg border border-border bg-surface/50 p-3 text-sm text-text-tertiary">
           No pending recommendation. Open Command Bar (`Cmd/Ctrl + K`) and run
           {' '}
           <span className="font-semibold text-text-secondary">Start Next Best Action</span>

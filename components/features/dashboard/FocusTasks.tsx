@@ -337,7 +337,7 @@ export default function FocusTasks() {
   );
 
   return (
-    <div className="card-surface p-6 h-fit sticky top-20">
+    <div className="card-surface p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
           <BookOpen className="w-5 h-5 text-primary" />
