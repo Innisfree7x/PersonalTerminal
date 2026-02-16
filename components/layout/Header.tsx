@@ -8,32 +8,7 @@ import { useState, useEffect } from 'react';
 import { useCommandPalette } from '@/components/shared/CommandPaletteProvider';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import { format } from 'date-fns';
-
-interface DashboardStats {
-  career: {
-    activeInterviews: number;
-    nextInterview?: { company: string; position: string; date: string };
-    applicationsPending: number;
-    pendingDays: number;
-    followUpNeeded: number;
-  };
-  goals: {
-    weeklyProgress: { onTrack: number; total: number };
-    byCategory: Record<string, number>;
-    overdue: number;
-  };
-  metrics: {
-    todayCompletion: number;
-    weekProgress: { day: number; total: number };
-    focusTime: string;
-  };
-}
-
-async function fetchStats(): Promise<DashboardStats> {
-  const response = await fetch('/api/dashboard/stats');
-  if (!response.ok) throw new Error('Failed to fetch stats');
-  return response.json();
-}
+import { fetchDashboardStatsAction } from '@/app/actions/dashboard';
 
 const routeTitles: Record<string, string> = {
   '/today': 'Today',
@@ -76,7 +51,7 @@ export default function Header() {
   
   const { data: stats } = useQuery({
     queryKey: ['dashboard', 'stats'],
-    queryFn: fetchStats,
+    queryFn: fetchDashboardStatsAction,
     refetchInterval: 60000, // Refetch every minute
     staleTime: 30 * 1000,
     refetchOnWindowFocus: false,

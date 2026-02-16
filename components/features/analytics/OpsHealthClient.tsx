@@ -7,19 +7,14 @@ import { motion } from 'framer-motion';
 import { AlertTriangle, ArrowLeft, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { MonitoringHealthSnapshot } from '@/lib/monitoring';
-
-async function fetchMonitoringHealth(audit = false): Promise<MonitoringHealthSnapshot> {
-  const response = await fetch(`/api/monitoring/health${audit ? '?audit=1' : ''}`, {
-    cache: 'no-store',
-  });
-  if (!response.ok) {
-    throw new Error('Failed to load monitoring health');
-  }
-  return response.json();
-}
+import {
+  applyMonitoringIncidentAction,
+  fetchMonitoringHealthAction,
+  type MonitoringIncidentAction,
+} from '@/app/actions/monitoring';
 
 type IncidentActionPayload = {
-  action: 'acknowledge' | 'resolve' | 'dismiss' | 'clear_all';
+  action: MonitoringIncidentAction;
   fingerprint?: string;
 };
 
@@ -30,7 +25,9 @@ export default function OpsHealthClient() {
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['monitoring', 'health'],
     queryFn: async () => {
-      const result = await fetchMonitoringHealth(auditNextFetch);
+      const result: MonitoringHealthSnapshot = await fetchMonitoringHealthAction({
+        auditView: auditNextFetch,
+      });
       if (auditNextFetch) {
         setAuditNextFetch(false);
       }
@@ -41,17 +38,7 @@ export default function OpsHealthClient() {
   });
 
   const incidentActionMutation = useMutation({
-    mutationFn: async (payload: IncidentActionPayload) => {
-      const response = await fetch('/api/monitoring/incidents', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to apply incident action');
-      }
-      return response.json();
-    },
+    mutationFn: (payload: IncidentActionPayload) => applyMonitoringIncidentAction(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['monitoring', 'health'] });
       toast.success('Incident action applied');

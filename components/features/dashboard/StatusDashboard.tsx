@@ -7,42 +7,12 @@ import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Briefcase, Target, GraduationCap, TrendingUp, AlertCircle, Zap, Clock } from 'lucide-react';
-
-interface DashboardStats {
-  career: {
-    activeInterviews: number;
-    nextInterview?: { company: string; position: string; date: string };
-    applicationsPending: number;
-    pendingDays: number;
-    followUpNeeded: number;
-  };
-  goals: {
-    weeklyProgress: { onTrack: number; total: number };
-    byCategory: Record<string, number>;
-    overdue: number;
-  };
-  study: {
-    weekCompleted: number;
-    semesterPercent: number;
-    nextExam?: { courseName: string; daysUntil: number };
-  };
-  metrics: {
-    todayCompletion: number;
-    weekProgress: { day: number; total: number };
-    focusTime: string;
-  };
-}
-
-async function fetchStats(): Promise<DashboardStats> {
-  const response = await fetch('/api/dashboard/stats');
-  if (!response.ok) throw new Error('Failed to fetch stats');
-  return response.json();
-}
+import { fetchDashboardStatsAction } from '@/app/actions/dashboard';
 
 export default function StatusDashboard() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard', 'stats'],
-    queryFn: fetchStats,
+    queryFn: fetchDashboardStatsAction,
   });
 
   if (isLoading || !stats) {

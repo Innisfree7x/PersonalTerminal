@@ -10,6 +10,7 @@ import { useAppSound } from '@/lib/hooks/useAppSound';
 import { createDailyTaskAction, updateDailyTaskAction } from '@/app/actions/daily-tasks';
 import { toggleExerciseCompletionAction } from '@/app/actions/university';
 import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
+import { fetchDashboardNextTasksAction } from '@/app/actions/dashboard';
 
 interface DailyTask {
   id: string;
@@ -76,11 +77,7 @@ export default function FocusTasks() {
 
   const { data: nextTasksData } = useQuery({
     queryKey: ['dashboard', 'next-tasks'],
-    queryFn: async () => {
-      const response = await fetch('/api/dashboard/next-tasks');
-      if (!response.ok) throw new Error('Failed to fetch next tasks');
-      return response.json();
-    },
+    queryFn: fetchDashboardNextTasksAction,
     staleTime: 15 * 1000,
   });
 
