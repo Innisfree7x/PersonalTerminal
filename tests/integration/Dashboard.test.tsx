@@ -14,6 +14,10 @@ vi.mock('@/components/features/dashboard/DashboardStats', () => ({
   default: () => <div>Stats Mock</div>,
 }));
 
+vi.mock('@/components/features/dashboard/NextBestActionWidget', () => ({
+  default: () => <div>Next Best Action Mock</div>,
+}));
+
 vi.mock('@/components/features/dashboard/QuickActionsWidget', () => ({
   default: () => <div>Quick Actions Mock</div>,
 }));
@@ -68,6 +72,9 @@ describe('Dashboard Integration', () => {
         studyProgress: [],
         goals: [],
         interviews: [],
+        nextBestAction: null,
+        nextBestAlternatives: [],
+        executionScore: 0,
       }),
     } as Response);
   });

@@ -48,6 +48,7 @@ Comprehensive guide to all Prism features with workflows and usage examples.
   - New Goal
   - New Course
   - New Application
+  - Start Next Best Action
   - Start Focus Session (25m)
   - Start Deep Focus (50m)
 
@@ -87,6 +88,20 @@ The main command center that aggregates all tasks, events, and progress in one p
 ### Left Column: Focus Today
 
 Aggregates high-priority tasks from multiple sources.
+
+### Next Best Action Engine
+
+- A dedicated widget surfaces exactly one recommended action with the highest current impact.
+- Uses clean-architecture ranking logic (`lib/application/use-cases/execution-engine.ts`) based on:
+  - urgency (overdue/today/soon)
+  - impact
+  - effort
+- Includes two fallback alternatives if the primary action is dropped.
+- 3 action modes:
+  - `Do now`: executes directly where possible (task complete, exercise complete, or context jump)
+  - `Plan later`: converts the action into a tomorrow task
+  - `Drop`: dismisses recommendation for the current day session
+- Shows a `Daily Execution Score` (0-100) derived from completion momentum and backlog pressure.
 
 #### Task Sources
 

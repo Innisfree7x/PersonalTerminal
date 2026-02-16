@@ -55,3 +55,16 @@
   - Valid secrets in Vercel/Supabase
   - Successful production build/deploy
   - Smoke tests from `docs/GO_LIVE_RUNBOOK.md`
+
+## Roadmap V2 Kickoff (Execution Engine)
+
+- Status: `Started`
+- Implemented in this iteration:
+  - `Next Best Action` ranking engine in application layer (`lib/application/use-cases/execution-engine.ts`)
+  - `/today` widget with `Do now`, `Plan later`, `Drop` decisions
+  - `Daily Execution Score` (0-100) based on completion, momentum, and backlog penalties
+  - Command bar action: `Start Next Best Action`
+- Validation:
+  - `npm run type-check` ✅
+  - `npm run lint` ✅
+  - `npm run test -- --run` ✅

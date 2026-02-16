@@ -8,6 +8,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import FocusTasks from '@/components/features/dashboard/FocusTasks';
+import NextBestActionWidget from '@/components/features/dashboard/NextBestActionWidget';
 import ScheduleColumn from '@/components/features/dashboard/ScheduleColumn';
 import DashboardStats from '@/components/features/dashboard/DashboardStats';
 import QuickActionsWidget from '@/components/features/dashboard/QuickActionsWidget';
@@ -22,6 +23,7 @@ import {
 } from '@/lib/api/calendar';
 import { parseOAuthCallbackParams } from '@/lib/hooks/useNotifications';
 import { disconnectGoogleCalendarAction } from '@/app/actions/calendar';
+import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 
 export default function TodayPage() {
   const queryClient = useQueryClient();
@@ -62,7 +64,7 @@ export default function TodayPage() {
   });
 
   // Fetch next-tasks data (powers stats, study progress, deadlines)
-  const { data: nextTasksData } = useQuery({
+  const { data: nextTasksData } = useQuery<DashboardNextTasksResponse>({
     queryKey: ['dashboard', 'next-tasks'],
     queryFn: async () => {
       const response = await fetch('/api/dashboard/next-tasks');
@@ -120,6 +122,17 @@ export default function TodayPage() {
           interviewsUpcoming={stats.interviewsUpcoming}
         />
       )}
+
+      <NextBestActionWidget
+        executionScore={nextTasksData?.executionScore ?? 0}
+        nextBestAction={nextTasksData?.nextBestAction ?? null}
+        alternatives={nextTasksData?.nextBestAlternatives ?? []}
+        onChanged={() => {
+          queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
+          queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
+          queryClient.invalidateQueries({ queryKey: ['courses'] });
+        }}
+      />
 
       {/* MAIN 3-COLUMN GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

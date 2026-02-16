@@ -3,6 +3,13 @@ import { createClient } from '@/lib/auth/server';
 import { fetchCoursesWithExercises } from '@/lib/supabase/courses';
 import { fetchGoals } from '@/lib/supabase/goals';
 import { fetchApplications } from '@/lib/supabase/applications';
+import {
+  computeDailyExecutionScore,
+  pickNextBestAction,
+  type ExecutionCandidate,
+  type ExecutionActionType,
+  type RankedExecutionCandidate,
+} from '@/lib/application/use-cases/execution-engine';
 
 export interface DashboardStats {
   career: {
@@ -86,7 +93,18 @@ export interface DashboardNextTasksResponse {
   goals: NextGoal[];
   interviews: NextInterview[];
   studyProgress: StudyProgressCourse[];
+  nextBestAction: RankedExecutionCandidate | null;
+  nextBestAlternatives: RankedExecutionCandidate[];
+  executionScore: number;
   stats: DashboardTaskStats;
+}
+
+interface DashboardDailyTask {
+  id: string;
+  title: string;
+  completed: boolean;
+  date: string;
+  timeEstimate: string | null;
 }
 
 export async function getDashboardStats(userId: string): Promise<DashboardStats> {
@@ -339,19 +357,124 @@ export async function getDashboardNextTasks(userId: string): Promise<DashboardNe
   const supabase = createClient();
   const { data: dailyTasksData } = await supabase
     .from('daily_tasks')
-    .select('*')
+    .select('id, title, completed, date, time_estimate')
     .eq('user_id', userId)
     .eq('date', today.toISOString().split('T')[0] ?? '');
 
-  const dailyTasks = dailyTasksData || [];
+  const dailyTasks: DashboardDailyTask[] = (dailyTasksData || []).map((task) => ({
+    id: task.id,
+    title: task.title,
+    completed: task.completed,
+    date: task.date,
+    timeEstimate: task.time_estimate,
+  }));
+
+  const { data: completedExercisesTodayData } = await supabase
+    .from('exercise_progress')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('completed', true)
+    .gte('completed_at', todayStart.toISOString())
+    .lt('completed_at', new Date(todayStart.getTime() + 24 * 60 * 60 * 1000).toISOString());
+
+  const executionCandidates: ExecutionCandidate[] = [];
+
+  dailyTasks
+    .filter((task) => !task.completed)
+    .forEach((task) => {
+      executionCandidates.push({
+        id: `dt-${task.id}`,
+        type: 'daily-task' as ExecutionActionType,
+        title: task.title,
+        dueDate: todayStart,
+        impact: 3,
+        effort: task.timeEstimate ? 3 : 2,
+        payload: { taskId: task.id },
+      });
+    });
+
+  homeworks.forEach((homework) => {
+    executionCandidates.push({
+      id: homework.id,
+      type: 'homework' as ExecutionActionType,
+      title: `${homework.courseName} - Blatt ${homework.exerciseNumber}`,
+      impact: 4,
+      effort: 3,
+      payload: {
+        courseId: homework.courseId,
+        exerciseNumber: homework.exerciseNumber,
+      },
+      ...(homework.daysUntilExam !== undefined
+        ? {
+            subtitle: `Exam in ${homework.daysUntilExam}d`,
+            dueDate: new Date(todayStart.getTime() + homework.daysUntilExam * 24 * 60 * 60 * 1000),
+          }
+        : {}),
+    });
+  });
+
+  allGoals.forEach((goal) => {
+    const dueDate = startOfDay(goal.targetDate);
+    const daysUntilGoal = differenceInDays(dueDate, todayStart);
+    const progressRatio =
+      goal.metrics && goal.metrics.target > 0 ? goal.metrics.current / goal.metrics.target : null;
+
+    executionCandidates.push({
+      id: `goal-${goal.id}`,
+      type: 'goal' as ExecutionActionType,
+      title: goal.title,
+      subtitle: daysUntilGoal < 0 ? `${Math.abs(daysUntilGoal)}d overdue` : `Due in ${daysUntilGoal}d`,
+      dueDate,
+      impact: goal.category === 'career' || goal.category === 'learning' ? 4 : 3,
+      effort:
+        progressRatio !== null && progressRatio >= 0.7
+          ? 2
+          : 3,
+      payload: { goalId: goal.id },
+    });
+  });
+
+  applications
+    .filter((app) => app.status === 'interview' && app.interviewDate)
+    .forEach((app) => {
+      if (!app.interviewDate) return;
+      executionCandidates.push({
+        id: `interview-${app.id}`,
+        type: 'interview' as ExecutionActionType,
+        title: `${app.company} Interview Prep`,
+        subtitle: app.position,
+        dueDate: startOfDay(app.interviewDate),
+        impact: 5,
+        effort: 2,
+        payload: { applicationId: app.id },
+      });
+    });
+
+  const nextBest = pickNextBestAction(executionCandidates);
+  const overdueCandidates = executionCandidates.filter((candidate) => {
+    if (!candidate.dueDate) return false;
+    return differenceInDays(startOfDay(candidate.dueDate), todayStart) < 0;
+  }).length;
+
   const tasksCompleted = dailyTasks.filter((t) => t.completed).length;
+  const completedExercisesToday = completedExercisesTodayData?.length ?? 0;
+  const completedToday = tasksCompleted + completedExercisesToday;
   const tasksTotal = dailyTasks.length + homeworks.length;
+  const executionScore = computeDailyExecutionScore({
+    openCandidates: executionCandidates.length,
+    overdueCandidates,
+    completedToday,
+    plannedToday: tasksTotal,
+  });
 
   return {
     homeworks,
     goals: upcomingGoals,
     interviews: upcomingInterviews,
     studyProgress,
+    nextBestAction: nextBest.primary,
+    nextBestAlternatives: nextBest.alternatives,
+    executionScore,
     stats: {
       tasksToday: tasksTotal,
       tasksCompleted,

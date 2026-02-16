@@ -5,7 +5,8 @@ import { useEffect } from 'react';
 export type PrismCommandAction =
   | 'open-new-goal'
   | 'open-new-course'
-  | 'open-new-application';
+  | 'open-new-application'
+  | 'start-next-best-action';
 
 const PRISM_COMMAND_EVENT = 'prism:command-action';
 const PRISM_PENDING_COMMAND_KEY = 'prism:pending-command-action';

@@ -161,6 +161,16 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       shortcut: 'C',
     },
     {
+      id: 'action-next-best',
+      label: 'Start Next Best Action',
+      icon: Zap,
+      action: () => {
+        triggerPageAction('/today', 'start-next-best-action');
+      },
+      keywords: ['next', 'best', 'action', 'execute', 'priority', 'today'],
+      shortcut: 'N',
+    },
+    {
       id: 'action-theme-cycle',
       label: 'Cycle Theme (Midnight → Nord → Gold)',
       icon: Palette,
@@ -248,7 +258,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     (command: { id: string; action: () => void }) => {
       if (command.id.startsWith('theme-')) {
         play('click');
-      } else if (command.id.startsWith('action-add-')) {
+      } else if (command.id.startsWith('action-')) {
         play('swoosh');
       } else {
         play('click');
