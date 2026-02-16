@@ -163,9 +163,7 @@ export default function Header() {
             className="p-2 rounded-lg bg-primary text-white hover:bg-primary-hover transition-colors shadow-glow"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              // TODO: Open quick add modal
-            }}
+            onClick={openCommandPalette}
             aria-label="Quick add"
           >
             <Plus className="w-4 h-4" />

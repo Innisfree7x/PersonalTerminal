@@ -27,6 +27,7 @@ import {
   queuePrismCommandAction,
   type PrismCommandAction,
 } from '@/lib/hooks/useCommandActions';
+import { useAppSound } from '@/lib/hooks/useAppSound';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -50,6 +51,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   const [search, setSearch] = useState('');
   const { status: timerStatus, startTimer, pauseTimer, resumeTimer, stopTimer, setIsExpanded: setTimerExpanded } = useFocusTimer();
   const { setTheme, theme } = useTheme();
+  const { play } = useAppSound();
 
   // Navigation commands
   const navigationCommands: CommandItem[] = [
@@ -243,12 +245,19 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   ];
 
   const handleSelect = useCallback(
-    (command: { action: () => void }) => {
+    (command: { id: string; action: () => void }) => {
+      if (command.id.startsWith('theme-')) {
+        play('click');
+      } else if (command.id.startsWith('action-add-')) {
+        play('swoosh');
+      } else {
+        play('click');
+      }
       command.action();
       onClose();
       setSearch('');
     },
-    [onClose]
+    [onClose, play]
   );
 
   // Close on escape
