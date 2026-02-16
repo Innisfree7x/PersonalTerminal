@@ -3,6 +3,24 @@
 Use this checklist before promoting a build to production.
 Execution steps live in `docs/GO_LIVE_RUNBOOK.md`.
 
+## Fast Track (Solo Builder)
+
+If you are shipping quickly for personal daily use, treat these as the true minimum:
+
+- [ ] `main` is merged and latest CI on `main` is green.
+- [ ] `npm run type-check`, `npm run lint`, `npm run test -- --run` pass.
+- [ ] Vercel has required Supabase env vars:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- [ ] Production deploy is `Ready`.
+- [ ] 5-minute smoke test on live URL:
+  - login works
+  - `/today` loads
+  - create one goal or task
+  - update one setting and reload
+
+Everything else below is still recommended, but not a blocker for a fast solo release.
+
 ## 1. Scope Freeze
 
 - [ ] PR scope is final (no feature creep).
@@ -91,6 +109,11 @@ Execution steps live in `docs/GO_LIVE_RUNBOOK.md`.
 - redeploy previous SHA
 - verify auth and dashboard access
 - [ ] Incident owner and communication channel assigned.
+
+## Optional vs Required
+
+- Required (for your current single-user setup): sections `1, 2, 5(core vars), 8, basic smoke checks`.
+- Recommended (as app scales): sections `3, 4, 6, 7, 9, 10` fully enforced every release.
 
 ## Release Metadata Template
 

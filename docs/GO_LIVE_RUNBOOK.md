@@ -6,6 +6,22 @@ Pair this with `docs/RELEASE_CHECKLIST.md`:
 - Checklist = what must be true
 - Runbook = how to execute on release day
 
+## Fast Path (Personal Daily Use)
+
+Use this when you want speed with reasonable safety:
+
+1. Confirm merged PR and green CI on `main`.
+2. Verify required Vercel env vars exist:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+3. Open production URL and test:
+   - login
+   - `/today`
+   - one create/update action
+4. If all good, release is accepted.
+
+Use the full runbook below for team/multi-user production rigor.
+
 ## 1. Roles
 
 - Release Owner: runs deployment and final decision.
