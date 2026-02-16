@@ -16,12 +16,12 @@
 
 | Problem | Datei | Impact |
 |---------|-------|--------|
-| `staleTime: 1 Min` — zu kurz | `QueryProvider.tsx` | Mittel |
-| Framer Motion Delays bis 300ms | Alle Page-Komponenten | **Hoch** |
-| Kein Prefetch bei Navigation | `Sidebar` | **Hoch** |
+| `staleTime: 1 Min` — zu kurz | `QueryProvider.tsx` | Erledigt |
+| Framer Motion Delays bis 300ms | Alle Page-Komponenten | Erledigt (Core Pages) |
+| Kein Prefetch bei Navigation | `Sidebar` | Erledigt |
 | Server Actions als Fetch-Layer | `app/actions/*` | Mittel |
-| Today-Page: sequentielle Fetches | `today/page.tsx` | Mittel |
-| Fehlende Optimistic Updates | Career, Tasks, University | **Hoch** |
+| Today-Page: sequentielle Fetches | `today/page.tsx` | Niedrig (parallelisiert) |
+| Fehlende Optimistic Updates | Career, Tasks, University | Weitgehend erledigt |
 
 ---
 
@@ -31,12 +31,12 @@
 |---------|-----------|--------|
 | P1 — staleTime + gcTime erhöhen | P0 | ✅ done |
 | P2 — Framer Motion Delays entfernen | P0 | ✅ done (core dashboard pages) |
-| P3 — Prefetch on Hover (Sidebar) | P1 | 🔲 todo |
+| P3 — Prefetch on Hover (Sidebar) | P1 | ✅ done |
 | P4 — Optimistic Updates: Career | P1 | ✅ mostly done |
 | P5 — Optimistic Updates: Tasks | P1 | ✅ mostly done |
 | P6 — Optimistic Updates: University | P1 | ✅ mostly done |
-| P7 — Today-Page parallel fetchen | P2 | 🔲 todo |
-| P8 — Skeleton → Stale-Data anzeigen | P2 | 🔲 todo |
+| P7 — Today-Page parallel fetchen | P2 | ✅ done (parallel queries/widgets) |
+| P8 — Skeleton → Stale-Data anzeigen | P2 | ✅ done (isLoading-first pattern) |
 
 ---
 
@@ -66,6 +66,11 @@ Haupthebel für spürbare Geschwindigkeit sind P1, P2, P3, P8.
     - `app/(dashboard)/goals/page.tsx`
     - `app/(dashboard)/university/page.tsx`
   - kurze, direkte transitions statt gestaffelter delays
+- P3 umgesetzt:
+  - Sidebar prefetch bei `hover`, `focus`, `touchStart`
+  - Route-prefetch plus Query-prefetch für `/today`, `/goals`, `/university`
+  - Cache-aware guard: kein redundant fetch, wenn Query noch frisch ist
+  - Datei: `components/layout/Sidebar.tsx`
 
 ---
 

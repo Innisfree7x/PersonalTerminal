@@ -22,11 +22,11 @@ interface PowerHotkeysContextValue {
 
 const PAGE_HOTKEYS: Record<string, string> = {
   '1': '/today',
-  '2': '/goals',
-  '3': '/career',
+  '2': '/calendar',
+  '3': '/goals',
   '4': '/university',
-  '5': '/analytics',
-  '6': '/calendar',
+  '5': '/career',
+  '6': '/analytics',
   '7': '/settings',
 };
 

@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState, useMemo } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   LayoutDashboard,
   Calendar,
@@ -19,6 +20,9 @@ import {
 import { useSidebar } from './SidebarProvider';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { isAdminUser } from '@/lib/auth/authorization';
+import { fetchGoalsAction } from '@/app/actions/goals';
+import { fetchCoursesAction } from '@/app/actions/university';
+import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 
 const baseNavigation = [
   { name: 'Today', href: '/today', icon: LayoutDashboard, shortcut: '1' },
@@ -31,6 +35,8 @@ const baseNavigation = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const { user, signOut } = useAuth();
@@ -50,6 +56,77 @@ export default function Sidebar() {
     || 'User';
   const displayEmail = user?.email || '';
   const avatarInitial = displayName.charAt(0).toUpperCase();
+
+  const prefetchIfStale = useCallback(
+    (
+      queryKey: ReadonlyArray<string>,
+      staleTime: number,
+      queryFn: () => Promise<unknown>
+    ) => {
+      const state = queryClient.getQueryState(queryKey);
+      const isFresh =
+        typeof state?.dataUpdatedAt === 'number' &&
+        Date.now() - state.dataUpdatedAt < staleTime;
+      const isFetching = state?.fetchStatus === 'fetching';
+
+      if (isFresh || isFetching) return;
+
+      void queryClient.prefetchQuery({ queryKey, queryFn, staleTime });
+    },
+    [queryClient]
+  );
+
+  const handleNavIntent = useCallback(
+    (href: string) => {
+      router.prefetch(href);
+
+      if (href === '/goals') {
+        prefetchIfStale(['goals'], 5 * 60 * 1000, async () => {
+          const goals = await fetchGoalsAction();
+          return goals.map((goal) => ({
+            ...goal,
+            targetDate: new Date(goal.targetDate),
+            createdAt: new Date(goal.createdAt),
+          }));
+        });
+        return;
+      }
+
+      if (href === '/university') {
+        prefetchIfStale(['courses'], 5 * 60 * 1000, async () => {
+          const courses = await fetchCoursesAction();
+          return courses.map((course) => ({
+            ...course,
+            examDate: course.examDate ? new Date(course.examDate) : undefined,
+            createdAt: new Date(course.createdAt),
+            exercises: (course.exercises || []).map((ex) => ({
+              ...ex,
+              completedAt: ex.completedAt ? new Date(ex.completedAt) : undefined,
+              createdAt: new Date(ex.createdAt),
+            })),
+          }));
+        });
+        return;
+      }
+
+      if (href === '/today') {
+        const today = new Date().toISOString().split('T')[0] ?? '';
+
+        prefetchIfStale(['dashboard', 'next-tasks'], 15 * 1000, async () => {
+          const response = await fetch('/api/dashboard/next-tasks');
+          if (!response.ok) throw new Error('Failed to fetch next tasks');
+          return (await response.json()) as DashboardNextTasksResponse;
+        });
+
+        prefetchIfStale(['daily-tasks', today], 30 * 1000, async () => {
+          const response = await fetch(`/api/daily-tasks?date=${today}`);
+          if (!response.ok) throw new Error('Failed to fetch tasks');
+          return response.json();
+        });
+      }
+    },
+    [prefetchIfStale, router]
+  );
 
   return (
     <>
@@ -167,6 +244,9 @@ export default function Sidebar() {
                   key={item.name}
                   href={item.href}
                   onClick={() => setIsOpen(false)}
+                  onMouseEnter={() => handleNavIntent(item.href)}
+                  onFocus={() => handleNavIntent(item.href)}
+                  onTouchStart={() => handleNavIntent(item.href)}
                   className="relative block group"
                 >
                   {/* Active indicator */}
