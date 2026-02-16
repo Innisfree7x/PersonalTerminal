@@ -27,6 +27,7 @@ export interface MonitoringHealthSnapshot {
     bySeverity: Record<MonitoringSeverity, number>;
   };
   topIncidents: MonitoringIncident[];
+  auditLogMigrationApplied?: boolean;
   recentAdminAuditLogs?: AdminAuditLogRecord[];
 }
 

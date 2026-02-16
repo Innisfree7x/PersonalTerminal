@@ -17,6 +17,14 @@ interface CreateAdminAuditLogInput {
   metadata?: Json;
 }
 
+interface AuditTableStatusCache {
+  value: boolean;
+  expiresAt: number;
+}
+
+let auditTableStatusCache: AuditTableStatusCache | null = null;
+const AUDIT_TABLE_STATUS_TTL_MS = 30_000;
+
 function mapAuditRow(row: {
   id: string;
   actor_user_id: string;
@@ -36,6 +44,9 @@ function mapAuditRow(row: {
 }
 
 export async function createAdminAuditLog(input: CreateAdminAuditLogInput): Promise<void> {
+  const tableAvailable = await isAdminAuditLogTableAvailable();
+  if (!tableAvailable) return;
+
   const supabase = createClient();
   const { error } = await supabase.from('admin_audit_logs').insert({
     actor_user_id: input.actorUserId,
@@ -51,7 +62,14 @@ export async function createAdminAuditLog(input: CreateAdminAuditLogInput): Prom
   }
 }
 
-export async function fetchRecentAdminAuditLogs(limit = 25): Promise<AdminAuditLogRecord[]> {
+export async function fetchRecentAdminAuditLogs(
+  limit = 25
+): Promise<{ migrationApplied: boolean; logs: AdminAuditLogRecord[] }> {
+  const tableAvailable = await isAdminAuditLogTableAvailable();
+  if (!tableAvailable) {
+    return { migrationApplied: false, logs: [] };
+  }
+
   const supabase = createClient();
   const { data, error } = await supabase
     .from('admin_audit_logs')
@@ -61,8 +79,32 @@ export async function fetchRecentAdminAuditLogs(limit = 25): Promise<AdminAuditL
 
   if (error || !data) {
     // Keep endpoint stable even before migration is applied.
-    return [];
+    return { migrationApplied: false, logs: [] };
   }
 
-  return data.map(mapAuditRow);
+  return {
+    migrationApplied: true,
+    logs: data.map(mapAuditRow),
+  };
+}
+
+export async function isAdminAuditLogTableAvailable(): Promise<boolean> {
+  const now = Date.now();
+  if (auditTableStatusCache && auditTableStatusCache.expiresAt > now) {
+    return auditTableStatusCache.value;
+  }
+
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('admin_audit_logs')
+    .select('id')
+    .limit(1);
+
+  const available = !error;
+  auditTableStatusCache = {
+    value: available,
+    expiresAt: now + AUDIT_TABLE_STATUS_TTL_MS,
+  };
+
+  return available;
 }

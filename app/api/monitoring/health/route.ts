@@ -12,6 +12,7 @@ export async function GET() {
       generatedAt: new Date().toISOString(),
       totals: { incidents: 0, events: 0, bySeverity: { info: 0, warning: 0, error: 0, critical: 0 } },
       topIncidents: [],
+      auditLogMigrationApplied: false,
       recentAdminAuditLogs: [],
     });
   }
@@ -25,10 +26,11 @@ export async function GET() {
       userEmail: user.email || null,
     },
   });
-  const recentAdminAuditLogs = await fetchRecentAdminAuditLogs(25);
+  const { migrationApplied, logs: recentAdminAuditLogs } = await fetchRecentAdminAuditLogs(25);
   return NextResponse.json(
     {
       ...snapshot,
+      auditLogMigrationApplied: migrationApplied,
       recentAdminAuditLogs,
     },
     {

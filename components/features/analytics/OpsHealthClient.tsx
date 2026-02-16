@@ -66,6 +66,24 @@ export default function OpsHealthClient() {
 
       {data ? (
         <>
+          <div className="card-surface rounded-xl p-4 flex items-center justify-between">
+            <div>
+              <div className="text-xs text-text-tertiary uppercase tracking-wider">Audit Log Migration</div>
+              <div className="text-sm text-text-secondary mt-1">
+                {data.auditLogMigrationApplied ? 'admin_audit_logs table detected' : 'admin_audit_logs table missing'}
+              </div>
+            </div>
+            <span
+              className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                data.auditLogMigrationApplied
+                  ? 'bg-success/15 text-success border border-success/30'
+                  : 'bg-error/15 text-error border border-error/30'
+              }`}
+            >
+              {data.auditLogMigrationApplied ? 'Applied' : 'Missing'}
+            </span>
+          </div>
+
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="card-surface rounded-xl p-4">
               <div className="text-xs text-text-tertiary">Incidents</div>
