@@ -77,6 +77,7 @@
   - Client error ingestion endpoint (`app/api/monitoring/error/route.ts`).
   - Protected monitoring health endpoint (`app/api/monitoring/health/route.ts`) + Ops dashboard (`/analytics/ops`).
   - Severity inference, fingerprint dedupe, alert cooldowns, and ingress rate limiting.
+  - Admin audit logging for ops access/actions (`admin_audit_logs`) surfaced in Ops dashboard.
   - ErrorBoundary and global error screen now report incidents.
   - Optional critical alerting via `MONITORING_ALERT_WEBHOOK_URL`.
 - Speed:

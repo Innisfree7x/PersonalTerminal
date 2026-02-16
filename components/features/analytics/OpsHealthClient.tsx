@@ -118,6 +118,29 @@ export default function OpsHealthClient() {
               </div>
             )}
           </div>
+
+          <div className="card-surface rounded-xl p-4 space-y-3">
+            <div className="text-sm font-semibold text-text-primary">Recent Admin Actions</div>
+            {(data.recentAdminAuditLogs || []).length === 0 ? (
+              <div className="text-sm text-text-tertiary">No audit entries yet.</div>
+            ) : (
+              <div className="space-y-2">
+                {(data.recentAdminAuditLogs || []).slice(0, 12).map((entry) => (
+                  <div key={entry.id} className="rounded-lg border border-border bg-surface/60 px-3 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium text-text-primary">{entry.action}</span>
+                      <span className="text-xs text-text-tertiary">
+                        {new Date(entry.createdAt).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-text-tertiary mt-1">
+                      {entry.resource} • actor {entry.actorUserId.slice(0, 8)}…
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </>
       ) : null}
     </div>

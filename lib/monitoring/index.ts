@@ -1,10 +1,12 @@
 import { buildMonitoringFingerprint, inferSeverity } from '@/lib/monitoring/rules';
 import {
+  type MonitoringIncident,
   allowIngress,
   getMonitoringHealthSnapshot,
   markIncidentAlerted,
   upsertIncident,
 } from '@/lib/monitoring/store';
+import type { AdminAuditLogRecord } from '@/lib/monitoring/audit';
 
 export type MonitoringSeverity = 'info' | 'warning' | 'error' | 'critical';
 
@@ -17,9 +19,16 @@ export interface MonitoringPayload {
   source?: 'client' | 'server' | 'api';
 }
 
-export type MonitoringHealthSnapshot = ReturnType<
-  typeof import('@/lib/monitoring/store').getMonitoringHealthSnapshot
->;
+export interface MonitoringHealthSnapshot {
+  generatedAt: string;
+  totals: {
+    incidents: number;
+    events: number;
+    bySeverity: Record<MonitoringSeverity, number>;
+  };
+  topIncidents: MonitoringIncident[];
+  recentAdminAuditLogs?: AdminAuditLogRecord[];
+}
 
 function truncate(value: string, max = 4000): string {
   return value.length <= max ? value : `${value.slice(0, max)}...`;

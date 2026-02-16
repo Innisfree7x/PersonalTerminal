@@ -279,6 +279,33 @@ export interface Database {
           }
         ];
       };
+      admin_audit_logs: {
+        Row: {
+          id: string;
+          actor_user_id: string;
+          action: string;
+          resource: string;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          actor_user_id: string;
+          action: string;
+          resource: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          actor_user_id?: string;
+          action?: string;
+          resource?: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -309,3 +336,4 @@ export type SupabaseExerciseProgress = Database['public']['Tables']['exercise_pr
 
 // Helper type for Focus Session
 export type SupabaseFocusSession = Database['public']['Tables']['focus_sessions']['Row'];
+export type SupabaseAdminAuditLog = Database['public']['Tables']['admin_audit_logs']['Row'];

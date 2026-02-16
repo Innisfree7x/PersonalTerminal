@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { requireApiAdmin } from '@/lib/api/auth';
 import { getMonitoringHealth, isMonitoringEnabled } from '@/lib/monitoring';
+import { createAdminAuditLog, fetchRecentAdminAuditLogs } from '@/lib/monitoring/audit';
 
 export async function GET() {
-  const { errorResponse } = await requireApiAdmin();
+  const { user, errorResponse } = await requireApiAdmin();
   if (errorResponse) return errorResponse;
 
   if (!isMonitoringEnabled()) {
@@ -11,13 +12,29 @@ export async function GET() {
       generatedAt: new Date().toISOString(),
       totals: { incidents: 0, events: 0, bySeverity: { info: 0, warning: 0, error: 0, critical: 0 } },
       topIncidents: [],
+      recentAdminAuditLogs: [],
     });
   }
 
   const snapshot = getMonitoringHealth();
-  return NextResponse.json(snapshot, {
-    headers: {
-      'Cache-Control': 'no-store',
+  await createAdminAuditLog({
+    actorUserId: user.id,
+    action: 'monitoring.health.view',
+    resource: 'monitoring/health',
+    metadata: {
+      userEmail: user.email || null,
     },
   });
+  const recentAdminAuditLogs = await fetchRecentAdminAuditLogs(25);
+  return NextResponse.json(
+    {
+      ...snapshot,
+      recentAdminAuditLogs,
+    },
+    {
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    }
+  );
 }
