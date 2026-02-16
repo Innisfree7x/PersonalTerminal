@@ -11,8 +11,8 @@
 |---------|-----------|--------|
 | A1 — Page Navigation (1-7, B) | P0 | 🟡 in progress |
 | A2 — Listen-Navigation (J/K) | P0 | 🟡 in progress |
-| A3 — Abilities (Q W E R) | P1 | 🔲 todo |
-| A4 — Summoner Spells (D/F) | P1 | 🔲 todo |
+| A3 — Abilities (Q W E R) | P1 | 🟡 in progress |
+| A4 — Summoner Spells (D/F) | P1 | 🟡 in progress |
 | A5 — Tab Scoreboard | P1 | 🔲 todo |
 | A6 — Space (dringendstes Item) | P2 | 🔲 todo |
 | A7 — Ping-System (G+) | P2 | 🔲 todo |

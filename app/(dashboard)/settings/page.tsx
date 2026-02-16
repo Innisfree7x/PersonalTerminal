@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/Button';
 import { useAppSound } from '@/lib/hooks/useAppSound';
 import { updateProfileAction } from '@/app/actions/profile';
 import toast from 'react-hot-toast';
+import { usePowerHotkeys, type SummonerSpellAction } from '@/components/providers/PowerHotkeysProvider';
 
 const themes = [
     { id: 'midnight', name: 'Midnight', color: '#0A0A0A', border: '#262626' },
@@ -44,6 +45,7 @@ export default function SettingsPage() {
     const { user, signOut, refreshUser } = useAuth();
     const { theme, setTheme, accentColor, setAccentColor } = useTheme();
     const { play, settings: soundSettings, setEnabled: setSoundEnabled, setMasterVolume } = useAppSound();
+    const { summonerSpells, setSummonerSpell } = usePowerHotkeys();
     const [displayName, setDisplayName] = useState('');
     const [savingProfile, setSavingProfile] = useState(false);
 
@@ -70,6 +72,16 @@ export default function SettingsPage() {
             setSavingProfile(false);
         }
     };
+
+    const summonerOptions: Array<{ value: SummonerSpellAction; label: string; description: string }> = [
+        { value: 'quick-capture', label: 'Quick Capture', description: 'Open quick task input on Today' },
+        { value: 'focus-toggle', label: 'Focus Toggle', description: 'Start/pause/resume focus timer' },
+        { value: 'command-bar', label: 'Command Bar', description: 'Open the global command palette' },
+        { value: 'go-today', label: 'Go to Today', description: 'Jump directly to Today dashboard' },
+        { value: 'new-task', label: 'New Task', description: 'Create a new task action' },
+        { value: 'new-goal', label: 'New Goal', description: 'Open goal creation action' },
+        { value: 'start-next-best', label: 'Start Next Best', description: 'Execute next best action on Today' },
+    ];
 
     return (
         <div className="space-y-8 pb-12">
@@ -307,6 +319,68 @@ export default function SettingsPage() {
                                     <span className="text-xs text-text-tertiary">{description}</span>
                                 </motion.button>
                             ))}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Hotkeys Section */}
+            <section className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold text-text-primary flex items-center gap-2">
+                        <Sparkles className="w-5 h-5" />
+                        Power Hotkeys
+                    </h2>
+                    <span className="text-xs font-medium px-2 py-1 rounded bg-primary/10 text-primary">
+                        LoL-style controls
+                    </span>
+                </div>
+
+                <div className="p-6 bg-surface border border-border rounded-xl space-y-6">
+                    <p className="text-sm text-text-secondary">
+                        Global keys: <span className="font-mono text-text-primary">1-7</span>,{' '}
+                        <span className="font-mono text-text-primary">B</span>,{' '}
+                        <span className="font-mono text-text-primary">P</span>,{' '}
+                        <span className="font-mono text-text-primary">QWER</span>,{' '}
+                        <span className="font-mono text-text-primary">J/K</span>,{' '}
+                        <span className="font-mono text-text-primary">?</span>.
+                    </p>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-text-secondary">Summoner Spell D</label>
+                            <select
+                                value={summonerSpells.d}
+                                onChange={(event) => setSummonerSpell('d', event.target.value as SummonerSpellAction)}
+                                className="w-full px-3 py-2 bg-surface-hover text-text-primary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                            >
+                                {summonerOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                            <p className="text-xs text-text-tertiary">
+                                {summonerOptions.find((option) => option.value === summonerSpells.d)?.description}
+                            </p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-text-secondary">Summoner Spell F</label>
+                            <select
+                                value={summonerSpells.f}
+                                onChange={(event) => setSummonerSpell('f', event.target.value as SummonerSpellAction)}
+                                className="w-full px-3 py-2 bg-surface-hover text-text-primary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                            >
+                                {summonerOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                            <p className="text-xs text-text-tertiary">
+                                {summonerOptions.find((option) => option.value === summonerSpells.f)?.description}
+                            </p>
                         </div>
                     </div>
                 </div>
