@@ -367,6 +367,10 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
           triggerPageAction('/goals', 'open-new-goal');
           return true;
         }
+        if (key === 'e') {
+          dispatchListNavigationAction('enter');
+          return true;
+        }
         if (key === 'r') {
           router.push('/goals');
           return true;
@@ -378,6 +382,10 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
           triggerPageAction('/career', 'open-new-application');
           return true;
         }
+        if (key === 'e') {
+          dispatchListNavigationAction('enter');
+          return true;
+        }
         if (key === 'r') {
           router.push('/career');
           return true;
@@ -387,6 +395,10 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
       if (page === 'university') {
         if (key === 'q') {
           triggerPageAction('/university', 'open-new-course');
+          return true;
+        }
+        if (key === 'e') {
+          dispatchListNavigationAction('enter');
           return true;
         }
         if (key === 'r') {

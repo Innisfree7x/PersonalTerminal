@@ -39,6 +39,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Plus, Briefcase, Upload } from 'lucide-react';
 import { useAppSound } from '@/lib/hooks/useAppSound';
 import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
+import { useListNavigation } from '@/lib/hooks/useListNavigation';
 
 // --- Helper Functions ---
 
@@ -67,12 +68,16 @@ function KanbanColumn({
     column,
     applications,
     onApplicationClick,
-    onDelete
+    onDelete,
+    focusedApplicationId,
+    onApplicationFocus,
 }: {
     column: typeof KANBAN_COLUMNS[0];
     applications: Application[];
     onApplicationClick: (app: Application) => void;
     onDelete: (id: string) => void;
+    focusedApplicationId: string | null;
+    onApplicationFocus: (id: string) => void;
 }) {
     const { setNodeRef } = useDroppable({
         id: column.status,
@@ -115,6 +120,8 @@ function KanbanColumn({
                                 onClick={() => onApplicationClick(application)}
                                 onDelete={onDelete}
                                 compact
+                                focused={focusedApplicationId === application.id}
+                                onFocusHover={() => onApplicationFocus(application.id)}
                             />
                         ))
                     )}
@@ -349,6 +356,21 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
     const activeApplication = activeId ? applications.find(app => app.id === activeId) : null;
     const isEditMode = editingApplication !== null;
     const initialModalData = editingApplication ? applicationToCreateInput(editingApplication) : undefined;
+    const listNavigationItems = useMemo(() => {
+        const sorted = [...applications];
+        sorted.sort((a, b) => b.applicationDate.getTime() - a.applicationDate.getTime());
+        return sorted;
+    }, [applications]);
+
+    const { focusedId: focusedApplicationId, setFocusedId: setFocusedApplicationId } = useListNavigation<Application>({
+        items: listNavigationItems,
+        getId: (app) => app.id,
+        enabled: listNavigationItems.length > 0 && !isModalOpen && !isCvUploadOpen,
+        onEnter: (app) => {
+            setEditingApplication(app);
+            setIsModalOpen(true);
+        },
+    });
 
     return (
         <div className="space-y-6">
@@ -457,6 +479,8 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                                         setIsModalOpen(true);
                                     }}
                                     onDelete={handleDeleteApplication}
+                                    focusedApplicationId={focusedApplicationId}
+                                    onApplicationFocus={setFocusedApplicationId}
                                 />
                             ))}
                         </div>

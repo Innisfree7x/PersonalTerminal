@@ -8,6 +8,8 @@ interface GoalsListProps {
   goals: Goal[];
   onGoalClick?: (goal: Goal) => void;
   onDelete?: (goalId: string) => void;
+  focusedGoalId?: string | null;
+  onGoalFocus?: (goalId: string) => void;
 }
 
 const containerVariants = {
@@ -25,7 +27,13 @@ const itemVariants = {
   show: { opacity: 1, y: 0 },
 };
 
-export default function GoalsList({ goals, onGoalClick, onDelete }: GoalsListProps) {
+export default function GoalsList({
+  goals,
+  onGoalClick,
+  onDelete,
+  focusedGoalId = null,
+  onGoalFocus,
+}: GoalsListProps) {
   const handleGoalClick = (goal: Goal) => {
     if (onGoalClick) {
       onGoalClick(goal);
@@ -46,6 +54,9 @@ export default function GoalsList({ goals, onGoalClick, onDelete }: GoalsListPro
             layoutId={`goal-card-${goal.id}`}
             onClick={() => handleGoalClick(goal)}
             onDelete={onDelete}
+            focused={focusedGoalId === goal.id}
+            listNavId={goal.id}
+            {...(onGoalFocus ? { onFocusHover: () => onGoalFocus(goal.id) } : {})}
           />
         </motion.div>
       ))}

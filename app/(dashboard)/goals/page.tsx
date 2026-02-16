@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Plus, Target, Filter } from 'lucide-react';
 import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
+import { useListNavigation } from '@/lib/hooks/useListNavigation';
 
 type SortOption = 'date' | 'progress' | 'title';
 type FilterOption = GoalCategory | 'all';
@@ -229,6 +230,13 @@ export default function GoalsPage() {
   const saveErrorMessage = saveError instanceof Error ? saveError.message : null;
   const isSaving = isEditMode ? updateMutation.isPending : createMutation.isPending;
 
+  const { focusedId: focusedGoalId, setFocusedId: setFocusedGoalId } = useListNavigation<Goal>({
+    items: filteredAndSortedGoals,
+    getId: (goal) => goal.id,
+    enabled: filteredAndSortedGoals.length > 0 && !isModalOpen,
+    onEnter: handleGoalClick,
+  });
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const action = new URLSearchParams(window.location.search).get('action');
@@ -408,6 +416,8 @@ export default function GoalsPage() {
               goals={filteredAndSortedGoals}
               onGoalClick={handleGoalClick}
               onDelete={handleDeleteGoal}
+              focusedGoalId={focusedGoalId}
+              onGoalFocus={setFocusedGoalId}
             />
           </motion.div>
         ) : (

@@ -10,13 +10,17 @@ interface SortableApplicationItemProps {
     onClick: () => void;
     onDelete: (id: string) => void;
     compact?: boolean;
+    focused?: boolean;
+    onFocusHover?: () => void;
 }
 
 export default function SortableApplicationItem({
     application,
     onClick,
     onDelete,
-    compact
+    compact,
+    focused = false,
+    onFocusHover,
 }: SortableApplicationItemProps) {
     const {
         attributes,
@@ -40,9 +44,15 @@ export default function SortableApplicationItem({
             style={style}
             {...attributes}
             {...listeners}
+            data-list-nav-id={application.id}
+            data-focused={focused ? 'true' : 'false'}
             data-testid={`career-card-${application.id}`}
-            className="touch-none"
+            className={`touch-none relative rounded-lg ${focused ? 'ring-1 ring-primary/40 border border-primary/60' : ''}`}
+            onMouseEnter={onFocusHover}
         >
+            {focused && (
+                <div className="absolute -left-3 top-2 text-primary/80 text-xs font-mono z-10">▶</div>
+            )}
             <ApplicationCard
                 application={application}
                 onClick={onClick}

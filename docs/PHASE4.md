@@ -9,15 +9,17 @@
 
 | Feature | Priorität | Status |
 |---------|-----------|--------|
-| A1 — Page Navigation (1-7, B) | P0 | 🟡 in progress |
-| A2 — Listen-Navigation (J/K) | P0 | 🟡 in progress |
-| A3 — Abilities (Q W E R) | P1 | 🟡 in progress |
-| A4 — Summoner Spells (D/F) | P1 | 🟡 in progress |
-| A5 — Tab Scoreboard | P1 | 🟡 in progress |
-| A6 — Space (dringendstes Item) | P2 | 🟡 in progress |
-| A7 — Ping-System (G+) | P2 | 🟡 in progress |
-| A8 — Shop / Command Bar (P) | P2 | 🟡 in progress |
-| A9 — Shortcut Overlay (?) | P2 | 🟡 in progress |
+| A1 — Page Navigation (1-7, B) | P0 | ✅ done |
+| A2 — Listen-Navigation (J/K) | P0 | ✅ done |
+| A3 — Abilities (Q W E R) | P1 | ✅ done |
+| A4 — Summoner Spells (D/F) | P1 | ✅ done |
+| A5 — Tab Scoreboard | P1 | ✅ done |
+| A6 — Space (dringendstes Item) | P2 | ✅ done |
+| A7 — Ping-System (G+) | P2 | ✅ done |
+| A8 — Shop / Command Bar (P) | P2 | ✅ done |
+| A9 — Shortcut Overlay (?) | P2 | ✅ done |
+
+**Status:** Phase 4 shipped (v1 production-ready baseline). Phase 4.5 can add optional HUD/polish.
 
 ---
 

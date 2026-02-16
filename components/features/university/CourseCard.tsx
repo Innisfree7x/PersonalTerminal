@@ -15,9 +15,20 @@ interface CourseCardProps {
   onOpen: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  focused?: boolean;
+  listNavId?: string;
+  onFocusHover?: () => void;
 }
 
-export default function CourseCard({ course, onOpen, onEdit, onDelete }: CourseCardProps) {
+export default function CourseCard({
+  course,
+  onOpen,
+  onEdit,
+  onDelete,
+  focused = false,
+  listNavId,
+  onFocusHover,
+}: CourseCardProps) {
   const queryClient = useQueryClient();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -75,11 +86,16 @@ export default function CourseCard({ course, onOpen, onEdit, onDelete }: CourseC
 
   return (
     <motion.div
+      {...(listNavId ? { 'data-list-nav-id': listNavId } : {})}
+      data-focused={focused ? 'true' : 'false'}
       layoutId={`course-card-${course.id}`}
-      className="group relative bg-gradient-to-br from-university-accent/10 to-transparent backdrop-blur-sm border border-university-accent/30 rounded-xl overflow-hidden card-hover-glow cursor-pointer"
+      className={`group relative bg-gradient-to-br from-university-accent/10 to-transparent backdrop-blur-sm border rounded-xl overflow-hidden card-hover-glow cursor-pointer ${
+        focused ? 'border-primary/70 ring-1 ring-primary/40' : 'border-university-accent/30'
+      }`}
       whileHover={{ y: -2 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
       onClick={onOpen}
+      onMouseEnter={onFocusHover}
     >
       {/* Animated glow on hover */}
       <div className="absolute inset-0 bg-gradient-to-br from-university-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -88,6 +104,9 @@ export default function CourseCard({ course, onOpen, onEdit, onDelete }: CourseC
       <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-university-accent to-university-accent/70" />
 
       <div className="relative z-10 p-6">
+        {focused && (
+          <div className="absolute left-1 top-3 text-primary/80 text-xs font-mono">▶</div>
+        )}
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">

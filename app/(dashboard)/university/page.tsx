@@ -20,6 +20,7 @@ import { Plus, GraduationCap, BookOpen, Calendar, TrendingUp } from 'lucide-reac
 import toast from 'react-hot-toast';
 import AnimatedCounter from '@/components/ui/AnimatedCounter';
 import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
+import { useListNavigation } from '@/lib/hooks/useListNavigation';
 
 function normalizeCourse(course: any): CourseWithExercises {
   return {
@@ -216,6 +217,13 @@ export default function UniversityPage() {
     setIsModalOpen(false);
     setEditingCourse(null);
   };
+
+  const { focusedId: focusedCourseId, setFocusedId: setFocusedCourseId } = useListNavigation<CourseWithExercises>({
+    items: courses,
+    getId: (course) => course.id,
+    enabled: courses.length > 0 && !isModalOpen,
+    onEnter: handleEditCourse,
+  });
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -435,6 +443,9 @@ export default function UniversityPage() {
                   onOpen={() => handleEditCourse(course)}
                   onEdit={() => handleEditCourse(course)}
                   onDelete={() => handleDeleteCourse(course.id)}
+                  focused={focusedCourseId === course.id}
+                  listNavId={course.id}
+                  onFocusHover={() => setFocusedCourseId(course.id)}
                 />
               </motion.div>
             ))}

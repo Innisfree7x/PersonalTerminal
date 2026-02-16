@@ -11,6 +11,9 @@ interface GoalCardProps {
   onClick?: (() => void) | undefined;
   onDelete?: ((goalId: string) => void) | undefined;
   layoutId?: string;
+  focused?: boolean;
+  listNavId?: string;
+  onFocusHover?: () => void;
 }
 
 const categoryConfig: Record<Goal['category'], { icon: string; color: string; bgGradient: string; borderColor: string }> = {
@@ -47,7 +50,15 @@ const progressGradients: Record<Goal['category'], string> = {
   finance: 'from-success to-success/70',
 };
 
-export default function GoalCard({ goal, onClick, onDelete, layoutId }: GoalCardProps) {
+export default function GoalCard({
+  goal,
+  onClick,
+  onDelete,
+  layoutId,
+  focused = false,
+  listNavId,
+  onFocusHover,
+}: GoalCardProps) {
   const progress = goal.metrics
     ? Math.min(
       Math.round((goal.metrics.current / goal.metrics.target) * 100),
@@ -72,13 +83,18 @@ export default function GoalCard({ goal, onClick, onDelete, layoutId }: GoalCard
 
   return (
     <motion.div
+      {...(listNavId ? { 'data-list-nav-id': listNavId } : {})}
+      data-focused={focused ? 'true' : 'false'}
       {...(layoutId ? { layoutId } : {})}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
       onClick={onClick}
-      className={`group relative bg-gradient-to-br ${config.bgGradient} backdrop-blur-sm border ${config.borderColor} rounded-xl p-6 cursor-pointer overflow-hidden card-hover-glow`}
+      onMouseEnter={onFocusHover}
+      className={`group relative bg-gradient-to-br ${config.bgGradient} backdrop-blur-sm border rounded-xl p-6 cursor-pointer overflow-hidden card-hover-glow ${
+        focused ? 'border-primary/70 ring-1 ring-primary/40' : config.borderColor
+      }`}
     >
       {/* Animated glow on hover */}
       <div className={`absolute inset-0 bg-gradient-to-br ${config.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
@@ -87,6 +103,9 @@ export default function GoalCard({ goal, onClick, onDelete, layoutId }: GoalCard
       <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${progressGradients[goal.category]} opacity-80`} />
 
       <div className="relative z-10">
+        {focused && (
+          <div className="absolute -left-3 top-0 text-primary/80 text-xs font-mono">▶</div>
+        )}
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
