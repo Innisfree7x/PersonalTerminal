@@ -15,3 +15,7 @@ export function hasHotkeyBlocker(): boolean {
   return Boolean(document.querySelector('[data-hotkeys-disabled="true"]'));
 }
 
+export function hasFocusedListNavigationItem(): boolean {
+  if (typeof document === 'undefined') return false;
+  return Boolean(document.querySelector('[data-list-nav-focused="true"]'));
+}

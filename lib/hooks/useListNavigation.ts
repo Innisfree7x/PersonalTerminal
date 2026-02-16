@@ -148,6 +148,20 @@ export function useListNavigation<T>({
     };
   }, [enabled, focusedIndex, ids, items, onEnter, onEscape, onSpace]);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (enabled && focusedIndex !== null) {
+      document.body.setAttribute('data-list-nav-focused', 'true');
+      return () => {
+        document.body.removeAttribute('data-list-nav-focused');
+      };
+    }
+    document.body.removeAttribute('data-list-nav-focused');
+    return () => {
+      document.body.removeAttribute('data-list-nav-focused');
+    };
+  }, [enabled, focusedIndex]);
+
   return {
     focusedId: focusedIndex !== null ? (ids[focusedIndex] ?? null) : null,
     setFocusedId: (id: string | null) => {

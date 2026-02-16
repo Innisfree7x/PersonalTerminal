@@ -1,16 +1,18 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Badge } from '@/components/ui/Badge';
 import { Plus, Clock, Target, Briefcase, GraduationCap, BookOpen } from 'lucide-react';
 import { useAppSound } from '@/lib/hooks/useAppSound';
-import { createDailyTaskAction, updateDailyTaskAction } from '@/app/actions/daily-tasks';
+import { createDailyTaskAction, deleteDailyTaskAction, updateDailyTaskAction } from '@/app/actions/daily-tasks';
 import { toggleExerciseCompletionAction } from '@/app/actions/university';
 import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
 import { useListNavigation } from '@/lib/hooks/useListNavigation';
+import { subscribePingAction, type PingAction } from '@/lib/hotkeys/ping';
+import toast from 'react-hot-toast';
 
 interface DailyTask {
   id: string;
@@ -64,6 +66,8 @@ export default function FocusTasks() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskTime, setNewTaskTime] = useState('');
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const [criticalIds, setCriticalIds] = useState<Set<string>>(new Set());
+  const [inProgressIds, setInProgressIds] = useState<Set<string>>(new Set());
 
   usePrismCommandAction('open-new-task', () => {
     setShowAddInput(true);
@@ -181,6 +185,7 @@ export default function FocusTasks() {
     completed: boolean;
     source: 'manual' | 'homework' | 'goal' | 'interview';
     urgency: 'urgent' | 'important' | 'normal';
+    status?: 'in-progress' | undefined;
     timeEstimate?: string | undefined;
     // For homework completion
     courseId?: string | undefined;
@@ -246,7 +251,13 @@ export default function FocusTasks() {
       });
     });
 
-    const visible = allTasks.filter((task) => !hiddenIds.has(task.id) && !task.completed);
+    const withOverrides = allTasks.map((task) => ({
+      ...task,
+      urgency: criticalIds.has(task.id) ? 'urgent' : task.urgency,
+      status: inProgressIds.has(task.id) ? ('in-progress' as const) : undefined,
+    }));
+
+    const visible = withOverrides.filter((task) => !hiddenIds.has(task.id) && !task.completed);
     const done = allTasks.filter((task) => task.completed && !hiddenIds.has(task.id));
 
     const sorted = [...visible].sort((a, b) => {
@@ -259,7 +270,7 @@ export default function FocusTasks() {
     });
 
     return { sortedTasks: sorted, completedTasks: done };
-  }, [nextTasksData, dailyTasks, hiddenIds]);
+  }, [nextTasksData, dailyTasks, hiddenIds, criticalIds, inProgressIds]);
 
   const getSourceIcon = (source: TaskItem['source']) => {
     switch (source) {
@@ -279,7 +290,7 @@ export default function FocusTasks() {
     }
   };
 
-  const handleCheck = (task: TaskItem) => {
+  const handleCheck = useCallback((task: TaskItem) => {
     setHiddenIds((prev) => new Set(prev).add(task.id));
 
     if (task.source === 'homework' && task.courseId && task.exerciseNumber) {
@@ -291,7 +302,7 @@ export default function FocusTasks() {
       updateMutation.mutate({ id: task.id, completed: true });
     }
     // Goals and interviews: just hide for now (they're reminders, not completable here)
-  };
+  }, [exerciseMutation, updateMutation]);
 
   const { focusedId, setFocusedId } = useListNavigation<TaskItem>({
     items: sortedTasks,
@@ -300,6 +311,64 @@ export default function FocusTasks() {
     onEnter: handleCheck,
     onSpace: handleCheck,
   });
+
+  useEffect(() => {
+    const executePing = async (action: PingAction) => {
+      if (!focusedId) return;
+      const focusedTask = sortedTasks.find((task) => task.id === focusedId);
+      if (!focusedTask) return;
+
+      if (action === 'done') {
+        handleCheck(focusedTask);
+        toast.success('Ping: done');
+        return;
+      }
+
+      if (action === 'critical') {
+        setCriticalIds((prev) => new Set(prev).add(focusedTask.id));
+        toast.success('Ping: marked critical');
+        return;
+      }
+
+      if (action === 'in-progress') {
+        setInProgressIds((prev) => new Set(prev).add(focusedTask.id));
+        toast.success('Ping: in progress');
+        return;
+      }
+
+      if (action === 'snooze') {
+        if (focusedTask.source === 'manual') {
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          const tomorrowDate = tomorrow.toISOString().split('T')[0];
+          if (!tomorrowDate) return;
+
+          try {
+            await createDailyTaskAction({
+              title: focusedTask.title,
+              date: tomorrowDate,
+              ...(focusedTask.timeEstimate ? { timeEstimate: focusedTask.timeEstimate } : {}),
+            });
+            await deleteDailyTaskAction(focusedTask.id);
+            setHiddenIds((prev) => new Set(prev).add(focusedTask.id));
+            queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
+            toast.success('Ping: snoozed to tomorrow');
+          } catch {
+            toast.error('Failed to snooze task');
+          }
+          return;
+        }
+
+        setHiddenIds((prev) => new Set(prev).add(focusedTask.id));
+        toast.success('Ping: snoozed');
+      }
+    };
+
+    return subscribePingAction((action) => {
+      void executePing(action);
+    });
+  }, [focusedId, handleCheck, queryClient, sortedTasks]);
 
   const renderTaskRow = (task: TaskItem, index: number) => (
     <motion.div
@@ -346,6 +415,11 @@ export default function FocusTasks() {
                 size="sm"
               >
                 {task.urgency}
+              </Badge>
+            )}
+            {task.status === 'in-progress' && (
+              <Badge variant="info" size="sm">
+                in progress
               </Badge>
             )}
             {task.timeEstimate && (

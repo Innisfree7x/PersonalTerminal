@@ -1,14 +1,16 @@
 'use client';
 
-import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Keyboard } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { useCommandPalette } from '@/components/shared/CommandPaletteProvider';
-import { hasHotkeyBlocker, isTypingTarget } from '@/lib/hotkeys/guards';
+import { hasFocusedListNavigationItem, hasHotkeyBlocker, isTypingTarget } from '@/lib/hotkeys/guards';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import { useAppSound } from '@/lib/hooks/useAppSound';
 import { dispatchPrismCommandAction, queuePrismCommandAction, type PrismCommandAction } from '@/lib/hooks/useCommandActions';
 import { dispatchListNavigationAction } from '@/lib/hooks/useListNavigation';
+import { dispatchPingAction, type PingAction } from '@/lib/hotkeys/ping';
 
 interface PowerHotkeysContextValue {
   overlayOpen: boolean;
@@ -93,6 +95,26 @@ export function usePowerHotkeys() {
   return useContext(PowerHotkeysContext);
 }
 
+interface DashboardStatsResponse {
+  goals?: { overdue?: number };
+  metrics?: {
+    weekProgress?: { day?: number; total?: number };
+  };
+}
+
+interface NextTasksResponse {
+  homeworks?: Array<{ daysUntilExam?: number }>;
+  goals?: Array<{ daysUntil: number }>;
+  interviews?: Array<{ daysUntil: number }>;
+  stats?: {
+    tasksToday?: number;
+    tasksCompleted?: number;
+    exercisesThisWeek?: number;
+    goalsDueSoon?: number;
+    interviewsUpcoming?: number;
+  };
+}
+
 function ShortcutOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
   if (!open) return null;
 
@@ -124,6 +146,8 @@ function ShortcutOverlay({ open, onClose }: { open: boolean; onClose: () => void
               <li><span className="font-mono text-primary">P</span> open command bar</li>
               <li><span className="font-mono text-primary">Q/W/E/R</span> page abilities</li>
               <li><span className="font-mono text-primary">D/F</span> summoner spells</li>
+              <li><span className="font-mono text-primary">Tab (hold)</span> scoreboard</li>
+              <li><span className="font-mono text-primary">Space</span> urgent jump</li>
               <li><span className="font-mono text-primary">?</span> open this overlay</li>
             </ul>
           </div>
@@ -134,8 +158,65 @@ function ShortcutOverlay({ open, onClose }: { open: boolean; onClose: () => void
               <li><span className="font-mono text-primary">J / K</span> move focus</li>
               <li><span className="font-mono text-primary">Enter</span> trigger focused item</li>
               <li><span className="font-mono text-primary">Space</span> toggle focused item</li>
-              <li><span className="font-mono text-primary">Esc</span> clear focus / close overlay</li>
+              <li><span className="font-mono text-primary">G + G/V/E/F</span> ping action</li>
+              <li><span className="font-mono text-primary">Esc</span> clear focus / close overlays</li>
             </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScoreboardOverlay({
+  open,
+  stats,
+  nextTasks,
+}: {
+  open: boolean;
+  stats: DashboardStatsResponse | null;
+  nextTasks: NextTasksResponse | null;
+}) {
+  if (!open) return null;
+
+  const weekDay = stats?.metrics?.weekProgress?.day ?? 0;
+  const weekTotal = stats?.metrics?.weekProgress?.total ?? 7;
+  const tasksCompleted = nextTasks?.stats?.tasksCompleted ?? 0;
+  const tasksToday = nextTasks?.stats?.tasksToday ?? 0;
+  const exercisesThisWeek = nextTasks?.stats?.exercisesThisWeek ?? 0;
+  const goalsDueSoon = nextTasks?.stats?.goalsDueSoon ?? 0;
+  const interviewsUpcoming = nextTasks?.stats?.interviewsUpcoming ?? 0;
+  const overdueGoals = stats?.goals?.overdue ?? 0;
+
+  const taskScore = tasksToday > 0 ? Math.round((tasksCompleted / tasksToday) * 100) : 100;
+  const weekScore = weekTotal > 0 ? Math.round((weekDay / weekTotal) * 100) : 0;
+  const kda = `${tasksCompleted}/${Math.max(overdueGoals, 0)}/${Math.max(goalsDueSoon, 0)}`;
+  const grade = taskScore >= 85 ? 'S-' : taskScore >= 70 ? 'A-' : taskScore >= 55 ? 'B' : 'C';
+
+  return (
+    <div className="fixed inset-0 z-[68] pointer-events-none flex items-start justify-center pt-20">
+      <div data-hotkeys-disabled="true" className="w-[min(860px,95vw)] rounded-xl border border-border bg-surface/95 backdrop-blur-xl shadow-2xl p-5">
+        <div className="mb-3 text-sm uppercase tracking-wider text-text-tertiary">Weekly Scoreboard</div>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="rounded-lg border border-border bg-background/40 p-3">
+            <div className="text-xs text-text-tertiary mb-1">Tasks</div>
+            <div className="text-lg font-semibold text-text-primary">{tasksCompleted}/{tasksToday || 0}</div>
+            <div className="text-xs text-text-tertiary">{taskScore}% completion</div>
+          </div>
+          <div className="rounded-lg border border-border bg-background/40 p-3">
+            <div className="text-xs text-text-tertiary mb-1">Week Progress</div>
+            <div className="text-lg font-semibold text-text-primary">Day {weekDay}/{weekTotal}</div>
+            <div className="text-xs text-text-tertiary">{weekScore}% through week</div>
+          </div>
+          <div className="rounded-lg border border-border bg-background/40 p-3">
+            <div className="text-xs text-text-tertiary mb-1">Execution Signals</div>
+            <div className="text-sm text-text-primary">Exercises: {exercisesThisWeek} · Interviews: {interviewsUpcoming}</div>
+            <div className="text-xs text-text-tertiary">Goals due soon: {goalsDueSoon}</div>
+          </div>
+          <div className="rounded-lg border border-border bg-background/40 p-3">
+            <div className="text-xs text-text-tertiary mb-1">KDA / Grade</div>
+            <div className="text-lg font-semibold text-text-primary">{kda}</div>
+            <div className="text-xs text-text-tertiary">Grade: {grade}</div>
           </div>
         </div>
       </div>
@@ -150,6 +231,9 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
   const { status: timerStatus, startTimer, pauseTimer, resumeTimer, setIsExpanded: setTimerExpanded } = useFocusTimer();
   const { play } = useAppSound();
   const [overlayOpen, setOverlayOpen] = useState(false);
+  const [scoreboardOpen, setScoreboardOpen] = useState(false);
+  const [pingArmed, setPingArmed] = useState(false);
+  const pingTimeoutRef = useRef<number | null>(null);
   const [summonerSpells, setSummonerSpells] = useState<SummonerSpells>(() => {
     if (typeof window === 'undefined') return DEFAULT_SUMMONER_SPELLS;
     try {
@@ -157,6 +241,36 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
     } catch {
       return DEFAULT_SUMMONER_SPELLS;
     }
+  });
+
+  const { data: statsData } = useQuery<DashboardStatsResponse | null>({
+    queryKey: ['power-hotkeys', 'dashboard-stats'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/dashboard/stats');
+        if (!response.ok) return null;
+        return (await response.json()) as DashboardStatsResponse;
+      } catch {
+        return null;
+      }
+    },
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: nextTasksData } = useQuery<NextTasksResponse | null>({
+    queryKey: ['power-hotkeys', 'next-tasks'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/dashboard/next-tasks');
+        if (!response.ok) return null;
+        return (await response.json()) as NextTasksResponse;
+      } catch {
+        return null;
+      }
+    },
+    staleTime: 15 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const triggerPageAction = useCallback(
@@ -300,6 +414,66 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
     [pathname, router, setTimerExpanded, startTimer, triggerPageAction]
   );
 
+  const runUrgentJump = useCallback(() => {
+    const urgentExam = (nextTasksData?.homeworks ?? [])
+      .filter((item) => item.daysUntilExam !== undefined && item.daysUntilExam <= 7)
+      .sort((a, b) => (a.daysUntilExam ?? 999) - (b.daysUntilExam ?? 999))[0];
+    if (urgentExam) {
+      router.push('/university');
+      play('swoosh');
+      return;
+    }
+
+    const urgentInterview = (nextTasksData?.interviews ?? [])
+      .filter((item) => item.daysUntil <= 1)
+      .sort((a, b) => a.daysUntil - b.daysUntil)[0];
+    if (urgentInterview) {
+      router.push('/career');
+      play('swoosh');
+      return;
+    }
+
+    if ((statsData?.goals?.overdue ?? 0) > 0) {
+      router.push('/today');
+      play('click');
+      return;
+    }
+
+    const goalToday = (nextTasksData?.goals ?? [])
+      .filter((item) => item.daysUntil <= 0)
+      .sort((a, b) => a.daysUntil - b.daysUntil)[0];
+    if (goalToday) {
+      router.push('/goals');
+      play('click');
+      return;
+    }
+
+    router.push('/today');
+    play('click');
+  }, [nextTasksData?.goals, nextTasksData?.homeworks, nextTasksData?.interviews, play, router, statsData?.goals?.overdue]);
+
+  const startPingMode = useCallback(() => {
+    setPingArmed(true);
+    if (pingTimeoutRef.current) {
+      window.clearTimeout(pingTimeoutRef.current);
+      pingTimeoutRef.current = null;
+    }
+    pingTimeoutRef.current = window.setTimeout(() => {
+      setPingArmed(false);
+      pingTimeoutRef.current = null;
+    }, 1200);
+  }, []);
+
+  const runPingAction = useCallback((action: PingAction) => {
+    dispatchPingAction(action);
+    play('click');
+    setPingArmed(false);
+    if (pingTimeoutRef.current) {
+      window.clearTimeout(pingTimeoutRef.current);
+      pingTimeoutRef.current = null;
+    }
+  }, [play]);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
@@ -315,9 +489,51 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
 
       if (isCommandPaletteOpen || hasHotkeyBlocker()) return;
 
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        setScoreboardOpen(true);
+        return;
+      }
+
+      if (pingArmed) {
+        const pingKey = event.key.toLowerCase();
+        if (pingKey === 'g') {
+          event.preventDefault();
+          runPingAction('critical');
+          return;
+        }
+        if (pingKey === 'v') {
+          event.preventDefault();
+          runPingAction('in-progress');
+          return;
+        }
+        if (pingKey === 'e') {
+          event.preventDefault();
+          runPingAction('snooze');
+          return;
+        }
+        if (pingKey === 'f') {
+          event.preventDefault();
+          runPingAction('done');
+          return;
+        }
+        setPingArmed(false);
+        if (pingTimeoutRef.current) {
+          window.clearTimeout(pingTimeoutRef.current);
+          pingTimeoutRef.current = null;
+        }
+        return;
+      }
+
       if (event.shiftKey && event.key === '?') {
         event.preventDefault();
         setOverlayOpen(true);
+        return;
+      }
+
+      if (event.key === 'g' || event.key === 'G') {
+        event.preventDefault();
+        startPingMode();
         return;
       }
 
@@ -369,6 +585,13 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
         return;
       }
 
+      if (event.key === ' ') {
+        if (hasFocusedListNavigationItem()) return;
+        event.preventDefault();
+        runUrgentJump();
+        return;
+      }
+
       const destination = PAGE_HOTKEYS[event.key];
       if (!destination) return;
       event.preventDefault();
@@ -388,10 +611,32 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
     play,
     router,
     runAbility,
+    runPingAction,
+    runUrgentJump,
     runSummonerSpell,
+    pingArmed,
+    startPingMode,
     summonerSpells.d,
     summonerSpells.f,
   ]);
+
+  useEffect(() => {
+    const onKeyUp = (event: KeyboardEvent) => {
+      if (event.key === 'Tab') {
+        setScoreboardOpen(false);
+      }
+    };
+    window.addEventListener('keyup', onKeyUp);
+    return () => window.removeEventListener('keyup', onKeyUp);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (pingTimeoutRef.current) {
+        window.clearTimeout(pingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -408,6 +653,15 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
     <PowerHotkeysContext.Provider value={value}>
       {children}
       <ShortcutOverlay open={overlayOpen} onClose={() => setOverlayOpen(false)} />
+      <ScoreboardOverlay open={scoreboardOpen} stats={statsData ?? null} nextTasks={nextTasksData ?? null} />
+      {pingArmed && (
+        <div className="fixed bottom-6 right-6 z-[69] rounded-lg border border-primary/40 bg-surface/90 px-3 py-2 text-xs text-text-primary shadow-lg">
+          Ping mode: <span className="font-mono text-primary">G</span> critical ·{' '}
+          <span className="font-mono text-primary">V</span> progress ·{' '}
+          <span className="font-mono text-primary">E</span> snooze ·{' '}
+          <span className="font-mono text-primary">F</span> done
+        </div>
+      )}
     </PowerHotkeysContext.Provider>
   );
 }
