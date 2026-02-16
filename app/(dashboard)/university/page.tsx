@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfDay, differenceInDays } from 'date-fns';
-import { motion } from 'framer-motion';
+import { LayoutGroup, motion } from 'framer-motion';
 import { usePathname, useRouter } from 'next/navigation';
 import type { CourseWithExercises, CreateCourseInput } from '@/lib/schemas/course.schema';
 import {
@@ -388,72 +388,76 @@ export default function UniversityPage() {
         </div>
       </motion.div>
 
-      {/* Course Cards */}
-      {courses.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-center py-20 bg-surface/50 backdrop-blur-sm border border-border rounded-lg"
-        >
-          <div className="text-6xl mb-4">🎓</div>
-          <h3 className="text-xl font-semibold text-text-primary mb-2">
-            No courses yet
-          </h3>
-          <p className="text-text-tertiary mb-6">
-            Add your first course to start tracking your semester progress
-          </p>
-          <Button
-            onClick={() => {
-              setEditingCourse(null);
-              setIsModalOpen(true);
-            }}
-            variant="primary"
+      <LayoutGroup id="university-cards">
+        {/* Course Cards */}
+        {courses.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-center py-20 bg-surface/50 backdrop-blur-sm border border-border rounded-lg"
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Add First Course
-          </Button>
-        </motion.div>
-      ) : (
-        <div className="space-y-4">
-          {courses.map((course, index) => (
-            <motion.div
-              key={course.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 + index * 0.05 }}
+            <div className="text-6xl mb-4">🎓</div>
+            <h3 className="text-xl font-semibold text-text-primary mb-2">
+              No courses yet
+            </h3>
+            <p className="text-text-tertiary mb-6">
+              Add your first course to start tracking your semester progress
+            </p>
+            <Button
+              onClick={() => {
+                setEditingCourse(null);
+                setIsModalOpen(true);
+              }}
+              variant="primary"
             >
-              <CourseCard
-                course={course}
-                onEdit={() => handleEditCourse(course)}
-                onDelete={() => handleDeleteCourse(course.id)}
-              />
-            </motion.div>
-          ))}
-        </div>
-      )}
+              <Plus className="w-4 h-4 mr-2" />
+              Add First Course
+            </Button>
+          </motion.div>
+        ) : (
+          <div className="space-y-4">
+            {courses.map((course, index) => (
+              <motion.div
+                key={course.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + index * 0.05 }}
+              >
+                <CourseCard
+                  course={course}
+                  onOpen={() => handleEditCourse(course)}
+                  onEdit={() => handleEditCourse(course)}
+                  onDelete={() => handleDeleteCourse(course.id)}
+                />
+              </motion.div>
+            ))}
+          </div>
+        )}
 
-      {/* Course Modal */}
-      <CourseModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onSubmit={handleSubmitCourse}
-        {...(editingCourse ? { layoutId: `course-card-${editingCourse.id}` } : {})}
-        initialData={
-          editingCourse
-            ? {
-              name: editingCourse.name,
-              ects: editingCourse.ects,
-              numExercises: editingCourse.numExercises,
-              examDate: editingCourse.examDate,
-              semester: editingCourse.semester,
-            }
-            : undefined
-        }
-        isEdit={!!editingCourse}
-        isSaving={createMutation.isPending || updateMutation.isPending}
-        error={null}
-      />
+        {/* Course Modal */}
+        <CourseModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onSubmit={handleSubmitCourse}
+          {...(editingCourse ? { layoutId: `course-card-${editingCourse.id}` } : {})}
+          layoutCourse={editingCourse}
+          initialData={
+            editingCourse
+              ? {
+                name: editingCourse.name,
+                ects: editingCourse.ects,
+                numExercises: editingCourse.numExercises,
+                examDate: editingCourse.examDate,
+                semester: editingCourse.semester,
+              }
+              : undefined
+          }
+          isEdit={!!editingCourse}
+          isSaving={createMutation.isPending || updateMutation.isPending}
+          error={null}
+        />
+      </LayoutGroup>
     </div>
   );
 }

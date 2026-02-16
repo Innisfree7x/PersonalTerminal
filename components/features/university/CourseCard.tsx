@@ -12,11 +12,12 @@ import { ChevronDown, ChevronUp, Edit2, Trash2, Calendar, BookOpen } from 'lucid
 
 interface CourseCardProps {
   course: CourseWithExercises;
+  onOpen: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps) {
+export default function CourseCard({ course, onOpen, onEdit, onDelete }: CourseCardProps) {
   const queryClient = useQueryClient();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -75,9 +76,10 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
   return (
     <motion.div
       layoutId={`course-card-${course.id}`}
-      className="group relative bg-gradient-to-br from-university-accent/10 to-transparent backdrop-blur-sm border border-university-accent/30 rounded-xl overflow-hidden card-hover-glow"
+      className="group relative bg-gradient-to-br from-university-accent/10 to-transparent backdrop-blur-sm border border-university-accent/30 rounded-xl overflow-hidden card-hover-glow cursor-pointer"
       whileHover={{ y: -2 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      onClick={onOpen}
     >
       {/* Animated glow on hover */}
       <div className="absolute inset-0 bg-gradient-to-br from-university-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -91,12 +93,14 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <BookOpen className="w-5 h-5 text-university-accent" />
-              <h3 className="text-lg font-semibold text-text-primary">
+              <motion.h3 layoutId={`course-title-${course.id}`} className="text-lg font-semibold text-text-primary">
                 {course.name}
-              </h3>
-              <Badge variant="info" size="sm">
+              </motion.h3>
+              <motion.div layoutId={`course-ects-${course.id}`}>
+                <Badge variant="info" size="sm">
                 {course.ects} ECTS
-              </Badge>
+                </Badge>
+              </motion.div>
             </div>
 
             {/* Progress & Exam Info */}
@@ -127,7 +131,10 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
           {/* Action Buttons */}
           <div className="flex items-center gap-2 ml-4">
             <motion.button
-              onClick={onEdit}
+              onClick={(event) => {
+                event.stopPropagation();
+                onEdit();
+              }}
               className="p-2 text-text-tertiary hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -136,7 +143,10 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
               <Edit2 className="w-4 h-4" />
             </motion.button>
             <motion.button
-              onClick={onDelete}
+              onClick={(event) => {
+                event.stopPropagation();
+                onDelete();
+              }}
               className="p-2 text-text-tertiary hover:text-error hover:bg-error/10 rounded-lg transition-colors"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -145,7 +155,10 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
               <Trash2 className="w-4 h-4" />
             </motion.button>
             <motion.button
-              onClick={() => setIsExpanded(!isExpanded)}
+              onClick={(event) => {
+                event.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
               className="p-2 text-text-tertiary hover:text-text-primary hover:bg-surface-hover rounded-lg transition-colors"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -162,8 +175,9 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
             <span className="font-mono font-semibold text-text-primary">{progressPercent}% Complete</span>
             <span className="text-text-secondary">{completedCount} of {totalCount}</span>
           </div>
-          <div className="relative w-full h-4 bg-gray-800/80 rounded-full overflow-hidden border-2 border-gray-700/50">
+          <motion.div layoutId={`course-progress-shell-${course.id}`} className="relative w-full h-4 bg-gray-800/80 rounded-full overflow-hidden border-2 border-gray-700/50">
             <motion.div
+              layoutId={`course-progress-fill-${course.id}`}
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.8, ease: "easeOut" }}
@@ -179,7 +193,7 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
                 style={{ width: `${progressPercent}%` }}
               />
             )}
-          </div>
+          </motion.div>
         </div>
 
         {/* Expandable Exercise Grid */}
@@ -191,6 +205,7 @@ export default function CourseCard({ course, onEdit, onDelete }: CourseCardProps
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="pt-4 border-t border-border/50 overflow-hidden"
+              onClick={(event) => event.stopPropagation()}
             >
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
                 {course.exercises.map((exercise, index) => (
