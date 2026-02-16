@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/auth/server';
+import { isOnboardingComplete } from '@/lib/auth/profile';
 
 /**
  * Auth callback route for email confirmation and OAuth redirects
@@ -12,8 +13,11 @@ export async function GET(request: NextRequest) {
   if (code) {
     const supabase = createClient();
     await supabase.auth.exchangeCodeForSession(code);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    const target = isOnboardingComplete(user) ? '/today' : '/onboarding';
+    return NextResponse.redirect(new URL(target, request.url));
   }
 
-  // Redirect to dashboard after successful authentication
-  return NextResponse.redirect(new URL('/today', request.url));
+  return NextResponse.redirect(new URL('/auth/login', request.url));
 }

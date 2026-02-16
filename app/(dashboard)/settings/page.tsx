@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { useTheme } from '@/components/providers/ThemeProvider';
@@ -17,6 +18,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import { updateProfileAction } from '@/app/actions/profile';
+import toast from 'react-hot-toast';
 
 const themes = [
     { id: 'midnight', name: 'Midnight', color: '#0A0A0A', border: '#262626' },
@@ -38,9 +41,35 @@ const accents = [
 ] as const;
 
 export default function SettingsPage() {
-    const { user, signOut } = useAuth();
+    const { user, signOut, refreshUser } = useAuth();
     const { theme, setTheme, accentColor, setAccentColor } = useTheme();
     const { play, settings: soundSettings, setEnabled: setSoundEnabled, setMasterVolume } = useAppSound();
+    const [displayName, setDisplayName] = useState('');
+    const [savingProfile, setSavingProfile] = useState(false);
+
+    useEffect(() => {
+        const name =
+            user?.user_metadata?.full_name ||
+            user?.user_metadata?.fullName ||
+            user?.user_metadata?.name ||
+            user?.email?.split('@')[0] ||
+            '';
+        setDisplayName(name);
+    }, [user]);
+
+    const handleSaveProfile = async () => {
+        setSavingProfile(true);
+        try {
+            const trimmedName = displayName.trim();
+            await updateProfileAction(trimmedName ? { fullName: trimmedName } : {});
+            await refreshUser();
+            toast.success('Profile updated');
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to update profile');
+        } finally {
+            setSavingProfile(false);
+        }
+    };
 
     return (
         <div className="space-y-8 pb-12">
@@ -69,6 +98,29 @@ export default function SettingsPage() {
                                 <Mail className="w-4 h-4" />
                                 <span>{user?.email}</span>
                             </div>
+                        </div>
+                    </div>
+
+                    <div className="grid gap-3 md:grid-cols-[1fr_auto] mb-6">
+                        <div>
+                            <label className="block text-sm font-medium text-text-secondary mb-2">
+                                Display Name
+                            </label>
+                            <input
+                                value={displayName}
+                                onChange={(e) => setDisplayName(e.target.value)}
+                                placeholder="Your name"
+                                className="w-full px-3 py-2 bg-surface-hover text-text-primary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                            />
+                        </div>
+                        <div className="flex items-end">
+                            <Button
+                                variant="primary"
+                                onClick={handleSaveProfile}
+                                disabled={savingProfile}
+                            >
+                                {savingProfile ? 'Saving...' : 'Save Profile'}
+                            </Button>
                         </div>
                     </div>
 

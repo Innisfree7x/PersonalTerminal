@@ -1,5 +1,16 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { isOnboardingComplete } from '@/lib/auth/profile';
+
+const PROTECTED_PREFIXES = [
+  '/today',
+  '/calendar',
+  '/goals',
+  '/university',
+  '/career',
+  '/analytics',
+  '/settings',
+];
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next({
@@ -29,35 +40,26 @@ export async function middleware(request: NextRequest) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
+  const path = request.nextUrl.pathname;
+  const inProtectedArea = PROTECTED_PREFIXES.some((prefix) => path.startsWith(prefix));
+  const onboardingDone = isOnboardingComplete(user);
 
-  // Protect dashboard routes
-  if (!user && request.nextUrl.pathname.startsWith('/today')) {
-    return NextResponse.redirect(new URL('/auth/login', request.url));
-  }
-  if (!user && request.nextUrl.pathname.startsWith('/calendar')) {
-    return NextResponse.redirect(new URL('/auth/login', request.url));
-  }
-  if (!user && request.nextUrl.pathname.startsWith('/goals')) {
-    return NextResponse.redirect(new URL('/auth/login', request.url));
-  }
-  if (!user && request.nextUrl.pathname.startsWith('/university')) {
-    return NextResponse.redirect(new URL('/auth/login', request.url));
-  }
-  if (!user && request.nextUrl.pathname.startsWith('/career')) {
-    return NextResponse.redirect(new URL('/auth/login', request.url));
-  }
-  if (!user && request.nextUrl.pathname.startsWith('/analytics')) {
-    return NextResponse.redirect(new URL('/auth/login', request.url));
-  }
-  if (!user && request.nextUrl.pathname.startsWith('/settings')) {
+  if (!user && (inProtectedArea || path.startsWith('/onboarding'))) {
     return NextResponse.redirect(new URL('/auth/login', request.url));
   }
 
   // Redirect authenticated users away from auth pages
-  if (user && request.nextUrl.pathname.startsWith('/auth/login')) {
-    return NextResponse.redirect(new URL('/today', request.url));
+  if (user && path.startsWith('/auth/')) {
+    return NextResponse.redirect(new URL(onboardingDone ? '/today' : '/onboarding', request.url));
   }
-  if (user && request.nextUrl.pathname.startsWith('/auth/signup')) {
+
+  // Force onboarding before dashboard usage
+  if (user && !onboardingDone && inProtectedArea) {
+    return NextResponse.redirect(new URL('/onboarding', request.url));
+  }
+
+  // Keep completed users away from onboarding
+  if (user && onboardingDone && path.startsWith('/onboarding')) {
     return NextResponse.redirect(new URL('/today', request.url));
   }
 
@@ -73,6 +75,7 @@ export const config = {
     '/career/:path*',
     '/analytics/:path*',
     '/settings/:path*',
+    '/onboarding/:path*',
     '/auth/:path*',
     '/api/:path*',
   ],

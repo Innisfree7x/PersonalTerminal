@@ -36,14 +36,20 @@ export async function signUp(email: string, password: string, metadata?: {
   fullName?: string;
 }) {
   const supabase = createClient();
+  const metadataPayload = metadata
+    ? {
+        full_name: metadata.fullName,
+        onboarding_completed: false,
+      }
+    : {
+        onboarding_completed: false,
+      };
   
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: metadata ? {
-      data: metadata,
-      emailRedirectTo: `${window.location.origin}/auth/callback`,
-    } : {
+    options: {
+      data: metadataPayload,
       emailRedirectTo: `${window.location.origin}/auth/callback`,
     },
   });

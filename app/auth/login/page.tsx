@@ -7,6 +7,7 @@ import { signIn } from '@/lib/auth/client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { motion } from 'framer-motion';
+import { isOnboardingComplete } from '@/lib/auth/profile';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,8 +22,9 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await signIn(email, password);
-      router.push('/today');
+      const result = await signIn(email, password);
+      const target = isOnboardingComplete(result.user) ? '/today' : '/onboarding';
+      router.push(target);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in');

@@ -37,9 +37,13 @@ export default function SignUpPage() {
     }
 
     try {
-      await signUp(email, password, { fullName });
+      const result = await signUp(email, password, { fullName });
+      if (result.session && result.user) {
+        router.push('/onboarding');
+        router.refresh();
+        return;
+      }
       setSuccess(true);
-      // Redirect to login after 2 seconds
       setTimeout(() => {
         router.push('/auth/login');
       }, 2000);
