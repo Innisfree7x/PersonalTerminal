@@ -38,11 +38,43 @@ vi.mock('@/components/features/dashboard/PomodoroTimer', () => ({
   default: () => <div>Pomodoro Mock</div>,
 }));
 
+vi.mock('@/app/actions/calendar', () => ({
+  checkGoogleCalendarConnectionAction: vi.fn().mockResolvedValue(false),
+  fetchTodayCalendarEventsAction: vi.fn().mockResolvedValue([]),
+  disconnectGoogleCalendarAction: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock('@/lib/api/calendar', () => ({
-  checkGoogleCalendarConnection: vi.fn().mockResolvedValue(false),
-  fetchTodayCalendarEvents: vi.fn().mockResolvedValue([]),
-  disconnectGoogleCalendar: vi.fn().mockResolvedValue(undefined),
   connectGoogleCalendar: vi.fn(),
+}));
+
+const { fetchDashboardNextTasksActionMock } = vi.hoisted(() => ({
+  fetchDashboardNextTasksActionMock: vi.fn().mockResolvedValue({
+    stats: {
+      tasksToday: 0,
+      tasksCompleted: 0,
+      exercisesThisWeek: 0,
+      exercisesTotal: 0,
+      nextExam: null,
+      goalsDueSoon: 0,
+      interviewsUpcoming: 0,
+    },
+    studyProgress: [],
+    goals: [],
+    interviews: [],
+    nextBestAction: null,
+    nextBestAlternatives: [],
+    riskSignals: [],
+    executionScore: 0,
+    meta: {
+      generatedAt: new Date().toISOString(),
+      queryDurationMs: 10,
+    },
+  }),
+}));
+
+vi.mock('@/app/actions/dashboard', () => ({
+  fetchDashboardNextTasksAction: fetchDashboardNextTasksActionMock,
 }));
 
 vi.mock('@/lib/hooks/useNotifications', () => ({
@@ -57,31 +89,7 @@ vi.mock('@/lib/hooks/useNotifications', () => ({
 
 describe('Dashboard Integration', () => {
   beforeEach(() => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        stats: {
-          tasksToday: 0,
-          tasksCompleted: 0,
-          exercisesThisWeek: 0,
-          exercisesTotal: 0,
-          nextExam: null,
-          goalsDueSoon: 0,
-          interviewsUpcoming: 0,
-        },
-        studyProgress: [],
-        goals: [],
-        interviews: [],
-        nextBestAction: null,
-        nextBestAlternatives: [],
-        riskSignals: [],
-        executionScore: 0,
-        meta: {
-          generatedAt: new Date().toISOString(),
-          queryDurationMs: 10,
-        },
-      }),
-    } as Response);
+    fetchDashboardNextTasksActionMock.mockClear();
   });
 
   test('renders dashboard widgets', async () => {
@@ -95,11 +103,11 @@ describe('Dashboard Integration', () => {
     });
   });
 
-  test('loads next-tasks data from API', async () => {
+  test('loads next-tasks data from server action', async () => {
     renderWithProviders(<TodayPage />);
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/api/dashboard/next-tasks');
+      expect(fetchDashboardNextTasksActionMock).toHaveBeenCalled();
     });
   });
 });

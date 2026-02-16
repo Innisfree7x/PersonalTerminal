@@ -25,7 +25,6 @@ import {
   disconnectGoogleCalendarAction,
   fetchTodayCalendarEventsAction,
 } from '@/app/actions/calendar';
-import { fetchDashboardNextTasksAction } from '@/app/actions/dashboard';
 import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 
 export default function TodayPage() {
@@ -76,7 +75,11 @@ export default function TodayPage() {
   // Fetch next-tasks data (powers stats, study progress, deadlines)
   const { data: nextTasksData } = useQuery<DashboardNextTasksResponse>({
     queryKey: ['dashboard', 'next-tasks'],
-    queryFn: fetchDashboardNextTasksAction,
+    queryFn: async () => {
+      const response = await fetch('/api/dashboard/next-tasks');
+      if (!response.ok) throw new Error('Failed to fetch next tasks');
+      return response.json();
+    },
     staleTime: 15 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
