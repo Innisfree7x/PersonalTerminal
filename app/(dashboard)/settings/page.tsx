@@ -107,6 +107,8 @@ export default function SettingsPage() {
                                 Display Name
                             </label>
                             <input
+                                id="settings-display-name"
+                                data-testid="settings-display-name"
                                 value={displayName}
                                 onChange={(e) => setDisplayName(e.target.value)}
                                 placeholder="Your name"
@@ -115,6 +117,7 @@ export default function SettingsPage() {
                         </div>
                         <div className="flex items-end">
                             <Button
+                                data-testid="settings-save-profile"
                                 variant="primary"
                                 onClick={handleSaveProfile}
                                 disabled={savingProfile}

@@ -16,5 +16,13 @@ export async function login(page) {
   await page.locator('#email').fill(email);
   await page.locator('#password').fill(password);
   await page.getByRole('button', { name: /sign in/i }).click();
-  await page.waitForURL('**/today', { timeout: 30_000 });
+  await page.waitForURL(/\/(today|onboarding)$/, { timeout: 30_000 });
+
+  // If this account is not onboarded yet, complete onboarding first.
+  if (page.url().endsWith('/onboarding')) {
+    const fullNameInput = page.locator('#fullName');
+    await fullNameInput.fill('E2E Prism User');
+    await page.getByRole('button', { name: /continue to dashboard/i }).click();
+    await page.waitForURL('**/today', { timeout: 30_000 });
+  }
 }
