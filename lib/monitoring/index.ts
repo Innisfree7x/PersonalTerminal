@@ -1,3 +1,11 @@
+import { buildMonitoringFingerprint, inferSeverity } from '@/lib/monitoring/rules';
+import {
+  allowIngress,
+  getMonitoringHealthSnapshot,
+  markIncidentAlerted,
+  upsertIncident,
+} from '@/lib/monitoring/store';
+
 export type MonitoringSeverity = 'info' | 'warning' | 'error' | 'critical';
 
 export interface MonitoringPayload {
@@ -9,14 +17,19 @@ export interface MonitoringPayload {
   source?: 'client' | 'server' | 'api';
 }
 
+export type MonitoringHealthSnapshot = ReturnType<
+  typeof import('@/lib/monitoring/store').getMonitoringHealthSnapshot
+>;
+
 function truncate(value: string, max = 4000): string {
   return value.length <= max ? value : `${value.slice(0, max)}...`;
 }
 
 function normalizePayload(payload: MonitoringPayload): Required<MonitoringPayload> {
+  const inferredSeverity = inferSeverity(payload);
   return {
     message: truncate(payload.message || 'Unknown error'),
-    severity: payload.severity ?? 'error',
+    severity: inferredSeverity,
     errorName: truncate(payload.errorName ?? 'Error'),
     stack: truncate(payload.stack ?? ''),
     context: payload.context ?? {},
@@ -87,10 +100,35 @@ export async function captureServerError(error: unknown, payload: Omit<Monitorin
   // eslint-disable-next-line no-console
   console.error('[Monitoring]', normalized.message, normalized);
 
+  const fingerprint = buildMonitoringFingerprint({
+    message: normalized.message,
+    errorName: normalized.errorName,
+    source: normalized.source,
+  });
+
+  const { shouldAlert } = upsertIncident({
+    fingerprint,
+    message: normalized.message,
+    errorName: normalized.errorName,
+    source: normalized.source,
+    severity: normalized.severity,
+    context: normalized.context,
+  });
+
+  const shouldSendExternal =
+    shouldAlert || normalized.severity === 'critical' || normalized.severity === 'error';
+
+  if (!shouldSendExternal) {
+    await Promise.allSettled([tryCaptureWithSentry(normalized)]);
+    return;
+  }
+
   await Promise.allSettled([
     tryCaptureWithSentry(normalized),
     sendAlertWebhook(normalized),
   ]);
+
+  markIncidentAlerted(fingerprint);
 }
 
 export function captureClientError(payload: MonitoringPayload): void {
@@ -120,4 +158,12 @@ export function captureClientError(payload: MonitoringPayload): void {
 
 export function isMonitoringEnabled(): boolean {
   return process.env.NODE_ENV !== 'test';
+}
+
+export function getMonitoringHealth() {
+  return getMonitoringHealthSnapshot();
+}
+
+export function isMonitoringIngressAllowed(key: string): boolean {
+  return allowIngress(key);
 }

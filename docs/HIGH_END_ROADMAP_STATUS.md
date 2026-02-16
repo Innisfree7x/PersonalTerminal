@@ -75,6 +75,8 @@
 - Reliability:
   - Central monitoring utility (`lib/monitoring/index.ts`) with optional Sentry capture.
   - Client error ingestion endpoint (`app/api/monitoring/error/route.ts`).
+  - Protected monitoring health endpoint (`app/api/monitoring/health/route.ts`) + Ops dashboard (`/analytics/ops`).
+  - Severity inference, fingerprint dedupe, alert cooldowns, and ingress rate limiting.
   - ErrorBoundary and global error screen now report incidents.
   - Optional critical alerting via `MONITORING_ALERT_WEBHOOK_URL`.
 - Speed:

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Clock, Target, Flame, TrendingUp, Zap, Award } from 'lucide-react';
+import Link from 'next/link';
 import { fetchFocusAnalytics, fetchFocusSessions } from '@/lib/api/focus-sessions';
 import AnalyticsStatCard from '@/components/features/analytics/AnalyticsStatCard';
 import DailyFocusChart from '@/components/features/analytics/DailyFocusChart';
@@ -65,6 +66,12 @@ export default function AnalyticsPage() {
           </p>
         </div>
         <div className="flex gap-1 bg-surface rounded-xl p-1 border border-border">
+          <Link
+            href="/analytics/ops"
+            className="px-3 py-1.5 rounded-lg text-xs font-medium text-text-tertiary hover:text-text-secondary"
+          >
+            Ops Health
+          </Link>
           {TIME_RANGES.map((range) => (
             <button
               key={range.days}
