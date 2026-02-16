@@ -48,35 +48,6 @@ vi.mock('@/lib/api/calendar', () => ({
   connectGoogleCalendar: vi.fn(),
 }));
 
-const { fetchDashboardNextTasksActionMock } = vi.hoisted(() => ({
-  fetchDashboardNextTasksActionMock: vi.fn().mockResolvedValue({
-    stats: {
-      tasksToday: 0,
-      tasksCompleted: 0,
-      exercisesThisWeek: 0,
-      exercisesTotal: 0,
-      nextExam: null,
-      goalsDueSoon: 0,
-      interviewsUpcoming: 0,
-    },
-    studyProgress: [],
-    goals: [],
-    interviews: [],
-    nextBestAction: null,
-    nextBestAlternatives: [],
-    riskSignals: [],
-    executionScore: 0,
-    meta: {
-      generatedAt: new Date().toISOString(),
-      queryDurationMs: 10,
-    },
-  }),
-}));
-
-vi.mock('@/app/actions/dashboard', () => ({
-  fetchDashboardNextTasksAction: fetchDashboardNextTasksActionMock,
-}));
-
 vi.mock('@/lib/hooks/useNotifications', () => ({
   useNotifications: () => ({
     error: null,
@@ -89,7 +60,31 @@ vi.mock('@/lib/hooks/useNotifications', () => ({
 
 describe('Dashboard Integration', () => {
   beforeEach(() => {
-    fetchDashboardNextTasksActionMock.mockClear();
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        stats: {
+          tasksToday: 0,
+          tasksCompleted: 0,
+          exercisesThisWeek: 0,
+          exercisesTotal: 0,
+          nextExam: null,
+          goalsDueSoon: 0,
+          interviewsUpcoming: 0,
+        },
+        studyProgress: [],
+        goals: [],
+        interviews: [],
+        nextBestAction: null,
+        nextBestAlternatives: [],
+        riskSignals: [],
+        executionScore: 0,
+        meta: {
+          generatedAt: new Date().toISOString(),
+          queryDurationMs: 10,
+        },
+      }),
+    } as Response);
   });
 
   test('renders dashboard widgets', async () => {
@@ -103,11 +98,11 @@ describe('Dashboard Integration', () => {
     });
   });
 
-  test('loads next-tasks data from server action', async () => {
+  test('loads next-tasks data from API', async () => {
     renderWithProviders(<TodayPage />);
 
     await waitFor(() => {
-      expect(fetchDashboardNextTasksActionMock).toHaveBeenCalled();
+      expect(global.fetch).toHaveBeenCalledWith('/api/dashboard/next-tasks');
     });
   });
 });
