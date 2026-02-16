@@ -214,10 +214,18 @@
     @apply border-border;
   }
 
+  html,
+  body {
+    height: 100%;
+    background-color: rgb(var(--background));
+  }
+
   body {
     @apply bg-background text-text-primary;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
   }
 
   /* Enhanced Focus States for Accessibility */
