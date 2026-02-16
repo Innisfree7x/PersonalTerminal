@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { requireApiAuth } from '@/lib/api/auth';
+import { requireApiAdmin } from '@/lib/api/auth';
 import { getMonitoringHealth, isMonitoringEnabled } from '@/lib/monitoring';
 
 export async function GET() {
-  const { errorResponse } = await requireApiAuth();
+  const { errorResponse } = await requireApiAdmin();
   if (errorResponse) return errorResponse;
 
   if (!isMonitoringEnabled()) {

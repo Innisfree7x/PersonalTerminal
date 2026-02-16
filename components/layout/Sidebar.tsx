@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -11,14 +11,16 @@ import {
   GraduationCap,
   Briefcase,
   BarChart3,
+  ShieldCheck,
   ChevronLeft,
   Settings,
   LogOut
 } from 'lucide-react';
 import { useSidebar } from './SidebarProvider';
 import { useAuth } from '@/lib/auth/AuthProvider';
+import { isAdminUser } from '@/lib/auth/authorization';
 
-const navigation = [
+const baseNavigation = [
   { name: 'Today', href: '/today', icon: LayoutDashboard, shortcut: '1' },
   { name: 'Calendar', href: '/calendar', icon: Calendar, shortcut: '2' },
   { name: 'Goals', href: '/goals', icon: Target, shortcut: '3' },
@@ -33,6 +35,14 @@ export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const { user, signOut } = useAuth();
+  const isAdmin = isAdminUser(user);
+  const navigation = useMemo(
+    () =>
+      isAdmin
+        ? [...baseNavigation, { name: 'Ops Health', href: '/analytics/ops', icon: ShieldCheck, shortcut: '7' }]
+        : baseNavigation,
+    [isAdmin]
+  );
 
   // Extract display name from user metadata or email
   const displayName = user?.user_metadata?.full_name
@@ -42,7 +52,7 @@ export default function Sidebar() {
   const displayEmail = user?.email || '';
   const avatarInitial = displayName.charAt(0).toUpperCase();
 
-  // Keyboard shortcuts: Alt+1-6 for navigation (avoid hijacking browser/OS shortcuts).
+  // Keyboard shortcuts: Alt+1..n for navigation (avoid hijacking browser/OS shortcuts).
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -65,7 +75,7 @@ export default function Sidebar() {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [router]);
+  }, [navigation, router]);
 
   return (
     <>

@@ -175,6 +175,8 @@ graph LR
 | `GOOGLE_REDIRECT_URI` | OAuth callback URL | ⚠️ For Calendar |
 | `MONITORING_ALERT_WEBHOOK_URL` | Webhook URL for critical error alerts | ⚠️ Optional |
 | `SENTRY_DSN` | Sentry DSN for error ingestion (if Sentry package is installed) | ⚠️ Optional |
+| `ADMIN_EMAILS` | Comma-separated admin emails for server-side RBAC | ⚠️ Optional |
+| `NEXT_PUBLIC_ADMIN_EMAILS` | Comma-separated admin emails for client-side nav visibility | ⚠️ Optional |
 
 ---
 

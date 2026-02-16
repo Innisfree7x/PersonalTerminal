@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { isOnboardingComplete } from '@/lib/auth/profile';
+import { isAdminUser } from '@/lib/auth/authorization';
 
 const PROTECTED_PREFIXES = [
   '/today',
@@ -61,6 +62,11 @@ export async function middleware(request: NextRequest) {
   // Keep completed users away from onboarding
   if (user && onboardingDone && path.startsWith('/onboarding')) {
     return NextResponse.redirect(new URL('/today', request.url));
+  }
+
+  // Restrict ops monitoring page to admins only.
+  if (user && path.startsWith('/analytics/ops') && !isAdminUser(user)) {
+    return NextResponse.redirect(new URL('/analytics', request.url));
   }
 
   return response;

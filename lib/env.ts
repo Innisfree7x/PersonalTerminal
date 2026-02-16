@@ -51,6 +51,7 @@ const serverSchema = z.object({
   GOOGLE_REDIRECT_URI: z.string().optional(),
   MONITORING_ALERT_WEBHOOK_URL: z.string().url().optional(),
   SENTRY_DSN: z.string().url().optional(),
+  ADMIN_EMAILS: z.string().optional(),
 
   // Node environment
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -64,6 +65,7 @@ const clientSchema = z.object({
   // Supabase credentials
   NEXT_PUBLIC_SUPABASE_URL: z.string().url('NEXT_PUBLIC_SUPABASE_URL must be a valid URL'),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, 'NEXT_PUBLIC_SUPABASE_ANON_KEY is required'),
+  NEXT_PUBLIC_ADMIN_EMAILS: z.string().optional(),
 });
 
 /**
@@ -87,6 +89,7 @@ export const serverEnv = serverSchema.parse({
   GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
   MONITORING_ALERT_WEBHOOK_URL: process.env.MONITORING_ALERT_WEBHOOK_URL,
   SENTRY_DSN: process.env.SENTRY_DSN,
+  ADMIN_EMAILS: process.env.ADMIN_EMAILS,
   NODE_ENV: process.env.NODE_ENV,
 });
 
@@ -108,6 +111,7 @@ export const serverEnv = serverSchema.parse({
 export const clientEnv = clientSchema.parse({
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  NEXT_PUBLIC_ADMIN_EMAILS: process.env.NEXT_PUBLIC_ADMIN_EMAILS,
 });
 
 /**
