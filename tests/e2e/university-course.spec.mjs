@@ -24,6 +24,6 @@ test.describe('University flow', () => {
     await card.getByRole('button', { name: /expand/i }).click();
     await card.getByText('Blatt 1').click();
 
-    await expect(card.getByText('1 of 3')).toBeVisible({ timeout: 10_000 });
+    await expect(card.getByText(/1\/3/)).toBeVisible({ timeout: 10_000 });
   });
 });
