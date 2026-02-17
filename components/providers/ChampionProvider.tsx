@@ -316,21 +316,17 @@ function ChampionOverlay({
         </div>
       )}
 
-      {rangeActive && (
-        <motion.div
-          className="absolute rounded-full"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0.65, 0.88, 0.65], scale: [0.995, 1, 0.995] }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.85, repeat: Infinity, ease: 'easeInOut' }}
+      {mode === 'active' && rangeActive && (
+        <div
+          className="absolute rounded-full champion-range-ring"
           style={{
             width: visibleRangeRadius * 2,
             height: visibleRangeRadius * 2,
             left: championCenterX - visibleRangeRadius,
             top: championCenterY - visibleRangeRadius,
             border: `2px solid ${hexToRgba(abilityColors.q, 0.82)}`,
-            backgroundColor: 'transparent',
-            boxShadow: `0 0 20px ${hexToRgba(abilityColors.q, 0.42)}`,
+            backgroundColor: hexToRgba(abilityColors.q, 0.12),
+            boxShadow: `0 0 24px ${hexToRgba(abilityColors.q, 0.42)}, inset 0 0 22px ${hexToRgba(abilityColors.q, 0.16)}`,
           }}
         />
       )}
@@ -372,15 +368,13 @@ function ChampionOverlay({
           <div className="absolute inset-0 rounded-full border border-white/20" />
           {mode === 'active' && !rangeActive && (
             <motion.div
-              className="absolute left-1/2 top-1/2 rounded-full border"
+              className="absolute rounded-full border"
               animate={{ opacity: [0.22, 0.34, 0.22], scale: [0.98, 1, 0.98] }}
               transition={{ duration: 1.2, repeat: Infinity }}
               style={{
                 borderColor: hexToRgba(abilityColors.q, 0.35),
                 backgroundColor: hexToRgba(abilityColors.q, 0.07),
-                width: championSize * 0.9,
-                height: championSize * 0.9,
-                transform: 'translate(-50%, -50%)',
+                inset: '5%',
               }}
             />
           )}
@@ -729,6 +723,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
   });
 
   const pointerRef = useRef<Position>({ x: 0, y: 0 });
+  const positionRef = useRef<Position>(nearestViewportPosition());
   const randomWalkTimeoutRef = useRef<number | null>(null);
   const moveRafRef = useRef<number | null>(null);
   const taskStreakRef = useRef(0);
@@ -755,8 +750,8 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
   const markElementsInRange = useCallback((radius: number) => {
     const elements = document.querySelectorAll<HTMLElement>('[data-interactive]');
     const center = {
-      x: position.x + championSize / 2,
-      y: position.y + championSize / 2,
+      x: positionRef.current.x + championSize / 2,
+      y: positionRef.current.y + championSize / 2,
     };
 
     elements.forEach((element) => {
@@ -777,7 +772,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       element.removeAttribute('data-champion-focus');
       element.removeAttribute('data-champion-dimmed');
     });
-  }, [championSize, position.x, position.y]);
+  }, [championSize]);
 
   const fireLightslinger = useCallback((center: Position, baseAngle: number) => {
     for (let i = 0; i < 2; i += 1) {
@@ -799,8 +794,8 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
   const markElementsOnBeam = useCallback((angleDeg: number) => {
     const elements = document.querySelectorAll<HTMLElement>('[data-interactive]');
     const start = {
-      x: position.x + championSize / 2,
-      y: position.y + championSize / 2,
+      x: positionRef.current.x + championSize / 2,
+      y: positionRef.current.y + championSize / 2,
     };
     const rad = (angleDeg * Math.PI) / 180;
     const end = {
@@ -836,7 +831,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
         }, 2800);
       }
     });
-  }, [championSize, position.x, position.y]);
+  }, [championSize]);
 
   const awardXp = useCallback((xpDelta: number) => {
     if (!xpDelta) return;
@@ -867,7 +862,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
 
     if (ability === 'q') {
       setAnimation('cast_q');
-      const center = { x: position.x + championSize / 2, y: position.y + championSize / 2 };
+      const center = { x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 };
       const angle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
       const beamDistance = 640;
       addEffect({ type: 'q', x: center.x, y: center.y, angle, distance: beamDistance }, 450);
@@ -906,7 +901,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
 
     if (ability === 'w') {
       setAnimation('cast_w');
-      const center = { x: position.x + championSize / 2, y: position.y + championSize / 2 };
+      const center = { x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 };
       const angle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
       const distToPointer = Math.hypot(pointerRef.current.x - center.x, pointerRef.current.y - center.y);
       const boltDistance = Math.min(420, Math.max(160, distToPointer));
@@ -926,7 +921,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
 
     if (ability === 'e') {
       setAnimation('cast_e');
-      const currentCenter = { x: position.x + championSize / 2, y: position.y + championSize / 2 };
+      const currentCenter = { x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 };
       const target = clampToViewport(
         { x: pointerRef.current.x - championSize / 2, y: pointerRef.current.y - championSize / 2 },
         championSize
@@ -943,9 +938,10 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
           220 + i * 30
         );
       }
-      addEffect({ type: 'e', x: position.x + championSize / 2, y: position.y + championSize / 2 }, 400);
+      addEffect({ type: 'e', x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 }, 400);
       const dashAngle = (Math.atan2(targetCenter.y - currentCenter.y, targetCenter.x - currentCenter.x) * 180) / Math.PI;
       fireLightslinger(targetCenter, dashAngle);
+      positionRef.current = target;
       setPosition(target);
       setTargetPosition(target);
       localStorage.setItem(POSITION_KEY, JSON.stringify(target));
@@ -956,7 +952,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
 
     if (ability === 'r') {
       setAnimation('cast_r');
-      const center = { x: position.x + championSize / 2, y: position.y + championSize / 2 };
+      const center = { x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 };
       const baseAngle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
       addEffect({ type: 'r', x: center.x, y: center.y, angle: baseAngle }, 1100);
       for (let lane = -1; lane <= 1; lane += 2) {
@@ -1010,8 +1006,6 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
     isMoving,
     markElementsOnBeam,
     play,
-    position.x,
-    position.y,
     settings.soundsEnabled,
     startCooldown,
     fireLightslinger,
@@ -1041,8 +1035,10 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
     if (savedPosition) {
       try {
         const parsed = JSON.parse(savedPosition) as Position;
-        setPosition(clampToViewport(parsed, championSize));
-        setTargetPosition(clampToViewport(parsed, championSize));
+        const savedPos = clampToViewport(parsed, championSize);
+        positionRef.current = savedPos;
+        setPosition(savedPos);
+        setTargetPosition(savedPos);
       } catch {
         // ignore
       }
@@ -1086,7 +1082,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (event.type === 'PAGE_CHANGE') {
-        addEffect({ type: 'move', x: position.x + championSize / 2, y: position.y + championSize / 2 }, 240);
+        addEffect({ type: 'move', x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 }, 240);
       }
 
       if (event.type === 'LEVEL_UP') {
@@ -1110,7 +1106,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       }, 900);
     });
     return unsubscribe;
-  }, [addEffect, awardXp, championSize, play, position.x, position.y, settings.eventReactions, settings.soundsEnabled]);
+  }, [addEffect, awardXp, championSize, play, settings.eventReactions, settings.soundsEnabled]);
 
   useEffect(() => {
     const animationInterval = window.setInterval(() => {
@@ -1149,7 +1145,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       );
       setTargetPosition(target);
       setIsMoving(true);
-      setDirection(target.x < position.x ? 'left' : 'right');
+      setDirection(target.x < positionRef.current.x ? 'left' : 'right');
       setAnimation('walk');
       addEffect({ type: 'move', x: clientX, y: clientY }, 450);
       if (settings.soundsEnabled) play('champ-move');
@@ -1178,7 +1174,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener('contextmenu', onContextMenu);
       window.removeEventListener('mousedown', onPointerDown, true);
     };
-  }, [addEffect, championSize, mode, play, position.x, rangeActive, settings.enabled, settings.soundsEnabled]);
+  }, [addEffect, championSize, mode, play, rangeActive, settings.enabled, settings.soundsEnabled]);
 
   useEffect(() => {
     if (!settings.enabled || mode !== 'active') return;
@@ -1196,8 +1192,15 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       }
       if (key === 'x') {
         event.preventDefault();
-        setRangeActive(true);
-        markElementsInRange(settings.rangeRadius);
+        setRangeActive((prev) => {
+          const next = !prev;
+          if (next) {
+            markElementsInRange(settings.rangeRadius);
+          } else {
+            cleanupInteractiveAttrs();
+          }
+          return next;
+        });
         return;
       }
       if (key === 'q' || key === 'w' || key === 'e' || key === 'r') {
@@ -1205,28 +1208,32 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
         castAbility(key as AbilityKey);
       }
     };
-    const onKeyUp = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() === 'x') {
-        setRangeActive(false);
-        cleanupInteractiveAttrs();
-      }
-    };
 
     window.addEventListener('keydown', onKeyDown);
-    window.addEventListener('keyup', onKeyUp);
     return () => {
       window.removeEventListener('keydown', onKeyDown);
-      window.removeEventListener('keyup', onKeyUp);
     };
   }, [castAbility, markElementsInRange, mode, settings.enabled, settings.rangeRadius]);
 
   useEffect(() => {
-    if (!rangeActive) return;
+    if (mode !== 'active' || !rangeActive) return;
     const id = window.setInterval(() => {
       markElementsInRange(settings.rangeRadius);
     }, 120);
     return () => window.clearInterval(id);
-  }, [markElementsInRange, rangeActive, settings.rangeRadius]);
+  }, [markElementsInRange, mode, rangeActive, settings.rangeRadius]);
+
+  useEffect(() => {
+    if (rangeActive) return;
+    cleanupInteractiveAttrs();
+  }, [rangeActive]);
+
+  useEffect(() => {
+    // Hard guard: never keep X-range artifacts when mode changes.
+    if (mode === 'active') return;
+    setRangeActive(false);
+    cleanupInteractiveAttrs();
+  }, [mode]);
 
   useEffect(() => {
     if (!settings.enabled || !isMoving) return;
@@ -1246,10 +1253,12 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
           return current;
         }
         const move = Math.min(distance, BASE_SPEED * dt);
-        return {
+        const next = {
           x: current.x + (dx / distance) * move,
           y: current.y + (dy / distance) * move,
         };
+        positionRef.current = next;
+        return next;
       });
       moveRafRef.current = requestAnimationFrame(tick);
     };
@@ -1276,7 +1285,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
           championSize
         );
         setTargetPosition(target);
-        setDirection(target.x < position.x ? 'left' : 'right');
+        setDirection(target.x < positionRef.current.x ? 'left' : 'right');
         setIsMoving(true);
         setAnimation('walk');
         schedule();
@@ -1287,7 +1296,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       if (randomWalkTimeoutRef.current) window.clearTimeout(randomWalkTimeoutRef.current);
       randomWalkTimeoutRef.current = null;
     };
-  }, [championSize, mode, position.x, settings.enabled, settings.passiveBehavior]);
+  }, [championSize, mode, settings.enabled, settings.passiveBehavior]);
 
   useEffect(() => {
     if (settings.enabled) return;
@@ -1318,7 +1327,11 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
         effects={effects}
         cooldowns={cooldowns}
         rangeActive={rangeActive}
-        onChampionClick={() => setMode((prev) => (prev === 'active' ? 'passive' : 'active'))}
+        onChampionClick={() => {
+          setRangeActive(false);
+          cleanupInteractiveAttrs();
+          setMode((prev) => (prev === 'active' ? 'passive' : 'active'));
+        }}
       />
     </ChampionContext.Provider>
   );
