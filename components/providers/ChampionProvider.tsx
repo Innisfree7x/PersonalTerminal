@@ -318,7 +318,6 @@ function ChampionOverlay({
 
       {rangeActive && (
         <motion.div
-          key={`range-${Math.round(championCenterX)}-${Math.round(championCenterY)}-${visibleRangeRadius}`}
           className="absolute rounded-full"
           initial={{ opacity: 0 }}
           animate={{ opacity: [0.65, 0.88, 0.65], scale: [0.995, 1, 0.995] }}
