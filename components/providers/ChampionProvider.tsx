@@ -102,6 +102,7 @@ const ABILITY_COOLDOWNS: Record<AbilityKey, number> = {
   e: 5,
   r: 60,
 };
+const MOVE_COMMAND_COLOR = '#22C55E';
 
 const DEFAULT_SETTINGS: ChampionSettings = {
   enabled: true,
@@ -260,6 +261,8 @@ function ChampionOverlay({
   const championColor = `${championConfig.colors.primaryFrom} ${championConfig.colors.primaryTo}`;
   const spriteRow = animationRow(animation);
   const abilityColors = championConfig.colors;
+  const isWalking = animation === 'walk';
+  const isCasting = animation.startsWith('cast_');
   const spriteStyle = {
     width: championSize,
     height: championSize,
@@ -269,6 +272,8 @@ function ChampionOverlay({
     backgroundPosition: `-${frame * championSize}px -${spriteRow * championSize}px`,
     backgroundRepeat: 'no-repeat' as const,
     imageRendering: 'pixelated' as const,
+    transform: direction === 'left' ? 'scaleX(-1) rotate(-1.5deg)' : 'scaleX(1) rotate(1.5deg)',
+    transformOrigin: 'center',
   };
 
   return (
@@ -278,7 +283,7 @@ function ChampionOverlay({
           aria-hidden="true"
           className="absolute inset-0"
           style={{
-            boxShadow: `inset 0 0 0 2px ${hexToRgba(abilityColors.q, 0.45)}, inset 0 0 42px ${hexToRgba(abilityColors.q, 0.22)}`,
+            boxShadow: `inset 0 0 0 1px ${hexToRgba(abilityColors.q, 0.18)}`,
           }}
         />
       )}
@@ -302,15 +307,17 @@ function ChampionOverlay({
         <motion.div
           className="absolute rounded-full"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          animate={{ opacity: [0.28, 0.36, 0.28] }}
           exit={{ opacity: 0 }}
+          transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }}
           style={{
             width: settings.rangeRadius * 2,
             height: settings.rangeRadius * 2,
             left: position.x + championSize / 2 - settings.rangeRadius,
             top: position.y + championSize / 2 - settings.rangeRadius,
-            border: `1px solid ${hexToRgba(abilityColors.q, 0.55)}`,
-            backgroundColor: hexToRgba(abilityColors.q, 0.12),
+            border: `1px solid ${hexToRgba(abilityColors.q, 0.42)}`,
+            backgroundColor: hexToRgba(abilityColors.q, 0.04),
+            boxShadow: `0 0 16px ${hexToRgba(abilityColors.q, 0.2)}`,
           }}
         />
       )}
@@ -322,21 +329,54 @@ function ChampionOverlay({
         style={{ left: position.x, top: position.y }}
         animate={{ x: 0, y: 0 }}
       >
-        <motion.div
-          className={`relative rounded-full border border-white/20 bg-gradient-to-br ${championColor} shadow-[0_0_30px_rgba(56,189,248,0.35)]`}
-          style={spriteStyle}
-        >
+        {mode === 'active' && (
           <div
-            className="absolute inset-0 rounded-full border border-white/20"
-            style={{ transform: direction === 'left' ? 'scaleX(-1)' : 'scaleX(1)' }}
+            className="pointer-events-none absolute"
+            style={{
+              left: championSize / 2 + (direction === 'left' ? -26 : 26),
+              top: championSize * 0.6,
+              width: 12,
+              height: 4,
+              backgroundColor: hexToRgba('#84DEFF', 0.7),
+              boxShadow: `0 0 8px ${hexToRgba('#84DEFF', 0.55)}`,
+              transform: `translate(-50%, -50%) ${direction === 'left' ? 'rotate(175deg)' : 'rotate(5deg)'}`,
+            }}
           />
+        )}
+        <motion.div
+          className={`relative rounded-full border border-white/15 bg-gradient-to-br ${championColor}`}
+          style={spriteStyle}
+          animate={{
+            y: isWalking ? [0, -2, 0, -1, 0] : [0, -1, 0],
+            scale: isCasting ? [1, 1.02, 1] : 1,
+          }}
+          transition={{
+            duration: isWalking ? 0.42 : 1.8,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        >
+          <div className="absolute inset-0 rounded-full border border-white/20" />
           {mode === 'active' && (
             <motion.div
-              className="absolute -inset-2 rounded-full border-2"
-              animate={{ opacity: [0.4, 0.9, 0.4], scale: [0.96, 1.06, 0.96] }}
+              className="absolute left-1/2 top-1/2 rounded-full border"
+              animate={{ opacity: [0.22, 0.34, 0.22], scale: [0.98, 1, 0.98] }}
               transition={{ duration: 1.2, repeat: Infinity }}
               style={{
-                borderColor: hexToRgba(abilityColors.q, 0.68),
+                borderColor: hexToRgba(abilityColors.q, 0.35),
+                backgroundColor: hexToRgba(abilityColors.q, 0.07),
+                width: championSize * 0.9,
+                height: championSize * 0.9,
+                transform: 'translate(-50%, -50%)',
+              }}
+            />
+          )}
+          {mode === 'active' && (
+            <div
+              className="absolute left-1/2 top-[92%] h-[2px] w-9 -translate-x-1/2 rounded-full"
+              style={{
+                backgroundColor: hexToRgba('#D8ECFF', 0.45),
+                transform: `translateX(-50%) rotate(${direction === 'left' ? 170 : 10}deg)`,
               }}
             />
           )}
@@ -432,14 +472,31 @@ function ChampionOverlay({
               </motion.div>
             )}
             {effect.type === 'w' && (
-              <div
-                className="h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                style={{
-                  border: `1px solid ${hexToRgba(abilityColors.w, 0.65)}`,
-                  backgroundColor: hexToRgba(abilityColors.w, 0.16),
-                  boxShadow: `0 0 30px ${hexToRgba(abilityColors.w, 0.35)}`,
-                }}
-              />
+              <motion.div
+                className="absolute -translate-x-1/2 -translate-y-1/2"
+                initial={{ opacity: 0.9, scale: 0.75 }}
+                animate={{ opacity: [0.9, 0.45, 0], scale: [0.75, 1.05, 1.2] }}
+                transition={{ duration: 0.28, ease: 'easeOut' }}
+              >
+                <div className="relative h-11 w-11">
+                  <div
+                    className="absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2"
+                    style={{ backgroundColor: hexToRgba(abilityColors.w, 0.92) }}
+                  />
+                  <div
+                    className="absolute top-1/2 left-0 h-[2px] w-full -translate-y-1/2"
+                    style={{ backgroundColor: hexToRgba(abilityColors.w, 0.92) }}
+                  />
+                  <div
+                    className="absolute left-1/2 top-1/2 h-full w-[2px] -translate-x-1/2 -translate-y-1/2 rotate-45"
+                    style={{ backgroundColor: hexToRgba('#FFFFFF', 0.8) }}
+                  />
+                  <div
+                    className="absolute left-1/2 top-1/2 h-full w-[2px] -translate-x-1/2 -translate-y-1/2 -rotate-45"
+                    style={{ backgroundColor: hexToRgba('#FFFFFF', 0.8) }}
+                  />
+                </div>
+              </motion.div>
             )}
             {effect.type === 'w-bolt' && (
               <motion.div
@@ -548,7 +605,7 @@ function ChampionOverlay({
             {effect.type === 'move' && (
               <div
                 className="h-10 w-10 -translate-x-1/2 -translate-y-1/2 rotate-45 border-b-2 border-r-2"
-                style={{ borderColor: hexToRgba(abilityColors.e, 0.85) }}
+                style={{ borderColor: hexToRgba(MOVE_COMMAND_COLOR, 0.95) }}
               />
             )}
             {effect.type === 'pentakill' && (
@@ -588,7 +645,7 @@ function ChampionOverlay({
                 {key}
               </div>
               <div className="text-[11px] text-text-tertiary">
-                {key === 'q' ? 'Light' : key === 'w' ? 'Shield' : key === 'e' ? 'Dash' : 'Ult'}
+                {key === 'q' ? 'Light' : key === 'w' ? 'Mark' : key === 'e' ? 'Dash' : 'Ult'}
               </div>
               {cooldowns[key] > 0 && (
                 <div className="absolute inset-0 grid place-items-center rounded-lg bg-black/60 text-sm font-bold text-amber-200">
@@ -635,7 +692,6 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
   const randomWalkTimeoutRef = useRef<number | null>(null);
   const moveRafRef = useRef<number | null>(null);
   const taskStreakRef = useRef(0);
-  const wActiveRef = useRef(false);
 
   const championSize = SCALE_TO_SIZE[settings.renderScale];
 
@@ -663,9 +719,6 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       y: position.y + championSize / 2,
     };
 
-    let nearest: HTMLElement | null = null;
-    let nearestDistance = Number.POSITIVE_INFINITY;
-
     elements.forEach((element) => {
       const rect = element.getBoundingClientRect();
       const elementCenter = {
@@ -675,10 +728,6 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       const distance = Math.hypot(elementCenter.x - center.x, elementCenter.y - center.y);
       if (distance <= radius) {
         element.setAttribute('data-champion-in-range', 'true');
-        if (distance < nearestDistance) {
-          nearest = element;
-          nearestDistance = distance;
-        }
       } else {
         element.removeAttribute('data-champion-in-range');
       }
@@ -686,19 +735,26 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
 
     elements.forEach((element) => {
       element.removeAttribute('data-champion-focus');
-      if (wActiveRef.current) {
-        element.setAttribute('data-champion-dimmed', 'true');
-      } else {
-        element.removeAttribute('data-champion-dimmed');
-      }
+      element.removeAttribute('data-champion-dimmed');
     });
-
-    const nearestElement = nearest as HTMLElement | null;
-    if (wActiveRef.current && nearestElement) {
-      nearestElement.setAttribute('data-champion-focus', 'true');
-      nearestElement.removeAttribute('data-champion-dimmed');
-    }
   }, [championSize, position.x, position.y]);
+
+  const fireLightslinger = useCallback((center: Position, baseAngle: number) => {
+    for (let i = 0; i < 2; i += 1) {
+      window.setTimeout(() => {
+        addEffect(
+          {
+            type: 'r-bullet',
+            x: center.x,
+            y: center.y,
+            angle: baseAngle + (i === 0 ? -3 : 3),
+            distance: 240 + Math.random() * 60,
+          },
+          320
+        );
+      }, i * 95);
+    }
+  }, [addEffect]);
 
   const markElementsOnBeam = useCallback((angleDeg: number) => {
     const elements = document.querySelectorAll<HTMLElement>('[data-interactive]');
@@ -802,6 +858,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
         );
       });
       markElementsOnBeam(angle);
+      fireLightslinger(center, angle);
       startCooldown('q');
       window.setTimeout(() => setAnimation(isMoving ? 'walk' : 'idle'), 320);
       return;
@@ -817,17 +874,12 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       const hitX = center.x + Math.cos(rad) * boltDistance;
       const hitY = center.y + Math.sin(rad) * boltDistance;
 
-      addEffect({ type: 'w', x: center.x, y: center.y }, 850);
+      addEffect({ type: 'w', x: center.x, y: center.y }, 260);
       addEffect({ type: 'w-bolt', x: center.x, y: center.y, angle, distance: boltDistance }, 360);
       addEffect({ type: 'w-mark', x: hitX, y: hitY }, 450);
       addEffect({ type: 'w-mark', x: hitX, y: hitY, angle: 45 }, 450);
-      wActiveRef.current = true;
-      markElementsInRange(settings.rangeRadius);
+      fireLightslinger(center, angle);
       startCooldown('w');
-      window.setTimeout(() => {
-        wActiveRef.current = false;
-        markElementsInRange(settings.rangeRadius);
-      }, 5000);
       window.setTimeout(() => setAnimation(isMoving ? 'walk' : 'idle'), 320);
       return;
     }
@@ -852,6 +904,8 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
         );
       }
       addEffect({ type: 'e', x: position.x + championSize / 2, y: position.y + championSize / 2 }, 400);
+      const dashAngle = (Math.atan2(targetCenter.y - currentCenter.y, targetCenter.x - currentCenter.x) * 180) / Math.PI;
+      fireLightslinger(targetCenter, dashAngle);
       setPosition(target);
       setTargetPosition(target);
       localStorage.setItem(POSITION_KEY, JSON.stringify(target));
@@ -878,7 +932,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
           380
         );
       }
-      for (let i = 0; i < 18; i += 1) {
+      for (let i = 0; i < 30; i += 1) {
         const angle = baseAngle + (Math.random() - 0.5) * 8;
         const laneOffset = i % 2 === 0 ? -8 : 8;
         window.setTimeout(() => {
@@ -890,9 +944,9 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
               angle,
               distance: 420 + Math.random() * 140,
             },
-            460
+            560
           );
-        }, i * 48);
+        }, i * 95);
       }
       const elements = document.querySelectorAll<HTMLElement>('[data-interactive]');
       elements.forEach((element) => {
@@ -903,6 +957,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
         addEffect({ type: 'pentakill', x: window.innerWidth / 2, y: window.innerHeight / 3 }, 1700);
         dispatchChampionEvent({ type: 'PENTAKILL', count: taskStreakRef.current });
         if (settings.soundsEnabled) play('champ-pentakill');
+        taskStreakRef.current = 0;
       }
       startCooldown('r');
       window.setTimeout(() => setAnimation('victory'), 260);
@@ -913,14 +968,13 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
     championSize,
     cooldownReadyAt,
     isMoving,
-    markElementsInRange,
     markElementsOnBeam,
     play,
     position.x,
     position.y,
-    settings.rangeRadius,
     settings.soundsEnabled,
     startCooldown,
+    fireLightslinger,
   ]);
 
   useEffect(() => {
@@ -970,7 +1024,11 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (event.type === 'GOAL_CREATED') {
-        setAnimation('victory');
+        setAnimation('recall');
+      }
+
+      if (event.type === 'APPLICATION_SENT') {
+        setAnimation('cast_r');
       }
 
       if (event.type === 'DEADLINE_WARNING') {
@@ -994,6 +1052,12 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       if (event.type === 'LEVEL_UP') {
         setAnimation('recall');
         if (settings.soundsEnabled) play('champ-level-up');
+      }
+
+      if (event.type === 'STREAK_BROKEN') {
+        taskStreakRef.current = 0;
+        setAnimation('recall');
+        if (settings.soundsEnabled) play('champ-panic');
       }
 
       const xpDelta = XP_FOR_ACTION[event.type] ?? 0;
@@ -1159,7 +1223,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!settings.enabled || settings.passiveBehavior === 'idle-only' || mode !== 'passive') return;
     const schedule = () => {
-      const delay = 30000 + Math.random() * 30000;
+      const delay = 15000 + Math.random() * 15000;
       randomWalkTimeoutRef.current = window.setTimeout(() => {
         const width = window.innerWidth;
         const height = window.innerHeight;

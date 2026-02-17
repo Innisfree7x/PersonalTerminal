@@ -15,7 +15,7 @@
 
 | Feature | Priorität | Status |
 |---------|-----------|--------|
-| C1 — Sprite System + Animation Engine | P0 | ✅ done (generic gunner fallback + sprite-sheet engine) |
+| C1 — Sprite System + Animation Engine | P0 | ✅ done (lucian sprite-sheet engine + frame-aware face offsets) |
 | C2 — Champion Overlay + Movement (Rechtsklick) | P0 | ✅ done |
 | C3 — Passive Modus (Idle + Random Walk) | P0 | ✅ done |
 | C4 — Aktiv Modus (Click to Select) | P1 | ✅ done |
@@ -34,6 +34,7 @@
 - Champion runtime live in `components/providers/ChampionProvider.tsx`
 - Event bus live in `lib/champion/championEvents.ts`
 - Champion config/sprite swap via `lib/champion/config.ts`
+- Lucian sprite live in `public/sprites/lucian-sprites.svg` (face details direkt im Sheet)
 - Dashboard integration live in `app/(dashboard)/layout.tsx`
 - Settings controls live in `app/(dashboard)/settings/page.tsx`
 - Interactive targets tagged:
@@ -46,6 +47,12 @@
   - Task/exercise completion (`components/features/dashboard/FocusTasks.tsx`, `components/features/university/CourseCard.tsx`)
   - Application create (`components/features/career/CareerBoard.tsx`)
   - Focus start/end (`components/providers/FocusTimerProvider.tsx`)
+- Combat/feel updates:
+  - Lightslinger-Doppelschuss nach Q/W/E/R
+  - W als Bolt + Mark (kein Shield-Bubble-Mode)
+  - R mit längerer Bullet-Salve
+  - PENTAKILL-Streak reset bei Trigger und bei `STREAK_BROKEN`
+  - Passive Random Walk: 15-30s
 
 ---
 
@@ -302,7 +309,7 @@ Standard-Verhalten ohne User-Interaktion:
 
 **Idle Behavior:**
 - Champion steht idle (Row 0 Animation läuft in Loop)
-- Alle 30-60 Sekunden: zufällige Position auf dem Screen wählen → hinlaufen → wieder idle
+- Alle 15-30 Sekunden: zufällige Position auf dem Screen wählen → hinlaufen → wieder idle
 - Bewegungsbereich: ganzer Screen, aber bevorzugt untere 30% (weniger aufdringlich)
 
 **Passive Reaktionen auf App-Events** (automatisch, kein User-Input nötig):
@@ -337,7 +344,8 @@ ESC  ← einziger Exit
 
 **Aktiv-Modus Controls:**
 ```
-Klick auf Screen  →  Move Command (grüner Cursor kurz sichtbar)
+Rechtsklick       →  Move Command (grüner Cursor kurz sichtbar)
+X + Linksklick    →  Attack-Move Style Move Command
 Q                 →  Ability 1
 W                 →  Ability 2
 E                 →  Dash (direkt zur Mausposition)
@@ -413,15 +421,14 @@ Ablauf:
 
 ### W — Ardent Blaze (Lucian) / Severum (Aphelios)
 
-**Effekt:** Schutzschild-Bubble um den Champion → aktiviert Mini-Focus-Mode.
+**Effekt:** Lucian feuert einen Ardent-Blaze-Schuss mit Zielmarkierung.
 
 ```
 Ablauf:
 1. W drücken → Cast-Animation (ROW 3)
-2. Glowing Bubble erscheint um den Champ (pulsierend, 5 Sek.)
-3. Während aktiv: Alle App-Elemente außer dem aktuellen Focus-Task
-   werden auf opacity: 0.3 gedimmt
-4. Fokus-Effekt: "W-Mode aktiv" — wie ein visueller Focus-Mode
+2. Bolt fliegt in Mausrichtung
+3. Stern/Mark-Effekt am Trefferpunkt (kurzer Fade-Out)
+4. Kein globales UI-Dimming (nicht Lucian-getreu, bewusst entfernt)
 5. Cooldown: 15 Sekunden
 ```
 
@@ -452,6 +459,7 @@ Ablauf:
    Aphelios: Moonlight-Kreise expandieren vom Champion
 3. Alle sichtbaren Tasks auf der Seite kurz blinken / highlighten
 4. Cooldown: 60 Sekunden
+5. Aktuell: längere Salve (~30 Projektile über ~2.8s)
 ```
 
 **PENTAKILL R (wenn 5+ Tasks heute erledigt):**
@@ -656,29 +664,30 @@ Champion-Stats
 ## Asset Checkliste
 
 ### Lucian Sprite Sheet (lucian-sprites.png)
-- [ ] Idle (4 frames)
-- [ ] Walk (6 frames)
-- [ ] Cast Q — Piercing Light (4 frames)
-- [ ] Cast W — Ardent Blaze (3 frames)
-- [ ] Cast E — Dash (4 frames)
-- [ ] Cast R — The Culling (8 frames)
-- [ ] Victory Pose (6 frames)
-- [ ] Panic (4 frames)
-- [ ] Meditate/Focus (4 frames)
-- [ ] Recall (6 frames)
+- [x] Idle (4 frames)
+- [x] Walk (6 frames)
+- [x] Cast Q — Piercing Light (4 frames)
+- [x] Cast W — Ardent Blaze (3 frames)
+- [x] Cast E — Dash (4 frames)
+- [x] Cast R — The Culling (8 frames)
+- [x] Victory Pose (6 frames)
+- [x] Panic (4 frames)
+- [x] Meditate/Focus (4 frames)
+- [x] Recall (6 frames)
+- [x] Face details direkt im Sprite (frame-aware offsets)
 
 ### Aphelios Sprite Sheet (aphelios-sprites.png)
 - [ ] Identische Rows wie Lucian
 - [ ] Anderes Farbschema (Lila/Türkis statt Blau/Weiß)
 
 ### Ability Effects (CSS/Canvas)
-- [ ] Q Strahl (gradient div)
-- [ ] W Bubble (radial gradient, pulsierend)
-- [ ] E Trail (ghost copies)
-- [ ] R Projectile Salve (multiple dots)
-- [ ] PENTAKILL Text (bold, gold)
-- [ ] Move Command Cursor (grüner Pfeil)
-- [ ] Selection Circle (blauer Ring)
+- [x] Q Strahl (gradient div)
+- [x] W Bolt + Mark (Ardent Blaze Look, kein Bubble-Shield)
+- [x] E Trail (ghost copies)
+- [x] R Projectile Salve (multiple dots)
+- [x] PENTAKILL Text (bold, gold)
+- [x] Move Command Cursor (grüner Pfeil)
+- [x] Selection Circle (blauer Ring)
 
 ---
 
@@ -690,7 +699,7 @@ Authentische, LoL-getreue 8-bit Versionen der originalen Sounds.
 |-------|-------|--------------|
 | Move Command | *pew* click | Kurzes Click-Sound beim Rechtsklick |
 | Q — Piercing Light | *whoosh + zap* | Laser-Strahl Abfeuer-Sound |
-| W — Ardent Blaze | *shimmer* | Bubble-Erscheinen Sound |
+| W — Ardent Blaze | *shimmer* | Bolt/Mark Trigger-Sound |
 | E — Dash | *swoosh* | Schneller Dash-Whoosh |
 | R — The Culling | *rapid fire* | Schnelle Schuss-Salve |
 | PENTAKILL | *fanfare* | 8-bit Triumph-Fanfare |
@@ -722,7 +731,7 @@ Authentische, LoL-getreue 8-bit Versionen der originalen Sounds.
 | App-Event Reaktionen | Alle Events — Victory, Panic, PENTAKILL, Focus |
 | Ability-Interaktion | Ja — Tasks/Goals werden highlighted |
 | Sounds | Ja — authentische 8-bit SFX via sfxr.me |
-| Sprites | Midjourney als Referenz + Piskel selbst pixeln |
+| Sprites | Lucian sheet live (`public/sprites/lucian-sprites.svg`), Aphelios folgt in 6.1 |
 | Render-Größe | **×4** → 192×192px (präsent aber nicht overwhelming) |
 | Quick-Hide Key | Nicht geplant (nur Settings-Toggle) |
 | Position nach Refresh | localStorage — nur bei Movement-End speichern (lagfrei) |
