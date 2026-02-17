@@ -65,7 +65,7 @@ interface Position {
 
 interface EffectState {
   id: string;
-  type: 'q' | 'q-spark' | 'w' | 'e' | 'dash-ghost' | 'r' | 'r-bullet' | 'pentakill' | 'move';
+  type: 'q' | 'q-spark' | 'q-flare' | 'w' | 'w-bolt' | 'w-mark' | 'e' | 'dash-ghost' | 'r' | 'r-bullet' | 'pentakill' | 'move';
   x: number;
   y: number;
   angle?: number;
@@ -345,22 +345,27 @@ function ChampionOverlay({
           >
             {effect.type === 'q' && (
               <div
-                className="h-1.5 w-80 origin-left rounded-full"
+                className="origin-left rounded-full"
                 style={{
                   transform: `rotate(${effect.angle ?? 0}deg)`,
-                  background: `linear-gradient(to right, ${hexToRgba(abilityColors.q, 0.95)}, ${hexToRgba(abilityColors.q, 0.75)}, transparent)`,
-                  boxShadow: `0 0 16px ${hexToRgba(abilityColors.q, 0.8)}`,
+                  width: effect.distance ?? 900,
+                  height: 12,
+                  background: `linear-gradient(to right, ${hexToRgba(abilityColors.q, 0.95)}, ${hexToRgba(abilityColors.q, 0.6)}, transparent)`,
+                  boxShadow: `0 0 24px ${hexToRgba(abilityColors.q, 0.65)}, inset 0 0 10px ${hexToRgba('#FFFFFF', 0.35)}`,
                 }}
               />
             )}
             {effect.type === 'q' && (
               <div
-                className="h-[3px] w-72 origin-left rounded-full"
+                className="origin-left rounded-full"
                 style={{
                   transform: `rotate(${effect.angle ?? 0}deg)`,
+                  width: (effect.distance ?? 900) - 18,
+                  height: 4,
                   background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 0.9)}, ${hexToRgba('#FFFFFF', 0.6)}, transparent)`,
                   boxShadow: `0 0 10px ${hexToRgba('#FFFFFF', 0.45)}`,
-                  marginTop: '-2px',
+                  marginTop: '-8px',
+                  marginLeft: '4px',
                 }}
               />
             )}
@@ -381,6 +386,38 @@ function ChampionOverlay({
                 }}
               />
             )}
+            {effect.type === 'q-flare' && (
+              <motion.div
+                className="absolute -translate-x-1/2 -translate-y-1/2"
+                initial={{ opacity: 0.85, scale: 0.6 }}
+                animate={{ opacity: 0, scale: 1.35 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+              >
+                <div
+                  className="relative"
+                  style={{
+                    width: effect.size ?? 18,
+                    height: effect.size ?? 18,
+                  }}
+                >
+                  <div
+                    className="absolute inset-0 rounded-full"
+                    style={{
+                      backgroundColor: hexToRgba('#FFFFFF', 0.9),
+                      boxShadow: `0 0 16px ${hexToRgba('#FFFFFF', 0.7)}`,
+                    }}
+                  />
+                  <div
+                    className="absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2"
+                    style={{ backgroundColor: hexToRgba(abilityColors.q, 0.9) }}
+                  />
+                  <div
+                    className="absolute top-1/2 left-0 h-[2px] w-full -translate-y-1/2"
+                    style={{ backgroundColor: hexToRgba(abilityColors.q, 0.9) }}
+                  />
+                </div>
+              </motion.div>
+            )}
             {effect.type === 'w' && (
               <div
                 className="h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full"
@@ -390,6 +427,48 @@ function ChampionOverlay({
                   boxShadow: `0 0 30px ${hexToRgba(abilityColors.w, 0.35)}`,
                 }}
               />
+            )}
+            {effect.type === 'w-bolt' && (
+              <motion.div
+                className="origin-left rounded-full"
+                initial={{ opacity: 0.95, scaleX: 0.2 }}
+                animate={{ opacity: [0.95, 0.65, 0], scaleX: [0.2, 1, 1.08] }}
+                transition={{ duration: 0.34, ease: 'easeOut' }}
+                style={{
+                  transform: `rotate(${effect.angle ?? 0}deg)`,
+                  width: effect.distance ?? 320,
+                  height: 8,
+                  background: `linear-gradient(to right, ${hexToRgba(abilityColors.w, 0.95)}, ${hexToRgba(abilityColors.q, 0.65)}, transparent)`,
+                  boxShadow: `0 0 14px ${hexToRgba(abilityColors.w, 0.58)}`,
+                }}
+              />
+            )}
+            {effect.type === 'w-mark' && (
+              <motion.div
+                className="absolute -translate-x-1/2 -translate-y-1/2"
+                initial={{ opacity: 0.9, scale: 0.6, rotate: -8 }}
+                animate={{ opacity: 0, scale: 1.25, rotate: 10 }}
+                transition={{ duration: 0.42, ease: 'easeOut' }}
+              >
+                <div className="relative h-9 w-9">
+                  <div
+                    className="absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2"
+                    style={{ backgroundColor: hexToRgba(abilityColors.w, 0.95) }}
+                  />
+                  <div
+                    className="absolute top-1/2 left-0 h-[2px] w-full -translate-y-1/2"
+                    style={{ backgroundColor: hexToRgba(abilityColors.w, 0.95) }}
+                  />
+                  <div
+                    className="absolute left-1/2 top-1/2 h-full w-[2px] -translate-x-1/2 -translate-y-1/2 rotate-45"
+                    style={{ backgroundColor: hexToRgba(abilityColors.q, 0.7) }}
+                  />
+                  <div
+                    className="absolute left-1/2 top-1/2 h-full w-[2px] -translate-x-1/2 -translate-y-1/2 -rotate-45"
+                    style={{ backgroundColor: hexToRgba(abilityColors.q, 0.7) }}
+                  />
+                </div>
+              </motion.div>
             )}
             {effect.type === 'e' && (
               <div
@@ -411,11 +490,14 @@ function ChampionOverlay({
             )}
             {effect.type === 'r' && (
               <div
-                className="h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                className="origin-left rounded-full"
                 style={{
-                  border: `1px solid ${hexToRgba(abilityColors.r, 0.5)}`,
-                  backgroundColor: hexToRgba(abilityColors.r, 0.12),
-                  boxShadow: `0 0 40px ${hexToRgba(abilityColors.r, 0.45)}`,
+                  transform: `rotate(${effect.angle ?? 0}deg)`,
+                  width: 560,
+                  height: 56,
+                  marginTop: -24,
+                  background: `linear-gradient(to right, ${hexToRgba(abilityColors.r, 0.28)}, ${hexToRgba(abilityColors.r, 0.12)}, transparent)`,
+                  boxShadow: `0 0 28px ${hexToRgba(abilityColors.r, 0.22)}`,
                 }}
               />
             )}
@@ -669,7 +751,8 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       setAnimation('cast_q');
       const center = { x: position.x + championSize / 2, y: position.y + championSize / 2 };
       const angle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
-      addEffect({ type: 'q', x: center.x, y: center.y, angle }, 450);
+      const beamDistance = 980;
+      addEffect({ type: 'q', x: center.x, y: center.y, angle, distance: beamDistance }, 450);
       for (let i = 0; i < 4; i += 1) {
         const spread = (Math.random() - 0.5) * 16;
         addEffect(
@@ -683,6 +766,19 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
           380
         );
       }
+      const flares = [220, 460, 740];
+      flares.forEach((distance, idx) => {
+        const rad = (angle * Math.PI) / 180;
+        addEffect(
+          {
+            type: 'q-flare',
+            x: center.x + Math.cos(rad) * distance,
+            y: center.y + Math.sin(rad) * distance,
+            size: 14 + idx * 4,
+          },
+          320
+        );
+      });
       markElementsOnBeam(angle);
       startCooldown('q');
       window.setTimeout(() => setAnimation(isMoving ? 'walk' : 'idle'), 320);
@@ -692,7 +788,16 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
     if (ability === 'w') {
       setAnimation('cast_w');
       const center = { x: position.x + championSize / 2, y: position.y + championSize / 2 };
-      addEffect({ type: 'w', x: center.x, y: center.y }, 1000);
+      const angle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
+      const distToPointer = Math.hypot(pointerRef.current.x - center.x, pointerRef.current.y - center.y);
+      const boltDistance = Math.min(420, Math.max(160, distToPointer));
+      const rad = (angle * Math.PI) / 180;
+      const hitX = center.x + Math.cos(rad) * boltDistance;
+      const hitY = center.y + Math.sin(rad) * boltDistance;
+
+      addEffect({ type: 'w', x: center.x, y: center.y }, 850);
+      addEffect({ type: 'w-bolt', x: center.x, y: center.y, angle, distance: boltDistance }, 360);
+      addEffect({ type: 'w-mark', x: hitX, y: hitY }, 450);
       wActiveRef.current = true;
       markElementsInRange(settings.rangeRadius);
       startCooldown('w');
@@ -735,9 +840,10 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
     if (ability === 'r') {
       setAnimation('cast_r');
       const center = { x: position.x + championSize / 2, y: position.y + championSize / 2 };
-      addEffect({ type: 'r', x: center.x, y: center.y }, 900);
-      for (let i = 0; i < 10; i += 1) {
-        const angle = -34 + i * 7.2 + (Math.random() - 0.5) * 5;
+      const baseAngle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
+      addEffect({ type: 'r', x: center.x, y: center.y, angle: baseAngle }, 1100);
+      for (let i = 0; i < 18; i += 1) {
+        const angle = baseAngle + (Math.random() - 0.5) * 16;
         window.setTimeout(() => {
           addEffect(
             {
@@ -745,11 +851,11 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
               x: center.x,
               y: center.y,
               angle,
-              distance: 360 + Math.random() * 120,
+              distance: 420 + Math.random() * 140,
             },
             460
           );
-        }, i * 55);
+        }, i * 48);
       }
       const elements = document.querySelectorAll<HTMLElement>('[data-interactive]');
       elements.forEach((element) => {
