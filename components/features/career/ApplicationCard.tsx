@@ -43,6 +43,9 @@ export default function ApplicationCard({
     return (
       <motion.div
         onClick={onClick}
+        data-interactive="application"
+        data-item-id={application.id}
+        data-item-title={application.position}
         className="group relative bg-surface border border-border rounded-lg p-4 cursor-pointer hover:border-primary/50 transition-all card-hover-glow"
         whileHover={{ y: -2 }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
@@ -127,6 +130,9 @@ export default function ApplicationCard({
   return (
     <motion.div
       onClick={onClick}
+      data-interactive="application"
+      data-item-id={application.id}
+      data-item-title={application.position}
       className="group relative gradient-card p-6 cursor-pointer"
       whileHover={{ y: -4 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}

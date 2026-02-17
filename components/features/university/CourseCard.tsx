@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { CourseWithExercises } from '@/lib/schemas/course.schema';
 import { toggleExerciseCompletionAction } from '@/app/actions/university';
+import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Badge } from '@/components/ui/Badge';
 import { ChevronDown, ChevronUp, Edit2, Trash2, Calendar, BookOpen } from 'lucide-react';
@@ -78,7 +79,10 @@ export default function CourseCard({
         queryClient.setQueryData(['courses'], context.previousCourses);
       }
     },
-    onSettled: () => {
+    onSettled: (_data, _error, variables) => {
+      if (variables.completed) {
+        dispatchChampionEvent({ type: 'EXERCISE_COMPLETED' });
+      }
       queryClient.invalidateQueries({ queryKey: ['courses'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
     },
@@ -86,6 +90,9 @@ export default function CourseCard({
 
   return (
     <motion.div
+      data-interactive="course"
+      data-item-id={course.id}
+      data-item-title={course.name}
       {...(listNavId ? { 'data-list-nav-id': listNavId } : {})}
       data-focused={focused ? 'true' : 'false'}
       layoutId={`course-card-${course.id}`}

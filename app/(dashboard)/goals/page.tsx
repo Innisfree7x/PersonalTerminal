@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Plus, Target, Filter } from 'lucide-react';
 import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
 import { useListNavigation } from '@/lib/hooks/useListNavigation';
+import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 
 type SortOption = 'date' | 'progress' | 'title';
 type FilterOption = GoalCategory | 'all';
@@ -84,6 +85,7 @@ export default function GoalsPage() {
       });
       setIsModalOpen(false);
       setEditingGoal(null);
+      dispatchChampionEvent({ type: 'GOAL_CREATED' });
       toast.success('Goal created!');
     },
     onError: (err: Error, _variables, context) => {

@@ -26,6 +26,7 @@ import {
   fetchTodayCalendarEventsAction,
 } from '@/app/actions/calendar';
 import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
+import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 
 export default function TodayPage() {
   const queryClient = useQueryClient();
@@ -112,6 +113,13 @@ export default function TodayPage() {
 
   const stats = nextTasksData?.stats;
   const studyProgress = nextTasksData?.studyProgress || [];
+
+  useEffect(() => {
+    const days = stats?.nextExam?.daysUntilExam;
+    if (typeof days === 'number' && days <= 1) {
+      dispatchChampionEvent({ type: 'DEADLINE_WARNING', hoursLeft: Math.max(1, days * 24) });
+    }
+  }, [stats?.nextExam?.daysUntilExam]);
 
   return (
     <div className="space-y-6">

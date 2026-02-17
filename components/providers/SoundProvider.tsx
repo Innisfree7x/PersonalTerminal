@@ -10,7 +10,20 @@ import {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type SoundEvent = 'pop' | 'swoosh' | 'click';
+export type SoundEvent =
+  | 'pop'
+  | 'swoosh'
+  | 'click'
+  | 'champ-move'
+  | 'champ-q'
+  | 'champ-w'
+  | 'champ-e'
+  | 'champ-r'
+  | 'champ-pentakill'
+  | 'champ-victory'
+  | 'champ-panic'
+  | 'champ-level-up'
+  | 'champ-focus';
 
 export interface SoundSettings {
   enabled: boolean;
@@ -34,6 +47,16 @@ const EVENT_GAIN: Record<SoundEvent, number> = {
   pop: 0.9,
   swoosh: 0.8,
   click: 0.45, // click is quieter by design
+  'champ-move': 0.4,
+  'champ-q': 0.85,
+  'champ-w': 0.55,
+  'champ-e': 0.8,
+  'champ-r': 0.95,
+  'champ-pentakill': 1.0,
+  'champ-victory': 0.75,
+  'champ-panic': 0.6,
+  'champ-level-up': 0.9,
+  'champ-focus': 0.45,
 };
 
 // Anti-spam cooldown per event (ms)
@@ -41,6 +64,16 @@ const COOLDOWN: Record<SoundEvent, number> = {
   pop: 200,
   swoosh: 250,
   click: 150,
+  'champ-move': 120,
+  'champ-q': 220,
+  'champ-w': 260,
+  'champ-e': 180,
+  'champ-r': 400,
+  'champ-pentakill': 1200,
+  'champ-victory': 500,
+  'champ-panic': 350,
+  'champ-level-up': 600,
+  'champ-focus': 500,
 };
 
 // ─── Synthesizer helpers ──────────────────────────────────────────────────────
@@ -158,6 +191,16 @@ const SYNTHS: Record<SoundEvent, (ctx: AudioContext, gain: number) => void> = {
   pop: synthPop,
   swoosh: synthSwoosh,
   click: synthClick,
+  'champ-move': synthClick,
+  'champ-q': synthSwoosh,
+  'champ-w': synthClick,
+  'champ-e': synthSwoosh,
+  'champ-r': synthPop,
+  'champ-pentakill': synthPop,
+  'champ-victory': synthPop,
+  'champ-panic': synthClick,
+  'champ-level-up': synthSwoosh,
+  'champ-focus': synthClick,
 };
 
 // ─── Context ──────────────────────────────────────────────────────────────────

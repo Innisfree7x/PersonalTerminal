@@ -19,6 +19,7 @@ import {
   createFocusSessionAction,
   type CreateFocusSessionActionPayload,
 } from '@/app/actions/focus-sessions';
+import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 
 type TimerStatus = 'idle' | 'running' | 'paused' | 'break' | 'break_paused';
 
@@ -207,6 +208,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
     }
 
     if (sessionType === 'focus') {
+      dispatchChampionEvent({ type: 'FOCUS_END' });
       // Save focus session
       saveSession(true, totalTime, totalTime, 'focus');
       const newPomodoros = completedPomodoros + 1;
@@ -232,6 +234,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
     } else {
       // Break completed
       saveSession(true, totalTime, totalTime, 'break');
+      dispatchChampionEvent({ type: 'FOCUS_END' });
       setSessionType('focus');
       setStatus('idle');
       setTimeLeft(0);
@@ -339,6 +342,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
       setCategory(options?.category || null);
       setStatus('running');
       startedAtRef.current = new Date();
+      dispatchChampionEvent({ type: 'FOCUS_START' });
       persistState('running', durationSeconds);
     },
     [settings.focusDuration, persistState]
@@ -382,6 +386,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
     setTotalTime(0);
     setSessionType('focus');
     startedAtRef.current = null;
+    dispatchChampionEvent({ type: 'FOCUS_END' });
     localStorage.removeItem(STORAGE_KEY);
   }, [status, totalTime, timeLeft, saveSession]);
 
@@ -392,6 +397,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
     setStatus('idle');
     setTimeLeft(0);
     startedAtRef.current = null;
+    dispatchChampionEvent({ type: 'FOCUS_END' });
     localStorage.removeItem(STORAGE_KEY);
   }, []);
 
@@ -406,6 +412,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
     setCategory(null);
     setCompletedPomodoros(0);
     startedAtRef.current = null;
+    dispatchChampionEvent({ type: 'FOCUS_END' });
     localStorage.removeItem(STORAGE_KEY);
   }, []);
 

@@ -414,3 +414,29 @@
 .number-animate {
   animation: number-glow 0.3s ease-out;
 }
+
+/* Champion Interactions (Phase 6) */
+[data-interactive='task'],
+[data-interactive='goal'],
+[data-interactive='course'],
+[data-interactive='application'] {
+  transition: box-shadow 120ms ease, border-color 120ms ease, opacity 120ms ease, transform 120ms ease;
+}
+
+[data-champion-in-range='true'] {
+  box-shadow: 0 0 0 1px rgb(var(--info) / 0.55), 0 0 18px rgb(var(--info) / 0.3);
+}
+
+[data-champion-targeted='true'] {
+  box-shadow: 0 0 0 1px rgb(var(--warning) / 0.7), 0 0 26px rgb(var(--warning) / 0.35);
+  transform: translateY(-1px);
+}
+
+[data-champion-dimmed='true'] {
+  opacity: 0.35;
+}
+
+[data-champion-focus='true'] {
+  opacity: 1 !important;
+  box-shadow: 0 0 0 1px rgb(var(--success) / 0.65), 0 0 24px rgb(var(--success) / 0.35);
+}

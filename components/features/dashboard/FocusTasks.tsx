@@ -12,6 +12,7 @@ import { toggleExerciseCompletionAction } from '@/app/actions/university';
 import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
 import { useListNavigation } from '@/lib/hooks/useListNavigation';
 import { subscribePingAction, type PingAction } from '@/lib/hotkeys/ping';
+import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 import toast from 'react-hot-toast';
 
 interface DailyTask {
@@ -133,8 +134,11 @@ export default function FocusTasks() {
   const updateMutation = useMutation({
     mutationFn: ({ id, completed }: { id: string; completed: boolean }) =>
       updateDailyTaskAction(id, { completed }),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       play('pop');
+      if (variables.completed) {
+        dispatchChampionEvent({ type: 'TASK_COMPLETED' });
+      }
       queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
     },
@@ -152,6 +156,7 @@ export default function FocusTasks() {
       toggleExerciseCompletionAction(courseId, exerciseNumber, true),
     onSuccess: () => {
       play('pop');
+      dispatchChampionEvent({ type: 'EXERCISE_COMPLETED' });
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['courses'] });
     },
@@ -373,6 +378,9 @@ export default function FocusTasks() {
   const renderTaskRow = (task: TaskItem, index: number) => (
     <motion.div
       key={task.id}
+      data-interactive="task"
+      data-item-id={task.id}
+      data-item-title={task.title}
       data-list-nav-id={task.id}
       data-focused={focusedId === task.id ? 'true' : 'false'}
       initial={{ opacity: 0, y: 10 }}

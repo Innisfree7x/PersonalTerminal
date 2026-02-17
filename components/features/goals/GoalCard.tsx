@@ -83,6 +83,9 @@ export default function GoalCard({
 
   return (
     <motion.div
+      data-interactive="goal"
+      data-item-id={goal.id}
+      data-item-title={goal.title}
       {...(listNavId ? { 'data-list-nav-id': listNavId } : {})}
       data-focused={focused ? 'true' : 'false'}
       {...(layoutId ? { layoutId } : {})}

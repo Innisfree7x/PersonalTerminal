@@ -21,6 +21,7 @@ import { useAppSound } from '@/lib/hooks/useAppSound';
 import { updateProfileAction } from '@/app/actions/profile';
 import toast from 'react-hot-toast';
 import { usePowerHotkeys, type SummonerSpellAction } from '@/components/providers/PowerHotkeysProvider';
+import { useChampion } from '@/components/providers/ChampionProvider';
 
 const themes = [
     { id: 'midnight', name: 'Midnight', color: '#0A0A0A', border: '#262626' },
@@ -46,6 +47,7 @@ export default function SettingsPage() {
     const { theme, setTheme, accentColor, setAccentColor } = useTheme();
     const { play, settings: soundSettings, setEnabled: setSoundEnabled, setMasterVolume } = useAppSound();
     const { summonerSpells, setSummonerSpell } = usePowerHotkeys();
+    const { settings: championSettings, updateSettings: updateChampionSettings, stats: championStats } = useChampion();
     const [displayName, setDisplayName] = useState('');
     const [savingProfile, setSavingProfile] = useState(false);
 
@@ -382,6 +384,140 @@ export default function SettingsPage() {
                                 {summonerOptions.find((option) => option.value === summonerSpells.f)?.description}
                             </p>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Terminal Champion */}
+            <section className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold text-text-primary flex items-center gap-2">
+                        <Sparkles className="w-5 h-5" />
+                        Terminal Champion
+                    </h2>
+                    <span className="text-xs font-medium px-2 py-1 rounded bg-primary/10 text-primary">
+                        Phase 6
+                    </span>
+                </div>
+
+                <div className="p-6 bg-surface border border-border rounded-xl space-y-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-text-primary">Champion enabled</p>
+                            <p className="text-xs text-text-tertiary mt-0.5">Desktop pet overlay with LoL controls</p>
+                        </div>
+                        <button
+                            onClick={() => updateChampionSettings({ enabled: !championSettings.enabled })}
+                            className={`relative w-12 h-6 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                                championSettings.enabled ? 'bg-primary' : 'bg-surface-hover'
+                            }`}
+                            aria-label={championSettings.enabled ? 'Disable champion' : 'Enable champion'}
+                        >
+                            <span
+                                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                                    championSettings.enabled ? 'translate-x-6' : 'translate-x-0'
+                                }`}
+                            />
+                        </button>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-text-secondary">Champion</label>
+                            <select
+                                value={championSettings.champion}
+                                onChange={(event) =>
+                                    updateChampionSettings({ champion: event.target.value as 'lucian' | 'aphelios' })
+                                }
+                                className="w-full px-3 py-2 bg-surface-hover text-text-primary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                            >
+                                <option value="lucian">Lucian (generic gunner sprite for now)</option>
+                                <option value="aphelios">Aphelios</option>
+                            </select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-text-secondary">Sprite size</label>
+                            <select
+                                value={championSettings.renderScale}
+                                onChange={(event) =>
+                                    updateChampionSettings({ renderScale: event.target.value as 'small' | 'normal' | 'large' })
+                                }
+                                className="w-full px-3 py-2 bg-surface-hover text-text-primary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                            >
+                                <option value="small">Small</option>
+                                <option value="normal">Normal</option>
+                                <option value="large">Large</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-text-secondary">Passive behavior</label>
+                            <select
+                                value={championSettings.passiveBehavior}
+                                onChange={(event) =>
+                                    updateChampionSettings({ passiveBehavior: event.target.value as 'active' | 'idle-only' })
+                                }
+                                className="w-full px-3 py-2 bg-surface-hover text-text-primary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                            >
+                                <option value="active">Idle + random walk</option>
+                                <option value="idle-only">Idle only</option>
+                            </select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-text-secondary">Event reactions</label>
+                            <select
+                                value={championSettings.eventReactions}
+                                onChange={(event) =>
+                                    updateChampionSettings({ eventReactions: event.target.value as 'all' | 'none' })
+                                }
+                                className="w-full px-3 py-2 bg-surface-hover text-text-primary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                            >
+                                <option value="all">All reactions</option>
+                                <option value="none">No reactions</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <label className="text-sm font-medium text-text-secondary">Range indicator radius</label>
+                            <span className="text-xs font-mono text-text-tertiary">{championSettings.rangeRadius}px</span>
+                        </div>
+                        <input
+                            type="range"
+                            min={180}
+                            max={500}
+                            step={10}
+                            value={championSettings.rangeRadius}
+                            onChange={(event) => updateChampionSettings({ rangeRadius: Number(event.target.value) })}
+                            className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-primary bg-border"
+                        />
+                    </div>
+
+                    <div className="grid gap-3 md:grid-cols-2">
+                        <button
+                            onClick={() => updateChampionSettings({ showCooldowns: !championSettings.showCooldowns })}
+                            className="rounded-lg border border-border bg-surface-hover px-3 py-2 text-sm text-text-primary hover:border-primary/40"
+                        >
+                            Cooldown HUD: {championSettings.showCooldowns ? 'On' : 'Off'}
+                        </button>
+                        <button
+                            onClick={() => updateChampionSettings({ soundsEnabled: !championSettings.soundsEnabled })}
+                            className="rounded-lg border border-border bg-surface-hover px-3 py-2 text-sm text-text-primary hover:border-primary/40"
+                        >
+                            Champion SFX: {championSettings.soundsEnabled ? 'On' : 'Off'}
+                        </button>
+                    </div>
+
+                    <div className="rounded-lg border border-border bg-background/40 p-4">
+                        <p className="text-xs uppercase tracking-wider text-text-tertiary mb-2">Champion stats</p>
+                        <p className="text-sm text-text-primary font-medium">
+                            Level {championStats.level} · XP {championStats.xp}/{championStats.nextLevelXp}
+                        </p>
                     </div>
                 </div>
             </section>

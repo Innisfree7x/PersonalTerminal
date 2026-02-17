@@ -40,6 +40,7 @@ import { Plus, Briefcase, Upload } from 'lucide-react';
 import { useAppSound } from '@/lib/hooks/useAppSound';
 import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
 import { useListNavigation } from '@/lib/hooks/useListNavigation';
+import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 
 // --- Helper Functions ---
 
@@ -240,6 +241,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                 dispatchOptimistic({ type: 'delete', id: tempId });
                 dispatchOptimistic({ type: 'upsert', app: createdApplication });
             });
+            dispatchChampionEvent({ type: 'APPLICATION_SENT' });
             play('swoosh');
             toast.success('Application added!');
         } catch (e) {

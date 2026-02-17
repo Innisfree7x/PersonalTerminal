@@ -8,6 +8,7 @@ import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import PowerHotkeysProvider from '@/components/providers/PowerHotkeysProvider';
+import { ChampionProvider } from '@/components/providers/ChampionProvider';
 
 const pageVariants = {
   initial: {
@@ -91,7 +92,9 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <PowerHotkeysProvider>
-        <DashboardLayoutInner>{children}</DashboardLayoutInner>
+        <ChampionProvider>
+          <DashboardLayoutInner>{children}</DashboardLayoutInner>
+        </ChampionProvider>
       </PowerHotkeysProvider>
     </SidebarProvider>
   );
