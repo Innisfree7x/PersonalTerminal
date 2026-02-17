@@ -65,7 +65,20 @@ interface Position {
 
 interface EffectState {
   id: string;
-  type: 'q' | 'q-spark' | 'q-flare' | 'w' | 'w-bolt' | 'w-mark' | 'e' | 'dash-ghost' | 'r' | 'r-bullet' | 'pentakill' | 'move';
+  type:
+    | 'q'
+    | 'q-spark'
+    | 'q-flare'
+    | 'w'
+    | 'w-bolt'
+    | 'w-mark'
+    | 'e'
+    | 'dash-ghost'
+    | 'r'
+    | 'r-lane'
+    | 'r-bullet'
+    | 'pentakill'
+    | 'move';
   x: number;
   y: number;
   angle?: number;
@@ -451,14 +464,8 @@ function ChampionOverlay({
                 transition={{ duration: 0.42, ease: 'easeOut' }}
               >
                 <div className="relative h-9 w-9">
-                  <div
-                    className="absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2"
-                    style={{ backgroundColor: hexToRgba(abilityColors.w, 0.95) }}
-                  />
-                  <div
-                    className="absolute top-1/2 left-0 h-[2px] w-full -translate-y-1/2"
-                    style={{ backgroundColor: hexToRgba(abilityColors.w, 0.95) }}
-                  />
+                  <div className="absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2" style={{ backgroundColor: hexToRgba(abilityColors.w, 0.95) }} />
+                  <div className="absolute top-1/2 left-0 h-[2px] w-full -translate-y-1/2" style={{ backgroundColor: hexToRgba(abilityColors.w, 0.95) }} />
                   <div
                     className="absolute left-1/2 top-1/2 h-full w-[2px] -translate-x-1/2 -translate-y-1/2 rotate-45"
                     style={{ backgroundColor: hexToRgba(abilityColors.q, 0.7) }}
@@ -501,6 +508,21 @@ function ChampionOverlay({
                 }}
               />
             )}
+            {effect.type === 'r-lane' && (
+              <motion.div
+                className="origin-left rounded-full"
+                initial={{ opacity: 0.9, scaleX: 0.3 }}
+                animate={{ opacity: [0.9, 0.55, 0], scaleX: [0.3, 1, 1.02] }}
+                transition={{ duration: 0.26, ease: 'easeOut' }}
+                style={{
+                  transform: `rotate(${effect.angle ?? 0}deg) translateY(${effect.size ?? 0}px)`,
+                  width: effect.distance ?? 520,
+                  height: 9,
+                  background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 0.95)}, ${hexToRgba(abilityColors.r, 0.7)}, transparent)`,
+                  boxShadow: `0 0 18px ${hexToRgba(abilityColors.r, 0.6)}`,
+                }}
+              />
+            )}
             {effect.type === 'r-bullet' && (
               <motion.div
                 className="origin-left"
@@ -514,11 +536,11 @@ function ChampionOverlay({
                 transition={{ duration: 0.42, ease: 'easeOut' }}
               >
                 <div
-                  className="h-[3px] w-10 rounded-full"
+                  className="h-[5px] w-12 rounded-full"
                   style={{
                     transform: `rotate(${effect.angle ?? 0}deg)`,
-                    background: `linear-gradient(to right, ${hexToRgba(abilityColors.r, 1)}, ${hexToRgba(abilityColors.r, 0.35)})`,
-                    boxShadow: `0 0 14px ${hexToRgba(abilityColors.r, 0.75)}`,
+                    background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 1)}, ${hexToRgba(abilityColors.r, 0.72)}, ${hexToRgba(abilityColors.r, 0.28)})`,
+                    boxShadow: `0 0 16px ${hexToRgba(abilityColors.r, 0.78)}`,
                   }}
                 />
               </motion.div>
@@ -751,7 +773,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       setAnimation('cast_q');
       const center = { x: position.x + championSize / 2, y: position.y + championSize / 2 };
       const angle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
-      const beamDistance = 980;
+      const beamDistance = 640;
       addEffect({ type: 'q', x: center.x, y: center.y, angle, distance: beamDistance }, 450);
       for (let i = 0; i < 4; i += 1) {
         const spread = (Math.random() - 0.5) * 16;
@@ -766,7 +788,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
           380
         );
       }
-      const flares = [220, 460, 740];
+      const flares = [160, 320, 520];
       flares.forEach((distance, idx) => {
         const rad = (angle * Math.PI) / 180;
         addEffect(
@@ -798,6 +820,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       addEffect({ type: 'w', x: center.x, y: center.y }, 850);
       addEffect({ type: 'w-bolt', x: center.x, y: center.y, angle, distance: boltDistance }, 360);
       addEffect({ type: 'w-mark', x: hitX, y: hitY }, 450);
+      addEffect({ type: 'w-mark', x: hitX, y: hitY, angle: 45 }, 450);
       wActiveRef.current = true;
       markElementsInRange(settings.rangeRadius);
       startCooldown('w');
@@ -842,14 +865,28 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       const center = { x: position.x + championSize / 2, y: position.y + championSize / 2 };
       const baseAngle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
       addEffect({ type: 'r', x: center.x, y: center.y, angle: baseAngle }, 1100);
+      for (let lane = -1; lane <= 1; lane += 2) {
+        addEffect(
+          {
+            type: 'r-lane',
+            x: center.x,
+            y: center.y,
+            angle: baseAngle,
+            distance: 520,
+            size: lane * 8,
+          },
+          380
+        );
+      }
       for (let i = 0; i < 18; i += 1) {
-        const angle = baseAngle + (Math.random() - 0.5) * 16;
+        const angle = baseAngle + (Math.random() - 0.5) * 8;
+        const laneOffset = i % 2 === 0 ? -8 : 8;
         window.setTimeout(() => {
           addEffect(
             {
               type: 'r-bullet',
-              x: center.x,
-              y: center.y,
+              x: center.x + Math.cos(((baseAngle + 90) * Math.PI) / 180) * laneOffset,
+              y: center.y + Math.sin(((baseAngle + 90) * Math.PI) / 180) * laneOffset,
               angle,
               distance: 420 + Math.random() * 140,
             },
