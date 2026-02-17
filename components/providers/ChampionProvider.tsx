@@ -263,6 +263,19 @@ function ChampionOverlay({
   const abilityColors = championConfig.colors;
   const isWalking = animation === 'walk';
   const isCasting = animation.startsWith('cast_');
+  const championCenterX = position.x + championSize / 2;
+  const championCenterY = position.y + championSize / 2;
+  const visibleRangeRadius = (() => {
+    if (typeof window === 'undefined') return settings.rangeRadius;
+    const viewportPad = 10;
+    const maxFullyVisibleRadius = Math.min(
+      championCenterX - viewportPad,
+      window.innerWidth - championCenterX - viewportPad,
+      championCenterY - viewportPad,
+      window.innerHeight - championCenterY - viewportPad
+    );
+    return Math.min(settings.rangeRadius, Math.max(96, Math.floor(maxFullyVisibleRadius)));
+  })();
   const spriteStyle = {
     width: championSize,
     height: championSize,
@@ -307,17 +320,17 @@ function ChampionOverlay({
         <motion.div
           className="absolute rounded-full"
           initial={{ opacity: 0 }}
-          animate={{ opacity: [0.28, 0.36, 0.28] }}
+          animate={{ opacity: [0.52, 0.75, 0.52], scale: [0.99, 1, 0.99] }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }}
+          transition={{ duration: 0.85, repeat: Infinity, ease: 'easeInOut' }}
           style={{
-            width: settings.rangeRadius * 2,
-            height: settings.rangeRadius * 2,
-            left: position.x + championSize / 2 - settings.rangeRadius,
-            top: position.y + championSize / 2 - settings.rangeRadius,
-            border: `1px solid ${hexToRgba(abilityColors.q, 0.42)}`,
-            backgroundColor: hexToRgba(abilityColors.q, 0.04),
-            boxShadow: `0 0 16px ${hexToRgba(abilityColors.q, 0.2)}`,
+            width: visibleRangeRadius * 2,
+            height: visibleRangeRadius * 2,
+            left: championCenterX - visibleRangeRadius,
+            top: championCenterY - visibleRangeRadius,
+            border: `2px solid ${hexToRgba(abilityColors.q, 0.82)}`,
+            backgroundColor: hexToRgba(abilityColors.q, 0.11),
+            boxShadow: `0 0 28px ${hexToRgba(abilityColors.q, 0.38)}, inset 0 0 24px ${hexToRgba(abilityColors.q, 0.16)}`,
           }}
         />
       )}
@@ -603,10 +616,37 @@ function ChampionOverlay({
               </motion.div>
             )}
             {effect.type === 'move' && (
-              <div
-                className="h-10 w-10 -translate-x-1/2 -translate-y-1/2 rotate-45 border-b-2 border-r-2"
-                style={{ borderColor: hexToRgba(MOVE_COMMAND_COLOR, 0.95) }}
-              />
+              <motion.div
+                className="relative h-11 w-11 -translate-x-1/2 -translate-y-1/2"
+                initial={{ opacity: 0.95, scale: 0.82 }}
+                animate={{ opacity: [0.95, 0.75, 0], scale: [0.82, 1, 1.06] }}
+                transition={{ duration: 0.34, ease: 'easeOut' }}
+              >
+                <div
+                  className="absolute inset-0 rounded-full border"
+                  style={{
+                    borderColor: hexToRgba(MOVE_COMMAND_COLOR, 0.42),
+                    boxShadow: `0 0 12px ${hexToRgba(MOVE_COMMAND_COLOR, 0.35)}`,
+                  }}
+                />
+                {[0, 90, 180, 270].map((deg) => (
+                  <div
+                    key={`move-chevron-${deg}`}
+                    className="absolute left-1/2 top-1/2 h-0 w-0"
+                    style={{
+                      transform: `translate(-50%, -50%) rotate(${deg}deg) translateY(-14px)`,
+                      borderLeft: '5px solid transparent',
+                      borderRight: '5px solid transparent',
+                      borderBottom: `8px solid ${hexToRgba(MOVE_COMMAND_COLOR, 0.95)}`,
+                      filter: `drop-shadow(0 0 4px ${hexToRgba(MOVE_COMMAND_COLOR, 0.75)})`,
+                    }}
+                  />
+                ))}
+                <div
+                  className="absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                  style={{ backgroundColor: hexToRgba('#D9FFD9', 0.95) }}
+                />
+              </motion.div>
             )}
             {effect.type === 'pentakill' && (
               <div className="pointer-events-none -translate-x-1/2 -translate-y-1/2 text-4xl font-black tracking-[0.25em] text-amber-300 drop-shadow-[0_0_18px_rgba(251,191,36,0.8)]">
