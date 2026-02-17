@@ -22,8 +22,8 @@ export const CHAMPION_CONFIG: Record<
 > = {
   lucian: {
     name: 'Lucian',
-    // Generic gunner sheet for now; swap to real lucian later.
-    spriteSheet: '/sprites/gunner-sprites.png',
+    // Lucian-like pixel sheet (in-repo fallback until final handcrafted sheet lands).
+    spriteSheet: '/sprites/lucian-sprites.svg',
     frameSize: 48,
     sheetColumns: 8,
     sheetRows: 10,
@@ -52,4 +52,3 @@ export const CHAMPION_CONFIG: Record<
     },
   },
 };
-

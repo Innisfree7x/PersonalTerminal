@@ -191,6 +191,18 @@ function frameDuration(animation: ChampionAnimation): number {
   }
 }
 
+function hexToRgba(hex: string, alpha: number): string {
+  const safe = hex.replace('#', '');
+  const normalized = safe.length === 3
+    ? safe.split('').map((ch) => ch + ch).join('')
+    : safe;
+  const int = Number.parseInt(normalized, 16);
+  const r = (int >> 16) & 255;
+  const g = (int >> 8) & 255;
+  const b = int & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 export function useChampion() {
   const context = useContext(ChampionContext);
   if (!context) {
@@ -233,6 +245,7 @@ function ChampionOverlay({
   const championColor = `${championConfig.colors.primaryFrom} ${championConfig.colors.primaryTo}`;
   const spriteRow = animationRow(animation);
   const frameSize = championConfig.frameSize;
+  const abilityColors = championConfig.colors;
   const spriteStyle = {
     width: championSize,
     height: championSize,
@@ -245,8 +258,25 @@ function ChampionOverlay({
   return (
     <div className="pointer-events-none fixed inset-0 z-[68] select-none">
       {mode === 'active' && (
+        <div
+          aria-hidden="true"
+          className="absolute inset-0"
+          style={{
+            boxShadow: `inset 0 0 0 2px ${hexToRgba(abilityColors.q, 0.45)}, inset 0 0 42px ${hexToRgba(abilityColors.q, 0.22)}`,
+          }}
+        />
+      )}
+
+      {mode === 'active' && (
         <div className="pointer-events-none fixed inset-x-0 top-16 z-[69] flex justify-center">
-          <div data-hotkeys-disabled="true" className="rounded-lg border border-sky-400/40 bg-surface/95 px-4 py-2 text-xs tracking-wide text-sky-200 shadow-xl">
+          <div
+            data-hotkeys-disabled="true"
+            className="rounded-lg bg-surface/95 px-4 py-2 text-xs tracking-wide shadow-xl"
+            style={{
+              border: `1px solid ${hexToRgba(abilityColors.q, 0.5)}`,
+              color: hexToRgba(abilityColors.q, 0.95),
+            }}
+          >
             CHAMPION MODE · ESC to exit
           </div>
         </div>
@@ -254,7 +284,7 @@ function ChampionOverlay({
 
       {rangeActive && (
         <motion.div
-          className="absolute rounded-full border border-cyan-300/50 bg-cyan-400/10"
+          className="absolute rounded-full"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -263,12 +293,15 @@ function ChampionOverlay({
             height: settings.rangeRadius * 2,
             left: position.x + championSize / 2 - settings.rangeRadius,
             top: position.y + championSize / 2 - settings.rangeRadius,
+            border: `1px solid ${hexToRgba(abilityColors.q, 0.55)}`,
+            backgroundColor: hexToRgba(abilityColors.q, 0.12),
           }}
         />
       )}
 
       <motion.button
         onClick={onChampionClick}
+        data-champion-sprite="true"
         className="pointer-events-auto absolute rounded-full"
         style={{ left: position.x, top: position.y }}
         animate={{ x: 0, y: 0 }}
@@ -277,18 +310,18 @@ function ChampionOverlay({
           className={`relative rounded-full border border-white/20 bg-gradient-to-br ${championColor} shadow-[0_0_30px_rgba(56,189,248,0.35)]`}
           style={spriteStyle}
         >
-          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl font-black text-white/90">
-            {settings.champion === 'lucian' ? 'L' : 'A'}
-          </span>
           <div
             className="absolute inset-0 rounded-full border border-white/20"
             style={{ transform: direction === 'left' ? 'scaleX(-1)' : 'scaleX(1)' }}
           />
           {mode === 'active' && (
             <motion.div
-              className="absolute -inset-2 rounded-full border-2 border-cyan-300/60"
+              className="absolute -inset-2 rounded-full border-2"
               animate={{ opacity: [0.4, 0.9, 0.4], scale: [0.96, 1.06, 0.96] }}
               transition={{ duration: 1.2, repeat: Infinity }}
+              style={{
+                borderColor: hexToRgba(abilityColors.q, 0.68),
+              }}
             />
           )}
           <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300">
@@ -309,21 +342,45 @@ function ChampionOverlay({
           >
             {effect.type === 'q' && (
               <div
-                className="h-1 w-72 origin-left rounded-full bg-gradient-to-r from-cyan-200 via-cyan-400 to-transparent shadow-[0_0_16px_rgba(34,211,238,0.8)]"
-                style={{ transform: `rotate(${effect.angle ?? 0}deg)` }}
+                className="h-1 w-72 origin-left rounded-full"
+                style={{
+                  transform: `rotate(${effect.angle ?? 0}deg)`,
+                  background: `linear-gradient(to right, ${hexToRgba(abilityColors.q, 0.95)}, ${hexToRgba(abilityColors.q, 0.75)}, transparent)`,
+                  boxShadow: `0 0 16px ${hexToRgba(abilityColors.q, 0.8)}`,
+                }}
               />
             )}
             {effect.type === 'w' && (
-              <div className="h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-300/60 bg-cyan-400/15 shadow-[0_0_30px_rgba(56,189,248,0.35)]" />
+              <div
+                className="h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                style={{
+                  border: `1px solid ${hexToRgba(abilityColors.w, 0.65)}`,
+                  backgroundColor: hexToRgba(abilityColors.w, 0.16),
+                  boxShadow: `0 0 30px ${hexToRgba(abilityColors.w, 0.35)}`,
+                }}
+              />
             )}
             {effect.type === 'e' && (
-              <div className="h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-300/30 blur-sm" />
+              <div
+                className="h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full blur-sm"
+                style={{ backgroundColor: hexToRgba(abilityColors.e, 0.32) }}
+              />
             )}
             {effect.type === 'r' && (
-              <div className="h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full border border-amber-300/50 bg-amber-300/10 shadow-[0_0_40px_rgba(245,158,11,0.45)]" />
+              <div
+                className="h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                style={{
+                  border: `1px solid ${hexToRgba(abilityColors.r, 0.5)}`,
+                  backgroundColor: hexToRgba(abilityColors.r, 0.12),
+                  boxShadow: `0 0 40px ${hexToRgba(abilityColors.r, 0.45)}`,
+                }}
+              />
             )}
             {effect.type === 'move' && (
-              <div className="h-10 w-10 -translate-x-1/2 -translate-y-1/2 rotate-45 border-b-2 border-r-2 border-emerald-300/80" />
+              <div
+                className="h-10 w-10 -translate-x-1/2 -translate-y-1/2 rotate-45 border-b-2 border-r-2"
+                style={{ borderColor: hexToRgba(abilityColors.e, 0.85) }}
+              />
             )}
             {effect.type === 'pentakill' && (
               <div className="pointer-events-none -translate-x-1/2 -translate-y-1/2 text-4xl font-black tracking-[0.25em] text-amber-300 drop-shadow-[0_0_18px_rgba(251,191,36,0.8)]">
@@ -337,8 +394,30 @@ function ChampionOverlay({
       {mode === 'active' && settings.showCooldowns && (
         <div className="pointer-events-none fixed bottom-5 left-1/2 z-[69] flex -translate-x-1/2 gap-3 rounded-xl border border-border bg-surface/95 px-4 py-3 shadow-xl">
           {(['q', 'w', 'e', 'r'] as AbilityKey[]).map((key) => (
-            <div key={key} className="relative h-14 w-14 rounded-lg border border-border bg-background/70 text-center">
-              <div className="pt-1 text-xs font-semibold uppercase text-text-secondary">{key}</div>
+            <div
+              key={key}
+              className="relative h-14 w-14 rounded-lg border bg-background/70 text-center"
+              style={{
+                borderColor: hexToRgba(
+                  key === 'q' ? abilityColors.q : key === 'w' ? abilityColors.w : key === 'e' ? abilityColors.e : abilityColors.r,
+                  0.5
+                ),
+              }}
+            >
+              <div
+                className="pt-1 text-xs font-semibold uppercase"
+                style={{
+                  color: key === 'q'
+                    ? abilityColors.q
+                    : key === 'w'
+                      ? abilityColors.w
+                      : key === 'e'
+                        ? abilityColors.e
+                        : abilityColors.r,
+                }}
+              >
+                {key}
+              </div>
               <div className="text-[11px] text-text-tertiary">
                 {key === 'q' ? 'Light' : key === 'w' ? 'Shield' : key === 'e' ? 'Dash' : 'Ult'}
               </div>
@@ -710,23 +789,43 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!settings.enabled || mode !== 'active') return;
-    const onContextMenu = (event: MouseEvent) => {
-      if (isTypingTarget(event.target)) return;
-      event.preventDefault();
+    const moveChampionToPointer = (clientX: number, clientY: number) => {
       const target = clampToViewport(
-        { x: event.clientX - championSize / 2, y: event.clientY - championSize / 2 },
+        { x: clientX - championSize / 2, y: clientY - championSize / 2 },
         championSize
       );
       setTargetPosition(target);
       setIsMoving(true);
       setDirection(target.x < position.x ? 'left' : 'right');
       setAnimation('walk');
-      addEffect({ type: 'move', x: event.clientX, y: event.clientY }, 450);
+      addEffect({ type: 'move', x: clientX, y: clientY }, 450);
       if (settings.soundsEnabled) play('champ-move');
     };
+
+    const onContextMenu = (event: MouseEvent) => {
+      if (isTypingTarget(event.target)) return;
+      event.preventDefault();
+      moveChampionToPointer(event.clientX, event.clientY);
+    };
+
+    // Attack-move style: while X-range is active, left-click also issues move command.
+    const onPointerDown = (event: MouseEvent) => {
+      if (!rangeActive) return;
+      if (event.button !== 0) return;
+      if (isTypingTarget(event.target)) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('[data-champion-sprite="true"]')) return;
+      event.preventDefault();
+      moveChampionToPointer(event.clientX, event.clientY);
+    };
+
     window.addEventListener('contextmenu', onContextMenu);
-    return () => window.removeEventListener('contextmenu', onContextMenu);
-  }, [addEffect, championSize, mode, play, position.x, settings.enabled, settings.soundsEnabled]);
+    window.addEventListener('mousedown', onPointerDown, true);
+    return () => {
+      window.removeEventListener('contextmenu', onContextMenu);
+      window.removeEventListener('mousedown', onPointerDown, true);
+    };
+  }, [addEffect, championSize, mode, play, position.x, rangeActive, settings.enabled, settings.soundsEnabled]);
 
   useEffect(() => {
     if (!settings.enabled || mode !== 'active') return;
