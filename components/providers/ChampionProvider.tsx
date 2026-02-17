@@ -244,14 +244,15 @@ function ChampionOverlay({
   const championConfig = CHAMPION_CONFIG[settings.champion];
   const championColor = `${championConfig.colors.primaryFrom} ${championConfig.colors.primaryTo}`;
   const spriteRow = animationRow(animation);
-  const frameSize = championConfig.frameSize;
   const abilityColors = championConfig.colors;
   const spriteStyle = {
     width: championSize,
     height: championSize,
     backgroundImage: `url(${championConfig.spriteSheet})`,
-    backgroundSize: `${frameSize * championConfig.sheetColumns}px ${frameSize * championConfig.sheetRows}px`,
-    backgroundPosition: `-${frame * frameSize}px -${spriteRow * frameSize}px`,
+    // Render exactly one sprite frame and scale it up to championSize.
+    backgroundSize: `${championSize * championConfig.sheetColumns}px ${championSize * championConfig.sheetRows}px`,
+    backgroundPosition: `-${frame * championSize}px -${spriteRow * championSize}px`,
+    backgroundRepeat: 'no-repeat' as const,
     imageRendering: 'pixelated' as const,
   };
 
