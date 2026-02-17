@@ -318,9 +318,10 @@ function ChampionOverlay({
 
       {rangeActive && (
         <motion.div
+          key={`range-${Math.round(championCenterX)}-${Math.round(championCenterY)}-${visibleRangeRadius}`}
           className="absolute rounded-full"
           initial={{ opacity: 0 }}
-          animate={{ opacity: [0.52, 0.75, 0.52], scale: [0.99, 1, 0.99] }}
+          animate={{ opacity: [0.65, 0.88, 0.65], scale: [0.995, 1, 0.995] }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.85, repeat: Infinity, ease: 'easeInOut' }}
           style={{
@@ -329,8 +330,8 @@ function ChampionOverlay({
             left: championCenterX - visibleRangeRadius,
             top: championCenterY - visibleRangeRadius,
             border: `2px solid ${hexToRgba(abilityColors.q, 0.82)}`,
-            backgroundColor: hexToRgba(abilityColors.q, 0.11),
-            boxShadow: `0 0 28px ${hexToRgba(abilityColors.q, 0.38)}, inset 0 0 24px ${hexToRgba(abilityColors.q, 0.16)}`,
+            backgroundColor: 'transparent',
+            boxShadow: `0 0 20px ${hexToRgba(abilityColors.q, 0.42)}`,
           }}
         />
       )}
@@ -370,7 +371,7 @@ function ChampionOverlay({
           }}
         >
           <div className="absolute inset-0 rounded-full border border-white/20" />
-          {mode === 'active' && (
+          {mode === 'active' && !rangeActive && (
             <motion.div
               className="absolute left-1/2 top-1/2 rounded-full border"
               animate={{ opacity: [0.22, 0.34, 0.22], scale: [0.98, 1, 0.98] }}
