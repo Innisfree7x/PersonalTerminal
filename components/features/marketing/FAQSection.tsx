@@ -45,7 +45,7 @@ export function FAQSection() {
           viewport={{ once: true }}
           className="mx-auto mb-14 max-w-2xl text-center"
         >
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-red-400">FAQ</p>
+          <p className="premium-kicker">FAQ</p>
           <h2 className="premium-heading text-3xl font-semibold text-[#FAF0E6] md:text-5xl">
             Häufige Fragen
           </h2>

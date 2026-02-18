@@ -1,18 +1,45 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useCallback } from 'react';
+import { motion, useMotionTemplate, useMotionValue, useSpring } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { ProductMockup } from './ProductMockup';
 import { TrackedCtaLink } from './TrackedCtaLink';
+import { CompanionCard } from './CompanionCard';
 
 export function HeroSection() {
+  const mouseX = useMotionValue(420);
+  const mouseY = useMotionValue(180);
+  const smoothX = useSpring(mouseX, { stiffness: 220, damping: 35, mass: 0.4 });
+  const smoothY = useSpring(mouseY, { stiffness: 220, damping: 35, mass: 0.4 });
+  const spotlight = useMotionTemplate`radial-gradient(640px circle at ${smoothX}px ${smoothY}px, rgba(239,68,68,0.14), rgba(234,179,8,0.09) 35%, transparent 72%)`;
+
+  const handleMouseMove = useCallback((event: React.MouseEvent<HTMLElement>) => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    mouseX.set(event.clientX - bounds.left);
+    mouseY.set(event.clientY - bounds.top);
+  }, [mouseX, mouseY]);
+
+  const handleMouseLeave = useCallback(() => {
+    mouseX.set(420);
+    mouseY.set(180);
+  }, [mouseX, mouseY]);
+
   return (
-    <section className="relative overflow-hidden pb-12 pt-14 md:pb-20 md:pt-20">
+    <section
+      className="relative overflow-hidden pb-12 pt-14 md:pb-20 md:pt-20"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-[-8%] top-[15%] h-[580px] w-[580px] rounded-full bg-red-500/10 blur-[130px]" />
         <div className="absolute right-[-8%] top-[8%] h-[480px] w-[480px] rounded-full bg-yellow-500/10 blur-[130px]" />
         <div className="absolute left-1/2 top-0 h-20 w-[80%] -translate-x-1/2 bg-gradient-to-r from-transparent via-yellow-200/10 to-transparent blur-2xl" />
       </div>
+      <motion.div
+        className="pointer-events-none absolute inset-0 z-[1] opacity-90"
+        style={{ background: spotlight }}
+      />
 
       <div className="marketing-container relative z-10 w-full">
         <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] xl:gap-20">
@@ -28,7 +55,7 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="inline-flex items-center gap-2 rounded-full border border-yellow-500/25 bg-yellow-500/10 px-3.5 py-1.5"
+              className="inline-flex items-center gap-2 rounded-full border border-yellow-500/25 bg-yellow-500/10 px-3.5 py-1.5 shadow-[0_8px_28px_rgba(234,179,8,0.15)]"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
               <span className="text-xs font-semibold tracking-wide text-yellow-300">Kostenlos für Studenten</span>
@@ -40,7 +67,7 @@ export function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, duration: 0.6 }}
             >
-              <h1 className="premium-heading text-[clamp(2.8rem,7vw,6.5rem)] font-semibold text-[#FAF0E6]">
+              <h1 className="premium-heading text-[clamp(3.2rem,9.8vw,8.6rem)] font-normal text-[#FAF0E6]">
                 Dein persönliches
                 <br />
                 Dashboard fürs{' '}
@@ -72,7 +99,7 @@ export function HeroSection() {
                 href="/auth/signup"
                 eventName="landing_cta_primary_clicked"
                 eventPayload={{ source: 'hero', variant: 'primary' }}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-500 px-7 py-4 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-red-600 hover:shadow-xl hover:shadow-red-500/25"
+                className="premium-cta-primary"
               >
                 Kostenlos starten
                 <ArrowRight className="w-4 h-4" />
@@ -81,10 +108,31 @@ export function HeroSection() {
                 href="/auth/login"
                 eventName="landing_cta_secondary_clicked"
                 eventPayload={{ source: 'hero', variant: 'login' }}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.02] px-7 py-4 text-sm font-medium text-zinc-200 transition-all hover:border-white/30 hover:bg-white/[0.05] hover:text-[#FAF0E6]"
+                className="premium-cta-secondary"
               >
                 Bereits angemeldet? Login
               </TrackedCtaLink>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="flex flex-wrap gap-2"
+            >
+              <span className="premium-chip">No credit card</span>
+              <span className="premium-chip">2 min Setup</span>
+              <span className="premium-chip">Built for students</span>
+            </motion.div>
+
+            {/* Lucian Companion — mobile only (desktop shows as overlay on mockup) */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.62, duration: 0.5 }}
+              className="lg:hidden"
+            >
+              <CompanionCard className="max-w-[280px]" />
             </motion.div>
 
             {/* Quick stats */}
@@ -110,14 +158,24 @@ export function HeroSection() {
             </motion.div>
           </motion.div>
 
-          {/* Right: Product Mockup */}
+          {/* Right: Product Mockup + Lucian Companion overlay */}
           <motion.div
             initial={{ opacity: 0, y: 32, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.7, delay: 0.25 }}
-            className="hidden lg:block"
+            className="hidden lg:block relative"
           >
             <ProductMockup />
+
+            {/* Lucian Companion — floats over bottom-left of mockup */}
+            <motion.div
+              initial={{ opacity: 0, x: -10, y: 8 }}
+              animate={{ opacity: 1, x: 0, y: 0 }}
+              transition={{ delay: 0.75, duration: 0.55, ease: 'easeOut' }}
+              className="absolute bottom-8 -left-8 z-20 w-[268px]"
+            >
+              <CompanionCard />
+            </motion.div>
           </motion.div>
         </div>
       </div>

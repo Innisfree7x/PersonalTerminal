@@ -5,64 +5,76 @@ import { Calendar, BookOpen, Target, Briefcase, Timer, BarChart2 } from 'lucide-
 
 const features = [
   {
+    id: 'focus',
     icon: Calendar,
-    title: 'Tagesplanung',
+    title: 'Tagesplanung + Fokus',
     description:
-      'Aufgaben, Kalender und Fokus-Timer auf einem Dashboard. Dein Tag, optimal strukturiert — von morgens bis abends.',
-    accent: 'text-blue-400',
-    bg: 'bg-blue-500/8',
-    border: 'border-blue-500/15',
-    glow: 'group-hover:shadow-blue-500/10',
+      'Aufgaben, Kalender und Fokus-Timer auf einem Dashboard. Dein Tag, optimal strukturiert von morgens bis abends.',
+    accent: 'text-red-300',
+    bg: 'bg-red-500/10',
+    border: 'border-red-500/20',
+    glow: 'group-hover:shadow-red-500/20',
+    layout: 'lg:col-span-2 lg:row-span-2',
   },
   {
+    id: 'goals',
+    icon: Target,
+    title: 'Ziele',
+    description:
+      'Definiere Ziele mit Deadline und Priorität. Verfolge deinen Fortschritt über Wochen und Semester.',
+    accent: 'text-emerald-300',
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/20',
+    glow: 'group-hover:shadow-emerald-500/20',
+    layout: 'lg:col-span-1',
+  },
+  {
+    id: 'university',
     icon: BookOpen,
     title: 'Universität',
     description:
       'Kursmanagement mit Übungsblatt-Tracking und Klausurcountdown. Abgabetermine verpassen gehört der Vergangenheit an.',
-    accent: 'text-violet-400',
-    bg: 'bg-violet-500/8',
-    border: 'border-violet-500/15',
-    glow: 'group-hover:shadow-violet-500/10',
+    accent: 'text-violet-300',
+    bg: 'bg-violet-500/10',
+    border: 'border-violet-500/20',
+    glow: 'group-hover:shadow-violet-500/20',
+    layout: 'lg:col-span-1',
   },
   {
-    icon: Target,
-    title: 'Ziele',
-    description:
-      'Definiere Ziele mit Deadline und Priorität. Verfolge deinen Fortschritt — wöchentlich, monatlich, jährlich.',
-    accent: 'text-emerald-400',
-    bg: 'bg-emerald-500/8',
-    border: 'border-emerald-500/15',
-    glow: 'group-hover:shadow-emerald-500/10',
-  },
-  {
+    id: 'career',
     icon: Briefcase,
     title: 'Karriere',
     description:
       'Bewerbungs-Kanban von Applied bis Offer. CV-Upload mit automatischer Extraktion und Terminverfolgung inklusive.',
-    accent: 'text-orange-400',
-    bg: 'bg-orange-500/8',
-    border: 'border-orange-500/15',
-    glow: 'group-hover:shadow-orange-500/10',
+    accent: 'text-orange-300',
+    bg: 'bg-orange-500/10',
+    border: 'border-orange-500/20',
+    glow: 'group-hover:shadow-orange-500/20',
+    layout: 'lg:col-span-1 lg:row-span-2',
   },
   {
+    id: 'timer',
     icon: Timer,
     title: 'Fokus-Timer',
     description:
       'Globaler Pomodoro-Timer, der über alle Seiten hinweg läuft. Mit Streak-Tracking und täglichen Produktivitätsstats.',
-    accent: 'text-red-400',
-    bg: 'bg-red-500/8',
-    border: 'border-red-500/15',
-    glow: 'group-hover:shadow-red-500/10',
+    accent: 'text-yellow-300',
+    bg: 'bg-yellow-500/10',
+    border: 'border-yellow-500/20',
+    glow: 'group-hover:shadow-yellow-500/20',
+    layout: 'lg:col-span-1',
   },
   {
+    id: 'analytics',
     icon: BarChart2,
     title: 'Analytics',
     description:
       'Deine Produktivität auf einen Blick. Fokuszeit nach Tagesabschnitt, Aufgaben-Completion-Rate und Streak-Verlauf.',
-    accent: 'text-yellow-400',
-    bg: 'bg-yellow-500/8',
-    border: 'border-yellow-500/15',
-    glow: 'group-hover:shadow-yellow-500/10',
+    accent: 'text-sky-300',
+    bg: 'bg-sky-500/10',
+    border: 'border-sky-500/20',
+    glow: 'group-hover:shadow-sky-500/20',
+    layout: 'lg:col-span-1',
   },
 ];
 
@@ -80,7 +92,7 @@ export function FeatureSection() {
           transition={{ duration: 0.5 }}
           className="mx-auto mb-16 max-w-2xl text-center"
         >
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-red-400">Alle Module</p>
+          <p className="premium-kicker">Alle Module</p>
           <h2 className="premium-heading mb-4 text-3xl font-semibold text-[#FAF0E6] md:text-5xl">
             Sechs Module. Ein System.
           </h2>
@@ -90,17 +102,18 @@ export function FeatureSection() {
           </p>
         </motion.div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid auto-rows-[minmax(168px,auto)] gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, i) => (
             <motion.div
-              key={feature.title}
+              key={feature.id}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.07 }}
-              className={`group premium-card-soft relative overflow-hidden rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-[#171717] ${feature.glow}`}
+              className={`group premium-card-soft relative overflow-hidden rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.01] hover:border-white/20 hover:bg-[#171717] ${feature.glow} ${feature.layout}`}
             >
               <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent opacity-0 transition group-hover:opacity-100" />
+              <div className="pointer-events-none absolute -right-16 -top-16 h-28 w-28 rounded-full bg-white/5 blur-2xl opacity-0 transition duration-300 group-hover:opacity-100" />
               <div
                 className={`mb-5 flex h-11 w-11 items-center justify-center rounded-xl border ${feature.border} ${feature.bg}`}
               >
@@ -108,6 +121,33 @@ export function FeatureSection() {
               </div>
               <h3 className="mb-2 text-lg font-semibold text-[#FAF0E6]">{feature.title}</h3>
               <p className="text-sm leading-relaxed text-zinc-400">{feature.description}</p>
+
+              {feature.id === 'focus' ? (
+                <div className="mt-5 space-y-2.5">
+                  <div className="h-1.5 rounded-full bg-white/5">
+                    <motion.div
+                      className="h-1.5 rounded-full bg-red-500/80"
+                      initial={{ width: 0 }}
+                      whileInView={{ width: '72%' }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.9, delay: 0.3 }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-500">Heute erledigt</span>
+                    <span className="font-semibold text-[#FAF0E6]">9 / 12 Tasks</span>
+                  </div>
+                </div>
+              ) : null}
+
+              {feature.id === 'career' ? (
+                <div className="mt-5 grid grid-cols-2 gap-2 text-xs">
+                  <span className="rounded-md border border-white/10 bg-white/[0.02] px-2 py-1 text-zinc-300">Applied 12</span>
+                  <span className="rounded-md border border-white/10 bg-white/[0.02] px-2 py-1 text-zinc-300">Interview 4</span>
+                  <span className="rounded-md border border-white/10 bg-white/[0.02] px-2 py-1 text-zinc-300">Offer 2</span>
+                  <span className="rounded-md border border-white/10 bg-white/[0.02] px-2 py-1 text-zinc-300">Winrate 28%</span>
+                </div>
+              ) : null}
             </motion.div>
           ))}
         </div>

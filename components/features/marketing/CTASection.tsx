@@ -37,7 +37,7 @@ export function CTASection() {
                 href="/auth/signup"
                 eventName="landing_cta_primary_clicked"
                 eventPayload={{ source: 'footer_cta', variant: 'primary' }}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-500 px-8 py-3.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-red-600 hover:shadow-xl hover:shadow-red-500/30"
+                className="premium-cta-primary"
               >
                 Kostenlos starten
                 <ArrowRight className="w-4 h-4" />
@@ -46,7 +46,7 @@ export function CTASection() {
                 href="/auth/login"
                 eventName="landing_cta_secondary_clicked"
                 eventPayload={{ source: 'footer_cta', variant: 'login' }}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.02] px-8 py-3.5 text-sm font-medium text-zinc-200 transition-all hover:border-white/30 hover:bg-white/[0.06] hover:text-[#FAF0E6]"
+                className="premium-cta-secondary"
               >
                 Login
               </TrackedCtaLink>

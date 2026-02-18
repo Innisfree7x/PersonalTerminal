@@ -6,6 +6,8 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
     <div className="marketing-shell min-h-screen text-[#FAF0E6]">
       <div className="pointer-events-none fixed inset-0 marketing-grid-overlay" />
       <div className="pointer-events-none fixed inset-0 marketing-noise" />
+      <div className="pointer-events-none fixed inset-0 marketing-vignette" />
+      <div className="pointer-events-none fixed inset-0 marketing-spotlight" />
       <MarketingNavbar />
       <main className="relative z-10">{children}</main>
       <MarketingFooter />
