@@ -11,9 +11,34 @@ import PerformanceMonitor from "@/components/providers/PerformanceMonitor";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
+function resolveSiteUrl(): URL {
+  const raw =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+  return new URL(raw);
+}
+
 export const metadata: Metadata = {
-  title: "Prism - Personal Productivity System",
-  description: "Modern productivity system for managing goals, career applications, university courses, and daily tasks",
+  metadataBase: resolveSiteUrl(),
+  title: {
+    default: 'Prism | Personal Productivity System',
+    template: '%s | Prism',
+  },
+  description:
+    'Prism kombiniert Studium, Aufgaben, Ziele und Karriere in einem schnellen persönlichen Dashboard.',
+  openGraph: {
+    title: 'Prism | Personal Productivity System',
+    description:
+      'Prism kombiniert Studium, Aufgaben, Ziele und Karriere in einem schnellen persönlichen Dashboard.',
+    type: 'website',
+    siteName: 'Prism',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Prism | Personal Productivity System',
+    description:
+      'Prism kombiniert Studium, Aufgaben, Ziele und Karriere in einem schnellen persönlichen Dashboard.',
+  },
 };
 
 export default function RootLayout({
