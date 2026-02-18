@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { motion } from 'framer-motion';
 import { isOnboardingComplete } from '@/lib/auth/profile';
+import { BrandMark } from '@/components/shared/BrandLogo';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -43,9 +44,7 @@ export default function LoginPage() {
       >
         {/* Logo/Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-dark mb-4">
-            <span className="text-white font-bold text-2xl">I</span>
-          </div>
+          <BrandMark sizeClassName="h-16 w-16" className="mb-4" />
           <h1 className="text-3xl font-bold text-text-primary mb-2">
             Welcome back
           </h1>

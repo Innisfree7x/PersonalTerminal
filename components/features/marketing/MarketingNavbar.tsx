@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Menu, X, ArrowRight } from 'lucide-react';
 import { TrackedCtaLink } from './TrackedCtaLink';
+import { BrandLockup } from '@/components/shared/BrandLogo';
 
 export function MarketingNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -14,11 +15,11 @@ export function MarketingNavbar() {
       <div className="marketing-container h-[74px] flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="group flex items-center gap-3">
-          <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/25 transition-transform duration-300 group-hover:scale-105">
-            <span className="text-white text-sm font-bold tracking-tight">I</span>
-            <div className="absolute -inset-px rounded-xl border border-white/30 mix-blend-overlay" />
-          </div>
-          <span className="text-[#FAF0E6] font-semibold text-lg tracking-tight">INNIS</span>
+          <BrandLockup
+            sizeClassName="h-9 w-9"
+            className="transition-transform duration-300 group-hover:scale-105"
+            wordmarkClassName="text-[#FAF0E6] font-semibold text-lg tracking-tight"
+          />
         </Link>
 
         {/* Desktop nav links */}

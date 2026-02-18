@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { CheckCircle2, Circle, Timer, TrendingUp, BookOpen, Flame } from 'lucide-react';
+import { BrandMark } from '@/components/shared/BrandLogo';
 
 const tasks = [
   { title: 'Übungsblatt 8 einreichen', done: true },
@@ -43,9 +44,7 @@ export function ProductMockup() {
             {/* Sidebar */}
             <div className="flex w-16 flex-shrink-0 flex-col items-center gap-4 border-r border-white/10 bg-[#0A0A0A] py-4">
               {/* Logo */}
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center mb-1">
-                <span className="text-white text-[11px] font-bold">P</span>
-              </div>
+              <BrandMark sizeClassName="h-8 w-8" className="mb-1 shadow-none" />
               {/* Nav dots */}
               {navItems.map((item, i) => (
                 <motion.div

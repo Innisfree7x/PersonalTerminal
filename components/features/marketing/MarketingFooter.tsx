@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { BrandLockup } from '@/components/shared/BrandLogo';
 
 export function MarketingFooter() {
   return (
@@ -9,10 +10,11 @@ export function MarketingFooter() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="mb-4 flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/25">
-                <span className="text-white text-xs font-bold">I</span>
-              </div>
-              <span className="font-semibold text-[#FAF0E6]">INNIS</span>
+              <BrandLockup
+                sizeClassName="h-8 w-8"
+                className="gap-2.5"
+                wordmarkClassName="font-semibold text-[#FAF0E6] tracking-tight"
+              />
             </Link>
             <p className="max-w-[220px] text-xs leading-relaxed text-zinc-500">
               Das persönliche Dashboard für Studenten.

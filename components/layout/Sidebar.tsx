@@ -23,6 +23,7 @@ import { isAdminUser } from '@/lib/auth/authorization';
 import { fetchGoalsAction } from '@/app/actions/goals';
 import { fetchCoursesAction } from '@/app/actions/university';
 import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
+import { BrandLockup, BrandMark } from '@/components/shared/BrandLogo';
 
 const baseNavigation = [
   { name: 'Today', href: '/today', icon: LayoutDashboard, shortcut: '1' },
@@ -190,10 +191,11 @@ export default function Sidebar() {
                 exit={{ opacity: 0 }}
                 className="flex items-center gap-2"
               >
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center">
-                  <span className="text-white font-bold text-base">I</span>
-                </div>
-                <span className="font-semibold text-text-primary">INNIS</span>
+                <BrandLockup
+                  sizeClassName="h-8 w-8"
+                  className="gap-2"
+                  wordmarkClassName="font-semibold text-text-primary tracking-tight"
+                />
               </motion.div>
             ) : (
               <motion.div
@@ -202,9 +204,7 @@ export default function Sidebar() {
                 exit={{ opacity: 0 }}
                 className="flex items-center justify-center w-full"
               >
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center">
-                  <span className="text-white font-bold text-base">I</span>
-                </div>
+                <BrandMark sizeClassName="h-8 w-8" />
               </motion.div>
             )}
 
