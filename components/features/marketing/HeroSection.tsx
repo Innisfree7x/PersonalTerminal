@@ -67,7 +67,7 @@ export function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, duration: 0.6 }}
             >
-              <h1 className="premium-heading text-[clamp(3.2rem,9.8vw,8.6rem)] font-normal text-[#FAF0E6]">
+              <h1 className="font-sans text-[clamp(2.8rem,7.2vw,6.6rem)] font-semibold leading-[0.9] tracking-[-0.04em] text-[#FAF0E6]">
                 Dein persönliches
                 <br />
                 Dashboard fürs{' '}
@@ -159,24 +159,26 @@ export function HeroSection() {
           </motion.div>
 
           {/* Right: Product Mockup + Lucian Companion overlay */}
-          <motion.div
-            initial={{ opacity: 0, y: 32, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.7, delay: 0.25 }}
-            className="hidden lg:block relative"
-          >
-            <ProductMockup />
-
-            {/* Lucian Companion — floats over bottom-left of mockup */}
+          <div className="hidden lg:block">
             <motion.div
-              initial={{ opacity: 0, x: -10, y: 8 }}
-              animate={{ opacity: 1, x: 0, y: 0 }}
-              transition={{ delay: 0.75, duration: 0.55, ease: 'easeOut' }}
-              className="absolute bottom-8 -left-8 z-20 w-[268px]"
+              initial={{ opacity: 0, y: 32, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.25 }}
+              className="relative"
+            >
+              <ProductMockup />
+            </motion.div>
+
+            {/* Lucian Companion — below mockup on desktop */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.78, duration: 0.5, ease: 'easeOut' }}
+              className="mt-4 w-[292px]"
             >
               <CompanionCard />
             </motion.div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>
