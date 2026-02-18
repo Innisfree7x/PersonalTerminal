@@ -132,10 +132,10 @@ export default function OnboardingPage() {
     savePersistedState({ step: currentStep, name, coursesDraft, taskDraft, coursesResult, taskResult });
   }, [loading, currentStep, name, coursesDraft, taskDraft, coursesResult, taskResult]);
 
-  const goNext = (stepOverride?: number) => {
+  const goNext = () => {
     const fromStep = currentStep;
     setDirection(1);
-    const nextStep = stepOverride ?? Math.min(currentStep + 1, TOTAL_STEPS);
+    const nextStep = Math.min(currentStep + 1, TOTAL_STEPS);
     trackOnboardingEvent('onboarding_step_completed', { step: fromStep });
     setCurrentStep(nextStep);
   };
