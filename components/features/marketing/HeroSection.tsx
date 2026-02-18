@@ -174,10 +174,11 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.78, duration: 0.5, ease: 'easeOut' }}
-              className="mt-4 w-[292px] [perspective:1200px]"
+              className="mt-4 w-[292px]"
+              style={{ perspective: '1400px' }}
             >
-              <div className="origin-top-left [transform:rotateY(-9deg)_rotateX(2deg)]">
-                <CompanionCard className="transition-transform duration-500 hover:-translate-y-1 hover:scale-[1.01]" />
+              <div style={{ transform: 'rotateY(-9deg) rotateX(2deg)' }}>
+                <CompanionCard />
               </div>
             </motion.div>
           </div>
