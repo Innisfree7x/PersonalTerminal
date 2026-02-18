@@ -463,15 +463,44 @@ export default function FocusTasks() {
 
       <AnimatePresence mode="popLayout">
         {sortedTasks.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="text-center py-8"
-          >
-            <div className="text-3xl mb-2">🎉</div>
-            <p className="text-sm text-text-tertiary">All caught up!</p>
-          </motion.div>
+          completedTasks.length === 0 ? (
+            // Truly empty — new user or no tasks added yet
+            <motion.div
+              key="empty-new"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center text-center py-10 gap-3"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Plus className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-text-primary mb-1">Noch keine Aufgaben heute</p>
+                <p className="text-xs text-text-tertiary leading-relaxed max-w-[220px]">
+                  Füge deine erste Aufgabe hinzu und starte produktiv in den Tag.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowAddInput(true)}
+                className="px-4 py-2 text-xs font-medium bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
+              >
+                + Aufgabe hinzufügen
+              </button>
+            </motion.div>
+          ) : (
+            // All tasks completed
+            <motion.div
+              key="empty-done"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-center py-8"
+            >
+              <div className="text-3xl mb-2">🎉</div>
+              <p className="text-sm text-text-tertiary">All caught up!</p>
+            </motion.div>
+          )
         ) : (
           <div className="space-y-2">
             {sortedTasks.map((task, index) => renderTaskRow(task, index))}

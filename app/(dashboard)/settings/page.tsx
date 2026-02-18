@@ -15,11 +15,15 @@ import {
     Volume2,
     VolumeX,
     Music,
+    Database,
+    Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAppSound } from '@/lib/hooks/useAppSound';
 import { updateProfileAction } from '@/app/actions/profile';
 import toast from 'react-hot-toast';
+import { hasDemoData, removeDemoData } from '@/app/onboarding/demoSeedService';
+import { ConfirmModal } from '@/components/shared/ConfirmModal';
 import { usePowerHotkeys, type SummonerSpellAction } from '@/components/providers/PowerHotkeysProvider';
 import { useChampion } from '@/components/providers/ChampionProvider';
 
@@ -50,6 +54,9 @@ export default function SettingsPage() {
     const { settings: championSettings, updateSettings: updateChampionSettings, stats: championStats } = useChampion();
     const [displayName, setDisplayName] = useState('');
     const [savingProfile, setSavingProfile] = useState(false);
+    const [hasDemoDataState, setHasDemoDataState] = useState(false);
+    const [showDemoConfirm, setShowDemoConfirm] = useState(false);
+    const [removingDemo, setRemovingDemo] = useState(false);
 
     useEffect(() => {
         const name =
@@ -60,6 +67,10 @@ export default function SettingsPage() {
             '';
         setDisplayName(name);
     }, [user]);
+
+    useEffect(() => {
+        setHasDemoDataState(hasDemoData());
+    }, []);
 
     const handleSaveProfile = async () => {
         setSavingProfile(true);
@@ -325,6 +336,57 @@ export default function SettingsPage() {
                     </div>
                 </div>
             </section>
+
+            {/* Demo Data Section — only visible when demo data is active */}
+            {hasDemoDataState && (
+                <section className="space-y-6">
+                    <div className="flex items-center gap-2">
+                        <Database className="w-5 h-5 text-text-secondary" />
+                        <h2 className="text-xl font-semibold text-text-primary">Demo-Daten</h2>
+                    </div>
+
+                    <div className="p-6 bg-red-500/5 border border-red-500/20 rounded-xl space-y-4">
+                        <div>
+                            <p className="text-sm font-medium text-text-primary mb-1">Beispieldaten aktiv</p>
+                            <p className="text-sm text-text-secondary leading-relaxed">
+                                Dein Dashboard enthält Demo-Kurse, -Ziele und -Aufgaben zum Ausprobieren.
+                                Du kannst sie jederzeit entfernen — deine eigenen Daten bleiben erhalten.
+                            </p>
+                        </div>
+                        <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => setShowDemoConfirm(true)}
+                            leftIcon={<Trash2 className="w-3.5 h-3.5" />}
+                        >
+                            Demo-Daten entfernen
+                        </Button>
+                    </div>
+
+                    <ConfirmModal
+                        isOpen={showDemoConfirm}
+                        title="Demo-Daten entfernen?"
+                        description="Alle Beispielkurse, -ziele und -aufgaben werden unwiderruflich gelöscht. Deine eigenen Daten bleiben erhalten."
+                        confirmLabel="Ja, entfernen"
+                        dangerous
+                        loading={removingDemo}
+                        onCancel={() => setShowDemoConfirm(false)}
+                        onConfirm={async () => {
+                            setRemovingDemo(true);
+                            try {
+                                await removeDemoData();
+                                setHasDemoDataState(false);
+                                setShowDemoConfirm(false);
+                                toast.success('Demo-Daten wurden entfernt.');
+                            } catch {
+                                toast.error('Fehler beim Entfernen der Demo-Daten.');
+                            } finally {
+                                setRemovingDemo(false);
+                            }
+                        }}
+                    />
+                </section>
+            )}
 
             {/* Hotkeys Section */}
             <section className="space-y-6">

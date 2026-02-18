@@ -15,7 +15,7 @@
 
 | Feature | Priorität | Status |
 |---------|-----------|--------|
-| C1 — Sprite System + Animation Engine | P0 | ✅ done (lucian sprite-sheet engine + frame-aware face offsets) |
+| C1 — Sprite System + Animation Engine | P0 | ✅ done (lucian sprite-sheet engine + stable face details) |
 | C2 — Champion Overlay + Movement (Rechtsklick) | P0 | ✅ done |
 | C3 — Passive Modus (Idle + Random Walk) | P0 | ✅ done |
 | C4 — Aktiv Modus (Click to Select) | P1 | ✅ done |
@@ -350,7 +350,7 @@ Q                 →  Ability 1
 W                 →  Ability 2
 E                 →  Dash (direkt zur Mausposition)
 R                 →  Ultimate
-X (halten)        →  Range Indicator
+X (toggle)        →  Range Indicator an/aus
 ESC               →  Deselect → App Modus
 ```
 
@@ -368,7 +368,7 @@ ESC               →  Deselect → App Modus
 ## C5 — Attack Range Indicator (X)
 
 ```
-X halten →  Semi-transparenter Kreis um den Champion
+X drücken →  Semi-transparenter Kreis um den Champion (toggle ON)
             Radius: 300px (konfigurierbar)
             Farbe: Champion-spezifisch (Lucian: blau-weiß, Aphelios: lila-türkis)
 
@@ -376,8 +376,8 @@ X halten →  Semi-transparenter Kreis um den Champion
             → bekommen ein subtiles Glow-Highlight
             → Tasks, Goals, Kurs-Cards, Bewerbungskarten
 
-X loslassen →  Kreis faded out (0.2s)
-               Highlights verschwinden
+X erneut drücken →  Kreis aus (toggle OFF)
+                   Highlights verschwinden
 ```
 
 **Visuell:**
@@ -637,7 +637,7 @@ Champion-Stats
 ### Sprint 3 — Abilities + Terminal-Interaktion
 7. **C6** Q / E Abilities (Skillshot + Dash)
 8. **C8** data-interactive System + Range Detection
-9. **C6** W / R Abilities (Shield + Ultimate + PENTAKILL)
+9. **C6** W / R Abilities (Ardent Blaze Mark + Ultimate + PENTAKILL)
 
 ### Sprint 4 — Polish
 10. **C7** vollständiger Event Bus in alle Mutations
@@ -674,7 +674,7 @@ Champion-Stats
 - [x] Panic (4 frames)
 - [x] Meditate/Focus (4 frames)
 - [x] Recall (6 frames)
-- [x] Face details direkt im Sprite (frame-aware offsets)
+- [x] Face details direkt im Sprite (stabil, ohne Frame-Jitter)
 
 ### Aphelios Sprite Sheet (aphelios-sprites.png)
 - [ ] Identische Rows wie Lucian
