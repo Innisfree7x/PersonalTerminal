@@ -17,6 +17,7 @@ import {
     Music,
     Database,
     Trash2,
+    MessageSquare,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAppSound } from '@/lib/hooks/useAppSound';
@@ -54,6 +55,7 @@ export default function SettingsPage() {
     const { settings: championSettings, updateSettings: updateChampionSettings, stats: championStats } = useChampion();
     const [displayName, setDisplayName] = useState('');
     const [savingProfile, setSavingProfile] = useState(false);
+    const [lucianMuted, setLucianMuted] = useState(false);
     const [hasDemoDataState, setHasDemoDataState] = useState(false);
     const [showDemoConfirm, setShowDemoConfirm] = useState(false);
     const [removingDemo, setRemovingDemo] = useState(false);
@@ -69,8 +71,19 @@ export default function SettingsPage() {
     }, [user]);
 
     useEffect(() => {
+        setLucianMuted(localStorage.getItem('innis_lucian_muted') === '1');
         setHasDemoDataState(hasDemoData());
     }, []);
+
+    const toggleLucianMuted = () => {
+        const next = !lucianMuted;
+        if (next) {
+            localStorage.setItem('innis_lucian_muted', '1');
+        } else {
+            localStorage.removeItem('innis_lucian_muted');
+        }
+        setLucianMuted(next);
+    };
 
     const handleSaveProfile = async () => {
         setSavingProfile(true);
@@ -333,6 +346,43 @@ export default function SettingsPage() {
                                 </motion.button>
                             ))}
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Lucian Companion Section */}
+            <section className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold text-text-primary flex items-center gap-2">
+                        <MessageSquare className="w-5 h-5" />
+                        Lucian Companion
+                    </h2>
+                    <span className="text-xs font-medium px-2 py-1 rounded bg-primary/10 text-primary">
+                        Saved to local storage
+                    </span>
+                </div>
+
+                <div className="p-6 bg-surface border border-border rounded-xl">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-text-primary">Lucian aktiv</p>
+                            <p className="text-xs text-text-tertiary mt-0.5">
+                                Kontextuelle Hinweise von deinem Execution Companion
+                            </p>
+                        </div>
+                        <button
+                            onClick={toggleLucianMuted}
+                            className={`relative w-12 h-6 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                                !lucianMuted ? 'bg-primary' : 'bg-surface-hover'
+                            }`}
+                            aria-label={lucianMuted ? 'Lucian aktivieren' : 'Lucian deaktivieren'}
+                        >
+                            <span
+                                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                                    !lucianMuted ? 'translate-x-6' : 'translate-x-0'
+                                }`}
+                            />
+                        </button>
                     </div>
                 </div>
             </section>

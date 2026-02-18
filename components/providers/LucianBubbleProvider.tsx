@@ -157,8 +157,10 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
   const [visible, setVisible]     = useState(false);
   const queueRef                  = useRef<QueuedMessage[]>([]);
   const dismissTimerRef           = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const transitionTimerRef        = useRef<ReturnType<typeof setTimeout> | null>(null);
   const remainingRef              = useRef(0);
   const startTimeRef              = useRef(0);
+  const hiddenAtRef               = useRef(0);
 
   // ── Timer helpers ──────────────────────────────────────────────────────────
   const clearDismissTimer = useCallback(() => {
@@ -168,11 +170,19 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
     }
   }, []);
 
+  const clearTransitionTimer = useCallback(() => {
+    if (transitionTimerRef.current) {
+      clearTimeout(transitionTimerRef.current);
+      transitionTimerRef.current = null;
+    }
+  }, []);
+
   const doHide = useCallback(() => {
     setVisible(false);
     clearDismissTimer();
+    clearTransitionTimer();
     // After exit animation, show next queued message
-    setTimeout(() => {
+    transitionTimerRef.current = setTimeout(() => {
       const next = queueRef.current.shift() ?? null;
       if (next) {
         setCurrent(next);
@@ -186,7 +196,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
         setCurrent(null);
       }
     }, 220); // matches exit animation duration
-  }, [clearDismissTimer]);
+  }, [clearDismissTimer, clearTransitionTimer]);
 
   const startDismissTimer = useCallback((duration: number) => {
     clearDismissTimer();
@@ -220,8 +230,9 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
     } else if (msg.priority === 0 && current.priority > 0) {
       // P0 interrupts non-P0
       clearDismissTimer();
+      clearTransitionTimer();
       setVisible(false);
-      setTimeout(() => {
+      transitionTimerRef.current = setTimeout(() => {
         setCurrent(msg);
         setVisible(true);
         markSeen(msg.id);
@@ -233,7 +244,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
       queueRef.current.push(msg);
     }
     // else: drop (queue full)
-  }, [current, visible, clearDismissTimer, startDismissTimer]);
+  }, [current, visible, clearDismissTimer, clearTransitionTimer, startDismissTimer]);
 
   // ── Champion event subscription ────────────────────────────────────────────
   useEffect(() => {
@@ -248,6 +259,14 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
     return unsubscribe;
   }, [pathname, showMessage]);
 
+  // Cleanup all timers on unmount.
+  useEffect(() => {
+    return () => {
+      clearDismissTimer();
+      clearTransitionTimer();
+    };
+  }, [clearDismissTimer, clearTransitionTimer]);
+
   // ── Ambient idle ticker ────────────────────────────────────────────────────
   useEffect(() => {
     const tick = setInterval(() => {
@@ -261,6 +280,30 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
     }, IDLE_INTERVAL_MS);
 
     return () => clearInterval(tick);
+  }, [pathname, showMessage]);
+
+  // ── Returning-user trigger (visibilitychange) ──────────────────────────────
+  useEffect(() => {
+    const AWAY_THRESHOLD_MS = 30 * 60 * 1000; // 30 min
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        hiddenAtRef.current = Date.now();
+      } else {
+        const away = hiddenAtRef.current > 0 ? Date.now() - hiddenAtRef.current : 0;
+        hiddenAtRef.current = 0;
+
+        if (away < AWAY_THRESHOLD_MS) return;
+        if (!isDashboardPath(pathname ?? '')) return;
+        if (isMuted()) return;
+
+        const msg = pickMessage('recovery', 2) ?? pickMessage('idle', 3);
+        if (msg) showMessage(msg);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, [pathname, showMessage]);
 
   // ── Dismiss handlers ───────────────────────────────────────────────────────
