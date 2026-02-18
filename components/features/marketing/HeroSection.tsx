@@ -5,7 +5,6 @@ import { motion, useMotionTemplate, useMotionValue, useSpring } from 'framer-mot
 import { ArrowRight } from 'lucide-react';
 import { ProductMockup } from './ProductMockup';
 import { TrackedCtaLink } from './TrackedCtaLink';
-import { CompanionCard } from './CompanionCard';
 
 export function HeroSection() {
   const mouseX = useMotionValue(420);
@@ -125,16 +124,6 @@ export function HeroSection() {
               <span className="premium-chip">Built for students</span>
             </motion.div>
 
-            {/* Lucian Companion — mobile only (desktop shows as overlay on mockup) */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.62, duration: 0.5 }}
-              className="lg:hidden"
-            >
-              <CompanionCard className="max-w-[280px]" />
-            </motion.div>
-
             {/* Quick stats */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -158,7 +147,7 @@ export function HeroSection() {
             </motion.div>
           </motion.div>
 
-          {/* Right: Product Mockup + Lucian Companion overlay */}
+          {/* Right: Product Mockup */}
           <div className="hidden lg:block">
             <motion.div
               initial={{ opacity: 0, y: 32, scale: 0.95 }}
@@ -167,19 +156,6 @@ export function HeroSection() {
               className="relative"
             >
               <ProductMockup />
-            </motion.div>
-
-            {/* Lucian Companion — below mockup on desktop */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.78, duration: 0.5, ease: 'easeOut' }}
-              className="mt-4 w-[292px]"
-              style={{ perspective: '1400px' }}
-            >
-              <div style={{ transform: 'rotateY(-9deg) rotateX(2deg)' }}>
-                <CompanionCard />
-              </div>
             </motion.div>
           </div>
         </div>
