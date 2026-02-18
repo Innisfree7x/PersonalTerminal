@@ -54,7 +54,7 @@ export function StepProfile({ initialName = '', onNext }: StepProfileProps) {
         </div>
         <h2 className="text-2xl font-bold text-text-primary mb-2">Wie heißt du?</h2>
         <p className="text-text-secondary text-sm">
-          Prism personalisiert dein Dashboard mit deinem Namen.
+          INNIS personalisiert dein Dashboard mit deinem Namen.
         </p>
       </motion.div>
 

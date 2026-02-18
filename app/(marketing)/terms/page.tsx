@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Nutzungsbedingungen — Prism',
-  description: 'Nutzungsbedingungen für Prism.',
+  title: 'Nutzungsbedingungen — INNIS',
+  description: 'Nutzungsbedingungen für INNIS.',
 };
 
 export default function TermsPage() {
@@ -14,7 +14,7 @@ export default function TermsPage() {
           <div>
             <h2 className="text-lg font-semibold text-[#FAF0E6] mb-3">1. Nutzung</h2>
             <p>
-              Prism ist ein kostenloses, persönliches Produktivitäts-Tool. Die Nutzung ist für
+              INNIS ist ein kostenloses, persönliches Produktivitäts-Tool. Die Nutzung ist für
               Studenten kostenlos. Kommerzielle Nutzung ohne ausdrückliche Genehmigung ist nicht gestattet.
             </p>
           </div>
@@ -22,7 +22,7 @@ export default function TermsPage() {
           <div>
             <h2 className="text-lg font-semibold text-[#FAF0E6] mb-3">2. Verfügbarkeit</h2>
             <p>
-              Prism wird als persönliches Projekt bereitgestellt. Es gibt keine Garantie für
+              INNIS wird als persönliches Projekt bereitgestellt. Es gibt keine Garantie für
               ununterbrochene Verfügbarkeit. Wir behalten uns das Recht vor, den Dienst jederzeit
               zu ändern oder einzustellen.
             </p>
@@ -31,7 +31,7 @@ export default function TermsPage() {
           <div>
             <h2 className="text-lg font-semibold text-[#FAF0E6] mb-3">3. Nutzerinhalte</h2>
             <p>
-              Du bist allein verantwortlich für die Inhalte, die du in Prism eingibst. Bitte
+              Du bist allein verantwortlich für die Inhalte, die du in INNIS eingibst. Bitte
               speichere keine sensiblen personenbezogenen Daten Dritter ohne deren Zustimmung.
             </p>
           </div>
@@ -39,7 +39,7 @@ export default function TermsPage() {
           <div>
             <h2 className="text-lg font-semibold text-[#FAF0E6] mb-3">4. Haftung</h2>
             <p>
-              Prism wird ohne Gewährleistung bereitgestellt. Der Betreiber haftet nicht für
+              INNIS wird ohne Gewährleistung bereitgestellt. Der Betreiber haftet nicht für
               Datenverluste oder Schäden, die aus der Nutzung des Dienstes entstehen.
               Wir empfehlen regelmäßige Datensicherungen.
             </p>

@@ -141,7 +141,7 @@ export function StepCourses({ initialValues, alreadyCreated, onNext }: StepCours
         </div>
         <h2 className="text-2xl font-bold text-text-primary mb-2">Kurse anlegen</h2>
         <p className="text-text-secondary text-sm">
-          Trag 1–3 Kurse ein. Prism verfolgt Übungsblätter und Klausurtermine für dich.
+          Trag 1–3 Kurse ein. INNIS verfolgt Übungsblätter und Klausurtermine für dich.
         </p>
       </motion.div>
 

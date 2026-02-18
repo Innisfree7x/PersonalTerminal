@@ -21,23 +21,23 @@ function resolveSiteUrl(): URL {
 export const metadata: Metadata = {
   metadataBase: resolveSiteUrl(),
   title: {
-    default: 'Prism | Personal Productivity System',
-    template: '%s | Prism',
+    default: 'INNIS | Personal Productivity System',
+    template: '%s | INNIS',
   },
   description:
-    'Prism kombiniert Studium, Aufgaben, Ziele und Karriere in einem schnellen persönlichen Dashboard.',
+    'INNIS kombiniert Studium, Aufgaben, Ziele und Karriere in einem schnellen persönlichen Dashboard.',
   openGraph: {
-    title: 'Prism | Personal Productivity System',
+    title: 'INNIS | Personal Productivity System',
     description:
-      'Prism kombiniert Studium, Aufgaben, Ziele und Karriere in einem schnellen persönlichen Dashboard.',
+      'INNIS kombiniert Studium, Aufgaben, Ziele und Karriere in einem schnellen persönlichen Dashboard.',
     type: 'website',
-    siteName: 'Prism',
+    siteName: 'INNIS',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Prism | Personal Productivity System',
+    title: 'INNIS | Personal Productivity System',
     description:
-      'Prism kombiniert Studium, Aufgaben, Ziele und Karriere in einem schnellen persönlichen Dashboard.',
+      'INNIS kombiniert Studium, Aufgaben, Ziele und Karriere in einem schnellen persönlichen Dashboard.',
   },
 };
 

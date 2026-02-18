@@ -1,7 +1,7 @@
 # CLAUDE.md - Project Context
 
 ## Project Overview
-**Prism** is a personal productivity dashboard built with Next.js 14 (App Router), TypeScript, Supabase, and TanStack React Query. It manages university courses, goals, career applications, daily tasks, focus time tracking, and Google Calendar integration.
+**INNIS** is a personal productivity dashboard built with Next.js 14 (App Router), TypeScript, Supabase, and TanStack React Query. It manages university courses, goals, career applications, daily tasks, focus time tracking, and Google Calendar integration.
 
 ## Tech Stack
 - **Framework:** Next.js 14 (App Router, `app/` directory)

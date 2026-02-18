@@ -44,7 +44,7 @@ export function OnboardingLayout({
             <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
               <Layers className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="text-base font-semibold text-text-primary">Prism</span>
+            <span className="text-base font-semibold text-text-primary">INNIS</span>
           </div>
 
           <div className="w-8">

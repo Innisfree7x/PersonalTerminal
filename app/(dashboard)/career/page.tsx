@@ -3,7 +3,7 @@ import { fetchApplications } from '@/lib/supabase/applications';
 import CareerBoard from '@/components/features/career/CareerBoard';
 
 export const metadata = {
-  title: 'Career - Prism',
+  title: 'Career - INNIS',
   description: 'Track your job applications and manage your CV',
 };
 

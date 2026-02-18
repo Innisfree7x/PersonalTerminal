@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'Prism — Das Dashboard fürs Studium',
+    title: 'INNIS — Das Dashboard fürs Studium',
     description:
       'Kurse, Aufgaben, Ziele und Karriere in einem persönlichen Dashboard. Kostenlos für Studenten.',
     url: '/',

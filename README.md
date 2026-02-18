@@ -1,4 +1,4 @@
-# 🔮 Prism
+# 🔮 INNIS
 
 > Personal productivity dashboard for students — study tracker, goal management, career pipeline, focus timer, and daily planner in one place.
 

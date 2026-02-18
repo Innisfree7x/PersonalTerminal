@@ -89,7 +89,7 @@ async function sendAlertWebhook(payload: Required<MonitoringPayload>): Promise<v
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        text: `[Prism][${payload.severity.toUpperCase()}] ${payload.message}`,
+        text: `[INNIS][${payload.severity.toUpperCase()}] ${payload.message}`,
         source: payload.source,
         context: payload.context,
       }),

@@ -191,9 +191,9 @@ export default function Sidebar() {
                 className="flex items-center gap-2"
               >
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center">
-                  <span className="text-white font-bold text-base">P</span>
+                  <span className="text-white font-bold text-base">I</span>
                 </div>
-                <span className="font-semibold text-text-primary">Prism</span>
+                <span className="font-semibold text-text-primary">INNIS</span>
               </motion.div>
             ) : (
               <motion.div
@@ -203,7 +203,7 @@ export default function Sidebar() {
                 className="flex items-center justify-center w-full"
               >
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center">
-                  <span className="text-white font-bold text-base">P</span>
+                  <span className="text-white font-bold text-base">I</span>
                 </div>
               </motion.div>
             )}

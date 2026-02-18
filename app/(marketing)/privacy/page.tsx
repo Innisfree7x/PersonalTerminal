@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Datenschutz — Prism',
-  description: 'Datenschutzerklärung für Prism.',
+  title: 'Datenschutz — INNIS',
+  description: 'Datenschutzerklärung für INNIS.',
 };
 
 export default function PrivacyPage() {
@@ -14,7 +14,7 @@ export default function PrivacyPage() {
           <div>
             <h2 className="text-lg font-semibold text-[#FAF0E6] mb-3">1. Verantwortlicher</h2>
             <p>
-              Prism ist ein persönliches Projekt ohne kommerzielle Absicht. Der Betreiber ist unter
+              INNIS ist ein persönliches Projekt ohne kommerzielle Absicht. Der Betreiber ist unter
               der im Impressum angegebenen Adresse erreichbar.
             </p>
           </div>
@@ -22,7 +22,7 @@ export default function PrivacyPage() {
           <div>
             <h2 className="text-lg font-semibold text-[#FAF0E6] mb-3">2. Erhobene Daten</h2>
             <p>
-              Prism erhebt ausschließlich Daten, die du aktiv eingibst: Aufgaben, Kurse, Ziele,
+              INNIS erhebt ausschließlich Daten, die du aktiv eingibst: Aufgaben, Kurse, Ziele,
               Bewerbungen und Profileinformationen. Es werden keine Verhaltensdaten an Dritte
               weitergegeben.
             </p>

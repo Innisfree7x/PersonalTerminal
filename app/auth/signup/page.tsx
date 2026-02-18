@@ -89,13 +89,13 @@ export default function SignUpPage() {
         {/* Logo/Brand */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-dark mb-4">
-            <span className="text-white font-bold text-2xl">P</span>
+            <span className="text-white font-bold text-2xl">I</span>
           </div>
           <h1 className="text-3xl font-bold text-text-primary mb-2">
             Create your account
           </h1>
           <p className="text-text-secondary">
-            Start organizing your life with Prism
+            Start organizing your life with INNIS
           </p>
         </div>
 
@@ -208,7 +208,7 @@ export default function SignUpPage() {
 
         {/* Footer */}
         <p className="text-center text-xs text-text-tertiary mt-8">
-          By creating an account, you agree to Prism&apos;s Terms of Service and Privacy Policy
+          By creating an account, you agree to INNIS&apos;s Terms of Service and Privacy Policy
         </p>
       </motion.div>
     </div>

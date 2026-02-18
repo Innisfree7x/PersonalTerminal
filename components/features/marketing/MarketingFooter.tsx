@@ -10,9 +10,9 @@ export function MarketingFooter() {
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="mb-4 flex items-center gap-2.5">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/25">
-                <span className="text-white text-xs font-bold">P</span>
+                <span className="text-white text-xs font-bold">I</span>
               </div>
-              <span className="font-semibold text-[#FAF0E6]">Prism</span>
+              <span className="font-semibold text-[#FAF0E6]">INNIS</span>
             </Link>
             <p className="max-w-[220px] text-xs leading-relaxed text-zinc-500">
               Das persönliche Dashboard für Studenten.
@@ -73,7 +73,7 @@ export function MarketingFooter() {
         </div>
 
         <div className="flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 sm:flex-row">
-          <p className="text-xs text-zinc-600">© 2026 Prism. Alle Rechte vorbehalten.</p>
+          <p className="text-xs text-zinc-600">© 2026 INNIS. Alle Rechte vorbehalten.</p>
           <p className="text-xs text-zinc-600">Built for students · WS 2025/26</p>
         </div>
       </div>

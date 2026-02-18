@@ -477,7 +477,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                   </div>
                   <div className="flex items-center gap-1 text-xs text-text-tertiary">
                     <Zap className="w-3 h-3" />
-                    <span>Prism Command</span>
+                    <span>INNIS Command</span>
                   </div>
                 </div>
               </Command>

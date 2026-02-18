@@ -85,7 +85,7 @@ export function FeatureSection() {
             Sechs Module. Ein System.
           </h2>
           <p className="premium-subtext mx-auto max-w-xl">
-            Prism wurde für Studenten gebaut, die nicht zehn Apps jonglieren wollen —
+            INNIS wurde für Studenten gebaut, die nicht zehn Apps jonglieren wollen —
             sondern ein System, das wirklich funktioniert.
           </p>
         </motion.div>

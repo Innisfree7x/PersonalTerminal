@@ -117,7 +117,7 @@ export default function SettingsPage() {
                         </div>
                         <div>
                             <h3 className="text-lg font-medium text-text-primary">
-                                {user?.user_metadata?.full_name || 'Prism User'}
+                                {user?.user_metadata?.full_name || 'INNIS User'}
                             </h3>
                             <div className="flex items-center gap-2 text-text-tertiary">
                                 <Mail className="w-4 h-4" />

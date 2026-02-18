@@ -127,7 +127,7 @@ function ShortcutOverlay({ open, onClose }: { open: boolean; onClose: () => void
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div className="flex items-center gap-3">
             <Keyboard className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-semibold text-text-primary">Prism Hotkeys</h2>
+            <h2 className="text-lg font-semibold text-text-primary">INNIS Hotkeys</h2>
           </div>
           <button
             onClick={onClose}

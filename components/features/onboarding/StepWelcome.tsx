@@ -133,7 +133,7 @@ export function StepWelcome({ onNext, onDemoSeeded }: StepWelcomeProps) {
         <h1 className="text-3xl font-bold text-text-primary leading-tight mb-2">
           Willkommen bei{' '}
           <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            Prism
+            INNIS
           </span>
         </h1>
         <p className="text-text-secondary text-sm leading-relaxed">

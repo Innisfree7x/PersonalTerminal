@@ -3,8 +3,8 @@ import { CTASection } from '@/components/features/marketing/CTASection';
 import { FAQSection } from '@/components/features/marketing/FAQSection';
 
 export const metadata = {
-  title: 'Pricing — Prism',
-  description: 'Prism ist kostenlos für Studenten. Alle wesentlichen Features ohne Kreditkarte.',
+  title: 'Pricing — INNIS',
+  description: 'INNIS ist kostenlos für Studenten. Alle wesentlichen Features ohne Kreditkarte.',
 };
 
 export default function PricingPage() {
@@ -20,7 +20,7 @@ export default function PricingPage() {
           </span>
         </h1>
         <p className="premium-subtext">
-          Prism ist kostenlos und bleibt es für alles Wesentliche.
+          INNIS ist kostenlos und bleibt es für alles Wesentliche.
           Pro-Features kommen — ohne das Free-Tier einzuschränken.
         </p>
       </section>

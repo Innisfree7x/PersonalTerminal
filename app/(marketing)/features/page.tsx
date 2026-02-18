@@ -3,8 +3,8 @@ import { CTASection } from '@/components/features/marketing/CTASection';
 import { Calendar, BookOpen, Target, Briefcase, Timer, BarChart2, Check } from 'lucide-react';
 
 export const metadata = {
-  title: 'Features — Prism',
-  description: 'Alle Module von Prism: Tagesplanung, Universität, Ziele, Karriere, Fokus-Timer und Analytics.',
+  title: 'Features — INNIS',
+  description: 'Alle Module von INNIS: Tagesplanung, Universität, Ziele, Karriere, Fokus-Timer und Analytics.',
 };
 
 const DETAILED_FEATURES = [
@@ -120,7 +120,7 @@ export default function FeaturesPage() {
           </span>
         </h1>
         <p className="premium-subtext mx-auto max-w-2xl">
-          Prism ist kein Allround-Produktivitätstool. Es wurde von einem Studenten für
+          INNIS ist kein Allround-Produktivitätstool. Es wurde von einem Studenten für
           Studenten gebaut — mit genau den Funktionen, die im Studienalltag zählen.
         </p>
       </section>

@@ -73,7 +73,7 @@ export function StepComplete({ completedData, onComplete }: StepCompleteProps) {
       });
       onComplete?.();
       const n = completedData.name.trim();
-      toast.success(n ? `Willkommen, ${n}! 🎉` : 'Willkommen bei Prism! 🎉');
+      toast.success(n ? `Willkommen, ${n}! 🎉` : 'Willkommen bei INNIS! 🎉');
       router.push('/today');
       router.refresh();
     } catch (err) {
@@ -103,7 +103,7 @@ export function StepComplete({ completedData, onComplete }: StepCompleteProps) {
           <CheckCircle2 className="w-8 h-8 text-emerald-400" />
         </motion.div>
         <h2 className="text-2xl font-bold text-text-primary mb-2">
-          Prism ist bereit,{' '}
+          INNIS ist bereit,{' '}
           <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
             {displayName}!
           </span>

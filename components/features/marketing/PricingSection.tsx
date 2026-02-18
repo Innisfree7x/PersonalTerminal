@@ -41,7 +41,7 @@ export function PricingSection() {
             Einfach. Transparent.
           </h2>
           <p className="premium-subtext mx-auto max-w-md">
-            Prism ist kostenlos — und bleibt es für alles Wesentliche.
+            INNIS ist kostenlos — und bleibt es für alles Wesentliche.
           </p>
         </motion.div>
 

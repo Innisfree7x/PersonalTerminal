@@ -2,8 +2,8 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
 export const metadata = {
-  title: 'About — Prism',
-  description: 'Warum Prism? Ein persönliches Dashboard für Studenten, das wirklich funktioniert.',
+  title: 'About — INNIS',
+  description: 'Warum INNIS? Ein persönliches Dashboard für Studenten, das wirklich funktioniert.',
 };
 
 export default function AboutPage() {
@@ -20,13 +20,13 @@ export default function AboutPage() {
 
         <div className="premium-subtext space-y-6">
           <p className="premium-card-soft rounded-2xl p-6">
-            Prism entstand aus einem einfachen Problem: zu viele Apps, zu viel Kontext-Wechsel,
+            INNIS entstand aus einem einfachen Problem: zu viele Apps, zu viel Kontext-Wechsel,
             zu wenig Überblick. Notion für Notizen, Trello für Bewerbungen, Google Sheets für Kurse,
             eine separate App für den Timer — und am Ende des Tages weiß man trotzdem nicht, was wirklich
             Priorität hat.
           </p>
           <p className="premium-card-soft rounded-2xl p-6">
-            Prism bringt alles an einen Ort: Kursplanung, Aufgaben, Ziele, Karriere und Analytics —
+            INNIS bringt alles an einen Ort: Kursplanung, Aufgaben, Ziele, Karriere und Analytics —
             designed für den Studienalltag, nicht für Enterprise-Teams.
           </p>
           <p className="premium-card-soft rounded-2xl p-6">
@@ -36,7 +36,7 @@ export default function AboutPage() {
 
           <div className="border-t border-white/10 pt-4">
             <p className="text-sm text-zinc-500 mb-6">
-              Prism ist kein Startup und kein VC-backed Produkt. Es ist ein ehrliches Tool,
+              INNIS ist kein Startup und kein VC-backed Produkt. Es ist ein ehrliches Tool,
               gebaut für den echten Studienalltag.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
