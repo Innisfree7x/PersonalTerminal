@@ -9,32 +9,32 @@ export const metadata = {
 export default function AboutPage() {
   return (
     <section className="py-20 md:py-28">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6">
-        <p className="text-xs font-semibold text-red-400 uppercase tracking-widest mb-4">About</p>
-        <h1 className="text-4xl md:text-5xl font-bold text-[#FAF0E6] tracking-tight mb-8 leading-[1.1]">
+      <div className="mx-auto max-w-3xl px-5 sm:px-8">
+        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-red-400">About</p>
+        <h1 className="premium-heading mb-8 text-4xl font-semibold text-[#FAF0E6] md:text-6xl">
           Gebaut aus{' '}
           <span className="bg-gradient-to-r from-yellow-300 to-yellow-600 bg-clip-text text-transparent">
             Frustration.
           </span>
         </h1>
 
-        <div className="space-y-6 text-zinc-400 leading-relaxed">
-          <p>
+        <div className="premium-subtext space-y-6">
+          <p className="premium-card-soft rounded-2xl p-6">
             Prism entstand aus einem einfachen Problem: zu viele Apps, zu viel Kontext-Wechsel,
             zu wenig Überblick. Notion für Notizen, Trello für Bewerbungen, Google Sheets für Kurse,
             eine separate App für den Timer — und am Ende des Tages weiß man trotzdem nicht, was wirklich
             Priorität hat.
           </p>
-          <p>
+          <p className="premium-card-soft rounded-2xl p-6">
             Prism bringt alles an einen Ort: Kursplanung, Aufgaben, Ziele, Karriere und Analytics —
             designed für den Studienalltag, nicht für Enterprise-Teams.
           </p>
-          <p>
+          <p className="premium-card-soft rounded-2xl p-6">
             Das Projekt ist persönlich, kostenlos und wird aktiv weiterentwickelt. Feedback und
             Ideen sind willkommen.
           </p>
 
-          <div className="pt-4 border-t border-white/5">
+          <div className="border-t border-white/10 pt-4">
             <p className="text-sm text-zinc-500 mb-6">
               Prism ist kein Startup und kein VC-backed Produkt. Es ist ein ehrliches Tool,
               gebaut für den echten Studienalltag.

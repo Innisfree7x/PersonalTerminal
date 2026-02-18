@@ -110,16 +110,16 @@ export default function FeaturesPage() {
   return (
     <>
       {/* Hero */}
-      <section className="py-20 md:py-28 text-center max-w-3xl mx-auto px-4 sm:px-6">
-        <p className="text-xs font-semibold text-red-400 uppercase tracking-widest mb-4">Features</p>
-        <h1 className="text-4xl md:text-5xl font-bold text-[#FAF0E6] tracking-tight mb-5">
+      <section className="mx-auto max-w-4xl px-5 py-20 text-center sm:px-8 md:py-28">
+        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-red-400">Features</p>
+        <h1 className="premium-heading mb-6 text-4xl font-semibold text-[#FAF0E6] md:text-6xl">
           Alles was ein Student braucht.
           <br />
           <span className="bg-gradient-to-r from-yellow-300 to-yellow-600 bg-clip-text text-transparent">
             Nichts was er nicht braucht.
           </span>
         </h1>
-        <p className="text-zinc-400 leading-relaxed max-w-xl mx-auto">
+        <p className="premium-subtext mx-auto max-w-2xl">
           Prism ist kein Allround-Produktivitätstool. Es wurde von einem Studenten für
           Studenten gebaut — mit genau den Funktionen, die im Studienalltag zählen.
         </p>
@@ -127,11 +127,11 @@ export default function FeaturesPage() {
 
       {/* Detailed feature breakdown */}
       <section className="pb-24 md:pb-32">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-6">
+        <div className="marketing-container space-y-6">
           {DETAILED_FEATURES.map((f) => (
             <div
               key={f.title}
-              className="grid md:grid-cols-[200px_1fr] gap-6 p-7 rounded-2xl border border-white/5 bg-[#111111]"
+              className="premium-card-soft grid gap-6 rounded-2xl p-7 md:grid-cols-[220px_1fr]"
             >
               <div>
                 <div className={`w-11 h-11 rounded-xl ${f.bg} border ${f.border} flex items-center justify-center mb-4`}>

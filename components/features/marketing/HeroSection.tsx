@@ -7,31 +7,31 @@ import { TrackedCtaLink } from './TrackedCtaLink';
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden min-h-[88vh] flex items-center">
-      {/* Background ambient glows */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-red-500/4 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/3 w-[400px] h-[400px] bg-yellow-500/4 rounded-full blur-3xl" />
+    <section className="relative overflow-hidden pb-12 pt-14 md:pb-20 md:pt-20">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-[-8%] top-[15%] h-[580px] w-[580px] rounded-full bg-red-500/10 blur-[130px]" />
+        <div className="absolute right-[-8%] top-[8%] h-[480px] w-[480px] rounded-full bg-yellow-500/10 blur-[130px]" />
+        <div className="absolute left-1/2 top-0 h-20 w-[80%] -translate-x-1/2 bg-gradient-to-r from-transparent via-yellow-200/10 to-transparent blur-2xl" />
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-20 md:py-24 w-full">
-        <div className="grid lg:grid-cols-2 gap-12 xl:gap-20 items-center">
+      <div className="marketing-container relative z-10 w-full">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] xl:gap-20">
           {/* Left: Copy */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="space-y-8"
+            className="space-y-9"
           >
             {/* Badge */}
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/20"
+              className="inline-flex items-center gap-2 rounded-full border border-yellow-500/25 bg-yellow-500/10 px-3.5 py-1.5"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
-              <span className="text-xs font-medium text-yellow-400 tracking-wide">Kostenlos für Studenten</span>
+              <span className="text-xs font-semibold tracking-wide text-yellow-300">Kostenlos für Studenten</span>
             </motion.div>
 
             {/* Headline */}
@@ -40,8 +40,9 @@ export function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, duration: 0.6 }}
             >
-              <h1 className="text-5xl md:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.04] text-[#FAF0E6]">
-                Dein persönliches<br />
+              <h1 className="premium-heading text-[clamp(2.8rem,7vw,6.5rem)] font-semibold text-[#FAF0E6]">
+                Dein persönliches
+                <br />
                 Dashboard fürs{' '}
                 <span className="bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-600 bg-clip-text text-transparent">
                   Studium.
@@ -54,7 +55,7 @@ export function HeroSection() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="text-lg text-zinc-400 leading-relaxed max-w-md"
+              className="premium-subtext max-w-xl text-[1.08rem]"
             >
               Kurse, Aufgaben, Ziele und Karriere — alles in einem System.
               Weniger App-Wechsel, mehr Fokus auf das, was zählt.
@@ -65,13 +66,13 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-3"
+              className="flex flex-col gap-3 sm:flex-row"
             >
               <TrackedCtaLink
                 href="/auth/signup"
                 eventName="landing_cta_primary_clicked"
                 eventPayload={{ source: 'hero', variant: 'primary' }}
-                className="inline-flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-3.5 rounded-xl transition-all hover:shadow-xl hover:shadow-red-500/20 active:scale-[0.97] text-sm"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-500 px-7 py-4 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-red-600 hover:shadow-xl hover:shadow-red-500/25"
               >
                 Kostenlos starten
                 <ArrowRight className="w-4 h-4" />
@@ -80,7 +81,7 @@ export function HeroSection() {
                 href="/auth/login"
                 eventName="landing_cta_secondary_clicked"
                 eventPayload={{ source: 'hero', variant: 'login' }}
-                className="inline-flex items-center justify-center gap-2 border border-white/10 hover:border-white/20 text-zinc-300 hover:text-[#FAF0E6] font-medium px-6 py-3.5 rounded-xl transition-all text-sm"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.02] px-7 py-4 text-sm font-medium text-zinc-200 transition-all hover:border-white/30 hover:bg-white/[0.05] hover:text-[#FAF0E6]"
               >
                 Bereits angemeldet? Login
               </TrackedCtaLink>
@@ -91,18 +92,18 @@ export function HeroSection() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.55 }}
-              className="flex items-center gap-6 pt-2"
+              className="premium-card-soft grid max-w-xl grid-cols-3 gap-4 rounded-2xl p-4"
             >
               {[
                 { value: '6+', label: 'Module' },
                 { value: '∞', label: 'Aufgaben & Kurse' },
                 { value: '1', label: 'Ort für alles' },
               ].map((stat, i) => (
-                <div key={i} className="flex items-center gap-4">
-                  {i > 0 && <div className="w-px h-8 bg-white/8" />}
+                <div key={i} className="relative">
+                  {i > 0 && <div className="absolute -left-2 top-1 h-8 w-px bg-white/10" />}
                   <div>
-                    <p className="text-xl font-bold text-[#FAF0E6] leading-none">{stat.value}</p>
-                    <p className="text-xs text-zinc-600 mt-0.5">{stat.label}</p>
+                    <p className="text-2xl font-bold leading-none text-[#FAF0E6]">{stat.value}</p>
+                    <p className="mt-1 text-[11px] uppercase tracking-wide text-zinc-500">{stat.label}</p>
                   </div>
                 </div>
               ))}

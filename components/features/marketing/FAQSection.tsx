@@ -35,23 +35,23 @@ export function FAQSection() {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <section className="py-24 md:py-32 relative">
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/8 to-transparent" />
+    <section className="relative py-24 md:py-32">
+      <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-      <div className="max-w-2xl mx-auto px-4 sm:px-6">
+      <div className="marketing-container">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-14"
+          className="mx-auto mb-14 max-w-2xl text-center"
         >
-          <p className="text-xs font-semibold text-red-400 uppercase tracking-widest mb-4">FAQ</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#FAF0E6] tracking-tight">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-red-400">FAQ</p>
+          <h2 className="premium-heading text-3xl font-semibold text-[#FAF0E6] md:text-5xl">
             Häufige Fragen
           </h2>
         </motion.div>
 
-        <div className="space-y-2">
+        <div className="mx-auto max-w-3xl space-y-2">
           {FAQS.map((faq, i) => (
             <motion.div
               key={i}
@@ -59,19 +59,19 @@ export function FAQSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.05 }}
-              className="border border-white/5 rounded-xl bg-[#111111] overflow-hidden"
+              className="premium-card-soft overflow-hidden rounded-xl"
             >
               <button
                 onClick={() => setOpen(open === i ? null : i)}
-                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/2 transition-colors"
+                className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-white/[0.04]"
               >
-                <span className="text-sm font-medium text-[#FAF0E6] pr-4">{faq.q}</span>
+                <span className="pr-4 text-sm font-medium text-[#FAF0E6]">{faq.q}</span>
                 <motion.div
                   animate={{ rotate: open === i ? 45 : 0 }}
                   transition={{ duration: 0.2 }}
-                  className="flex-shrink-0"
+                  className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]"
                 >
-                  <Plus className="w-4 h-4 text-zinc-500" />
+                  <Plus className="h-4 w-4 text-zinc-400" />
                 </motion.div>
               </button>
 
@@ -84,7 +84,7 @@ export function FAQSection() {
                     transition={{ duration: 0.22 }}
                     className="overflow-hidden"
                   >
-                    <p className="px-5 pb-5 text-sm text-zinc-400 leading-relaxed border-t border-white/5 pt-3">
+                    <p className="premium-subtext border-t border-white/10 px-5 pb-5 pt-3 text-sm">
                       {faq.a}
                     </p>
                   </motion.div>

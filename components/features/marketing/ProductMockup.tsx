@@ -15,18 +15,19 @@ export function ProductMockup() {
   return (
     <div className="relative">
       {/* Ambient glow behind mockup */}
-      <div className="absolute -inset-4 bg-gradient-to-tr from-red-500/8 via-transparent to-yellow-500/8 rounded-3xl blur-2xl pointer-events-none" />
+      <div className="pointer-events-none absolute -inset-6 rounded-3xl bg-gradient-to-tr from-red-500/10 via-transparent to-yellow-500/10 blur-3xl" />
 
       {/* Floating animation wrapper */}
       <motion.div
         animate={{ y: [0, -10, 0] }}
         transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-        className="relative"
+        className="relative [perspective:1400px]"
       >
         {/* Browser chrome */}
-        <div className="rounded-2xl border border-white/10 bg-[#0A0A0A] overflow-hidden shadow-2xl shadow-black/60">
+        <div className="premium-card relative overflow-hidden rounded-3xl [transform:rotateY(-9deg)_rotateX(2deg)]">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent" />
           {/* Browser top bar */}
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-[#0A0A0A]">
+          <div className="flex items-center gap-2 border-b border-white/10 bg-[#0A0A0A]/90 px-4 py-3">
             <div className="flex gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-red-500/50" />
               <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/50" />
@@ -40,7 +41,7 @@ export function ProductMockup() {
           {/* Dashboard layout */}
           <div className="flex" style={{ height: '320px' }}>
             {/* Sidebar */}
-            <div className="w-16 border-r border-white/5 bg-[#0A0A0A] flex flex-col items-center py-4 gap-4 flex-shrink-0">
+            <div className="flex w-16 flex-shrink-0 flex-col items-center gap-4 border-r border-white/10 bg-[#0A0A0A] py-4">
               {/* Logo */}
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center mb-1">
                 <span className="text-white text-[11px] font-bold">P</span>
@@ -58,7 +59,7 @@ export function ProductMockup() {
             </div>
 
             {/* Main content */}
-            <div className="flex-1 p-5 overflow-hidden bg-[#0F0F0F]">
+            <div className="flex-1 overflow-hidden bg-[#0F0F0F] p-5">
               {/* Header */}
               <motion.div
                 initial={{ opacity: 0, y: -8 }}
@@ -84,7 +85,7 @@ export function ProductMockup() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.35 + i * 0.08 }}
-                    className="bg-[#1C1C1C] border border-white/5 rounded-xl p-2.5"
+                    className="rounded-xl border border-white/10 bg-[#1C1C1C] p-2.5"
                   >
                     <stat.icon className={`w-3 h-3 ${stat.color} mb-1.5`} />
                     <p className="text-[10px] text-zinc-600 leading-none mb-0.5">{stat.label}</p>
@@ -123,7 +124,7 @@ export function ProductMockup() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.85 }}
-                className="bg-[#1C1C1C] border border-white/5 rounded-xl p-3"
+                className="rounded-xl border border-white/10 bg-[#1C1C1C] p-3"
               >
                 <div className="flex items-center gap-2 mb-2">
                   <BookOpen className="w-3 h-3 text-blue-400" />
@@ -142,7 +143,7 @@ export function ProductMockup() {
             </div>
 
             {/* Right sidebar widget */}
-            <div className="w-28 border-l border-white/5 bg-[#0A0A0A] p-3 flex flex-col gap-3 flex-shrink-0">
+            <div className="flex w-28 flex-shrink-0 flex-col gap-3 border-l border-white/10 bg-[#0A0A0A] p-3">
               <p className="text-[10px] font-medium text-zinc-600 uppercase tracking-wider">Ziel-Streak</p>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -176,7 +177,7 @@ export function ProductMockup() {
         </div>
 
         {/* Reflection/shadow effect */}
-        <div className="absolute -bottom-6 left-4 right-4 h-8 bg-black/30 blur-xl rounded-full" />
+        <div className="absolute -bottom-7 left-8 right-6 h-8 rounded-full bg-black/40 blur-xl" />
       </motion.div>
     </div>
   );

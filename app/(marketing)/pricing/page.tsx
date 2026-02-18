@@ -10,16 +10,16 @@ export const metadata = {
 export default function PricingPage() {
   return (
     <>
-      <section className="py-20 md:py-28 text-center max-w-2xl mx-auto px-4 sm:px-6">
-        <p className="text-xs font-semibold text-red-400 uppercase tracking-widest mb-4">Pricing</p>
-        <h1 className="text-4xl md:text-5xl font-bold text-[#FAF0E6] tracking-tight mb-5">
+      <section className="mx-auto max-w-3xl px-5 py-20 text-center sm:px-8 md:py-28">
+        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-red-400">Pricing</p>
+        <h1 className="premium-heading mb-6 text-4xl font-semibold text-[#FAF0E6] md:text-6xl">
           Kein Abo-Chaos.
           <br />
           <span className="bg-gradient-to-r from-yellow-300 to-yellow-600 bg-clip-text text-transparent">
             Einfach kostenlos.
           </span>
         </h1>
-        <p className="text-zinc-400 leading-relaxed">
+        <p className="premium-subtext">
           Prism ist kostenlos und bleibt es für alles Wesentliche.
           Pro-Features kommen — ohne das Free-Tier einzuschränken.
         </p>

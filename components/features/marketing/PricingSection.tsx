@@ -25,35 +25,36 @@ const PRO_FEATURES = [
 
 export function PricingSection() {
   return (
-    <section className="py-24 md:py-32 relative">
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/8 to-transparent" />
+    <section className="relative py-24 md:py-32">
+      <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="marketing-container">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-16"
+          className="mx-auto mb-16 max-w-2xl text-center"
         >
-          <p className="text-xs font-semibold text-red-400 uppercase tracking-widest mb-4">Pricing</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#FAF0E6] tracking-tight mb-4">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-red-400">Pricing</p>
+          <h2 className="premium-heading mb-4 text-3xl font-semibold text-[#FAF0E6] md:text-5xl">
             Einfach. Transparent.
           </h2>
-          <p className="text-zinc-500 max-w-md mx-auto">
+          <p className="premium-subtext mx-auto max-w-md">
             Prism ist kostenlos — und bleibt es für alles Wesentliche.
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-5 max-w-3xl mx-auto">
+        <div className="mx-auto grid max-w-4xl gap-5 md:grid-cols-2">
           {/* Free Plan */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="p-8 rounded-2xl border border-white/8 bg-[#111111]"
+            className="premium-card relative overflow-hidden rounded-2xl p-8"
           >
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-red-300/45 to-transparent" />
             <div className="mb-7">
               <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">Free</p>
               <div className="flex items-baseline gap-1.5">
@@ -78,7 +79,7 @@ export function PricingSection() {
               href="/auth/signup"
               eventName="pricing_plan_selected"
               eventPayload={{ source: 'pricing', plan: 'free' }}
-              className="block text-center bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-all hover:shadow-lg hover:shadow-red-500/20 text-sm"
+              className="block rounded-xl bg-red-500 py-3 text-center text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-red-600 hover:shadow-lg hover:shadow-red-500/25"
             >
               Kostenlos starten
             </TrackedCtaLink>
@@ -90,8 +91,9 @@ export function PricingSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.18 }}
-            className="relative p-8 rounded-2xl border border-yellow-500/25 bg-gradient-to-b from-yellow-500/5 to-[#111111] overflow-hidden"
+            className="premium-card relative overflow-hidden rounded-2xl border-yellow-500/30 bg-gradient-to-b from-yellow-500/8 to-[#111111] p-8"
           >
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-yellow-300/60 to-transparent" />
             {/* Coming Soon badge */}
             <div className="absolute top-5 right-5">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/25 text-xs font-medium text-yellow-400">
@@ -124,7 +126,7 @@ export function PricingSection() {
               href="/auth/signup"
               eventName="pricing_plan_selected"
               eventPayload={{ source: 'pricing', plan: 'pro_waitlist' }}
-              className="block text-center border border-yellow-500/30 hover:border-yellow-500/60 text-yellow-400 hover:text-yellow-300 font-semibold py-3 rounded-xl transition-all text-sm"
+              className="block rounded-xl border border-yellow-500/35 py-3 text-center text-sm font-semibold text-yellow-300 transition-all hover:-translate-y-0.5 hover:border-yellow-500/70 hover:bg-yellow-500/10"
             >
               Auf Warteliste eintragen
             </TrackedCtaLink>

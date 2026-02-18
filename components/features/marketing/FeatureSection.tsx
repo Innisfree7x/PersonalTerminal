@@ -68,29 +68,29 @@ const features = [
 
 export function FeatureSection() {
   return (
-    <section className="py-24 md:py-32 relative">
+    <section className="relative py-24 md:py-32">
       {/* Top divider */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/8 to-transparent" />
+      <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="marketing-container">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-16"
+          className="mx-auto mb-16 max-w-2xl text-center"
         >
-          <p className="text-xs font-semibold text-red-400 uppercase tracking-widest mb-4">Alle Module</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#FAF0E6] tracking-tight mb-4">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-red-400">Alle Module</p>
+          <h2 className="premium-heading mb-4 text-3xl font-semibold text-[#FAF0E6] md:text-5xl">
             Sechs Module. Ein System.
           </h2>
-          <p className="text-zinc-500 max-w-lg mx-auto leading-relaxed">
+          <p className="premium-subtext mx-auto max-w-xl">
             Prism wurde für Studenten gebaut, die nicht zehn Apps jonglieren wollen —
             sondern ein System, das wirklich funktioniert.
           </p>
         </motion.div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, i) => (
             <motion.div
               key={feature.title}
@@ -98,15 +98,16 @@ export function FeatureSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.07 }}
-              className={`group relative p-6 rounded-2xl border border-white/5 bg-[#111111] hover:border-white/10 hover:bg-[#161616] transition-all duration-300 hover:shadow-lg ${feature.glow}`}
+              className={`group premium-card-soft relative overflow-hidden rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-[#171717] ${feature.glow}`}
             >
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent opacity-0 transition group-hover:opacity-100" />
               <div
-                className={`w-11 h-11 rounded-xl ${feature.bg} border ${feature.border} flex items-center justify-center mb-5`}
+                className={`mb-5 flex h-11 w-11 items-center justify-center rounded-xl border ${feature.border} ${feature.bg}`}
               >
                 <feature.icon className={`w-5 h-5 ${feature.accent}`} />
               </div>
-              <h3 className="text-[#FAF0E6] font-semibold mb-2">{feature.title}</h3>
-              <p className="text-sm text-zinc-500 leading-relaxed">{feature.description}</p>
+              <h3 className="mb-2 text-lg font-semibold text-[#FAF0E6]">{feature.title}</h3>
+              <p className="text-sm leading-relaxed text-zinc-400">{feature.description}</p>
             </motion.div>
           ))}
         </div>
