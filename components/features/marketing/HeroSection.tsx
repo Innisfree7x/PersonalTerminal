@@ -1,44 +1,18 @@
 'use client';
 
-import { useCallback } from 'react';
-import { motion, useMotionTemplate, useMotionValue, useSpring } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { ProductMockup } from './ProductMockup';
 import { TrackedCtaLink } from './TrackedCtaLink';
 
 export function HeroSection() {
-  const mouseX = useMotionValue(420);
-  const mouseY = useMotionValue(180);
-  const smoothX = useSpring(mouseX, { stiffness: 220, damping: 35, mass: 0.4 });
-  const smoothY = useSpring(mouseY, { stiffness: 220, damping: 35, mass: 0.4 });
-  const spotlight = useMotionTemplate`radial-gradient(640px circle at ${smoothX}px ${smoothY}px, rgba(239,68,68,0.14), rgba(234,179,8,0.09) 35%, transparent 72%)`;
-
-  const handleMouseMove = useCallback((event: React.MouseEvent<HTMLElement>) => {
-    const bounds = event.currentTarget.getBoundingClientRect();
-    mouseX.set(event.clientX - bounds.left);
-    mouseY.set(event.clientY - bounds.top);
-  }, [mouseX, mouseY]);
-
-  const handleMouseLeave = useCallback(() => {
-    mouseX.set(420);
-    mouseY.set(180);
-  }, [mouseX, mouseY]);
-
   return (
-    <section
-      className="relative overflow-hidden pb-12 pt-14 md:pb-20 md:pt-20"
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-    >
+    <section className="relative overflow-hidden pb-12 pt-14 md:pb-20 md:pt-20">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-[-8%] top-[15%] h-[580px] w-[580px] rounded-full bg-red-500/10 blur-[130px]" />
         <div className="absolute right-[-8%] top-[8%] h-[480px] w-[480px] rounded-full bg-yellow-500/10 blur-[130px]" />
         <div className="absolute left-1/2 top-0 h-20 w-[80%] -translate-x-1/2 bg-gradient-to-r from-transparent via-yellow-200/10 to-transparent blur-2xl" />
       </div>
-      <motion.div
-        className="pointer-events-none absolute inset-0 z-[1] opacity-90"
-        style={{ background: spotlight }}
-      />
 
       <div className="marketing-container relative z-10 w-full">
         <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] xl:gap-20">
