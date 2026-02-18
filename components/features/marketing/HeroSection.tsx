@@ -176,7 +176,9 @@ export function HeroSection() {
               transition={{ delay: 0.78, duration: 0.5, ease: 'easeOut' }}
               className="mt-4 w-[292px] [perspective:1200px]"
             >
-              <CompanionCard className="origin-top-left transition-transform duration-500 hover:-translate-y-1 hover:scale-[1.01] [transform:rotateY(-9deg)_rotateX(2deg)]" />
+              <div className="origin-top-left [transform:rotateY(-9deg)_rotateX(2deg)]">
+                <CompanionCard className="transition-transform duration-500 hover:-translate-y-1 hover:scale-[1.01]" />
+              </div>
             </motion.div>
           </div>
         </div>
