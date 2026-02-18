@@ -170,3 +170,20 @@ Referenzniveau: moderne SaaS-Seiten wie `prisma.market` / `mixedbread.com`.
 - SEO essentials shipped: metadata structure, sitemap, robots
 - CTA analytics plumbing shipped (`landing_cta_*`, `pricing_plan_selected`)
 - QA pass clean: `npm run build`, `npm run type-check`, `npm run lint`
+
+### Lighthouse Results (2026-02-18)
+- Route `/` (desktop): Performance `91`, Accessibility `96`, Best Practices `96`, SEO `100`
+- Route `/` (mobile): Performance `89`, Accessibility `96`, Best Practices `96`, SEO `100`
+- Route `/features` (desktop): Performance `100`, Accessibility `95`, Best Practices `96`, SEO `100`
+- Route `/features` (mobile): Performance `93`, Accessibility `96`, Best Practices `96`, SEO `100`
+- Route `/pricing` (desktop): Performance `100`, Accessibility `96`, Best Practices `96`, SEO `100`
+- Route `/pricing` (mobile): Performance `94`, Accessibility `96`, Best Practices `96`, SEO `100`
+
+### Cross-Device QA (2026-02-18)
+- Public routes respond with `200`: `/`, `/features`, `/pricing`, `/about`, `/privacy`, `/terms`, `/auth/login`, `/auth/signup`
+- Protected routes redirect unauthenticated users to login: `/today`, `/calendar`, `/goals`, `/university`, `/career`, `/analytics`, `/settings`, `/onboarding`
+- Responsive snapshots captured for `/`, `/features`, `/pricing` at:
+  - Desktop (`1440x900`)
+  - Mobile (`390x844`)
+  - Tablet (`834x1194`)
+- Screenshot artifacts generated locally in `.tmp/qa/`
