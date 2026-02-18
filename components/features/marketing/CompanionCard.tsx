@@ -3,8 +3,7 @@
 import { motion } from 'framer-motion';
 
 /**
- * Lucian Sigil — an aperture / compass-rose mark.
- * Evokes precision, clarity, and light (lux → Lucian).
+ * Lucian Sigil — premium mascot marker for INNIS marketing.
  * SVG IDs are scoped to each <svg> element — safe to render multiple instances.
  */
 function LucianSigil({ size = 26 }: { size?: number }) {
@@ -120,7 +119,7 @@ export function CompanionCard({ className = '' }: CompanionCardProps) {
             </span>
           </div>
           <p className="mt-[3px] text-[11px] leading-none text-zinc-500">
-            Execution Companion
+            Terminal Companion
           </p>
         </div>
       </div>
@@ -128,8 +127,8 @@ export function CompanionCard({ className = '' }: CompanionCardProps) {
       {/* Status insight */}
       <div className="relative mt-3 border-t border-white/[0.05] pt-3">
         <p className="text-[11px] leading-snug text-zinc-500">
-          3 Aufgaben priorisiert ·{' '}
-          <span className="font-medium text-zinc-300">Nächste: Übungsblatt 9</span>
+          Mit dir im Terminal ·{' '}
+          <span className="font-medium text-zinc-300">Nächste Mission: Übungsblatt 9</span>
         </p>
       </div>
     </motion.div>
