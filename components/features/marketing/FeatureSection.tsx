@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Calendar, BookOpen, Target, Briefcase, Timer, BarChart2 } from 'lucide-react';
+import { Calendar, BookOpen, Target, Briefcase, Timer, BarChart2, Zap } from 'lucide-react';
 
 const features = [
   {
@@ -57,7 +57,7 @@ const features = [
     icon: Timer,
     title: 'Fokus-Timer',
     description:
-      'Globaler Pomodoro-Timer, der über alle Seiten hinweg läuft. Mit Streak-Tracking und täglichen Produktivitätsstats.',
+      'Globaler Pomodoro-Timer, der über alle Seiten hinweg läuft. Mit Session-Tracking und täglichen Produktivitätsstats.',
     accent: 'text-yellow-300',
     bg: 'bg-yellow-500/10',
     border: 'border-yellow-500/20',
@@ -69,7 +69,7 @@ const features = [
     icon: BarChart2,
     title: 'Analytics',
     description:
-      'Deine Produktivität auf einen Blick. Fokuszeit nach Tagesabschnitt, Aufgaben-Completion-Rate und Streak-Verlauf.',
+      'Deine Produktivität auf einen Blick. Fokuszeit nach Tagesabschnitt, Aufgaben-Completion-Rate und Fokus-Verlauf.',
     accent: 'text-sky-300',
     bg: 'bg-sky-500/10',
     border: 'border-sky-500/20',
@@ -102,7 +102,7 @@ export function FeatureSection() {
           </p>
         </motion.div>
 
-        <div className="grid auto-rows-[minmax(168px,auto)] gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid auto-rows-[minmax(168px,auto)] gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-5">
           {features.map((feature, i) => (
             <motion.div
               key={feature.id}
@@ -151,6 +151,32 @@ export function FeatureSection() {
             </motion.div>
           ))}
         </div>
+
+        {/* Lucian Companion Callout */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+          className="premium-card-soft flex items-start gap-5 rounded-2xl p-6 sm:items-center sm:flex-row flex-col"
+        >
+          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-yellow-500/25 bg-yellow-500/10">
+            <Zap className="w-5 h-5 text-yellow-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-sm font-semibold text-[#FAF0E6]">Lucian · Execution Companion</span>
+              <span className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2 py-0.5 text-[10px] font-medium text-yellow-400">
+                Inklusive
+              </span>
+            </div>
+            <p className="text-sm leading-relaxed text-zinc-400">
+              Lucian ist dein kontextueller Begleiter im Dashboard — er gibt gezielte Impulse, wenn Fokus
+              oder Deadlines kritisch werden. Kein Chatbot, kein Spam: nur relevante Hinweise, wann es
+              darauf ankommt.
+            </p>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

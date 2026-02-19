@@ -171,6 +171,17 @@ export function StepComplete({ completedData, onComplete }: StepCompleteProps) {
         </motion.div>
       )}
 
+      {/* Lucian hint */}
+      <motion.div variants={itemVariants}>
+        <div className="flex items-start gap-3 p-3 rounded-xl bg-surface-hover border border-border">
+          <span className="text-sm flex-shrink-0 mt-0.5">⚡</span>
+          <p className="text-xs text-text-secondary leading-relaxed">
+            <span className="font-medium text-text-primary">Lucian ist jetzt aktiv.</span>{' '}
+            Dein Execution Companion gibt dir gezielte Hinweise, wenn Fokus oder Deadlines kritisch werden.
+          </p>
+        </div>
+      </motion.div>
+
       {error ? (
         <motion.div variants={itemVariants}>
           <div className="p-3 rounded-lg bg-error/10 border border-error/30 text-error text-sm">

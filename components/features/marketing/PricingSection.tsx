@@ -8,7 +8,7 @@ const FREE_FEATURES = [
   'Unbegrenzte Aufgaben & Kurse',
   'Ziel-Tracking mit Fortschritt',
   'Bewerbungs-Kanban (Karriere)',
-  'Globaler Fokus-Timer & Streak',
+  'Globaler Fokus-Timer & Session-Tracking',
   'Google Calendar Integration',
   'Analytics Dashboard',
   'Onboarding-Wizard mit Demo-Daten',
