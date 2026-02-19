@@ -31,19 +31,37 @@ import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 
 const WELCOME_KEY = 'innis_welcomed_v1';
 
+function hasWelcomedUser(): boolean {
+  if (typeof window === 'undefined') return true;
+  try {
+    return window.localStorage?.getItem?.(WELCOME_KEY) === '1';
+  } catch {
+    return true;
+  }
+}
+
+function markUserWelcomed(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage?.setItem?.(WELCOME_KEY, '1');
+  } catch {
+    // Ignore storage access errors in restricted environments/tests.
+  }
+}
+
 export default function TodayPage() {
   const queryClient = useQueryClient();
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && localStorage.getItem(WELCOME_KEY) !== '1') {
+    if (!hasWelcomedUser()) {
       setShowWelcome(true);
     }
   }, []);
 
   const dismissWelcome = () => {
-    localStorage.setItem(WELCOME_KEY, '1');
+    markUserWelcomed();
     setShowWelcome(false);
   };
 
