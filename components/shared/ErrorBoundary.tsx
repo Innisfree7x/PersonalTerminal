@@ -108,11 +108,11 @@ export class ErrorBoundary extends Component<Props, State> {
                 </div>
                 <div className="flex-1">
                   <h2 className="text-2xl font-bold text-text-primary mb-2">
-                    {fallbackTitle || 'Something went wrong'}
+                    {fallbackTitle || 'Etwas ist schiefgelaufen'}
                   </h2>
                   <p className="text-text-secondary">
-                    {fallbackMessage || 
-                      "We've encountered an unexpected error. Don't worry, your data is safe."}
+                    {fallbackMessage ||
+                      'Ein unerwarteter Fehler ist aufgetreten. Deine Daten sind sicher.'}
                   </p>
                 </div>
               </div>
@@ -148,7 +148,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   whileTap={{ scale: 0.98 }}
                 >
                   <RefreshCw className="w-4 h-4" />
-                  Try Again
+                  Erneut versuchen
                 </motion.button>
 
                 <motion.button
@@ -158,13 +158,13 @@ export class ErrorBoundary extends Component<Props, State> {
                   whileTap={{ scale: 0.98 }}
                 >
                   <Home className="w-4 h-4" />
-                  Go to Dashboard
+                  Zum Dashboard
                 </motion.button>
               </div>
 
               {/* Help Text */}
               <p className="mt-6 text-xs text-text-tertiary">
-                If this problem persists, please contact support or try refreshing the page.
+                Wenn das Problem anhält, lade die Seite neu oder kehre zum Dashboard zurück.
               </p>
             </div>
           </div>

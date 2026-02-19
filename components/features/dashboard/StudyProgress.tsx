@@ -23,14 +23,17 @@ export default function StudyProgress({ courses }: StudyProgressProps) {
       <div className="card-surface rounded-xl p-4">
         <div className="flex items-center gap-2 mb-3">
           <GraduationCap className="w-5 h-5 text-university-accent" />
-          <h3 className="text-base font-semibold text-text-primary">Study Progress</h3>
+          <h3 className="text-base font-semibold text-text-primary">Lernfortschritt</h3>
         </div>
-        <p className="text-sm text-text-tertiary text-center py-4">
-          No courses yet.{' '}
-          <Link href="/university" className="text-primary hover:underline">
-            Add one
+        <div className="text-center py-4 space-y-2">
+          <p className="text-sm text-text-tertiary">Noch keine Kurse angelegt.</p>
+          <Link
+            href="/university"
+            className="inline-block text-xs font-medium text-primary hover:underline"
+          >
+            Ersten Kurs hinzufügen →
           </Link>
-        </p>
+        </div>
       </div>
     );
   }
@@ -40,13 +43,13 @@ export default function StudyProgress({ courses }: StudyProgressProps) {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <GraduationCap className="w-5 h-5 text-university-accent" />
-          <h3 className="text-base font-semibold text-text-primary">Study Progress</h3>
+          <h3 className="text-base font-semibold text-text-primary">Lernfortschritt</h3>
         </div>
         <Link
           href="/university"
           className="text-xs text-text-tertiary hover:text-primary transition-colors"
         >
-          View all
+          Alle anzeigen
         </Link>
       </div>
 
@@ -103,7 +106,7 @@ export default function StudyProgress({ courses }: StudyProgressProps) {
                           : 'text-text-tertiary'
                     }`}
                   >
-                    Exam in {course.daysUntilExam}d
+                    Prüfung in {course.daysUntilExam}d
                   </span>
                 </div>
               )}

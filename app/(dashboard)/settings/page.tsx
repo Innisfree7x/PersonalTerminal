@@ -93,7 +93,7 @@ export default function SettingsPage() {
             await refreshUser();
             toast.success('Profile updated');
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Failed to update profile');
+            toast.error(error instanceof Error ? error.message : 'Profil konnte nicht gespeichert werden. Bitte erneut versuchen.');
         } finally {
             setSavingProfile(false);
         }

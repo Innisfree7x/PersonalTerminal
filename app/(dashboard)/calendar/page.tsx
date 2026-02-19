@@ -245,13 +245,13 @@ export default function CalendarPage() {
 
       {/* Error/Success Messages */}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300">
+        <div className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-900/50 dark:bg-green-900/20 dark:text-green-300">
+        <div className="rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">
           {success}
         </div>
       )}

@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchTodayEvents } from '@/lib/google/calendar';
+import { requireApiAuth } from '@/lib/api/auth';
 
 /**
  * GET /api/calendar/today - Fetch today's events from Google Calendar
  */
 export async function GET(request: NextRequest) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   const accessToken = request.cookies.get('google_access_token')?.value;
   const refreshToken = request.cookies.get('google_refresh_token')?.value;
   const expiresAt = request.cookies.get('google_token_expires_at')?.value;
@@ -23,7 +27,11 @@ export async function GET(request: NextRequest) {
     // Note: This is a simplified approach. In production, you might want to
     // handle token refresh in middleware or return new token in response.
 
-    return NextResponse.json(events);
+    return NextResponse.json(events, {
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    });
   } catch (error) {
     console.error('Error fetching calendar events:', error);
 
@@ -39,7 +47,12 @@ export async function GET(request: NextRequest) {
         message:
           error instanceof Error ? error.message : 'Failed to fetch calendar events',
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store',
+        },
+      }
     );
   }
 }

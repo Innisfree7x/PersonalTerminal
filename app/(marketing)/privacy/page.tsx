@@ -14,8 +14,9 @@ export default function PrivacyPage() {
           <div>
             <h2 className="text-lg font-semibold text-[#FAF0E6] mb-3">1. Verantwortlicher</h2>
             <p>
-              INNIS ist ein persönliches Projekt ohne kommerzielle Absicht. Der Betreiber ist unter
-              der im Impressum angegebenen Adresse erreichbar.
+              INNIS ist ein persönliches Projekt ohne kommerzielle Absicht.
+              Verantwortlich: Viet Duc Do.
+              Kontakt: vietdobusiness@gmail.com
             </p>
           </div>
 
@@ -50,7 +51,7 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-semibold text-[#FAF0E6] mb-3">5. Deine Rechte</h2>
             <p>
               Du hast jederzeit das Recht auf Auskunft, Berichtigung und Löschung deiner Daten.
-              Für Anfragen kontaktiere uns über die im Footer angegebene E-Mail-Adresse.
+              Für Anfragen kontaktiere uns unter vietdobusiness@gmail.com.
             </p>
           </div>
 

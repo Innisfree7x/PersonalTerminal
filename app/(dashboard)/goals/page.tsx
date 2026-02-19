@@ -92,7 +92,7 @@ export default function GoalsPage() {
       if (context?.previousGoals) {
         queryClient.setQueryData(['goals'], context.previousGoals);
       }
-      toast.error(err.message || 'Failed to create goal');
+      toast.error(err.message || 'Ziel konnte nicht erstellt werden. Bitte erneut versuchen.');
     },
   });
 
@@ -125,7 +125,7 @@ export default function GoalsPage() {
       if (context?.previousGoals) {
         queryClient.setQueryData(['goals'], context.previousGoals);
       }
-      toast.error(err.message || 'Failed to update goal');
+      toast.error(err.message || 'Ziel konnte nicht aktualisiert werden. Bitte erneut versuchen.');
     },
   });
 
@@ -148,7 +148,7 @@ export default function GoalsPage() {
       if (context?.previousGoals) {
         queryClient.setQueryData(['goals'], context.previousGoals);
       }
-      toast.error(err.message || 'Failed to delete goal');
+      toast.error(err.message || 'Ziel konnte nicht gelöscht werden. Bitte erneut versuchen.');
     },
   });
 
@@ -420,6 +420,7 @@ export default function GoalsPage() {
               onDelete={handleDeleteGoal}
               focusedGoalId={focusedGoalId}
               onGoalFocus={setFocusedGoalId}
+              onAddGoal={() => { setEditingGoal(null); setIsModalOpen(true); }}
             />
           </motion.div>
         ) : (
@@ -432,10 +433,14 @@ export default function GoalsPage() {
           >
             <div className="text-6xl mb-4">{categoryConfig[filterBy].icon}</div>
             <h3 className="text-xl font-semibold text-text-primary mb-2">
-              No {filterBy !== 'all' ? filterBy : ''} goals yet
+              {filterBy === 'all'
+                ? 'Noch keine Ziele angelegt'
+                : `Keine ${categoryConfig[filterBy].label}-Ziele`}
             </h3>
             <p className="text-text-tertiary mb-6">
-              Create your first {filterBy !== 'all' ? filterBy : ''} goal to get started!
+              {filterBy === 'all'
+                ? 'Definiere woran du arbeitest — Fitness, Karriere, Lernen oder Finanzen.'
+                : `Leg dein erstes ${categoryConfig[filterBy].label}-Ziel an und behalte deinen Fortschritt im Blick.`}
             </p>
             <Button
               onClick={() => {
@@ -445,7 +450,7 @@ export default function GoalsPage() {
               variant="primary"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Create Goal
+              {filterBy === 'all' ? 'Erstes Ziel erstellen' : `${categoryConfig[filterBy].label}-Ziel erstellen`}
             </Button>
           </motion.div>
         )}

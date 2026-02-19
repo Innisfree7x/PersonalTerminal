@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchWeekEvents } from '@/lib/google/calendar';
+import { requireApiAuth } from '@/lib/api/auth';
 
 /**
  * GET /api/calendar/week - Fetch week's events from Google Calendar
  * Query params: weekStart (ISO date string for Monday)
  */
 export async function GET(request: NextRequest) {
+  const { errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   const accessToken = request.cookies.get('google_access_token')?.value;
   const refreshToken = request.cookies.get('google_refresh_token')?.value;
   const expiresAt = request.cookies.get('google_token_expires_at')?.value;
@@ -35,7 +39,11 @@ export async function GET(request: NextRequest) {
   try {
     const events = await fetchWeekEvents(weekStart, accessToken, refreshToken, expiresAt);
 
-    return NextResponse.json(events);
+    return NextResponse.json(events, {
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    });
   } catch (error) {
     console.error('Error fetching calendar events:', error);
 
@@ -51,7 +59,12 @@ export async function GET(request: NextRequest) {
         message:
           error instanceof Error ? error.message : 'Failed to fetch calendar events',
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store',
+        },
+      }
     );
   }
 }

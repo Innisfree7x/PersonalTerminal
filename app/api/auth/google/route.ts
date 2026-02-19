@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server';
 import { serverEnv } from '@/lib/env';
+import { requireApiAuth } from '@/lib/api/auth';
+
+const OAUTH_STATE_COOKIE = 'google_oauth_state';
 
 /**
  * GET /api/auth/google - Redirect to Google OAuth consent screen
  */
 export async function GET() {
+  const { user, errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
   // Env vars are already validated by lib/env.ts
   // No need for manual checks!
   const { GOOGLE_CLIENT_ID: clientId, GOOGLE_REDIRECT_URI: redirectUri } = serverEnv;
@@ -28,6 +34,16 @@ export async function GET() {
   authUrl.searchParams.set('scope', scope);
   authUrl.searchParams.set('access_type', accessType);
   authUrl.searchParams.set('prompt', prompt);
+  const state = `${user.id}:${crypto.randomUUID()}`;
+  authUrl.searchParams.set('state', state);
 
-  return NextResponse.redirect(authUrl.toString());
+  const response = NextResponse.redirect(authUrl.toString());
+  response.cookies.set(OAUTH_STATE_COOKIE, state, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 60 * 10, // 10 minutes
+    path: '/',
+  });
+  return response;
 }

@@ -360,7 +360,7 @@ export default function FocusTasks() {
             queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
             toast.success('Ping: snoozed to tomorrow');
           } catch {
-            toast.error('Failed to snooze task');
+            toast.error('Aufgabe konnte nicht verschoben werden. Bitte erneut versuchen.');
           }
           return;
         }

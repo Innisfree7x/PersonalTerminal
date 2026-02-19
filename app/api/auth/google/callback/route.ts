@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireApiAuth } from '@/lib/api/auth';
+
+const OAUTH_STATE_COOKIE = 'google_oauth_state';
 
 /**
  * GET /api/auth/google/callback - Handle Google OAuth callback
  */
 export async function GET(request: NextRequest) {
+  const { user, errorResponse } = await requireApiAuth();
+  if (errorResponse) {
+    return NextResponse.redirect(new URL('/auth/login?error=auth_required', request.url));
+  }
+
   const code = request.nextUrl.searchParams.get('code');
   const error = request.nextUrl.searchParams.get('error');
+  const state = request.nextUrl.searchParams.get('state');
+  const expectedState = request.cookies.get(OAUTH_STATE_COOKIE)?.value;
 
   // Handle OAuth errors
   if (error) {
@@ -17,6 +27,17 @@ export async function GET(request: NextRequest) {
   if (!code) {
     return NextResponse.redirect(
       new URL('/today?error=missing_code', request.url)
+    );
+  }
+
+  if (
+    !state ||
+    !expectedState ||
+    state !== expectedState ||
+    !state.startsWith(`${user.id}:`)
+  ) {
+    return NextResponse.redirect(
+      new URL('/today?error=invalid_oauth_state', request.url)
     );
   }
 
@@ -66,6 +87,7 @@ export async function GET(request: NextRequest) {
 
     // Store tokens in httpOnly cookies
     const response = NextResponse.redirect(new URL('/today?success=connected', request.url));
+    response.cookies.delete(OAUTH_STATE_COOKIE);
     
     // Set access token cookie (httpOnly, secure in production)
     response.cookies.set('google_access_token', access_token, {
@@ -99,8 +121,10 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (error) {
     console.error('OAuth callback error:', error);
-    return NextResponse.redirect(
+    const response = NextResponse.redirect(
       new URL('/today?error=oauth_callback_error', request.url)
     );
+    response.cookies.delete(OAUTH_STATE_COOKIE);
+    return response;
   }
 }

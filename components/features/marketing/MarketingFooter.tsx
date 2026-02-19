@@ -76,7 +76,15 @@ export function MarketingFooter() {
 
         <div className="flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 sm:flex-row">
           <p className="text-xs text-zinc-600">© 2026 INNIS. Alle Rechte vorbehalten.</p>
-          <p className="text-xs text-zinc-600">Built for students · WS 2025/26</p>
+          <div className="flex flex-col items-center gap-1 sm:items-end">
+            <p className="text-xs text-zinc-600">Built for students · WS 2025/26</p>
+            <a
+              href="mailto:vietdobusiness@gmail.com"
+              className="text-xs text-zinc-500 transition-colors hover:text-zinc-300"
+            >
+              vietdobusiness@gmail.com
+            </a>
+          </div>
         </div>
       </div>
     </footer>

@@ -3,8 +3,9 @@
 import { CalendarEvent } from '@/lib/data/mockEvents';
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { X, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import FocusTasks from '@/components/features/dashboard/FocusTasks';
@@ -28,9 +29,23 @@ import {
 import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 
+const WELCOME_KEY = 'innis_welcomed_v1';
+
 export default function TodayPage() {
   const queryClient = useQueryClient();
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem(WELCOME_KEY) !== '1') {
+      setShowWelcome(true);
+    }
+  }, []);
+
+  const dismissWelcome = () => {
+    localStorage.setItem(WELCOME_KEY, '1');
+    setShowWelcome(false);
+  };
 
   // Check URL params for OAuth callback messages
   useEffect(() => {
@@ -95,7 +110,7 @@ export default function TodayPage() {
       toast.success('Successfully disconnected from Google Calendar.');
     },
     onError: () => {
-      toast.error('Failed to disconnect. Please try again.');
+      toast.error('Verbindung konnte nicht getrennt werden. Bitte erneut versuchen.');
     },
   });
 
@@ -123,6 +138,43 @@ export default function TodayPage() {
 
   return (
     <div className="space-y-6">
+      {/* First-visit welcome orientation */}
+      <AnimatePresence>
+        {showWelcome && (
+          <motion.div
+            key="welcome-banner"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="relative flex items-start gap-3 p-4 rounded-xl bg-primary/10 border border-primary/20"
+          >
+            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Sparkles className="w-4 h-4 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-text-primary mb-0.5">
+                Willkommen in deinem Dashboard
+              </p>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Links navigierst du zwischen <span className="font-medium text-text-primary">Heute</span>,{' '}
+                <span className="font-medium text-text-primary">Uni</span>,{' '}
+                <span className="font-medium text-text-primary">Ziele</span> und{' '}
+                <span className="font-medium text-text-primary">Karriere</span>.
+                Der Fokus-Timer läuft global — er bleibt aktiv wenn du die Seite wechselst.
+              </p>
+            </div>
+            <button
+              onClick={dismissWelcome}
+              className="text-text-tertiary hover:text-text-secondary transition-colors flex-shrink-0 p-1 -mr-1 -mt-1 rounded"
+              aria-label="Schließen"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Stats Bar - Real Data */}
       {stats && (
         <DashboardStats

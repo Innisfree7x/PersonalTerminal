@@ -34,6 +34,7 @@ import ApplicationCard from '@/components/features/career/ApplicationCard';
 import SortableApplicationItem from '@/components/features/career/SortableApplicationItem';
 import ApplicationStats from '@/components/features/career/ApplicationStats';
 import ApplicationModal from '@/components/features/career/ApplicationModal';
+import { ConfirmModal } from '@/components/shared/ConfirmModal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Plus, Briefcase, Upload } from 'lucide-react';
@@ -110,8 +111,8 @@ function KanbanColumn({
                     strategy={verticalListSortingStrategy}
                 >
                     {applications.length === 0 ? (
-                        <div className="text-center py-8 text-text-tertiary text-sm">
-                            No applications
+                        <div className="text-center py-8 text-text-tertiary text-xs border border-dashed border-border/50 rounded-lg">
+                            Noch keine Einträge hier
                         </div>
                     ) : (
                         applications.map((application) => (
@@ -178,6 +179,8 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
     const [isCvUploadOpen, setIsCvUploadOpen] = useState(false);
     const [editingApplication, setEditingApplication] = useState<Application | null>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [deletingName, setDeletingName] = useState('');
 
     useEffect(() => {
         if (!openCreateOnLoad) return;
@@ -248,7 +251,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
             startTransition(() => {
                 dispatchOptimistic({ type: 'replace', apps: previousApplications });
             });
-            toast.error('Failed to create application');
+            toast.error('Bewerbung konnte nicht gespeichert werden. Bitte erneut versuchen.');
         }
     };
 
@@ -277,27 +280,35 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
             startTransition(() => {
                 dispatchOptimistic({ type: 'replace', apps: previousApplications });
             });
-            toast.error('Failed to update application');
+            toast.error('Änderungen konnten nicht gespeichert werden. Bitte erneut versuchen.');
         }
         setEditingApplication(null);
     };
 
-    const handleDeleteApplication = async (applicationId: string) => {
-        if (!confirm('Are you sure you want to delete this application?')) return;
+    const handleDeleteApplication = (applicationId: string) => {
+        const app = applications.find(a => a.id === applicationId);
+        setDeletingId(applicationId);
+        setDeletingName(app ? `${app.position} @ ${app.company}` : 'diese Bewerbung');
+    };
+
+    const confirmDelete = async () => {
+        if (!deletingId) return;
+        const idToDelete = deletingId;
         const previousApplications = applications;
+        setDeletingId(null);
 
         startTransition(() => {
-            dispatchOptimistic({ type: 'delete', id: applicationId });
+            dispatchOptimistic({ type: 'delete', id: idToDelete });
         });
 
         try {
-            await deleteApplicationAction(applicationId);
-            toast.success('Application deleted');
+            await deleteApplicationAction(idToDelete);
+            toast.success('Bewerbung gelöscht');
         } catch (e) {
             startTransition(() => {
                 dispatchOptimistic({ type: 'replace', apps: previousApplications });
             });
-            toast.error('Failed to delete application');
+            toast.error('Bewerbung konnte nicht gelöscht werden. Bitte erneut versuchen.');
         }
     };
 
@@ -349,7 +360,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                 startTransition(() => {
                     dispatchOptimistic({ type: 'replace', apps: previousApplications });
                 });
-                toast.error('Failed to move application');
+                toast.error('Status konnte nicht geändert werden — Karte wurde zurückgesetzt.');
             }
         }
     };
@@ -445,12 +456,14 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                         animate={{ opacity: 1, y: 0 }}
                         className="text-center py-20 bg-surface/50 backdrop-blur-sm border border-border rounded-lg"
                     >
-                        <div className="text-6xl mb-4">💼</div>
+                        <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 mx-auto text-2xl">
+                            💼
+                        </div>
                         <h3 className="text-xl font-semibold text-text-primary mb-2">
-                            No applications yet
+                            Noch keine Bewerbungen
                         </h3>
-                        <p className="text-text-tertiary mb-6">
-                            Start tracking your job applications to see your pipeline
+                        <p className="text-text-tertiary mb-6 max-w-sm mx-auto">
+                            Trag deine erste Bewerbung ein und behalte deinen gesamten Prozess — von der Recherche bis zum Angebot — im Blick.
                         </p>
                         <Button
                             onClick={() => {
@@ -460,7 +473,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                             variant="primary"
                         >
                             <Plus className="w-4 h-4 mr-2" />
-                            Add First Application
+                            Erste Bewerbung eintragen
                         </Button>
                     </motion.div>
                 ) : (
@@ -517,8 +530,19 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                 onSubmit={isEditMode ? handleEditApplication : handleAddApplication}
                 initialData={initialModalData}
                 isEdit={isEditMode}
-                submitDisabled={isPending} // Disable while server action processes
-                error={null} // We rely on toast for errors now
+                submitDisabled={isPending}
+                error={null}
+            />
+
+            {/* Delete Confirm */}
+            <ConfirmModal
+                isOpen={deletingId !== null}
+                title="Bewerbung löschen?"
+                description={`„${deletingName}" wird unwiderruflich entfernt.`}
+                confirmLabel="Löschen"
+                dangerous
+                onCancel={() => setDeletingId(null)}
+                onConfirm={confirmDelete}
             />
         </div>
     );

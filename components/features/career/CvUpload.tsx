@@ -94,7 +94,7 @@ export default function CvUpload() {
       setExtractedText(data.text ?? '');
       setProgress(100);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Something went wrong.');
+      setError(e instanceof Error ? e.message : 'CV konnte nicht verarbeitet werden. Bitte erneut versuchen.');
     } finally {
       setIsUploading(false);
     }

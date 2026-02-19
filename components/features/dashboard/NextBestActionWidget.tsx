@@ -145,7 +145,7 @@ export default function NextBestActionWidget({
         dismissCandidate(activeCandidate.id);
         onChanged?.();
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'Failed to execute action');
+        toast.error(error instanceof Error ? error.message : 'Aktion konnte nicht ausgeführt werden. Bitte erneut versuchen.');
       }
     });
   };
@@ -168,7 +168,7 @@ export default function NextBestActionWidget({
         onChanged?.();
         toast.success('Moved to tomorrow');
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'Failed to plan action');
+        toast.error(error instanceof Error ? error.message : 'Aufgabe konnte nicht für morgen eingeplant werden.');
       }
     });
   };

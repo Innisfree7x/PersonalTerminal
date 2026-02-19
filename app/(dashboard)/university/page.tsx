@@ -111,7 +111,7 @@ export default function UniversityPage() {
       if (context?.previousCourses) {
         queryClient.setQueryData(['courses'], context.previousCourses);
       }
-      toast.error(error.message || 'Failed to create course');
+      toast.error(error.message || 'Kurs konnte nicht erstellt werden. Bitte erneut versuchen.');
     },
   });
 
@@ -145,7 +145,7 @@ export default function UniversityPage() {
       if (context?.previousCourses) {
         queryClient.setQueryData(['courses'], context.previousCourses);
       }
-      toast.error(error.message || 'Failed to update course');
+      toast.error(error.message || 'Kurs konnte nicht aktualisiert werden. Bitte erneut versuchen.');
     },
   });
 
@@ -167,7 +167,7 @@ export default function UniversityPage() {
       if (context?.previousCourses) {
         queryClient.setQueryData(['courses'], context.previousCourses);
       }
-      toast.error(error.message || 'Failed to delete course');
+      toast.error(error.message || 'Kurs konnte nicht gelöscht werden. Bitte erneut versuchen.');
     },
   });
 
@@ -411,12 +411,14 @@ export default function UniversityPage() {
             transition={{ duration: 0.12 }}
             className="text-center py-20 bg-surface/50 backdrop-blur-sm border border-border rounded-lg"
           >
-            <div className="text-6xl mb-4">🎓</div>
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 mx-auto text-2xl">
+              🎓
+            </div>
             <h3 className="text-xl font-semibold text-text-primary mb-2">
-              No courses yet
+              Noch keine Kurse angelegt
             </h3>
-            <p className="text-text-tertiary mb-6">
-              Add your first course to start tracking your semester progress
+            <p className="text-text-tertiary mb-6 max-w-sm mx-auto">
+              Trag deine Vorlesungen ein — INNIS zeigt dir dann deinen Lernfortschritt, offene Übungsblätter und Prüfungstermine.
             </p>
             <Button
               onClick={() => {
@@ -426,7 +428,7 @@ export default function UniversityPage() {
               variant="primary"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Add First Course
+              Ersten Kurs anlegen
             </Button>
           </motion.div>
         ) : (
