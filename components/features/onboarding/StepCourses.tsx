@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ArrowRight, BookOpen, ChevronRight, X, Plus, CheckCircle2 } from 'lucide-react';
+import { trackOnboardingEvent } from '@/app/onboarding/analytics';
 
 export interface CourseEntry {
   name: string;
@@ -89,6 +90,7 @@ export function StepCourses({ initialValues, alreadyCreated, onNext }: StepCours
         }
         results.push({ name: course.name.trim() });
       }
+      trackOnboardingEvent('first_course_created', { source: 'onboarding', count: valid.length });
       onNext(results, courses);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Fehler beim Erstellen');

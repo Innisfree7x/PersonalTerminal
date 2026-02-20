@@ -3,7 +3,7 @@
 import { DEMO_COURSES, DEMO_GOALS, DEMO_TASKS } from './demoData';
 import { trackOnboardingEvent } from './analytics';
 
-const LS_KEY = 'prism_demo_ids';
+const LS_KEY = 'innis_demo_ids';
 
 interface DemoIds {
   courseIds: string[];
@@ -117,7 +117,7 @@ export async function removeDemoData(): Promise<void> {
 
   // Signal to React Query / page components to refetch
   try {
-    window.dispatchEvent(new CustomEvent('prism:demo-removed'));
+    window.dispatchEvent(new CustomEvent('innis:demo-removed'));
   } catch {
     // ignore in SSR contexts
   }

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ArrowRight, ClipboardList, ChevronRight, CheckCircle2, Clock } from 'lucide-react';
+import { trackOnboardingEvent } from '@/app/onboarding/analytics';
 
 export interface TaskFormValues {
   title: string;
@@ -67,6 +68,7 @@ export function StepFirstTask({ initialValues, alreadyCreated, onNext }: StepFir
         const data = await res.json().catch(() => ({}));
         throw new Error((data as { error?: string }).error || 'Fehler beim Erstellen');
       }
+      trackOnboardingEvent('first_task_created', { source: 'onboarding' });
       onNext({ title: title.trim() }, currentDraft);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Fehler beim Erstellen');

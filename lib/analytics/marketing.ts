@@ -3,11 +3,13 @@
 import { track } from '@vercel/analytics';
 
 export type MarketingEventName =
+  | 'landing_cta_clicked'
   | 'landing_cta_primary_clicked'
   | 'landing_cta_secondary_clicked'
   | 'pricing_plan_selected'
   | 'signup_started'
-  | 'signup_completed';
+  | 'signup_completed'
+  | 'day2_return';
 
 export interface MarketingEventPayload {
   source?: string;
@@ -25,9 +27,21 @@ export async function trackMarketingEvent(
   name: MarketingEventName,
   payload: MarketingEventPayload = {}
 ): Promise<void> {
+  // Canonical event for funnel queries while keeping granular variants.
+  if (name === 'landing_cta_primary_clicked' || name === 'landing_cta_secondary_clicked') {
+    track('landing_cta_clicked', payload as Record<string, string>);
+  }
   track(name, payload as Record<string, string>);
 
   try {
+    if (name === 'landing_cta_primary_clicked' || name === 'landing_cta_secondary_clicked') {
+      await fetch('/api/analytics/event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        keepalive: true,
+        body: JSON.stringify({ name: 'landing_cta_clicked', payload }),
+      });
+    }
     await fetch('/api/analytics/event', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

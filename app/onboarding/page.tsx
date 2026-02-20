@@ -13,7 +13,7 @@ import { StepFirstTask, type TaskFormValues } from '@/components/features/onboar
 import { StepComplete } from '@/components/features/onboarding/StepComplete';
 
 const TOTAL_STEPS = 5;
-const LS_KEY = 'prism_onboarding_v1';
+const LS_KEY = 'innis_onboarding_v1';
 
 interface PersistedState {
   step: number;

@@ -9,6 +9,9 @@ import { Input } from '@/components/ui/Input';
 import { motion } from 'framer-motion';
 import { isOnboardingComplete } from '@/lib/auth/profile';
 import { BrandMark } from '@/components/shared/BrandLogo';
+import { trackMarketingEvent } from '@/lib/analytics/marketing';
+
+const LAST_SEEN_KEY = 'innis_last_seen_at';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,11 +27,24 @@ export default function LoginPage() {
 
     try {
       const result = await signIn(email, password);
+      const now = Date.now();
+      try {
+        const previous = localStorage.getItem(LAST_SEEN_KEY);
+        if (previous) {
+          const previousMs = Date.parse(previous);
+          if (!Number.isNaN(previousMs) && now - previousMs >= 24 * 60 * 60 * 1000) {
+            void trackMarketingEvent('day2_return', { source: 'auth_login' });
+          }
+        }
+        localStorage.setItem(LAST_SEEN_KEY, new Date(now).toISOString());
+      } catch {
+        // localStorage unavailable, ignore tracking.
+      }
       const target = isOnboardingComplete(result.user) ? '/today' : '/onboarding';
       router.push(target);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in');
+      setError(err instanceof Error ? err.message : 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.');
     } finally {
       setLoading(false);
     }
@@ -46,10 +62,10 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <BrandMark sizeClassName="h-16 w-16" className="mb-4" />
           <h1 className="text-3xl font-bold text-text-primary mb-2">
-            Welcome back
+            Willkommen zurück
           </h1>
           <p className="text-text-secondary">
-            Sign in to your INNIS account
+            Melde dich bei deinem INNIS-Konto an
           </p>
         </div>
 
@@ -80,7 +96,7 @@ export default function LoginPage() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-text-primary mb-2">
-                Password
+                Passwort
               </label>
               <Input
                 id="password"
@@ -99,7 +115,7 @@ export default function LoginPage() {
                 href="/auth/reset-password"
                 className="text-[#ff5a4f] hover:text-[#ff8a65] transition-colors"
               >
-                Forgot password?
+                Passwort vergessen?
               </Link>
             </div>
 
@@ -111,7 +127,7 @@ export default function LoginPage() {
               disabled={loading}
               className="!bg-[#e54d42] hover:!bg-[#f06455] hover:!shadow-[0_0_24px_rgba(229,77,66,0.35)]"
             >
-              Sign In
+              Anmelden
             </Button>
           </form>
 
@@ -122,7 +138,7 @@ export default function LoginPage() {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-surface text-text-tertiary">
-                Don&apos;t have an account?
+                Noch kein Konto?
               </span>
             </div>
           </div>
@@ -134,14 +150,14 @@ export default function LoginPage() {
               fullWidth
               className="border-[#2f3346] hover:border-[#ff5a4f] hover:bg-[#ff5a4f]/10"
             >
-              Create Account
+              Konto erstellen
             </Button>
           </Link>
         </div>
 
         {/* Footer */}
         <p className="text-center text-xs text-text-tertiary mt-8">
-          By continuing, you agree to INNIS&apos;s Terms of Service and Privacy Policy
+          Mit der Anmeldung stimmst du den <a href="/terms" className="underline hover:text-text-secondary">Nutzungsbedingungen</a> und der <a href="/privacy" className="underline hover:text-text-secondary">Datenschutzerklärung</a> von INNIS zu.
         </p>
       </motion.div>
     </div>

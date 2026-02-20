@@ -363,7 +363,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                     dispatchOptimistic({ type: 'upsert', app: persistedApp });
                 });
                 play('swoosh');
-                toast.success(`Moved to ${newStatus}`);
+                toast.success(`Verschoben: ${KANBAN_COLUMNS.find(c => c.status === newStatus)?.label ?? newStatus}`);
             } catch (e) {
                 startTransition(() => {
                     dispatchOptimistic({ type: 'replace', apps: previousApplications });

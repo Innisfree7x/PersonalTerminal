@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { motion } from 'framer-motion';
 import { BrandMark } from '@/components/shared/BrandLogo';
+import { trackMarketingEvent } from '@/lib/analytics/marketing';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -26,30 +27,33 @@ export default function SignUpPage() {
 
     // Validation
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('Passwörter stimmen nicht überein.');
       setLoading(false);
       return;
     }
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError('Passwort muss mindestens 8 Zeichen lang sein.');
       setLoading(false);
       return;
     }
 
     try {
+      void trackMarketingEvent('signup_started', { source: 'auth_signup_form' });
       const result = await signUp(email, password, { fullName });
       if (result.session && result.user) {
+        void trackMarketingEvent('signup_completed', { source: 'auth_signup_form' });
         router.push('/onboarding');
         router.refresh();
         return;
       }
+      void trackMarketingEvent('signup_completed', { source: 'auth_signup_form' });
       setSuccess(true);
       setTimeout(() => {
         router.push('/auth/login');
       }, 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign up');
+      setError(err instanceof Error ? err.message : 'Registrierung fehlgeschlagen. Bitte erneut versuchen.');
     } finally {
       setLoading(false);
     }
@@ -69,10 +73,10 @@ export default function SignUpPage() {
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-text-primary mb-2">
-            Account Created!
+            Konto erstellt!
           </h2>
           <p className="text-text-secondary">
-            Check your email to verify your account, then sign in.
+            Prüfe deine E-Mails zur Verifizierung und melde dich danach an.
           </p>
         </motion.div>
       </div>
@@ -91,10 +95,10 @@ export default function SignUpPage() {
         <div className="text-center mb-8">
           <BrandMark sizeClassName="h-16 w-16" className="mb-4" />
           <h1 className="text-3xl font-bold text-text-primary mb-2">
-            Create your account
+            Konto erstellen
           </h1>
           <p className="text-text-secondary">
-            Start organizing your life with INNIS
+            Starte mit INNIS dein persönliches System
           </p>
         </div>
 
@@ -109,7 +113,7 @@ export default function SignUpPage() {
 
             <div>
               <label htmlFor="fullName" className="block text-sm font-medium text-text-primary mb-2">
-                Full Name
+                Name
               </label>
               <Input
                 id="fullName"
@@ -141,7 +145,7 @@ export default function SignUpPage() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-text-primary mb-2">
-                Password
+                Passwort
               </label>
               <Input
                 id="password"
@@ -154,13 +158,13 @@ export default function SignUpPage() {
                 className="w-full"
               />
               <p className="text-xs text-text-tertiary mt-1">
-                Must be at least 8 characters
+                Mindestens 8 Zeichen
               </p>
             </div>
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-text-primary mb-2">
-                Confirm Password
+                Passwort bestätigen
               </label>
               <Input
                 id="confirmPassword"
@@ -182,7 +186,7 @@ export default function SignUpPage() {
               disabled={loading}
               className="!bg-[#e54d42] hover:!bg-[#f06455] hover:!shadow-[0_0_24px_rgba(229,77,66,0.35)]"
             >
-              Create Account
+              Konto erstellen
             </Button>
           </form>
 
@@ -193,7 +197,7 @@ export default function SignUpPage() {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-surface text-text-tertiary">
-                Already have an account?
+                Bereits registriert?
               </span>
             </div>
           </div>
@@ -205,14 +209,14 @@ export default function SignUpPage() {
               fullWidth
               className="border-[#2f3346] hover:border-[#ff5a4f] hover:bg-[#ff5a4f]/10"
             >
-              Sign In
+              Anmelden
             </Button>
           </Link>
         </div>
 
         {/* Footer */}
         <p className="text-center text-xs text-text-tertiary mt-8">
-          By creating an account, you agree to INNIS&apos;s Terms of Service and Privacy Policy
+          Mit der Registrierung stimmst du den <a href="/terms" className="underline hover:text-text-secondary">Nutzungsbedingungen</a> und der <a href="/privacy" className="underline hover:text-text-secondary">Datenschutzerklärung</a> von INNIS zu.
         </p>
       </motion.div>
     </div>

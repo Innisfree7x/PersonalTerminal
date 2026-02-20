@@ -14,7 +14,7 @@ async function submitLogin(page, email, password) {
   await page.goto('/auth/login');
   await page.locator('#email').fill(email);
   await page.locator('#password').fill(password);
-  await page.getByRole('button', { name: /sign in/i }).click();
+  await page.getByRole('button', { name: /anmelden/i }).click();
   await page.waitForURL(/\/(today|onboarding)$/, { timeout: 30_000 });
 }
 

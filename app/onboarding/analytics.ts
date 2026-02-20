@@ -5,7 +5,9 @@ export type OnboardingEvent =
   | 'onboarding_step_completed'
   | 'onboarding_completed'
   | 'demo_seed_started'
-  | 'demo_seed_removed';
+  | 'demo_seed_removed'
+  | 'first_task_created'
+  | 'first_course_created';
 
 export interface OnboardingEventProperties {
   onboarding_started: Record<string, never>;
@@ -13,9 +15,11 @@ export interface OnboardingEventProperties {
   onboarding_completed: { courses_count: number; task_created: boolean; demo_seeded: boolean };
   demo_seed_started: Record<string, never>;
   demo_seed_removed: { ids_removed: number };
+  first_task_created: { source: 'onboarding' };
+  first_course_created: { source: 'onboarding'; count: number };
 }
 
-const LS_EVENTS_KEY = 'prism_events';
+const LS_EVENTS_KEY = 'innis_events';
 const MAX_EVENTS = 50;
 
 /**
@@ -44,5 +48,17 @@ export function trackOnboardingEvent<E extends OnboardingEvent>(
     sessionStorage.setItem(LS_EVENTS_KEY, JSON.stringify(events));
   } catch {
     // sessionStorage unavailable — proceed silently
+  }
+
+  // Forward to analytics API (non-blocking).
+  try {
+    void fetch('/api/analytics/event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
+      body: JSON.stringify({ name: event, payload: properties ?? {} }),
+    });
+  } catch {
+    // Non-blocking by design.
   }
 }
