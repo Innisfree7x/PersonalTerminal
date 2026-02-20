@@ -24,8 +24,10 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-semibold text-[#FAF0E6] mb-3">2. Erhobene Daten</h2>
             <p>
               INNIS erhebt ausschließlich Daten, die du aktiv eingibst: Aufgaben, Kurse, Ziele,
-              Bewerbungen und Profileinformationen. Es werden keine Verhaltensdaten an Dritte
-              weitergegeben.
+              Bewerbungen und Profileinformationen. Zusätzlich nutzen wir Vercel Analytics für
+              aggregierte, cookiefreie Nutzungsmetriken (z. B. Seitenaufrufe und Conversion-Events),
+              um Produktqualität und Onboarding zu verbessern. Es werden keine sensiblen Inhaltsdaten
+              (z. B. Aufgaben- oder Bewerbungsinhalte) für Analytics an Dritte übertragen.
             </p>
           </div>
 
