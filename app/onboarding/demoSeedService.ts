@@ -2,25 +2,20 @@
 
 import { DEMO_COURSES, DEMO_GOALS, DEMO_TASKS } from './demoData';
 import { trackOnboardingEvent } from './analytics';
+import { fetchDemoDataIdsAction, updateProfileAction, type DemoDataIds } from '@/app/actions/profile';
 
 const LS_KEY = 'innis_demo_ids';
 
-interface DemoIds {
-  courseIds: string[];
-  goalIds: string[];
-  taskIds: string[];
-}
-
-function loadDemoIds(): DemoIds | null {
+function loadDemoIds(): DemoDataIds | null {
   try {
     const raw = localStorage.getItem(LS_KEY);
-    return raw ? (JSON.parse(raw) as DemoIds) : null;
+    return raw ? (JSON.parse(raw) as DemoDataIds) : null;
   } catch {
     return null;
   }
 }
 
-function saveDemoIds(ids: DemoIds): void {
+function saveDemoIds(ids: DemoDataIds): void {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(ids));
   } catch {
@@ -38,16 +33,13 @@ export function hasDemoData(): boolean {
 
 /**
  * Seeds demo courses, goals, and tasks via existing API routes.
- * Stores all created IDs in localStorage so they can be removed later.
- *
- * TODO (Codex): Persist IDs in user_metadata.demo_data_ids via updateProfileAction
- * so removal works across devices/sessions.
+ * Stores all created IDs in localStorage and user_metadata so they can be removed later.
  */
 export async function seedDemoData(): Promise<void> {
   trackOnboardingEvent('demo_seed_started');
 
   const today = new Date().toISOString().split('T')[0] ?? new Date().toISOString().slice(0, 10);
-  const ids: DemoIds = { courseIds: [], goalIds: [], taskIds: [] };
+  const ids: DemoDataIds = { courseIds: [], goalIds: [], taskIds: [] };
 
   // Create courses
   for (const course of DEMO_COURSES) {
@@ -89,6 +81,11 @@ export async function seedDemoData(): Promise<void> {
   }
 
   saveDemoIds(ids);
+  try {
+    await updateProfileAction({ demoDataIds: ids });
+  } catch {
+    // Metadata persistence is best-effort; local fallback remains available.
+  }
 }
 
 /**
@@ -96,7 +93,14 @@ export async function seedDemoData(): Promise<void> {
  * Dispatches a custom DOM event so React Query caches can be invalidated.
  */
 export async function removeDemoData(): Promise<void> {
-  const ids = loadDemoIds();
+  let ids = loadDemoIds();
+  if (!ids) {
+    try {
+      ids = await fetchDemoDataIdsAction();
+    } catch {
+      ids = null;
+    }
+  }
   if (!ids) return;
 
   const totalIds = ids.courseIds.length + ids.goalIds.length + ids.taskIds.length;
@@ -111,6 +115,11 @@ export async function removeDemoData(): Promise<void> {
     localStorage.removeItem(LS_KEY);
   } catch {
     // ignore
+  }
+  try {
+    await updateProfileAction({ demoDataIds: null });
+  } catch {
+    // ignore metadata cleanup failures
   }
 
   trackOnboardingEvent('demo_seed_removed', { ids_removed: totalIds });

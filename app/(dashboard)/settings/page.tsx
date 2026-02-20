@@ -22,6 +22,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { useAppSound } from '@/lib/hooks/useAppSound';
 import { updateProfileAction } from '@/app/actions/profile';
+import { fetchDemoDataIdsAction } from '@/app/actions/profile';
 import toast from 'react-hot-toast';
 import { hasDemoData, removeDemoData } from '@/app/onboarding/demoSeedService';
 import { ConfirmModal } from '@/components/shared/ConfirmModal';
@@ -71,8 +72,26 @@ export default function SettingsPage() {
     }, [user]);
 
     useEffect(() => {
-        setLucianMuted(localStorage.getItem('innis_lucian_muted') === '1');
-        setHasDemoDataState(hasDemoData());
+        let active = true;
+        const loadDemoState = async () => {
+            setLucianMuted(localStorage.getItem('innis_lucian_muted') === '1');
+            const localHasData = hasDemoData();
+            if (localHasData) {
+                if (active) setHasDemoDataState(true);
+                return;
+            }
+            try {
+                const remoteIds = await fetchDemoDataIdsAction();
+                const remoteHasData = !!remoteIds && (remoteIds.courseIds.length + remoteIds.goalIds.length + remoteIds.taskIds.length > 0);
+                if (active) setHasDemoDataState(remoteHasData);
+            } catch {
+                if (active) setHasDemoDataState(false);
+            }
+        };
+        void loadDemoState();
+        return () => {
+            active = false;
+        };
     }, []);
 
     const toggleLucianMuted = () => {
