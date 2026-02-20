@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -40,14 +40,21 @@ export default function ApplicationForm({
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
+    setValue,
+    clearErrors,
+    getValues,
+    watch,
   } = useForm<CreateApplicationInput>({
     resolver: zodResolver(createApplicationSchema),
     defaultValues: DEFAULT_APPLICATION_FORM_VALUES,
   });
+  const [hasInterviewScheduled, setHasInterviewScheduled] = useState(false);
+  const statusValue = watch('status');
 
   // Reset form when initialData changes (edit → add or switching between items)
   useEffect(() => {
     reset(initialData ?? DEFAULT_APPLICATION_FORM_VALUES);
+    setHasInterviewScheduled(Boolean(initialData?.interviewDate));
   }, [initialData, reset]);
 
   const onSubmitForm = (data: CreateApplicationInput) => {
@@ -58,9 +65,11 @@ export default function ApplicationForm({
         ? data.interviewDate
         : new Date(data.interviewDate)
       : undefined;
+    const status = interviewDate && data.status === 'applied' ? 'interview' : data.status;
 
     onSubmit({
       ...data,
+      status,
       applicationDate,
       interviewDate,
       jobUrl: data.jobUrl || undefined,
@@ -139,6 +148,11 @@ export default function ApplicationForm({
         {errors.status && (
           <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.status.message}</p>
         )}
+        {statusValue === 'offer' && (
+          <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-400">
+            Offer selected. You can still edit details before finalizing.
+          </p>
+        )}
       </div>
 
       {/* Application Date */}
@@ -168,27 +182,56 @@ export default function ApplicationForm({
 
       {/* Interview Date */}
       <div>
-        <label
-          htmlFor="interviewDate"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-        >
-          Interview Date
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Interview
         </label>
-        <input
-          id="interviewDate"
-          type="date"
-          {...register('interviewDate', {
-            valueAsDate: true,
-            setValueAs: (value) => (value === '' ? undefined : new Date(value)),
-          })}
-          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 ${
-            errors.interviewDate ? 'border-red-500' : 'border-gray-300'
-          }`}
-        />
-        {errors.interviewDate && (
-          <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-            {errors.interviewDate.message}
-          </p>
+        <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 mb-3">
+          <input
+            type="checkbox"
+            checked={hasInterviewScheduled}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setHasInterviewScheduled(checked);
+              if (checked && getValues('status') === 'applied') {
+                setValue('status', 'interview', { shouldDirty: true, shouldValidate: true });
+              }
+              if (!checked) {
+                setValue('interviewDate', undefined, { shouldDirty: true, shouldValidate: true });
+                clearErrors('interviewDate');
+              }
+            }}
+            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          Interview scheduled
+        </label>
+
+        {hasInterviewScheduled ? (
+          <>
+            <label
+              htmlFor="interviewDate"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Interview Date
+            </label>
+            <input
+              id="interviewDate"
+              type="date"
+              {...register('interviewDate', {
+                valueAsDate: true,
+                setValueAs: (value) => (value === '' ? undefined : new Date(value)),
+              })}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 ${
+                errors.interviewDate ? 'border-red-500' : 'border-gray-300'
+              }`}
+            />
+            {errors.interviewDate && (
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                {errors.interviewDate.message}
+              </p>
+            )}
+          </>
+        ) : (
+          <p className="text-xs text-gray-500 dark:text-gray-400">No interview date yet.</p>
         )}
       </div>
 

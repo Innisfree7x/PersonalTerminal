@@ -246,7 +246,11 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
             });
             dispatchChampionEvent({ type: 'APPLICATION_SENT' });
             play('swoosh');
-            toast.success('Application added!');
+            if (createdApplication.status === 'offer') {
+                toast.success('Offer saved. Strong progress.');
+            } else {
+                toast.success('Application added!');
+            }
         } catch (e) {
             startTransition(() => {
                 dispatchOptimistic({ type: 'replace', apps: previousApplications });
@@ -275,7 +279,11 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
             startTransition(() => {
                 dispatchOptimistic({ type: 'upsert', app: persistedApp });
             });
-            toast.success('Application updated!');
+            if (persistedApp.status === 'offer') {
+                toast.success('Offer updated. Keep momentum.');
+            } else {
+                toast.success('Application updated!');
+            }
         } catch (e) {
             startTransition(() => {
                 dispatchOptimistic({ type: 'replace', apps: previousApplications });

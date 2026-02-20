@@ -180,6 +180,7 @@ export default function SignUpPage() {
               fullWidth
               loading={loading}
               disabled={loading}
+              className="!bg-[#e54d42] hover:!bg-[#f06455] hover:!shadow-[0_0_24px_rgba(229,77,66,0.35)]"
             >
               Create Account
             </Button>
@@ -199,7 +200,11 @@ export default function SignUpPage() {
 
           {/* Sign In Link */}
           <Link href="/auth/login">
-            <Button variant="secondary" fullWidth>
+            <Button
+              variant="secondary"
+              fullWidth
+              className="border-[#2f3346] hover:border-[#ff5a4f] hover:bg-[#ff5a4f]/10"
+            >
               Sign In
             </Button>
           </Link>

@@ -25,8 +25,8 @@ const ACCENT_COLORS: Record<AccentColor, { base: string; hover: string }> = {
 };
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const [theme, setTheme] = useState<Theme>('midnight');
-    const [accentColor, setAccentColor] = useState<AccentColor>('purple');
+    const [theme, setTheme] = useState<Theme>('gold');
+    const [accentColor, setAccentColor] = useState<AccentColor>('red');
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {

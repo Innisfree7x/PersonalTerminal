@@ -97,7 +97,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-between text-sm">
               <Link
                 href="/auth/reset-password"
-                className="text-primary hover:text-primary-hover transition-colors"
+                className="text-[#ff5a4f] hover:text-[#ff8a65] transition-colors"
               >
                 Forgot password?
               </Link>
@@ -109,6 +109,7 @@ export default function LoginPage() {
               fullWidth
               loading={loading}
               disabled={loading}
+              className="!bg-[#e54d42] hover:!bg-[#f06455] hover:!shadow-[0_0_24px_rgba(229,77,66,0.35)]"
             >
               Sign In
             </Button>
@@ -128,7 +129,11 @@ export default function LoginPage() {
 
           {/* Sign Up Link */}
           <Link href="/auth/signup">
-            <Button variant="secondary" fullWidth>
+            <Button
+              variant="secondary"
+              fullWidth
+              className="border-[#2f3346] hover:border-[#ff5a4f] hover:bg-[#ff5a4f]/10"
+            >
               Create Account
             </Button>
           </Link>

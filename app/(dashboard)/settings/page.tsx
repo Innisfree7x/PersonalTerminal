@@ -29,22 +29,22 @@ import { usePowerHotkeys, type SummonerSpellAction } from '@/components/provider
 import { useChampion } from '@/components/providers/ChampionProvider';
 
 const themes = [
+    { id: 'gold', name: 'Gold (Premium)', color: 'linear-gradient(135deg, #2e2412 0%, #000 100%)', border: '#ca8a04' },
     { id: 'midnight', name: 'Midnight', color: '#0A0A0A', border: '#262626' },
     { id: 'nord', name: 'Nord', color: '#2E3440', border: '#4C566A' },
     { id: 'dracula', name: 'Dracula', color: '#282a36', border: '#6272a4' },
     { id: 'ocean', name: 'Ocean', color: '#0f172a', border: '#334155' },
     { id: 'emerald', name: 'Emerald', color: '#022c22', border: '#065f46' },
-    { id: 'gold', name: 'Gold (Premium)', color: 'linear-gradient(135deg, #2e2412 0%, #000 100%)', border: '#ca8a04' },
 ] as const;
 
 const accents = [
+    { id: 'red', name: 'Red', color: 'bg-red-500' },
+    { id: 'gold', name: 'Gold', color: 'bg-yellow-500' },
     { id: 'purple', name: 'Purple', color: 'bg-purple-600' },
     { id: 'blue', name: 'Blue', color: 'bg-blue-500' },
     { id: 'green', name: 'Green', color: 'bg-emerald-500' },
     { id: 'orange', name: 'Orange', color: 'bg-orange-500' },
     { id: 'pink', name: 'Pink', color: 'bg-pink-500' },
-    { id: 'red', name: 'Red', color: 'bg-red-500' },
-    { id: 'gold', name: 'Gold', color: 'bg-yellow-500' },
 ] as const;
 
 export default function SettingsPage() {
