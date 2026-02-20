@@ -50,7 +50,7 @@ const features = [
     bg: 'bg-orange-500/10',
     border: 'border-orange-500/20',
     glow: 'group-hover:shadow-orange-500/20',
-    layout: 'lg:col-span-1 lg:row-span-2',
+    layout: 'lg:col-span-1',
   },
   {
     id: 'timer',
