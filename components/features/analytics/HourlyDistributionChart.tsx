@@ -78,7 +78,7 @@ const HourlyDistributionChart = memo(function HourlyDistributionChart({
               {data.map((entry, index) => (
                 <Cell
                   key={index}
-                  fill={`rgba(139, 92, 246, ${0.2 + (entry.totalMinutes / maxMinutes) * 0.8})`}
+                  fill={`rgba(234, 179, 8, ${0.2 + (entry.totalMinutes / maxMinutes) * 0.8})`}
                 />
               ))}
             </Bar>

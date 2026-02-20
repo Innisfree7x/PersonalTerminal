@@ -71,7 +71,7 @@ const WeekdayChart = memo(function WeekdayChart({ data }: WeekdayChartProps) {
             <Tooltip content={<CustomTooltip />} />
             <Bar
               dataKey="totalMinutes"
-              fill="#8B5CF6"
+              fill="#EAB308"
               radius={[4, 4, 0, 0]}
               maxBarSize={40}
               opacity={0.8}

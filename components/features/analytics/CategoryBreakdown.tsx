@@ -15,7 +15,7 @@ interface CategoryBreakdownProps {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  study: '#8B5CF6',
+  study: '#EAB308',
   work: '#0EA5E9',
   exercise: '#EC4899',
   reading: '#10B981',

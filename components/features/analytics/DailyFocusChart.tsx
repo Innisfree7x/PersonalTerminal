@@ -54,8 +54,8 @@ const DailyFocusChart = memo(function DailyFocusChart({ data }: DailyFocusChartP
           <AreaChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="focusGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
+                <stop offset="5%" stopColor="#EAB308" stopOpacity={0.32} />
+                <stop offset="95%" stopColor="#EAB308" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#282837" vertical={false} />
@@ -78,11 +78,11 @@ const DailyFocusChart = memo(function DailyFocusChart({ data }: DailyFocusChartP
             <Area
               type="monotone"
               dataKey="totalMinutes"
-              stroke="#8B5CF6"
+              stroke="#EAB308"
               strokeWidth={2}
               fill="url(#focusGradient)"
               dot={false}
-              activeDot={{ r: 4, fill: '#8B5CF6', strokeWidth: 0 }}
+              activeDot={{ r: 4, fill: '#EAB308', strokeWidth: 0 }}
             />
           </AreaChart>
         </ResponsiveContainer>
