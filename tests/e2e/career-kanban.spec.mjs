@@ -18,6 +18,7 @@ test.describe('Career flow', () => {
     await page.getByRole('button', { name: /^create$/i }).click();
 
     await expect(page.getByText(company)).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(/Application added!/i)).toBeVisible({ timeout: 10_000 });
 
     const sourceCard = page.locator('[data-testid^="career-card-"]').filter({ hasText: company }).first();
     const targetColumn = page.getByTestId('career-column-interview');
@@ -34,5 +35,38 @@ test.describe('Career flow', () => {
     await page.mouse.up();
 
     await expect(targetColumn.getByText(company)).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(/Verschoben: Interview/i)).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('user can open edit modal and delete an application via confirmation modal', async ({ page }) => {
+    const suffix = Date.now().toString().slice(-6);
+    const company = `E2E Delete Corp ${suffix}`;
+    const position = `Delete Candidate ${suffix}`;
+
+    await login(page);
+    await page.goto('/career?action=new-application');
+
+    await expect(page.getByRole('heading', { name: /new application/i })).toBeVisible();
+    await page.locator('#company').fill(company);
+    await page.locator('#position').fill(position);
+    await page.getByRole('button', { name: /^create$/i }).click();
+    await expect(page.getByText(company)).toBeVisible({ timeout: 30_000 });
+
+    const card = page.locator('[data-testid^="career-card-"]').filter({ hasText: company }).first();
+
+    await card.click();
+    await expect(page.getByRole('heading', { name: /edit application/i })).toBeVisible({ timeout: 10_000 });
+    await page.getByRole('button', { name: /close/i }).click();
+    await expect(page.getByRole('heading', { name: /edit application/i })).toBeHidden({ timeout: 10_000 });
+
+    await card.hover();
+    await card.getByRole('button', { name: /delete/i }).click();
+
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText(/bewerbung löschen/i)).toBeVisible();
+    await page.getByRole('button', { name: /^löschen$/i }).click();
+
+    await expect(page.getByText(/Bewerbung gelöscht/i)).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText(company)).toBeHidden({ timeout: 30_000 });
   });
 });

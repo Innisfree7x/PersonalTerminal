@@ -9,6 +9,8 @@
 - `tests/e2e/auth-onboarding-settings.spec.mjs`
   - Login with onboarding fallback, land on dashboard.
   - Update display name in settings and verify persistence after reload.
+- `tests/e2e/onboarding-wizard.spec.mjs`
+  - Full onboarding wizard flow (welcome → profile → course → first task → complete) for a fresh test account.
 
 ## Requirements
 
@@ -29,5 +31,6 @@ If credentials are missing, authenticated specs are skipped by design.
 ## Notes
 
 - The login helper auto-completes onboarding if the account is not onboarded yet.
+- The onboarding wizard spec skips itself when the configured account is already onboarded.
 - Default base URL is `http://127.0.0.1:3000` (from `playwright.config.mjs`).
 - Use `PLAYWRIGHT_BASE_URL` to point tests at another environment.

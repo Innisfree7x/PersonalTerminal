@@ -20,10 +20,29 @@ test.describe('University flow', () => {
 
     await expect(page.getByRole('heading', { name: courseName })).toBeVisible({ timeout: 30_000 });
 
-    const card = page.locator('div').filter({ has: page.getByRole('heading', { name: courseName }) }).first();
+    const card = page.locator('[data-interactive="course"]').filter({ has: page.getByRole('heading', { name: courseName }) }).first();
     await card.getByRole('button', { name: /expand/i }).click();
     await card.getByText('Blatt 1').click();
 
     await expect(card.getByText(/1\/3/)).toBeVisible({ timeout: 10_000 });
+
+    await page.reload();
+    const cardAfterReload = page
+      .locator('[data-interactive="course"]')
+      .filter({ has: page.getByRole('heading', { name: courseName }) })
+      .first();
+    await cardAfterReload.getByRole('button', { name: /expand/i }).click();
+    await expect(cardAfterReload.getByText(/1\/3/)).toBeVisible({ timeout: 10_000 });
+
+    await cardAfterReload.getByText('Blatt 1').click();
+    await expect(cardAfterReload.getByText(/0\/3/)).toBeVisible({ timeout: 10_000 });
+
+    await page.reload();
+    const cardAfterUntoggle = page
+      .locator('[data-interactive="course"]')
+      .filter({ has: page.getByRole('heading', { name: courseName }) })
+      .first();
+    await cardAfterUntoggle.getByRole('button', { name: /expand/i }).click();
+    await expect(cardAfterUntoggle.getByText(/0\/3/)).toBeVisible({ timeout: 10_000 });
   });
 });
