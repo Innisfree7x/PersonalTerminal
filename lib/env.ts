@@ -12,6 +12,18 @@
 
 import { z } from 'zod';
 
+const resendFromEmailSchema = z
+  .string()
+  .trim()
+  .refine(
+    (value) =>
+      // plain email: user@domain.tld
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ||
+      // display format: Name <user@domain.tld>
+      /^[^<>]+<\s*[^\s@]+@[^\s@]+\.[^\s@]+\s*>$/.test(value),
+    'RESEND_FROM_EMAIL must be a plain email or "Name <email>" format'
+  );
+
 // Fallback: Try to load File_Explorer.env.local if standard env vars are missing
 // This is necessary because some users might rely on this custom file
 if (typeof window === 'undefined') {
@@ -54,7 +66,7 @@ const serverSchema = z.object({
   ADMIN_EMAILS: z.string().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
-  RESEND_FROM_EMAIL: z.string().email().optional(),
+  RESEND_FROM_EMAIL: resendFromEmailSchema.optional(),
   CRON_SECRET: z.string().optional(),
   NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
 
