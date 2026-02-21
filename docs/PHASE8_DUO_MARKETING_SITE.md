@@ -1,7 +1,7 @@
 # PHASE 8 — Duo Marketing Site (Codex + Claude)
 
 ## Vision
-Eine High-Quality Public Website vor dem Login, die Prism klar positioniert und Besucher in Registrierungen konvertiert.
+Eine High-Quality Public Website vor dem Login, die INNIS klar positioniert und Besucher in Registrierungen konvertiert.
 Referenzniveau: moderne SaaS-Seiten wie `prisma.market` / `mixedbread.com`.
 
 ## Visual Direction (verbindlich)
@@ -28,7 +28,7 @@ Referenzniveau: moderne SaaS-Seiten wie `prisma.market` / `mixedbread.com`.
 - Marketing und App müssen dieselben Tokens sprechen (ein Produktbild)
 
 ## Business Outcome
-- Visitor versteht in <10 Sekunden: Was ist Prism? Für wen? Warum besser?
+- Visitor versteht in <10 Sekunden: Was ist INNIS? Für wen? Warum besser?
 - Primäre Conversion: `Get Started` (Signup)
 - Sekundäre Conversion: `Login` (bestehende Nutzer)
 

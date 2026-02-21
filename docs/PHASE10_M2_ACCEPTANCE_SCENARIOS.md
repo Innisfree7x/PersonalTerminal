@@ -57,7 +57,7 @@ Missing from test suite:
 The current `login()` helper in `tests/e2e/helpers/auth.mjs` handles onboarding with:
 ```js
 const fullNameInput = page.locator('#fullName');
-await fullNameInput.fill('E2E Prism User');
+await fullNameInput.fill('E2E INNIS User');
 await page.getByRole('button', { name: /continue to dashboard/i }).click();
 ```
 This matches the **old single-step onboarding** — the new wizard has 5 steps and a "Zum Dashboard" button (German). The helper must be updated to step through the full wizard or use a pre-onboarded test account to avoid failing all other specs.

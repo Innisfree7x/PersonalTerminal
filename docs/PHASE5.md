@@ -1,6 +1,6 @@
 # Phase 5 — Notion Speed (Performance & Feel)
 
-> **Vision:** Prism fühlt sich wie eine native App an. Kein sichtbarer Ladebalken mehr.
+> **Vision:** INNIS fühlt sich wie eine native App an. Kein sichtbarer Ladebalken mehr.
 > Jede Seite erscheint sofort — wie Notion, nicht wie eine Web-App.
 
 ---

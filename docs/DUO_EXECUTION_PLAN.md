@@ -1,4 +1,4 @@
-# Prism Duo Execution Plan (Codex + Claude)
+# INNIS Duo Execution Plan (Codex + Claude)
 
 Dieses Dokument teilt die Arbeit zwischen Codex und Claude so auf, dass ihr schnell shippt, ohne euch gegenseitig zu blockieren.
 

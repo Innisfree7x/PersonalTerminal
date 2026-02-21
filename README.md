@@ -130,11 +130,18 @@ Browser
    # Supabase (required)
    NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
    # Google Calendar (optional)
    GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
    GOOGLE_CLIENT_SECRET=your-client-secret
    GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/google/callback
+
+   # Notifications + cron (Phase 11)
+   RESEND_API_KEY=re_xxxxxxxxx
+   RESEND_FROM_EMAIL="INNIS <onboarding@resend.dev>"
+   CRON_SECRET=long-random-secret
+   NEXT_PUBLIC_SITE_URL=http://localhost:3000
    ```
 
 4. **Database setup** — run SQL migrations in Supabase SQL Editor:
@@ -157,9 +164,14 @@ Browser
 |----------|----------|-------------|
 | `NEXT_PUBLIC_SUPABASE_URL` | ✅ | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Supabase anonymous key |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ Server/Cron | Service role key for protected server-side jobs |
 | `GOOGLE_CLIENT_ID` | ⚠️ Calendar | Google OAuth 2.0 Client ID |
 | `GOOGLE_CLIENT_SECRET` | ⚠️ Calendar | Google OAuth 2.0 Client Secret |
 | `GOOGLE_REDIRECT_URI` | ⚠️ Calendar | OAuth callback URL |
+| `RESEND_API_KEY` | ✅ Notifications | API key for email delivery |
+| `RESEND_FROM_EMAIL` | ✅ Notifications | Sender identity (`email` or `Name <email>`) |
+| `CRON_SECRET` | ✅ Notifications | Bearer secret for cron route protection |
+| `NEXT_PUBLIC_SITE_URL` | Recommended | Canonical site URL for links/metadata |
 | `MONITORING_ALERT_WEBHOOK_URL` | Optional | Webhook for critical error alerts |
 
 ---
@@ -175,6 +187,8 @@ Browser
 | `npm run test` | Vitest unit tests |
 | `npm run test:watch` | Vitest watch mode |
 | `npm run test:coverage` | Coverage report |
+| `npm run test:e2e:blocker` | Critical Playwright flows (serial CI gate) |
+| `npm run test:e2e` | Full Playwright suite |
 | `npm run fix-courses` | Fix missing exercise_progress entries |
 
 ---
@@ -277,7 +291,13 @@ export async function myAction() {
 
 1. Push to GitHub
 2. Import project at [vercel.com/new](https://vercel.com/new)
-3. Add environment variables in Vercel dashboard
+3. Add required environment variables in Vercel dashboard (`Production` at minimum):
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `RESEND_API_KEY`
+   - `RESEND_FROM_EMAIL`
+   - `CRON_SECRET`
 4. Deploy — auto-deploys on every push to `main`
 
 For production Google OAuth: update redirect URI to `https://your-app.vercel.app/api/auth/google/callback`.
@@ -292,7 +312,7 @@ For production Google OAuth: update redirect URI to `https://your-app.vercel.app
 | No study tasks on dashboard | Run `npm run fix-courses` to create missing exercise_progress entries |
 | Google Calendar not working | Verify redirect URI matches exactly in Google Cloud Console |
 | RLS errors | Verify owner-only policies and `user_id`-scoped queries (`auth.uid() = user_id`) |
-| Demo data can't be removed | Clear `localStorage['prism_demo_ids']` in DevTools manually |
+| Demo data can't be removed | Clear `localStorage['innis_demo_ids']` in DevTools manually |
 
 ---
 

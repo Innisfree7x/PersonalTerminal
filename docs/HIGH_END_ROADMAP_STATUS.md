@@ -1,87 +1,50 @@
-# High-End Roadmap Status
+# High-End Roadmap Status (INNIS)
 
-## Scope Decision
+Last updated: 2026-02-21
 
-- Included: `1, 2, 3, 4, 5, 6, 9`
-- Deferred by product decision: `7 (Prism AI / RAG)`, `8 (Predictive Productivity)`, `10 (Storybook)`
+## Original scope decision
 
-## Current Completion
+- Included in initial high-end roadmap: `1, 2, 3, 4, 5, 6, 9`
+- Deferred by product decision: `7 (AI/RAG)`, `8 (Predictive Productivity)`, `10 (Storybook)`
 
-1. Server Actions + Type-Safe Mutations: `100%`
-- Key write flows moved to Server Actions (`app/actions/*`).
-- University create/update/delete and exercise toggle run through Server Actions.
-- Career create/update/delete and drag/drop status updates run through Server Actions.
-- Daily task and focus-session writes run through Server Actions.
+## Completion snapshot
 
-2. Optimistic UI (Instant Feedback): `100%`
-- Career Kanban supports optimistic add/edit/delete/move with rollback on failure.
-- University uses optimistic create/update/delete mutations.
-- Today task interactions render instant visual feedback and recover on failure.
+1. Server Actions + type-safe mutations: `100%`
+2. Optimistic UI (critical flows): `100%`
+3. Architecture layering (app/domain separation baseline): `100%`
+4. Layout transitions (core cards/modals): `100%`
+5. Sound design baseline: `100%`
+6. Command bar actions: `100%`
+9. E2E testing baseline (agreed critical flows): `100%`
 
-3. Clean Architecture Layers: `100%`
-- Ports/use-cases/repositories established in:
-  - `lib/application/ports/*`
-  - `lib/application/use-cases/*`
-  - `lib/infrastructure/supabase/repositories/*`
-- Business logic separated from transport/UI concerns.
+## Extended completion after roadmap (Phase 8–11)
 
-4. Layout Identity Projection (Framer Motion): `100%`
-- University cards and modal use shared `layoutId` transitions.
-- Goals cards and modal also support `layoutId` morph transitions.
+### Phase 8 / 8.1
+- Marketing site shipped and hardened.
+- Brand consolidated to INNIS (dark + red + gold).
+- SEO + sitemap + robots + conversion analytics baseline.
 
-5. Sound Design (Haptic Audio): `100%`
-- Sound provider with persisted settings and volume controls.
-- Event sounds wired to key interactions:
-  - `pop`: task completion actions
-  - `swoosh`: application creation/moves
-  - `click`: theme/accent toggles + command palette actions
+### Phase 9 / 10 / 10.1
+- Activation and onboarding quality significantly improved.
+- Metrics loop and event contract established.
+- Privacy/analytics messaging aligned with implementation.
 
-6. Command Bar "Spotlight" Actions: `100%`
-- Command palette supports navigation + direct actions:
-  - New goal / course / application
-  - Theme cycle + explicit theme selection
-  - Focus timer presets and timer controls
-- Header quick-add now opens command palette for rapid action entry.
+### Phase 11
+- Dashboard query and index performance improvements.
+- Lucian context-aware hint engine integrated.
+- Email notifications via cron routes + settings opt-out.
+- Blocker E2E suite in CI (serial gate).
 
-9. E2E Testing (Playwright): `100%` (for the agreed critical flows)
-- E2E specs cover:
-  - Auth + onboarding + settings profile persistence
-  - University course creation flow
-  - Career Kanban flow
+## Current platform status
 
-## Release Notes
+- Product quality: high for solo/early-user usage.
+- Reliability posture: materially improved.
+- Remaining practical ops: env hygiene + cron verification + routine release gates.
 
-- Production readiness still depends on runtime environment quality gates:
-  - Valid secrets in Vercel/Supabase
-  - Successful production build/deploy
-  - Smoke tests from `docs/GO_LIVE_RUNBOOK.md`
+## Next directional phases
 
-## Roadmap V2 Kickoff (Execution Engine)
+- `Phase 12`: scale-ready core (reliability + KPI operations)
+- `Phase 13`: monetization and growth engine
+- `Phase 14`: intelligent product layer (strictly utility-driven)
 
-- Status: `Started`
-- Implemented in this iteration:
-  - `Next Best Action` ranking engine in application layer (`lib/application/use-cases/execution-engine.ts`)
-  - `/today` widget with `Do now`, `Plan later`, `Drop` decisions
-  - `Daily Execution Score` (0-100) based on completion, momentum, and backlog penalties
-  - Engine v2 ranking reasons + risk signals (exam/interview/backlog/low-score)
-  - Command bar action: `Start Next Best Action`
-- Validation:
-  - `npm run type-check` ✅
-  - `npm run lint` ✅
-  - `npm run test -- --run` ✅
-
-## Reliability + Speed Track
-
-- Reliability:
-  - Central monitoring utility (`lib/monitoring/index.ts`) with optional Sentry capture.
-  - Client error ingestion endpoint (`app/api/monitoring/error/route.ts`).
-  - Protected monitoring health endpoint (`app/api/monitoring/health/route.ts`) + Ops dashboard (`/analytics/ops`).
-  - Severity inference, fingerprint dedupe, alert cooldowns, and ingress rate limiting.
-  - Admin audit logging for ops access/actions (`admin_audit_logs`) surfaced in Ops dashboard.
-  - ErrorBoundary and global error screen now report incidents.
-  - Optional critical alerting via `MONITORING_ALERT_WEBHOOK_URL`.
-- Speed:
-  - Dashboard aggregation queries parallelized in `lib/dashboard/queries.ts`.
-  - `/api/dashboard/next-tasks` now exposes `Server-Timing` header.
-  - Build analyzer script added: `npm run build:analyze`.
-  - `next.config.js` tuned (`compress`, `poweredByHeader=false`, package import optimization).
+See: `docs/PHASE12_14_LONG_TERM_ROADMAP.md`

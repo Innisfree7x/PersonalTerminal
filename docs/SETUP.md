@@ -1,6 +1,6 @@
 # 🚀 Setup Guide
 
-Step-by-step guide to get Prism running locally on your machine.
+Step-by-step guide to get INNIS running locally on your machine.
 
 ---
 
@@ -89,7 +89,7 @@ added 342 packages in 45s
 
 1. Click "New Project"
 2. Fill in project details:
-   - **Name:** `prism` (or your choice)
+   - **Name:** `innis` (or your choice)
    - **Database Password:** Create a strong password (save it!)
    - **Region:** Choose closest to your location
 3. Click "Create new project"
@@ -314,7 +314,7 @@ Skip this section if you don't need Google Calendar integration.
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Click "Select a project" → "New Project"
-3. Enter project name: `prism`
+3. Enter project name: `innis`
 4. Click "Create"
 
 ### 2. Enable Google Calendar API
@@ -330,7 +330,7 @@ Skip this section if you don't need Google Calendar integration.
 2. Click "+ CREATE CREDENTIALS" → "OAuth client ID"
 3. Configure consent screen (if prompted):
    - User Type: **External**
-   - App name: `Prism`
+   - App name: `INNIS`
    - User support email: Your email
    - Developer contact: Your email
    - Click "Save and Continue"
@@ -339,7 +339,7 @@ Skip this section if you don't need Google Calendar integration.
    - Click "Save and Continue"
 4. Create OAuth client:
    - Application type: **Web application**
-   - Name: `Prism - Local`
+   - Name: `INNIS - Local`
    - Authorized redirect URIs: `http://localhost:3000/api/auth/google/callback`
    - Click "Create"
 5. Copy **Client ID** and **Client Secret**
@@ -624,7 +624,7 @@ Type error: Property 'xyz' does not exist on type 'XYZ'
 ### File Structure
 
 ```
-prism/
+innis/
 ├── app/                   # Next.js app directory
 │   ├── (dashboard)/       # Dashboard routes
 │   └── api/               # API endpoints
@@ -729,7 +729,7 @@ npm run dev
 ---
 
 <div align="center">
-  <strong>🎉 Congratulations! You're ready to use Prism.</strong>
+  <strong>🎉 Congratulations! You're ready to use INNIS.</strong>
   <br><br>
   <a href="../README.md">← Back to README</a>
 </div>

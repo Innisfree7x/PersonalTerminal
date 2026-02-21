@@ -1,4 +1,4 @@
--- User isolation migration for Prism
+-- User isolation migration for INNIS
 -- Date: 2026-02-15
 --
 -- IMPORTANT:

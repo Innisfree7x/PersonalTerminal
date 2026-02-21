@@ -1,6 +1,6 @@
 # 🗄️ Database Schema
 
-Complete database documentation for Prism (Supabase PostgreSQL).
+Complete database documentation for INNIS (Supabase PostgreSQL).
 
 ---
 

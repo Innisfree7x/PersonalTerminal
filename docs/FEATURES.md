@@ -1,6 +1,6 @@
 # ✨ Features Guide
 
-Comprehensive guide to all Prism features with workflows and usage examples.
+Comprehensive guide to all INNIS features with workflows and usage examples.
 
 ---
 

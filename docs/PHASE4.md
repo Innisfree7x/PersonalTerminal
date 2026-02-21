@@ -1,6 +1,6 @@
 # Phase 4 — Power-User Experience (LoL-Style Hotkeys)
 
-> **Vision:** Prism fühlt sich wie ein echtes Terminal an. Die Maus wird optional.
+> **Vision:** INNIS fühlt sich wie ein echtes Terminal an. Die Maus wird optional.
 > Jede Aktion in < 3 Keystrokes. Muscle Memory. Kein Modifier-Chaos.
 
 ---
@@ -216,7 +216,7 @@ P  →  Command Bar öffnen (universelle Fuzzy-Suche)
 
 Command Bar V3 — Suche über alle Entitäten gleichzeitig:
 ```
-[ Prism > _                                    ]
+[ INNIS > _                                    ]
 
   Goals      "Machine Learning abschließen"     g:
   Kurs       "Analysis II — Blatt 7"            u:

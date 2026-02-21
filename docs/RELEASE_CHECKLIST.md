@@ -1,128 +1,89 @@
-# Release Checklist
+# Release Checklist (INNIS)
+
+Last updated: 2026-02-21
 
 Use this checklist before promoting a build to production.
 Execution steps live in `docs/GO_LIVE_RUNBOOK.md`.
 
-## Fast Track (Solo Builder)
+## Fast Track (Solo)
 
-If you are shipping quickly for personal daily use, treat these as the true minimum:
-
-- [ ] `main` is merged and latest CI on `main` is green.
-- [ ] `npm run type-check`, `npm run lint`, `npm run test -- --run` pass.
-- [ ] Vercel has required Supabase env vars:
-  - `NEXT_PUBLIC_SUPABASE_URL`
-  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- [ ] Production deploy is `Ready`.
-- [ ] 5-minute smoke test on live URL:
-  - login works
-  - `/today` loads
-  - create one goal or task
-  - update one setting and reload
-
-Everything else below is still recommended, but not a blocker for a fast solo release.
+- [ ] `main` latest commit deployed (no local-only changes).
+- [ ] CI on `main` green.
+- [ ] `npm run type-check`, `npm run lint`, `npx vitest run` pass.
+- [ ] Production deploy status = `Ready`.
+- [ ] 5-minute smoke test passed:
+  - [ ] login works
+  - [ ] `/today` loads
+  - [ ] create one task/goal
+  - [ ] settings update persists
 
 ## 1. Scope Freeze
 
-- [ ] PR scope is final (no feature creep).
-- [ ] Roadmap items included in this release are listed in release notes.
-- [ ] Branch is up to date with target base branch.
+- [ ] Scope for this release is final (no feature creep).
+- [ ] Release notes/summary updated.
+- [ ] Target commit SHA documented.
 
-## 2. Code Quality Gates
+## 2. Quality Gates
 
 - [ ] `npm run type-check` passes.
 - [ ] `npm run lint` passes.
-- [ ] `npm run test -- --run` passes.
-- [ ] `npm run test:e2e` passes in an environment with `E2E_EMAIL` and `E2E_PASSWORD`.
-- [ ] No failing CI checks on the release commit.
+- [ ] `npx vitest run` passes.
+- [ ] Blocker E2E suite is green in CI (`npm run test:e2e:blocker`).
+- [ ] No failing required checks on the release commit.
 
-## 3. Auth + Onboarding
+## 3. Data Safety + Isolation
 
-- [ ] Unauthenticated user is redirected to `/auth/login`.
-- [ ] New/legacy user without onboarding is redirected to `/onboarding`.
-- [ ] Onboarding completion redirects user to `/today`.
-- [ ] Auth callback sends users to `/onboarding` or `/today` correctly.
-- [ ] Settings display name save works and persists after reload.
+- [ ] Required SQL migrations applied in Supabase Production.
+- [ ] RLS owner-only policies verified for user tables.
+- [ ] Auth guards present on all mutating API routes.
 
-## 4. Data Safety + Isolation
+## 4. Production Configuration (Vercel)
 
-- [ ] Supabase migrations applied in production.
-- [ ] RLS policies verified for all user data tables.
-- [ ] No deprecated bare Supabase client usage in API routes (`lib/supabase/client.ts`).
-- [ ] Server Actions that mutate data require auth and use user-scoped operations.
+- [ ] `NEXT_PUBLIC_SUPABASE_URL`
+- [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- [ ] `SUPABASE_SERVICE_ROLE_KEY`
+- [ ] `RESEND_API_KEY`
+- [ ] `RESEND_FROM_EMAIL`
+- [ ] `CRON_SECRET`
+- [ ] `NEXT_PUBLIC_SITE_URL` (recommended)
+- [ ] Google OAuth vars set if Calendar integration is used:
+  - [ ] `GOOGLE_CLIENT_ID`
+  - [ ] `GOOGLE_CLIENT_SECRET`
+  - [ ] `GOOGLE_REDIRECT_URI`
 
-## 5. Configuration + Secrets
+## 5. Product Smoke (Core Flows)
 
-- [ ] Production env vars are set in Vercel:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `GOOGLE_CLIENT_ID` (if Calendar enabled)
-- `GOOGLE_CLIENT_SECRET` (if Calendar enabled)
-- `GOOGLE_REDIRECT_URI` (if Calendar enabled)
-- [ ] Redirect URI matches production domain exactly.
-- [ ] No secrets in repo or client-side logs.
+- [ ] Auth: `/auth/login` -> `/today`
+- [ ] Onboarding flow (new user) reaches dashboard
+- [ ] Today: task create/update
+- [ ] University: course create + exercise toggle
+- [ ] Career: application create + stage move
+- [ ] Settings: profile save + email notification toggle
 
-## 6. UX/Performance Checks
+## 6. Cron + Notifications
 
-- [ ] No white overscroll flashes or layout artifacts in production theme.
-- [ ] Command Bar (`Cmd/Ctrl + K`) actions work:
-- new goal
-- new course
-- new application
-- theme cycle
-- focus presets
-- [ ] University card-to-modal layout transition behaves smoothly.
-- [ ] Dashboard pages load without runtime errors.
-- [ ] Vercel Analytics/Speed Insights events are being received.
+- [ ] `/api/cron/deadline-reminders` auth works with `CRON_SECRET`.
+- [ ] `/api/cron/weekly-report` auth works with `CRON_SECRET`.
+- [ ] At least one test email send path verified (Resend).
 
-## 7. API + Integrations
+## 7. Monitoring Window (First 30 min)
 
-- [ ] Google Calendar connect/disconnect flow works in production.
-- [ ] Calendar pages handle unauthorized state gracefully.
-- [ ] CV upload and extraction endpoint works with expected payload limits.
-- [ ] Error states return user-safe messages (no internal stack traces).
+- [ ] No 5xx spike.
+- [ ] No auth redirect loops.
+- [ ] No critical runtime exceptions reported.
 
-## 8. Deployment
+## 8. Rollback Readiness
 
-- [ ] Release commit tagged (optional but recommended).
-- [ ] Deploy from clean commit SHA.
-- [ ] Vercel deployment succeeds (`npm run build` equivalent passes).
-- [ ] Smoke test on live URL completed:
-- login
-- onboarding
-- today
-- goals create/edit/delete
-- university create/toggle exercise
-- career create/kanban move
-- settings save profile
+- [ ] Previous stable SHA documented.
+- [ ] Rollback redeploy path known.
+- [ ] Owner for incident communication assigned.
 
-## 9. Post-Deploy Verification (First 30 Minutes)
-
-- [ ] No spike in 4xx/5xx responses.
-- [ ] No authentication loop reports.
-- [ ] No major frontend runtime errors in browser console.
-- [ ] Core actions remain responsive.
-
-## 10. Rollback Plan
-
-- [ ] Previous stable commit SHA documented.
-- [ ] Rollback procedure tested by team:
-- redeploy previous SHA
-- verify auth and dashboard access
-- [ ] Incident owner and communication channel assigned.
-
-## Optional vs Required
-
-- Required (for your current single-user setup): sections `1, 2, 5(core vars), 8, basic smoke checks`.
-- Recommended (as app scales): sections `3, 4, 6, 7, 9, 10` fully enforced every release.
-
-## Release Metadata Template
-
-Fill this out for each release:
+## Release Metadata (fill each release)
 
 - Release ID:
 - Date/Time (UTC):
 - Commit SHA:
 - Deployed by:
-- Included features:
+- Included scope:
 - Known limitations:
 - Rollback SHA:

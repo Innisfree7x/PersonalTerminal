@@ -1,6 +1,6 @@
 # 🧩 Dashboard Widgets Documentation
 
-Complete reference for all 8 dashboard widgets in Prism.
+Complete reference for all 8 dashboard widgets in INNIS.
 
 ---
 

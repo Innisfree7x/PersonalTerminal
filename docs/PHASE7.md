@@ -1,6 +1,6 @@
 # Phase 7 — Mobile PWA
 
-> **Vision:** Prism ist auf dem iPhone installierbar und fühlt sich wie eine native App an.
+> **Vision:** INNIS ist auf dem iPhone installierbar und fühlt sich wie eine native App an.
 > Kein App Store, keine Kosten, Sync mit Desktop ist gratis via Supabase.
 > Lucian läuft auch auf dem Handy-Screen rum — kleiner, aber da.
 
@@ -29,8 +29,8 @@
 **1. `public/manifest.json`**
 ```json
 {
-  "name": "Prism Terminal",
-  "short_name": "Prism",
+  "name": "INNIS Terminal",
+  "short_name": "INNIS",
   "description": "Personal Productivity Terminal",
   "start_url": "/today",
   "display": "standalone",
@@ -49,20 +49,20 @@
 ```tsx
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Prism" />
+<meta name="apple-mobile-web-app-title" content="INNIS" />
 <meta name="theme-color" content="#0a0a0a" />
 <link rel="apple-touch-icon" href="/icons/icon-192.png" />
 <link rel="manifest" href="/manifest.json" />
 ```
 
 **3. App Icons erstellen**
-- `icon-192.png` — 192×192px (Prism Logo / Lucian Icon)
+- `icon-192.png` — 192×192px (INNIS Logo / Lucian Icon)
 - `icon-512.png` — 512×512px
 - `apple-touch-icon.png` — 180×180px (iOS Homescreen)
 
 **Installation auf iPhone:**
 ```
-Safari → prism-url.vercel.app
+Safari → innis-url.vercel.app
 Teilen ↑ → "Zum Home-Bildschirm hinzufügen"
 → App-Icon erscheint auf dem Homescreen
 → Öffnet fullscreen, kein Browser-UI
@@ -374,5 +374,5 @@ Kein Desktop-Code wird angefasst. Zero Regression-Risiko.
 
 ---
 
-*Phase 7 — Prism in der Hosentasche.*
+*Phase 7 — INNIS in der Hosentasche.*
 *Geplant: Februar 2026*

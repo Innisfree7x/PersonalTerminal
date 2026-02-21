@@ -23,7 +23,7 @@ This PR completes the agreed high-end roadmap scope:
 
 Excluded by decision:
 
-- 7. Prism AI / RAG
+- 7. INNIS AI / RAG
 - 8. Predictive Productivity
 - 10. Storybook
 

@@ -1,6 +1,6 @@
 # 🔌 API Documentation
 
-Complete reference for all Prism API endpoints.
+Complete reference for all INNIS API endpoints.
 
 ---
 
