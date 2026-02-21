@@ -37,19 +37,19 @@ export default function AnalyticsPage() {
     queryKey: ['focus', 'analytics', selectedRange],
     queryFn: () => fetchFocusAnalytics(selectedRange),
     retry: false,
-    staleTime: 60 * 1000,
+    staleTime: 30 * 1000,
     placeholderData: keepPreviousData,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 
   const { data: recentSessions } = useQuery({
     queryKey: ['focus', 'sessions', 'recent'],
     queryFn: () => fetchFocusSessions({ limit: 10 }),
     retry: false,
-    staleTime: 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 
   return (

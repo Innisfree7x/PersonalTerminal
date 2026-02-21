@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { subscribeChampionEvent, type ChampionEvent } from '@/lib/champion/championEvents';
+import { getLucianHint } from '@/lib/lucian/hints';
 import {
   getLinesForMood,
   interpolate,
@@ -17,6 +19,8 @@ const KEY_MUTED       = 'innis_lucian_muted';      // '1' = globally muted
 const KEY_COOLDOWN    = 'innis_lucian_cooldown';   // timestamp of last message
 const KEY_DAILY_MUTE  = 'innis_lucian_daily_mute'; // ISO date string = muted today
 const KEY_SEEN        = 'innis_lucian_seen';       // sessionStorage: JSON string[]
+const KEY_SHOWN_AT    = 'innis_lucian_shown_at';   // session id marker for contextual hints
+const KEY_SESSION_ID  = 'innis_lucian_session_id';
 
 const GLOBAL_COOLDOWN_MS = 8 * 60 * 1000;  // 8 min between any messages
 const IDLE_INTERVAL_MS   = 45 * 60 * 1000; // ambient idle tick
@@ -38,6 +42,27 @@ interface QueuedMessage {
   mood: LucianMood;
   priority: 0 | 1 | 2 | 3;
   ariaRole: 'status' | 'alert';
+}
+
+interface DashboardNextTasksPayload {
+  studyProgress?: Array<{ name: string; examDate?: string }>;
+}
+
+interface DailyTaskPayload {
+  title: string;
+  completed: boolean;
+  date: string;
+}
+
+interface FocusSessionPayload {
+  startedAt: string;
+  durationSeconds: number;
+}
+
+interface ApplicationPayload {
+  company: string;
+  status: string;
+  updatedAt: string;
 }
 
 // ─── Storage helpers (all safe for SSR) ─────────────────────────────────────
@@ -81,6 +106,27 @@ function markSeen(id: string): void {
 function muteToday(): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(KEY_DAILY_MUTE, new Date().toISOString().slice(0, 10));
+}
+
+function getSessionId(): string {
+  if (typeof window === 'undefined') return '';
+  let sessionId = sessionStorage.getItem(KEY_SESSION_ID);
+  if (!sessionId) {
+    sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    sessionStorage.setItem(KEY_SESSION_ID, sessionId);
+  }
+  return sessionId;
+}
+
+function hasShownContextHintThisSession(): boolean {
+  if (typeof window === 'undefined') return true;
+  const sessionId = getSessionId();
+  return localStorage.getItem(KEY_SHOWN_AT) === sessionId;
+}
+
+function markContextHintShown(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(KEY_SHOWN_AT, getSessionId());
 }
 
 // ─── Line picker ─────────────────────────────────────────────────────────────
@@ -156,11 +202,65 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
   const [current, setCurrent]     = useState<QueuedMessage | null>(null);
   const [visible, setVisible]     = useState(false);
   const queueRef                  = useRef<QueuedMessage[]>([]);
+  const contextHintShownRef       = useRef(false);
   const dismissTimerRef           = useRef<ReturnType<typeof setTimeout> | null>(null);
   const transitionTimerRef        = useRef<ReturnType<typeof setTimeout> | null>(null);
   const remainingRef              = useRef(0);
   const startTimeRef              = useRef(0);
   const hiddenAtRef               = useRef(0);
+  const dashboardActive           = isDashboardPath(pathname ?? '');
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+
+  const { data: nextTasksData } = useQuery<DashboardNextTasksPayload | null>({
+    queryKey: ['dashboard', 'next-tasks'],
+    queryFn: async () => {
+      const response = await fetch('/api/dashboard/next-tasks');
+      if (!response.ok) return null;
+      return (await response.json()) as DashboardNextTasksPayload;
+    },
+    enabled: dashboardActive,
+    staleTime: 20 * 1000,
+    refetchOnWindowFocus: true,
+  });
+
+  const { data: todayTasksData } = useQuery<DailyTaskPayload[] | null>({
+    queryKey: ['daily-tasks', todayIso],
+    queryFn: async () => {
+      const response = await fetch(`/api/daily-tasks?date=${todayIso}`);
+      if (!response.ok) return null;
+      return (await response.json()) as DailyTaskPayload[];
+    },
+    enabled: dashboardActive,
+    staleTime: 20 * 1000,
+    refetchOnWindowFocus: true,
+  });
+
+  const { data: recentSessionsData } = useQuery<FocusSessionPayload[] | null>({
+    queryKey: ['focus', 'sessions', 'lucian-context'],
+    queryFn: async () => {
+      const from = new Date();
+      from.setDate(from.getDate() - 7);
+      const response = await fetch(`/api/focus-sessions?from=${encodeURIComponent(from.toISOString())}&limit=50`);
+      if (!response.ok) return null;
+      return (await response.json()) as FocusSessionPayload[];
+    },
+    enabled: dashboardActive,
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: true,
+  });
+
+  const { data: applicationsData } = useQuery<ApplicationPayload[] | null>({
+    queryKey: ['career', 'applications', 'lucian-context'],
+    queryFn: async () => {
+      const response = await fetch('/api/applications?limit=20');
+      if (!response.ok) return null;
+      return (await response.json()) as ApplicationPayload[];
+    },
+    enabled: dashboardActive,
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: true,
+  });
 
   // ── Timer helpers ──────────────────────────────────────────────────────────
   const clearDismissTimer = useCallback(() => {
@@ -245,6 +345,54 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
     }
     // else: drop (queue full)
   }, [current, visible, clearDismissTimer, clearTransitionTimer, startDismissTimer]);
+
+  // ── Context-aware hint (max once per browser session) ─────────────────────
+  useEffect(() => {
+    if (!dashboardActive) return;
+    if (contextHintShownRef.current) return;
+    if (typeof window === 'undefined') return;
+
+    if (hasShownContextHintThisSession()) {
+      contextHintShownRef.current = true;
+      return;
+    }
+
+    if (isMuted() || isOnCooldown()) return;
+    if (!nextTasksData || !todayTasksData || !recentSessionsData || !applicationsData) return;
+
+    const hint = getLucianHint({
+      courses: (nextTasksData.studyProgress ?? []).map((course) => ({
+        name: course.name,
+        examDate: course.examDate ?? null,
+      })),
+      todayTasks: todayTasksData.map((task) => ({
+        title: task.title,
+        completed: task.completed,
+        date: task.date,
+      })),
+      recentSessions: recentSessionsData.map((session) => ({
+        startedAt: session.startedAt,
+        durationSeconds: session.durationSeconds,
+      })),
+      applications: applicationsData.map((app) => ({
+        company: app.company,
+        status: app.status,
+        updatedAt: app.updatedAt,
+      })),
+    });
+
+    if (!hint) return;
+
+    showMessage({
+      id: `ctx-${hint.priority}-${hint.text.slice(0, 24)}`,
+      text: hint.text,
+      mood: hint.mood,
+      priority: hint.priority,
+      ariaRole: hint.priority === 0 ? 'alert' : 'status',
+    });
+    markContextHintShown();
+    contextHintShownRef.current = true;
+  }, [applicationsData, dashboardActive, nextTasksData, recentSessionsData, showMessage, todayTasksData]);
 
   // ── Champion event subscription ────────────────────────────────────────────
   useEffect(() => {

@@ -243,8 +243,10 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
     }
   });
 
+  const hotkeyDataEnabled = overlayOpen || scoreboardOpen;
+
   const { data: statsData } = useQuery<DashboardStatsResponse | null>({
-    queryKey: ['power-hotkeys', 'dashboard-stats'],
+    queryKey: ['dashboard', 'stats'],
     queryFn: async () => {
       try {
         const response = await fetch('/api/dashboard/stats');
@@ -254,12 +256,13 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
         return null;
       }
     },
+    enabled: hotkeyDataEnabled,
     staleTime: 30 * 1000,
     refetchOnWindowFocus: false,
   });
 
   const { data: nextTasksData } = useQuery<NextTasksResponse | null>({
-    queryKey: ['power-hotkeys', 'next-tasks'],
+    queryKey: ['dashboard', 'next-tasks'],
     queryFn: async () => {
       try {
         const response = await fetch('/api/dashboard/next-tasks');
@@ -269,6 +272,7 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
         return null;
       }
     },
+    enabled: hotkeyDataEnabled,
     staleTime: 15 * 1000,
     refetchOnWindowFocus: false,
   });

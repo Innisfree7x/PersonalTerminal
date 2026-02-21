@@ -48,6 +48,7 @@ export async function updateProfileAction(input: {
   fullName?: string;
   onboardingCompleted?: boolean;
   demoDataIds?: DemoDataIds | null;
+  emailNotifications?: boolean;
 }): Promise<UserProfile> {
   const user = await requireAuth();
   const supabase = createClient();
@@ -65,6 +66,9 @@ export async function updateProfileAction(input: {
       ? {
           demo_data_ids: input.demoDataIds,
         }
+      : {}),
+    ...(input.emailNotifications !== undefined
+      ? { email_notifications: input.emailNotifications }
       : {}),
   };
 

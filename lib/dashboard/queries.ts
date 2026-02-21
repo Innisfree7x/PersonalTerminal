@@ -1,8 +1,6 @@
-import { differenceInDays, endOfWeek, startOfDay, startOfWeek } from 'date-fns';
+import { addDays, differenceInDays, endOfWeek, startOfDay, startOfWeek, subDays } from 'date-fns';
 import { createClient } from '@/lib/auth/server';
 import { fetchCoursesWithExercises } from '@/lib/supabase/courses';
-import { fetchGoals } from '@/lib/supabase/goals';
-import { fetchApplications } from '@/lib/supabase/applications';
 import {
   computeDailyExecutionScore,
   pickNextBestAction,
@@ -113,15 +111,102 @@ interface DashboardDailyTask {
   timeEstimate: string | null;
 }
 
+interface DashboardGoalRecord {
+  id: string;
+  title: string;
+  category: string;
+  target_date: string;
+  metrics_current: number | null;
+  metrics_target: number | null;
+  metrics_unit: string | null;
+}
+
+interface DashboardApplicationRecord {
+  id: string;
+  company: string;
+  position: string;
+  status: 'applied' | 'interview' | 'offer' | 'rejected';
+  application_date: string;
+  interview_date: string | null;
+  updated_at: string;
+}
+
+function toGoalModel(record: DashboardGoalRecord) {
+  return {
+    id: record.id,
+    title: record.title,
+    category: record.category,
+    targetDate: new Date(record.target_date),
+    metrics:
+      record.metrics_current !== null && record.metrics_target !== null && record.metrics_unit
+        ? {
+            current: record.metrics_current,
+            target: record.metrics_target,
+            unit: record.metrics_unit,
+          }
+        : undefined,
+  };
+}
+
+function toApplicationModel(record: DashboardApplicationRecord) {
+  return {
+    id: record.id,
+    company: record.company,
+    position: record.position,
+    status: record.status,
+    applicationDate: new Date(record.application_date),
+    interviewDate: record.interview_date ? new Date(record.interview_date) : undefined,
+    updatedAt: new Date(record.updated_at),
+  };
+}
+
 export async function getDashboardStats(userId: string): Promise<DashboardStats> {
   const today = new Date();
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
+  const supabase = createClient();
 
-  const [{ goals: allGoals }, { applications: allApplications }] = await Promise.all([
-    fetchGoals({ userId }),
-    fetchApplications({ userId }),
+  const [
+    { data: goalsData, error: goalsError },
+    { data: applicationsData, error: applicationsError },
+    { data: coursesData, error: coursesError },
+    { data: exercisesData, error: exercisesError },
+  ] = await Promise.all([
+    supabase
+      .from('goals')
+      .select('id, title, category, target_date, metrics_current, metrics_target, metrics_unit')
+      .eq('user_id', userId),
+    supabase
+      .from('job_applications')
+      .select('id, company, position, status, application_date, interview_date, updated_at')
+      .eq('user_id', userId),
+    supabase
+      .from('courses')
+      .select('id, name, exam_date')
+      .eq('user_id', userId),
+    supabase
+      .from('exercise_progress')
+      .select('id, completed, completed_at')
+      .eq('user_id', userId),
   ]);
+
+  if (goalsError) {
+    throw new Error(`Failed to fetch dashboard goals: ${goalsError.message}`);
+  }
+  if (applicationsError) {
+    throw new Error(`Failed to fetch dashboard applications: ${applicationsError.message}`);
+  }
+  if (coursesError) {
+    throw new Error(`Failed to fetch dashboard courses: ${coursesError.message}`);
+  }
+  if (exercisesError) {
+    throw new Error(`Failed to fetch dashboard exercises: ${exercisesError.message}`);
+  }
+
+  const allGoals = (goalsData as DashboardGoalRecord[] | null ?? []).map(toGoalModel);
+  const allApplications = (applicationsData as DashboardApplicationRecord[] | null ?? []).map(
+    toApplicationModel
+  );
 
   const interviews = allApplications.filter((app) => app.status === 'interview');
   const upcomingInterviews = interviews
@@ -194,18 +279,6 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
   else if (hour >= 14 && hour < 17) focusTime = 'Afternoon focus - good for meetings';
   else if (hour >= 20 && hour < 23) focusTime = 'Evening - time for side projects';
 
-  const supabase = createClient();
-  const [{ data: coursesData }, { data: exercisesData }] = await Promise.all([
-    supabase
-      .from('courses')
-      .select('id, name, exam_date')
-      .eq('user_id', userId),
-    supabase
-      .from('exercise_progress')
-      .select('*')
-      .eq('user_id', userId),
-  ]);
-
   const weekStartDate = startOfWeek(today, { weekStartsOn: 1 });
   const weekCompletedExercises = (exercisesData || []).filter((ex) => {
     if (!ex.completed || !ex.completed_at) return false;
@@ -266,12 +339,46 @@ export async function getDashboardNextTasks(userId: string): Promise<DashboardNe
   const today = new Date();
   const todayStart = startOfDay(today);
   const todayIsoDate = today.toISOString().split('T')[0] ?? '';
+  const goalWindowStart = subDays(todayStart, 14).toISOString().split('T')[0] ?? todayIsoDate;
+  const goalWindowEnd = addDays(todayStart, 30).toISOString().split('T')[0] ?? todayIsoDate;
+  const supabase = createClient();
 
-  const [courses, { goals: allGoals }, { applications }] = await Promise.all([
+  const [
+    courses,
+    { data: goalsData, error: goalsError },
+    { data: applicationsData, error: applicationsError },
+  ] = await Promise.all([
     fetchCoursesWithExercises(userId),
-    fetchGoals({ userId }),
-    fetchApplications({ userId }),
+    supabase
+      .from('goals')
+      .select('id, title, category, target_date, metrics_current, metrics_target, metrics_unit')
+      .eq('user_id', userId)
+      .gte('target_date', goalWindowStart)
+      .lte('target_date', goalWindowEnd)
+      .order('target_date', { ascending: true })
+      .limit(5),
+    supabase
+      .from('job_applications')
+      .select('id, company, position, status, application_date, interview_date, updated_at')
+      .eq('user_id', userId)
+      .in('status', ['applied', 'interview'])
+      .order('interview_date', { ascending: true, nullsFirst: false })
+      .order('application_date', { ascending: true })
+      .limit(5),
   ]);
+
+  if (goalsError) {
+    throw new Error(`Failed to fetch dashboard goals: ${goalsError.message}`);
+  }
+  if (applicationsError) {
+    throw new Error(`Failed to fetch dashboard applications: ${applicationsError.message}`);
+  }
+
+  const allGoals = (goalsData as DashboardGoalRecord[] | null ?? []).map(toGoalModel);
+  const applications = (applicationsData as DashboardApplicationRecord[] | null ?? []).map(
+    toApplicationModel
+  );
+
   const homeworks: NextHomework[] = [];
 
   for (const course of courses) {
@@ -367,7 +474,6 @@ export async function getDashboardNextTasks(userId: string): Promise<DashboardNe
     };
   });
 
-  const supabase = createClient();
   const [{ data: dailyTasksData }, { data: completedExercisesTodayData }] = await Promise.all([
     supabase
       .from('daily_tasks')

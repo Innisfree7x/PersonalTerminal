@@ -52,6 +52,11 @@ const serverSchema = z.object({
   MONITORING_ALERT_WEBHOOK_URL: z.string().url().optional(),
   SENTRY_DSN: z.string().url().optional(),
   ADMIN_EMAILS: z.string().optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+  RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM_EMAIL: z.string().email().optional(),
+  CRON_SECRET: z.string().optional(),
+  NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
 
   // Node environment
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -90,6 +95,11 @@ export const serverEnv = serverSchema.parse({
   MONITORING_ALERT_WEBHOOK_URL: process.env.MONITORING_ALERT_WEBHOOK_URL,
   SENTRY_DSN: process.env.SENTRY_DSN,
   ADMIN_EMAILS: process.env.ADMIN_EMAILS,
+  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
+  CRON_SECRET: process.env.CRON_SECRET,
+  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   NODE_ENV: process.env.NODE_ENV,
 });
 

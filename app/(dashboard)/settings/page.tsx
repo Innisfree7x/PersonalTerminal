@@ -18,6 +18,9 @@ import {
     Database,
     Trash2,
     MessageSquare,
+    ShieldCheck,
+    ExternalLink,
+    Bell,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAppSound } from '@/lib/hooks/useAppSound';
@@ -57,6 +60,7 @@ export default function SettingsPage() {
     const [displayName, setDisplayName] = useState('');
     const [savingProfile, setSavingProfile] = useState(false);
     const [lucianMuted, setLucianMuted] = useState(false);
+    const [emailNotifications, setEmailNotifications] = useState(true);
     const [hasDemoDataState, setHasDemoDataState] = useState(false);
     const [showDemoConfirm, setShowDemoConfirm] = useState(false);
     const [removingDemo, setRemovingDemo] = useState(false);
@@ -69,6 +73,8 @@ export default function SettingsPage() {
             user?.email?.split('@')[0] ||
             '';
         setDisplayName(name);
+        // email_notifications defaults to true when not set
+        setEmailNotifications(user?.user_metadata?.email_notifications !== false);
     }, [user]);
 
     useEffect(() => {
@@ -102,6 +108,20 @@ export default function SettingsPage() {
             localStorage.removeItem('innis_lucian_muted');
         }
         setLucianMuted(next);
+    };
+
+    const toggleEmailNotifications = async () => {
+        const next = !emailNotifications;
+        setEmailNotifications(next);
+        try {
+            await updateProfileAction({ emailNotifications: next });
+            await refreshUser();
+            toast.success(next ? 'E-Mail-Benachrichtigungen aktiviert.' : 'E-Mail-Benachrichtigungen deaktiviert.');
+        } catch {
+            // revert on error
+            setEmailNotifications(!next);
+            toast.error('Einstellung konnte nicht gespeichert werden.');
+        }
     };
 
     const handleSaveProfile = async () => {
@@ -649,6 +669,59 @@ export default function SettingsPage() {
                         <p className="text-sm text-text-primary font-medium">
                             Level {championStats.level} · XP {championStats.xp}/{championStats.nextLevelXp}
                         </p>
+                    </div>
+                </div>
+            </section>
+
+            {/* Datenschutz & Analytics Section */}
+            <section className="space-y-4">
+                <h2 className="text-xl font-semibold text-text-primary flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5" />
+                    Datenschutz & Benachrichtigungen
+                </h2>
+
+                {/* Email notifications toggle */}
+                <div className="p-5 bg-surface border border-border rounded-xl space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-start gap-3">
+                            <Bell className="w-4 h-4 text-text-secondary mt-0.5 shrink-0" />
+                            <div>
+                                <p className="text-sm font-medium text-text-primary">E-Mail-Benachrichtigungen</p>
+                                <p className="text-xs text-text-tertiary mt-0.5 leading-relaxed">
+                                    Prüfungs-Erinnerungen (3, 7 und 14 Tage vorher) sowie
+                                    wöchentliche Fortschritts-Reports.
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => void toggleEmailNotifications()}
+                            className={`relative w-12 h-6 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary shrink-0 ml-4 ${
+                                emailNotifications ? 'bg-primary' : 'bg-surface-hover'
+                            }`}
+                            aria-label={emailNotifications ? 'E-Mail-Benachrichtigungen deaktivieren' : 'E-Mail-Benachrichtigungen aktivieren'}
+                        >
+                            <span
+                                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                                    emailNotifications ? 'translate-x-6' : 'translate-x-0'
+                                }`}
+                            />
+                        </button>
+                    </div>
+
+                    <div className="border-t border-border pt-4">
+                        <p className="text-xs text-text-tertiary leading-relaxed">
+                            INNIS nutzt{' '}
+                            <span className="text-text-secondary font-medium">Vercel Analytics</span>
+                            {' '}für anonymisierte Nutzungsdaten (z.B. ob das Onboarding abgeschlossen
+                            wurde). Keine Inhalte, keine Cookies, keine IP-Speicherung.
+                        </p>
+                        <a
+                            href="/privacy"
+                            className="inline-flex items-center gap-1.5 text-xs text-text-tertiary hover:text-text-secondary transition-colors mt-2"
+                        >
+                            <ExternalLink className="w-3 h-3" />
+                            Datenschutzerklärung lesen
+                        </a>
                     </div>
                 </div>
             </section>
