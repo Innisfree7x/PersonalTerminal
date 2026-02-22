@@ -35,7 +35,7 @@ export function ProductMockup() {
               <div className="w-2.5 h-2.5 rounded-full bg-green-500/50" />
             </div>
             <div className="flex-1 mx-3 h-5 rounded-md bg-white/5 flex items-center px-3">
-              <span className="text-[10px] text-zinc-600 font-mono">prism.app/today</span>
+              <span className="text-[10px] text-zinc-600 font-mono">innis.io/today</span>
             </div>
           </div>
 

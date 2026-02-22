@@ -3,7 +3,9 @@ import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth/server';
 import { isOnboardingComplete } from '@/lib/auth/profile';
 import { HeroSection } from '@/components/features/marketing/HeroSection';
+import { ProblemStrip } from '@/components/features/marketing/ProblemStrip';
 import { FeatureSection } from '@/components/features/marketing/FeatureSection';
+import { HowItWorksSection } from '@/components/features/marketing/HowItWorksSection';
 import { PricingSection } from '@/components/features/marketing/PricingSection';
 import { FAQSection } from '@/components/features/marketing/FAQSection';
 import { CTASection } from '@/components/features/marketing/CTASection';
@@ -32,7 +34,9 @@ export default async function LandingPage() {
   return (
     <>
       <HeroSection />
+      <ProblemStrip />
       <FeatureSection />
+      <HowItWorksSection />
       <PricingSection />
       <FAQSection />
       <CTASection />

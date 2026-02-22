@@ -47,8 +47,11 @@ export function FAQSection() {
         >
           <p className="premium-kicker">FAQ</p>
           <h2 className="premium-heading text-3xl font-semibold text-[#FAF0E6] md:text-5xl">
-            Häufige Fragen
+            Gute Fragen.
           </h2>
+          <p className="premium-subtext mt-4 mx-auto max-w-md">
+            Alles was du wissen willst — bevor du dich anmeldest.
+          </p>
         </motion.div>
 
         <div className="mx-auto max-w-3xl space-y-2">

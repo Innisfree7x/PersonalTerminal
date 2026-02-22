@@ -41,11 +41,11 @@ export function HeroSection() {
               transition={{ delay: 0.15, duration: 0.6 }}
             >
               <h1 className="font-sans text-[clamp(2.8rem,7.2vw,6.6rem)] font-semibold leading-[0.9] tracking-[-0.04em] text-[#FAF0E6]">
-                Dein persönliches
+                Deine Kommilitonen
                 <br />
-                Dashboard fürs{' '}
+                jonglieren 7 Apps.{' '}
                 <span className="bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-600 bg-clip-text text-transparent">
-                  Studium.
+                  Du nicht.
                 </span>
               </h1>
             </motion.div>
@@ -57,8 +57,8 @@ export function HeroSection() {
               transition={{ delay: 0.3 }}
               className="premium-subtext max-w-xl text-[1.08rem]"
             >
-              Kurse, Aufgaben, Ziele und Karriere — alles in einem System.
-              Weniger App-Wechsel, mehr Fokus auf das, was zählt.
+              Kurse, Prüfungen, Bewerbungen und Ziele — ein einziges System,
+              das mitdenkt. Kein Tab-Switching, kein Vergessen, kein Stress.
             </motion.p>
 
             {/* CTAs */}
@@ -93,9 +93,9 @@ export function HeroSection() {
               transition={{ delay: 0.5 }}
               className="flex flex-wrap gap-2"
             >
-              <span className="premium-chip">No credit card</span>
-              <span className="premium-chip">2 min Setup</span>
-              <span className="premium-chip">Built for students</span>
+              <span className="premium-chip">Keine Kreditkarte</span>
+              <span className="premium-chip">2 Min Setup</span>
+              <span className="premium-chip">Für Studenten gebaut</span>
             </motion.div>
 
             {/* Quick stats */}
@@ -106,9 +106,9 @@ export function HeroSection() {
               className="premium-card-soft grid max-w-xl grid-cols-3 gap-4 rounded-2xl p-4"
             >
               {[
-                { value: '6+', label: 'Module' },
-                { value: '∞', label: 'Aufgaben & Kurse' },
-                { value: '1', label: 'Ort für alles' },
+                { value: 'Ø 4h', label: 'Fokus am Tag' },
+                { value: '7 Apps', label: 'ersetzt durch eine' },
+                { value: '100%', label: 'kostenlos für dich' },
               ].map((stat, i) => (
                 <div key={i} className="relative">
                   {i > 0 && <div className="absolute -left-2 top-1 h-8 w-px bg-white/10" />}

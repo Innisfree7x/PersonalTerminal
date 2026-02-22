@@ -9,7 +9,7 @@ const features = [
     icon: Calendar,
     title: 'Tagesplanung + Fokus',
     description:
-      'Aufgaben, Kalender und Fokus-Timer auf einem Dashboard. Dein Tag, optimal strukturiert von morgens bis abends.',
+      'Kein Morgen mehr, an dem du nicht weißt womit du anfängst. Aufgaben, Kalender und Timer auf einem Blick — damit du sofort weißt was jetzt dran ist.',
     accent: 'text-red-300',
     bg: 'bg-red-500/10',
     border: 'border-red-500/20',
@@ -21,7 +21,7 @@ const features = [
     icon: Target,
     title: 'Ziele',
     description:
-      'Definiere Ziele mit Deadline und Priorität. Verfolge deinen Fortschritt über Wochen und Semester.',
+      'Ziele die du aufschreibst, erreichst du. Mit Deadline, Priorität und wöchentlichem Fortschritt — nicht nur ein frommer Wunsch.',
     accent: 'text-emerald-300',
     bg: 'bg-emerald-500/10',
     border: 'border-emerald-500/20',
@@ -33,7 +33,7 @@ const features = [
     icon: BookOpen,
     title: 'Universität',
     description:
-      'Kursmanagement mit Übungsblatt-Tracking und Klausurcountdown. Abgabetermine verpassen gehört der Vergangenheit an.',
+      'Kein Übungsblatt mehr vergessen. Kein Prüfungsdatum mehr suchen. Klausurcountdown und Abgaben auf einen Blick.',
     accent: 'text-violet-300',
     bg: 'bg-violet-500/10',
     border: 'border-violet-500/20',
@@ -45,7 +45,7 @@ const features = [
     icon: Briefcase,
     title: 'Karriere',
     description:
-      'Bewerbungs-Kanban von Applied bis Offer. CV-Upload mit automatischer Extraktion und Terminverfolgung inklusive.',
+      'Bewerbungen die du nicht verlierst. Kanban von Applied bis Offer, mit CV-Upload und automatischen Deadlines.',
     accent: 'text-orange-300',
     bg: 'bg-orange-500/10',
     border: 'border-orange-500/20',
@@ -57,7 +57,7 @@ const features = [
     icon: Timer,
     title: 'Fokus-Timer',
     description:
-      'Globaler Pomodoro-Timer, der über alle Seiten hinweg läuft. Mit Session-Tracking und täglichen Produktivitätsstats.',
+      'Läuft auf jeder Seite mit. Du weißt immer wie lang du schon sitzt — und wann eine Pause fällig ist.',
     accent: 'text-yellow-300',
     bg: 'bg-yellow-500/10',
     border: 'border-yellow-500/20',
@@ -69,7 +69,7 @@ const features = [
     icon: BarChart2,
     title: 'Analytics',
     description:
-      'Deine Produktivität auf einen Blick. Fokuszeit nach Tagesabschnitt, Aufgaben-Completion-Rate und Fokus-Verlauf.',
+      'Siehst du wie viel du wirklich lernst — oder wie viel du denkst dass du lernst? INNIS zeigt dir den Unterschied.',
     accent: 'text-sky-300',
     bg: 'bg-sky-500/10',
     border: 'border-sky-500/20',

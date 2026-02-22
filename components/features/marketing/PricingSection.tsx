@@ -16,11 +16,11 @@ const FREE_FEATURES = [
 
 const PRO_FEATURES = [
   'Alles aus Free',
-  'KI-gestützte Aufgabenplanung',
-  'Erweiterte Analytics & Exports',
-  'Kollaboration mit Kommilitonen',
+  'Erweiterte Analytics & Exporte',
+  'Wöchentliche Fokus-Reports per Email',
   'Prioritäts-Support',
   'Früher Zugang zu neuen Features',
+  'Und mehr — wird noch bekannt gegeben',
 ];
 
 export function PricingSection() {
@@ -36,7 +36,7 @@ export function PricingSection() {
           transition={{ duration: 0.5 }}
           className="mx-auto mb-16 max-w-2xl text-center"
         >
-          <p className="premium-kicker">Pricing</p>
+          <p className="premium-kicker">Preise</p>
           <h2 className="premium-heading mb-4 text-3xl font-semibold text-[#FAF0E6] md:text-5xl">
             Einfach. Transparent.
           </h2>
@@ -98,7 +98,7 @@ export function PricingSection() {
             <div className="absolute top-5 right-5">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/25 text-xs font-medium text-yellow-400">
                 <Sparkles className="w-3 h-3" />
-                Coming Soon
+                Demnächst
               </span>
             </div>
 
@@ -109,7 +109,7 @@ export function PricingSection() {
                 <span className="text-zinc-500 text-sm">/ verfügbar</span>
               </div>
               <p className="text-sm text-zinc-500 mt-3 leading-relaxed">
-                Erweiterte Features für Power-User.
+                Für alle, die noch mehr aus ihrem Studium rausholen wollen.
               </p>
             </div>
 

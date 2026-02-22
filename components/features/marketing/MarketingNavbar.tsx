@@ -13,8 +13,8 @@ export function MarketingNavbar() {
 
   const navLinks = [
     { href: '/features', label: 'Features' },
-    { href: '/pricing', label: 'Pricing' },
-    { href: '/about', label: 'About' },
+    { href: '/pricing', label: 'Preise' },
+    { href: '/about', label: 'Über INNIS' },
   ] as const;
 
   return (
@@ -69,7 +69,7 @@ export function MarketingNavbar() {
             eventPayload={{ source: 'navbar', variant: 'primary' }}
             className="inline-flex h-10 items-center gap-1.5 rounded-full bg-red-500 px-5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-red-600 hover:shadow-lg hover:shadow-red-500/30 active:translate-y-0"
           >
-            Get Started
+            Kostenlos starten
             <ArrowRight className="w-3.5 h-3.5" />
           </TrackedCtaLink>
         </div>
@@ -112,7 +112,7 @@ export function MarketingNavbar() {
               eventPayload={{ source: 'navbar_mobile', variant: 'primary' }}
               className="rounded-lg bg-red-500 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-red-600"
             >
-              Get Started →
+              Kostenlos starten →
             </TrackedCtaLink>
           </div>
         </div>

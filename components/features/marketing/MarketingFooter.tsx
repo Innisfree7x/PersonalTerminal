@@ -27,8 +27,8 @@ export function MarketingFooter() {
             <ul className="space-y-2.5">
               {[
                 { href: '/features', label: 'Features' },
-                { href: '/pricing', label: 'Pricing' },
-                { href: '/about', label: 'About' },
+                { href: '/pricing', label: 'Preise' },
+                { href: '/about', label: 'Über INNIS' },
               ].map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className="text-sm text-zinc-400 transition-colors hover:text-zinc-200">
@@ -77,7 +77,7 @@ export function MarketingFooter() {
         <div className="flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 sm:flex-row">
           <p className="text-xs text-zinc-600">© 2026 INNIS. Alle Rechte vorbehalten.</p>
           <div className="flex flex-col items-center gap-1 sm:items-end">
-            <p className="text-xs text-zinc-600">Built for students · WS 2025/26</p>
+            <p className="text-xs text-zinc-600">Für Studenten gebaut · WS 2025/26</p>
             <a
               href="mailto:vietdobusiness@gmail.com"
               className="text-xs text-zinc-500 transition-colors hover:text-zinc-300"

@@ -22,15 +22,15 @@ export function CTASection() {
 
           <div className="relative z-10 space-y-6 max-w-xl mx-auto">
             <h2 className="premium-heading text-3xl font-semibold text-[#FAF0E6] md:text-4xl lg:text-5xl">
-              Bereit für mehr{' '}
+              Starte heute.{' '}
               <span className="bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-600 bg-clip-text text-transparent">
-                Struktur
-              </span>
-              ?
+                Deine Klausur
+              </span>{' '}
+              wartet nicht.
             </h2>
             <p className="premium-subtext">
-              Erstelle dein Konto in unter 2 Minuten und starte mit dem Onboarding-Wizard.
-              Kostenlos, ohne Kreditkarte.
+              Konto in unter 2 Minuten. Kurse, Deadlines und Aufgaben sofort angelegt.
+              Kein Chaos mehr — kostenlos, ohne Kreditkarte.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
               <TrackedCtaLink
