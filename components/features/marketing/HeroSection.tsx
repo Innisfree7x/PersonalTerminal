@@ -7,28 +7,27 @@ import { TrackedCtaLink } from './TrackedCtaLink';
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden pb-12 pt-14 md:pb-20 md:pt-20">
+    <section className="relative overflow-hidden pb-10 pt-10 md:pb-16 md:pt-14">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-[-8%] top-[15%] h-[580px] w-[580px] rounded-full bg-red-500/10 blur-[130px]" />
-        <div className="absolute right-[-8%] top-[8%] h-[480px] w-[480px] rounded-full bg-yellow-500/10 blur-[130px]" />
-        <div className="absolute left-1/2 top-0 h-20 w-[80%] -translate-x-1/2 bg-gradient-to-r from-transparent via-yellow-200/10 to-transparent blur-2xl" />
+        <div className="absolute left-[-8%] top-[15%] h-[420px] w-[420px] rounded-full bg-red-500/8 blur-[120px]" />
+        <div className="absolute right-[-8%] top-[8%] h-[360px] w-[360px] rounded-full bg-yellow-500/8 blur-[120px]" />
       </div>
 
       <div className="marketing-container relative z-10 w-full">
-        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] xl:gap-20">
+        <div className="grid items-center gap-10 lg:grid-cols-[1fr_1fr] xl:gap-16">
           {/* Left: Copy */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="space-y-9"
+            className="space-y-5"
           >
             {/* Badge */}
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="inline-flex items-center gap-2 rounded-full border border-yellow-500/25 bg-yellow-500/10 px-3.5 py-1.5 shadow-[0_8px_28px_rgba(234,179,8,0.15)]"
+              className="inline-flex items-center gap-2 rounded-full border border-yellow-500/25 bg-yellow-500/10 px-3.5 py-1.5"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
               <span className="text-xs font-semibold tracking-wide text-yellow-300">Kostenlos für Studenten</span>
@@ -40,7 +39,7 @@ export function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, duration: 0.6 }}
             >
-              <h1 className="font-sans text-[clamp(2.8rem,7.2vw,6.6rem)] font-semibold leading-[0.9] tracking-[-0.04em] text-[#FAF0E6]">
+              <h1 className="font-sans text-[clamp(2rem,4.2vw,3.6rem)] font-semibold leading-[1.05] tracking-[-0.03em] text-[#FAF0E6]">
                 Deine Kommilitonen
                 <br />
                 jonglieren 7 Apps.{' '}
@@ -55,7 +54,7 @@ export function HeroSection() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="premium-subtext max-w-xl text-[1.08rem]"
+              className="premium-subtext max-w-md text-[1rem] leading-relaxed"
             >
               Kurse, Prüfungen, Bewerbungen und Ziele — ein einziges System,
               das mitdenkt. Kein Tab-Switching, kein Vergessen, kein Stress.
@@ -66,7 +65,7 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="flex flex-col gap-3 sm:flex-row"
+              className="flex flex-col gap-3 sm:flex-row pt-1"
             >
               <TrackedCtaLink
                 href="/auth/signup"
@@ -87,6 +86,7 @@ export function HeroSection() {
               </TrackedCtaLink>
             </motion.div>
 
+            {/* Chips + stats in one compact row */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -103,17 +103,17 @@ export function HeroSection() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.55 }}
-              className="premium-card-soft grid max-w-xl grid-cols-3 gap-4 rounded-2xl p-4"
+              className="premium-card-soft grid grid-cols-3 gap-4 rounded-2xl p-4"
             >
               {[
                 { value: 'Ø 4h', label: 'Fokus am Tag' },
                 { value: '7 Apps', label: 'ersetzt durch eine' },
-                { value: '100%', label: 'kostenlos für dich' },
+                { value: '100%', label: 'kostenlos' },
               ].map((stat, i) => (
                 <div key={i} className="relative">
                   {i > 0 && <div className="absolute -left-2 top-1 h-8 w-px bg-white/10" />}
                   <div>
-                    <p className="text-2xl font-bold leading-none text-[#FAF0E6]">{stat.value}</p>
+                    <p className="text-xl font-bold leading-none text-[#FAF0E6]">{stat.value}</p>
                     <p className="mt-1 text-[11px] uppercase tracking-wide text-zinc-500">{stat.label}</p>
                   </div>
                 </div>
