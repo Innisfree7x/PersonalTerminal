@@ -3,9 +3,9 @@
 import { CalendarEvent } from '@/lib/data/mockEvents';
 import EventCard from '@/components/features/calendar/EventCard';
 import { format, startOfDay, endOfDay } from 'date-fns';
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, RefreshCw, X, Clock, Zap } from 'lucide-react';
+import { Calendar, RefreshCw, X, Clock, Zap, Sunrise, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 
@@ -159,10 +159,10 @@ export default function ScheduleColumn({
     return grouped;
   }, [freeSlots]);
 
-  const timeGroupLabels: Record<TimeGroup, { label: string; icon: string }> = {
-    morning: { label: 'Morning', icon: '🌅' },
-    afternoon: { label: 'Afternoon', icon: '☀️' },
-    evening: { label: 'Evening', icon: '🌙' },
+  const timeGroupLabels: Record<TimeGroup, { label: string; Icon: React.ElementType }> = {
+    morning: { label: 'Morning', Icon: Sunrise },
+    afternoon: { label: 'Afternoon', Icon: Sun },
+    evening: { label: 'Evening', Icon: Moon },
   };
 
   const formatDuration = (minutes: number): string => {
@@ -175,7 +175,11 @@ export default function ScheduleColumn({
   if (isConnected === false) {
     return (
       <div className="card-surface p-8 text-center">
-        <div className="mb-4 text-4xl">📅</div>
+        <div className="mb-4 flex justify-center">
+          <div className="p-4 rounded-2xl bg-primary/[0.08] border border-primary/20">
+            <Calendar className="w-8 h-8 text-primary" />
+          </div>
+        </div>
         <h3 className="text-lg font-semibold text-text-primary mb-2">Connect Calendar</h3>
         <p className="text-sm text-text-secondary mb-6">
           Sync with Google Calendar to see your schedule
@@ -265,7 +269,7 @@ export default function ScheduleColumn({
             >
               {/* Time Group Header */}
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-xl">{timeGroupLabels[group].icon}</span>
+                {React.createElement(timeGroupLabels[group].Icon, { className: 'w-3.5 h-3.5 text-text-tertiary' })}
                 <h3 className="text-sm font-semibold text-text-secondary">
                   {timeGroupLabels[group].label}
                 </h3>
@@ -350,8 +354,13 @@ export default function ScheduleColumn({
           animate={{ opacity: 1 }}
           className="text-center py-12"
         >
-          <div className="text-4xl mb-2">📆</div>
-          <p className="text-sm text-text-tertiary">No events scheduled today</p>
+          <div className="mb-3 flex justify-center">
+            <div className="p-3 rounded-xl bg-surface border border-border">
+              <Calendar className="w-6 h-6 text-text-tertiary" />
+            </div>
+          </div>
+          <p className="text-sm font-medium text-text-secondary mb-1">Free day</p>
+          <p className="text-xs text-text-tertiary">No events scheduled today</p>
         </motion.div>
       )}
     </div>

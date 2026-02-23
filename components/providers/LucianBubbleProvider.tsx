@@ -420,6 +420,9 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
 
     if (!hint) return;
 
+    // Guard first — prevent double-display if effect re-runs before ref settles
+    contextHintShownRef.current = true;
+    markContextHintShown();
     showMessage({
       id: `ctx-${hint.priority}-${hint.text.slice(0, 24)}`,
       text: hint.text,
@@ -427,8 +430,6 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
       priority: hint.priority,
       ariaRole: hint.priority === 0 ? 'alert' : 'status',
     });
-    markContextHintShown();
-    contextHintShownRef.current = true;
   }, [applicationsData, contextHintsActive, nextTasksData, recentSessionsData, showMessage, todayTasksData]);
 
   // ── Champion event subscription ────────────────────────────────────────────

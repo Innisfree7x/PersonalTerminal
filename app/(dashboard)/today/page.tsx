@@ -134,7 +134,7 @@ export default function TodayPage() {
 
   const handleConnect = useCallback(() => connectGoogleCalendar(), []);
   const handleDisconnect = useCallback(() => {
-    if (confirm('Are you sure you want to disconnect Google Calendar?')) {
+    if (confirm('Google Calendar wirklich trennen?')) {
       disconnectMutation.mutate();
     }
   }, [disconnectMutation]);
