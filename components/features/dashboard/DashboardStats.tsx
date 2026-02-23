@@ -47,18 +47,18 @@ export default function DashboardStats({
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-success/55 to-transparent" />
         <div className="flex items-center justify-between mb-0.5">
           <div className="p-0.5 rounded-md bg-success/10 text-success">
-            <CheckCircle2 className="w-3 h-3" />
+            <CheckCircle2 className="w-3.5 h-3.5" />
           </div>
-          <span className="text-[8px] font-medium text-text-tertiary uppercase tracking-wider">
+          <span className="text-[9px] font-medium text-text-tertiary uppercase tracking-wider">
             Daily Tasks
           </span>
         </div>
         <div className="flex items-baseline gap-1">
           <AnimatedCounter
             to={tasksCompleted}
-            className="text-base font-bold text-text-primary"
+            className="text-xl leading-none font-bold text-text-primary"
           />
-          <span className="text-[11px] text-text-tertiary font-medium">
+          <span className="text-sm leading-none text-text-tertiary font-medium">
             / {tasksToday}
           </span>
         </div>
@@ -83,23 +83,23 @@ export default function DashboardStats({
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-university-accent/55 to-transparent" />
         <div className="flex items-center justify-between mb-0.5">
           <div className="p-0.5 rounded-md bg-university-accent/10 text-university-accent">
-            <GraduationCap className="w-3 h-3" />
+            <GraduationCap className="w-3.5 h-3.5" />
           </div>
-          <span className="text-[8px] font-medium text-text-tertiary uppercase tracking-wider">
+          <span className="text-[9px] font-medium text-text-tertiary uppercase tracking-wider">
             Exercises
           </span>
         </div>
         <div className="flex items-baseline gap-1">
           <AnimatedCounter
             to={exercisesCompleted}
-            className="text-base font-bold text-text-primary"
+            className="text-xl leading-none font-bold text-text-primary"
           />
-          <span className="text-[11px] text-text-tertiary font-medium">
+          <span className="text-sm leading-none text-text-tertiary font-medium">
             / {exercisesTotal}
           </span>
         </div>
         {nextExam && (
-          <div className="mt-0.5 text-[8px] flex items-center gap-1">
+          <div className="mt-0.5 text-[9px] flex items-center gap-1">
             <span className={`px-1.5 py-0.5 rounded ${nextExam.daysUntilExam < 14 ? 'bg-error/10 text-error' : 'bg-surface text-text-secondary'
               }`}>
               {nextExam.daysUntilExam}d until exam
@@ -120,22 +120,22 @@ export default function DashboardStats({
 
         <div className="flex items-center justify-between mb-0.5">
           <div className="p-0.5 rounded-md bg-warning/10 text-warning streak-flame">
-            <Flame className="w-3 h-3" />
+            <Flame className="w-3.5 h-3.5" />
           </div>
-          <span className="text-[8px] font-medium text-text-tertiary uppercase tracking-wider">
+          <span className="text-[9px] font-medium text-text-tertiary uppercase tracking-wider">
             Streak
           </span>
         </div>
         <div className="flex items-baseline gap-1">
           <AnimatedCounter
             to={streak}
-            className="text-base font-bold text-text-primary"
+            className="text-xl leading-none font-bold text-text-primary"
           />
-          <span className="text-[10px] text-text-tertiary font-medium ml-1">
+          <span className="text-sm leading-none text-text-tertiary font-medium ml-1">
             days
           </span>
         </div>
-        <div className="mt-0.5 text-[8px] text-text-secondary">
+        <div className="mt-0.5 text-[9px] text-text-secondary">
           Keep it up! 🔥
         </div>
       </motion.div>
@@ -150,25 +150,25 @@ export default function DashboardStats({
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-career-accent/55 to-transparent" />
         <div className="flex items-center justify-between mb-0.5">
           <div className="p-0.5 rounded-md bg-career-accent/10 text-career-accent">
-            <Briefcase className="w-3 h-3" />
+            <Briefcase className="w-3.5 h-3.5" />
           </div>
-          <span className="text-[8px] font-medium text-text-tertiary uppercase tracking-wider">
+          <span className="text-[9px] font-medium text-text-tertiary uppercase tracking-wider">
             Career
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
           {interviewsUpcoming > 0 ? (
             <div className="flex items-center justify-between">
-              <span className="text-[10px] text-text-secondary">Next Interview</span>
-              <span className="text-[10px] font-semibold text-career-accent">{interviewsUpcoming}</span>
+              <span className="text-[11px] text-text-secondary">Next Interview</span>
+              <span className="text-xs font-semibold text-career-accent">{interviewsUpcoming}</span>
             </div>
           ) : (
-            <div className="text-[10px] text-text-tertiary">No upcoming interviews</div>
+            <div className="text-[11px] text-text-tertiary">No upcoming interviews</div>
           )}
           {goalsDueSoon > 0 && (
             <div className="flex items-center justify-between mt-0.5 pt-0.5 border-t border-border/50">
-              <span className="text-[10px] text-text-secondary">Goals Due</span>
-              <span className="text-[10px] font-semibold text-error">{goalsDueSoon}</span>
+              <span className="text-[11px] text-text-secondary">Goals Due</span>
+              <span className="text-xs font-semibold text-error">{goalsDueSoon}</span>
             </div>
           )}
         </div>
