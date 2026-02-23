@@ -78,6 +78,8 @@ interface EffectState {
     | 'r-lane'
     | 'r-bullet'
     | 'pentakill'
+    | 'origin-flash'
+    | 'landing-ring'
     | 'move';
   x: number;
   y: number;
@@ -258,11 +260,18 @@ function ChampionOverlay({
 
   const championSize = SCALE_TO_SIZE[settings.renderScale];
   const championConfig = CHAMPION_CONFIG[settings.champion];
-  const championColor = `${championConfig.colors.primaryFrom} ${championConfig.colors.primaryTo}`;
   const spriteRow = animationRow(animation);
   const abilityColors = championConfig.colors;
   const isWalking = animation === 'walk';
   const isCasting = animation.startsWith('cast_');
+  const auraColor = (() => {
+    if (animation === 'panic') return hexToRgba('#ef4444', 0.38);
+    if (animation === 'victory') return hexToRgba('#f59e0b', 0.3);
+    if (isCasting) return hexToRgba(abilityColors.q, 0.52);
+    if (animation === 'recall') return hexToRgba('#a78bfa', 0.28);
+    if (animation === 'meditate') return hexToRgba(abilityColors.e, 0.22);
+    return hexToRgba(abilityColors.q, 0.2);
+  })();
   const championCenterX = position.x + championSize / 2;
   const championCenterY = position.y + championSize / 2;
   const visibleRangeRadius = (() => {
@@ -334,10 +343,41 @@ function ChampionOverlay({
       <motion.button
         onClick={onChampionClick}
         data-champion-sprite="true"
-        className="pointer-events-auto absolute rounded-full"
+        className="pointer-events-auto absolute"
         style={{ left: position.x, top: position.y }}
         animate={{ x: 0, y: 0 }}
       >
+        {/* Ambient aura — pulses and shifts colour with animation state */}
+        <motion.div
+          className="pointer-events-none absolute inset-0 rounded-full"
+          animate={{ opacity: [0.48, 0.78, 0.48], scale: [1.28, 1.46, 1.28] }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ backgroundColor: auraColor, filter: 'blur(24px)' }}
+        />
+
+        {/* Secondary soft halo ring */}
+        <motion.div
+          className="pointer-events-none absolute inset-0 rounded-full"
+          animate={{ opacity: [0.18, 0.32, 0.18], scale: [1.55, 1.7, 1.55] }}
+          transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }}
+          style={{ backgroundColor: auraColor, filter: 'blur(38px)' }}
+        />
+
+        {/* Ground shadow ellipse */}
+        <div
+          className="pointer-events-none absolute rounded-full"
+          style={{
+            width: championSize * 0.68,
+            height: championSize * 0.1,
+            bottom: 0,
+            left: '50%',
+            transform: 'translate(-50%, 48%)',
+            backgroundColor: 'rgba(0,0,0,0.65)',
+            filter: 'blur(7px)',
+          }}
+        />
+
+        {/* Active mode gun barrel */}
         {mode === 'active' && (
           <div
             className="pointer-events-none absolute"
@@ -352,32 +392,44 @@ function ChampionOverlay({
             }}
           />
         )}
+
+        {/* Sprite — dark atmospheric container, no gradient ball */}
         <motion.div
-          className={`relative rounded-full border border-white/15 bg-gradient-to-br ${championColor}`}
+          className="relative rounded-full border border-white/[0.07] bg-[#060912]/85"
           style={spriteStyle}
           animate={{
-            y: isWalking ? [0, -2, 0, -1, 0] : [0, -1, 0],
-            scale: isCasting ? [1, 1.02, 1] : 1,
+            y: isWalking ? [0, -3, 0, -1.5, 0] : [0, -3.5, 0],
+            scale: isCasting ? [1, 1.05, 1] : 1,
+            rotate: isWalking ? 0 : [0, 0.5, 0, -0.5, 0],
           }}
           transition={{
-            duration: isWalking ? 0.42 : 1.8,
+            duration: isWalking ? 0.42 : 2.6,
             repeat: Infinity,
             ease: 'easeInOut',
           }}
         >
-          <div className="absolute inset-0 rounded-full border border-white/20" />
+          {/* Inner atmospheric highlight */}
+          <div
+            className="pointer-events-none absolute inset-0 rounded-full"
+            style={{
+              background: `radial-gradient(ellipse at 32% 22%, ${hexToRgba(abilityColors.q, 0.16)} 0%, transparent 50%)`,
+            }}
+          />
+          <div className="absolute inset-0 rounded-full border border-white/[0.1]" />
+
           {mode === 'active' && !rangeActive && (
             <motion.div
               className="absolute rounded-full border"
-              animate={{ opacity: [0.22, 0.34, 0.22], scale: [0.98, 1, 0.98] }}
-              transition={{ duration: 1.2, repeat: Infinity }}
+              animate={{ opacity: [0.18, 0.32, 0.18], scale: [0.96, 1.01, 0.96] }}
+              transition={{ duration: 1.4, repeat: Infinity }}
               style={{
-                borderColor: hexToRgba(abilityColors.q, 0.35),
-                backgroundColor: hexToRgba(abilityColors.q, 0.07),
-                inset: '5%',
+                borderColor: hexToRgba(abilityColors.q, 0.38),
+                backgroundColor: hexToRgba(abilityColors.q, 0.05),
+                inset: '4%',
               }}
             />
           )}
+
           {mode === 'active' && (
             <div
               className="absolute left-1/2 top-[92%] h-[2px] w-9 -translate-x-1/2 rounded-full"
@@ -387,8 +439,17 @@ function ChampionOverlay({
               }}
             />
           )}
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300">
-            {stats.level}
+
+          {/* Level badge — HUD style */}
+          <div
+            className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 whitespace-nowrap rounded-full border border-amber-400/20 bg-black/90 px-2 py-[2px]"
+            style={{
+              top: '-24px',
+              boxShadow: '0 0 14px rgba(251,191,36,0.22), 0 0 0 1px rgba(251,191,36,0.06)',
+            }}
+          >
+            <span className="text-[8px] font-medium uppercase tracking-wider text-amber-500/55">Lv</span>
+            <span className="text-[10px] font-bold text-amber-300">{stats.level}</span>
           </div>
         </motion.div>
       </motion.button>
@@ -404,45 +465,62 @@ function ChampionOverlay({
             style={{ left: effect.x, top: effect.y }}
           >
             {effect.type === 'q' && (
-              <div
-                className="origin-left rounded-full"
-                style={{
-                  transform: `rotate(${effect.angle ?? 0}deg)`,
-                  width: effect.distance ?? 900,
-                  height: 12,
-                  background: `linear-gradient(to right, ${hexToRgba(abilityColors.q, 0.95)}, ${hexToRgba(abilityColors.q, 0.6)}, transparent)`,
-                  boxShadow: `0 0 24px ${hexToRgba(abilityColors.q, 0.65)}, inset 0 0 10px ${hexToRgba('#FFFFFF', 0.35)}`,
-                }}
-              />
-            )}
-            {effect.type === 'q' && (
-              <div
-                className="origin-left rounded-full"
-                style={{
-                  transform: `rotate(${effect.angle ?? 0}deg)`,
-                  width: (effect.distance ?? 900) - 18,
-                  height: 4,
-                  background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 0.9)}, ${hexToRgba('#FFFFFF', 0.6)}, transparent)`,
-                  boxShadow: `0 0 10px ${hexToRgba('#FFFFFF', 0.45)}`,
-                  marginTop: '-8px',
-                  marginLeft: '4px',
-                }}
-              />
+              <>
+                {/* Outer diffuse glow */}
+                <div
+                  className="absolute origin-left rounded-full"
+                  style={{
+                    transform: `rotate(${effect.angle ?? 0}deg)`,
+                    width: effect.distance ?? 900,
+                    height: 30,
+                    top: -6,
+                    left: 0,
+                    background: `linear-gradient(to right, ${hexToRgba(abilityColors.q, 0.38)}, ${hexToRgba(abilityColors.q, 0.12)}, transparent)`,
+                    filter: 'blur(6px)',
+                  }}
+                />
+                {/* Main beam */}
+                <div
+                  className="absolute origin-left rounded-full"
+                  style={{
+                    transform: `rotate(${effect.angle ?? 0}deg)`,
+                    width: effect.distance ?? 900,
+                    height: 14,
+                    top: 0,
+                    left: 0,
+                    background: `linear-gradient(to right, ${hexToRgba(abilityColors.q, 0.98)}, ${hexToRgba(abilityColors.q, 0.68)}, transparent)`,
+                    boxShadow: `0 0 28px ${hexToRgba(abilityColors.q, 0.72)}, inset 0 0 14px ${hexToRgba('#FFFFFF', 0.42)}`,
+                  }}
+                />
+                {/* White-hot core */}
+                <div
+                  className="absolute origin-left rounded-full"
+                  style={{
+                    transform: `rotate(${effect.angle ?? 0}deg)`,
+                    width: (effect.distance ?? 900) - 22,
+                    height: 4,
+                    top: 5,
+                    left: 4,
+                    background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 0.98)}, ${hexToRgba('#FFFFFF', 0.7)}, transparent)`,
+                    boxShadow: `0 0 14px ${hexToRgba('#FFFFFF', 0.6)}`,
+                  }}
+                />
+              </>
             )}
             {effect.type === 'q-spark' && (
               <motion.div
-                className="h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                initial={{ opacity: 0.9, scale: 0.6 }}
+                className="h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                initial={{ opacity: 1, scale: 0.5 }}
                 animate={{
-                  opacity: [0.9, 0.25, 0],
-                  scale: [0.6, 1.15, 1.4],
+                  opacity: [1, 0.4, 0],
+                  scale: [0.5, 1.3, 1.7],
                   x: Math.cos(((effect.angle ?? 0) * Math.PI) / 180) * (effect.distance ?? 60),
                   y: Math.sin(((effect.angle ?? 0) * Math.PI) / 180) * (effect.distance ?? 60),
                 }}
-                transition={{ duration: 0.35, ease: 'easeOut' }}
+                transition={{ duration: 0.42, ease: 'easeOut' }}
                 style={{
-                  backgroundColor: hexToRgba(abilityColors.q, 0.95),
-                  boxShadow: `0 0 12px ${hexToRgba(abilityColors.q, 0.8)}`,
+                  backgroundColor: hexToRgba(abilityColors.q, 0.98),
+                  boxShadow: `0 0 18px ${hexToRgba(abilityColors.q, 0.9)}, 0 0 6px ${hexToRgba('#FFFFFF', 0.6)}`,
                 }}
               />
             )}
@@ -508,35 +586,44 @@ function ChampionOverlay({
             {effect.type === 'w-bolt' && (
               <motion.div
                 className="origin-left rounded-full"
-                initial={{ opacity: 0.95, scaleX: 0.2 }}
-                animate={{ opacity: [0.95, 0.65, 0], scaleX: [0.2, 1, 1.08] }}
-                transition={{ duration: 0.34, ease: 'easeOut' }}
+                initial={{ opacity: 0.98, scaleX: 0.15 }}
+                animate={{ opacity: [0.98, 0.7, 0], scaleX: [0.15, 1, 1.06] }}
+                transition={{ duration: 0.36, ease: 'easeOut' }}
                 style={{
                   transform: `rotate(${effect.angle ?? 0}deg)`,
                   width: effect.distance ?? 320,
-                  height: 8,
-                  background: `linear-gradient(to right, ${hexToRgba(abilityColors.w, 0.95)}, ${hexToRgba(abilityColors.q, 0.65)}, transparent)`,
-                  boxShadow: `0 0 14px ${hexToRgba(abilityColors.w, 0.58)}`,
+                  height: 13,
+                  background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 0.9)}, ${hexToRgba(abilityColors.w, 0.9)}, ${hexToRgba(abilityColors.q, 0.55)}, transparent)`,
+                  boxShadow: `0 0 22px ${hexToRgba(abilityColors.w, 0.72)}, 0 0 8px ${hexToRgba('#FFFFFF', 0.5)}`,
                 }}
               />
             )}
             {effect.type === 'w-mark' && (
               <motion.div
                 className="absolute -translate-x-1/2 -translate-y-1/2"
-                initial={{ opacity: 0.9, scale: 0.6, rotate: -8 }}
-                animate={{ opacity: 0, scale: 1.25, rotate: 10 }}
-                transition={{ duration: 0.42, ease: 'easeOut' }}
+                initial={{ opacity: 1, scale: 0.5, rotate: -12 }}
+                animate={{ opacity: 0, scale: 1.5, rotate: 14 }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
               >
-                <div className="relative h-9 w-9">
-                  <div className="absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2" style={{ backgroundColor: hexToRgba(abilityColors.w, 0.95) }} />
-                  <div className="absolute top-1/2 left-0 h-[2px] w-full -translate-y-1/2" style={{ backgroundColor: hexToRgba(abilityColors.w, 0.95) }} />
+                {/* Outer expansion ring */}
+                <div
+                  className="absolute inset-0 rounded-full border-2"
+                  style={{
+                    borderColor: hexToRgba(abilityColors.w, 0.6),
+                    boxShadow: `0 0 18px ${hexToRgba(abilityColors.w, 0.45)}`,
+                    margin: '-10px',
+                  }}
+                />
+                <div className="relative h-12 w-12">
+                  <div className="absolute left-1/2 top-0 h-full w-[3px] -translate-x-1/2 rounded-full" style={{ backgroundColor: hexToRgba(abilityColors.w, 0.98), boxShadow: `0 0 8px ${hexToRgba(abilityColors.w, 0.7)}` }} />
+                  <div className="absolute top-1/2 left-0 h-[3px] w-full -translate-y-1/2 rounded-full" style={{ backgroundColor: hexToRgba(abilityColors.w, 0.98), boxShadow: `0 0 8px ${hexToRgba(abilityColors.w, 0.7)}` }} />
                   <div
-                    className="absolute left-1/2 top-1/2 h-full w-[2px] -translate-x-1/2 -translate-y-1/2 rotate-45"
-                    style={{ backgroundColor: hexToRgba(abilityColors.q, 0.7) }}
+                    className="absolute left-1/2 top-1/2 h-full w-[2px] -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full"
+                    style={{ backgroundColor: hexToRgba('#FFFFFF', 0.85), boxShadow: `0 0 6px ${hexToRgba('#FFFFFF', 0.6)}` }}
                   />
                   <div
-                    className="absolute left-1/2 top-1/2 h-full w-[2px] -translate-x-1/2 -translate-y-1/2 -rotate-45"
-                    style={{ backgroundColor: hexToRgba(abilityColors.q, 0.7) }}
+                    className="absolute left-1/2 top-1/2 h-full w-[2px] -translate-x-1/2 -translate-y-1/2 -rotate-45 rounded-full"
+                    style={{ backgroundColor: hexToRgba('#FFFFFF', 0.85), boxShadow: `0 0 6px ${hexToRgba('#FFFFFF', 0.6)}` }}
                   />
                 </div>
               </motion.div>
@@ -549,13 +636,16 @@ function ChampionOverlay({
             )}
             {effect.type === 'dash-ghost' && (
               <motion.div
-                className="h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full border"
-                initial={{ opacity: 0.55, scale: 0.8 }}
-                animate={{ opacity: 0, scale: 1.1 }}
-                transition={{ duration: 0.24, ease: 'easeOut' }}
+                className="-translate-x-1/2 -translate-y-1/2 rounded-full border-2"
+                initial={{ opacity: 0.7, scale: 0.75 }}
+                animate={{ opacity: 0, scale: 1.25 }}
+                transition={{ duration: 0.32, ease: 'easeOut' }}
                 style={{
-                  borderColor: hexToRgba(abilityColors.e, 0.52),
-                  background: `radial-gradient(circle, ${hexToRgba(abilityColors.e, 0.28)} 0%, transparent 70%)`,
+                  width: 68,
+                  height: 68,
+                  borderColor: hexToRgba(abilityColors.e, 0.75),
+                  background: `radial-gradient(circle, ${hexToRgba(abilityColors.e, 0.38)} 0%, ${hexToRgba(abilityColors.e, 0.1)} 60%, transparent 80%)`,
+                  boxShadow: `0 0 20px ${hexToRgba(abilityColors.e, 0.45)}, inset 0 0 14px ${hexToRgba(abilityColors.e, 0.22)}`,
                 }}
               />
             )}
@@ -575,15 +665,15 @@ function ChampionOverlay({
             {effect.type === 'r-lane' && (
               <motion.div
                 className="origin-left rounded-full"
-                initial={{ opacity: 0.9, scaleX: 0.3 }}
-                animate={{ opacity: [0.9, 0.55, 0], scaleX: [0.3, 1, 1.02] }}
-                transition={{ duration: 0.26, ease: 'easeOut' }}
+                initial={{ opacity: 0.98, scaleX: 0.2 }}
+                animate={{ opacity: [0.98, 0.6, 0], scaleX: [0.2, 1, 1.04] }}
+                transition={{ duration: 0.28, ease: 'easeOut' }}
                 style={{
                   transform: `rotate(${effect.angle ?? 0}deg) translateY(${effect.size ?? 0}px)`,
                   width: effect.distance ?? 520,
-                  height: 9,
-                  background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 0.95)}, ${hexToRgba(abilityColors.r, 0.7)}, transparent)`,
-                  boxShadow: `0 0 18px ${hexToRgba(abilityColors.r, 0.6)}`,
+                  height: 14,
+                  background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 1)}, ${hexToRgba(abilityColors.r, 0.85)}, ${hexToRgba(abilityColors.r, 0.4)}, transparent)`,
+                  boxShadow: `0 0 26px ${hexToRgba(abilityColors.r, 0.75)}, 0 0 8px ${hexToRgba('#FFFFFF', 0.5)}`,
                 }}
               />
             )}
@@ -600,11 +690,11 @@ function ChampionOverlay({
                 transition={{ duration: 0.42, ease: 'easeOut' }}
               >
                 <div
-                  className="h-[5px] w-12 rounded-full"
+                  className="h-[7px] w-20 rounded-full"
                   style={{
                     transform: `rotate(${effect.angle ?? 0}deg)`,
-                    background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 1)}, ${hexToRgba(abilityColors.r, 0.72)}, ${hexToRgba(abilityColors.r, 0.28)})`,
-                    boxShadow: `0 0 16px ${hexToRgba(abilityColors.r, 0.78)}`,
+                    background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 1)}, ${hexToRgba('#FFFFFF', 0.9)}, ${hexToRgba(abilityColors.r, 0.72)}, ${hexToRgba(abilityColors.r, 0.18)})`,
+                    boxShadow: `0 0 20px ${hexToRgba(abilityColors.r, 0.85)}, 0 0 6px ${hexToRgba('#FFFFFF', 0.7)}`,
                   }}
                 />
               </motion.div>
@@ -646,6 +736,34 @@ function ChampionOverlay({
               <div className="pointer-events-none -translate-x-1/2 -translate-y-1/2 text-4xl font-black tracking-[0.25em] text-amber-300 drop-shadow-[0_0_18px_rgba(251,191,36,0.8)]">
                 PENTAKILL
               </div>
+            )}
+            {effect.type === 'origin-flash' && (
+              <motion.div
+                className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
+                initial={{ opacity: 1, scale: 0.3 }}
+                animate={{ opacity: 0, scale: 2.2 }}
+                transition={{ duration: 0.26, ease: 'easeOut' }}
+                style={{
+                  width: effect.size ?? 44,
+                  height: effect.size ?? 44,
+                  backgroundColor: hexToRgba('#FFFFFF', 0.92),
+                  boxShadow: `0 0 40px ${hexToRgba(abilityColors.q, 0.95)}, 0 0 80px ${hexToRgba(abilityColors.q, 0.45)}, 0 0 120px ${hexToRgba(abilityColors.q, 0.18)}`,
+                }}
+              />
+            )}
+            {effect.type === 'landing-ring' && (
+              <motion.div
+                className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px]"
+                initial={{ opacity: 1, scale: 0.25 }}
+                animate={{ opacity: 0, scale: 1.8 }}
+                transition={{ duration: 0.4, ease: 'easeOut' }}
+                style={{
+                  width: effect.size ?? 80,
+                  height: effect.size ?? 80,
+                  borderColor: hexToRgba(abilityColors.e, 0.95),
+                  boxShadow: `0 0 28px ${hexToRgba(abilityColors.e, 0.7)}, inset 0 0 20px ${hexToRgba(abilityColors.e, 0.35)}`,
+                }}
+              />
             )}
           </motion.div>
         ))}
@@ -865,8 +983,9 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       const center = { x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 };
       const angle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
       const beamDistance = 640;
+      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 34 }, 220);
       addEffect({ type: 'q', x: center.x, y: center.y, angle, distance: beamDistance }, 450);
-      for (let i = 0; i < 4; i += 1) {
+      for (let i = 0; i < 6; i += 1) {
         const spread = (Math.random() - 0.5) * 16;
         addEffect(
           {
@@ -909,8 +1028,10 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       const hitX = center.x + Math.cos(rad) * boltDistance;
       const hitY = center.y + Math.sin(rad) * boltDistance;
 
+      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 26 }, 200);
       addEffect({ type: 'w', x: center.x, y: center.y }, 260);
       addEffect({ type: 'w-bolt', x: center.x, y: center.y, angle, distance: boltDistance }, 360);
+      addEffect({ type: 'origin-flash', x: hitX, y: hitY, size: 42 }, 380);
       addEffect({ type: 'w-mark', x: hitX, y: hitY }, 450);
       addEffect({ type: 'w-mark', x: hitX, y: hitY, angle: 45 }, 450);
       fireLightslinger(center, angle);
@@ -939,6 +1060,8 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
         );
       }
       addEffect({ type: 'e', x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 }, 400);
+      addEffect({ type: 'landing-ring', x: targetCenter.x, y: targetCenter.y, size: 76 }, 340);
+      addEffect({ type: 'landing-ring', x: targetCenter.x, y: targetCenter.y, size: 48 }, 420);
       const dashAngle = (Math.atan2(targetCenter.y - currentCenter.y, targetCenter.x - currentCenter.x) * 180) / Math.PI;
       fireLightslinger(targetCenter, dashAngle);
       positionRef.current = target;
@@ -954,6 +1077,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       setAnimation('cast_r');
       const center = { x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 };
       const baseAngle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
+      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 60 }, 160);
       addEffect({ type: 'r', x: center.x, y: center.y, angle: baseAngle }, 1100);
       for (let lane = -1; lane <= 1; lane += 2) {
         addEffect(
