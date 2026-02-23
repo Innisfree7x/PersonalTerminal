@@ -250,6 +250,7 @@ bloomberg-personal/
 ├── scripts/
 │   └── fixCourseExercises.ts
 ├── docs/
+│   ├── HIGH_END_DUO_PLAYBOOK.md  # Reusable Codex+Claude project playbook
 │   ├── API.md
 │   ├── DATABASE.md
 │   ├── FEATURES.md

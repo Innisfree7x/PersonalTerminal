@@ -1,6 +1,7 @@
 # INNIS Duo Execution Plan (Codex + Claude)
 
 Dieses Dokument teilt die Arbeit zwischen Codex und Claude so auf, dass ihr schnell shippt, ohne euch gegenseitig zu blockieren.
+Fuer den wiederverwendbaren Multi-Projekt-Ansatz siehe: `docs/HIGH_END_DUO_PLAYBOOK.md`.
 
 ## Prinzip
 
