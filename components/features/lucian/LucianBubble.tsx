@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Zap, X } from 'lucide-react';
 import type { LucianMood } from '@/lib/lucian/copy';
+import { LucianSpriteAnimator, type LucianAnimation } from '@/components/features/lucian/LucianSpriteAnimator';
 
 const moodAccentText: Record<LucianMood, string> = {
   motivate: 'text-cyan-300',
@@ -37,7 +38,6 @@ const moodRim: Record<LucianMood, string> = {
   idle: 'via-white/25',
 };
 
-// Mood → CTA action button accent
 const moodActionButton: Record<LucianMood, string> = {
   motivate:  'border-cyan-300/35 bg-cyan-400/15 text-cyan-100 hover:bg-cyan-400/25',
   celebrate: 'border-amber-300/35 bg-amber-400/15 text-amber-100 hover:bg-amber-400/25',
@@ -46,7 +46,6 @@ const moodActionButton: Record<LucianMood, string> = {
   idle:      'border-zinc-300/25 bg-zinc-400/15 text-zinc-200 hover:bg-zinc-400/25',
 };
 
-// Mood → tail outer border color (matches rim light)
 const moodTailColor: Record<LucianMood, string> = {
   motivate:  'bg-cyan-300/30',
   celebrate: 'bg-amber-300/30',
@@ -77,6 +76,24 @@ const moodSpell: Record<LucianMood, string> = {
   warning: 'Deadline Pulse',
   recovery: 'Reset Ritual',
   idle: 'Standby Field',
+};
+
+// Settled animation per mood
+const moodAnimation: Record<LucianMood, LucianAnimation> = {
+  motivate: 'idle',
+  celebrate: 'victory',
+  warning: 'panic',
+  recovery: 'meditate',
+  idle: 'idle',
+};
+
+// Sprite panel glow per mood
+const moodSpriteGlow: Record<LucianMood, string> = {
+  motivate: 'bg-cyan-500/15',
+  celebrate: 'bg-amber-500/12',
+  warning: 'bg-red-500/15',
+  recovery: 'bg-teal-500/12',
+  idle: 'bg-white/[0.05]',
 };
 
 interface LucianBubbleProps {
@@ -110,6 +127,8 @@ export function LucianBubble({
 }: LucianBubbleProps) {
   const prefersReducedMotion = useReducedMotion();
   const bubbleRef = useRef<HTMLDivElement | null>(null);
+  const phaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [anchor, setAnchor] = useState<{
     anchored: boolean;
     left: number;
@@ -123,6 +142,33 @@ export function LucianBubble({
     tailSide: 'bottom',
     tailOffset: 180,
   });
+
+  // Walk-in entry phase: walk for 1200ms, then settle into mood animation
+  const [phase, setPhase] = useState<'entry' | 'settled'>('entry');
+
+  useEffect(() => {
+    if (phaseTimerRef.current) {
+      clearTimeout(phaseTimerRef.current);
+      phaseTimerRef.current = null;
+    }
+    if (!visible) {
+      setPhase('entry');
+      return;
+    }
+    phaseTimerRef.current = setTimeout(() => setPhase('settled'), 1200);
+    return () => {
+      if (phaseTimerRef.current) {
+        clearTimeout(phaseTimerRef.current);
+        phaseTimerRef.current = null;
+      }
+    };
+  }, [visible]);
+
+  const spriteAnimation: LucianAnimation = prefersReducedMotion
+    ? moodAnimation[mood]
+    : phase === 'entry'
+    ? 'walk'
+    : moodAnimation[mood];
 
   useEffect(() => {
     if (!visible) return;
@@ -213,7 +259,7 @@ export function LucianBubble({
           ref={bubbleRef}
           {...variants}
           transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}
-          className={`fixed z-[56] w-[min(420px,calc(100vw-40px))] ${anchor.anchored ? '' : 'bottom-[108px] right-6'}`}
+          className={`fixed z-[56] w-[min(380px,calc(100vw-40px))] ${anchor.anchored ? '' : 'bottom-[108px] right-6'}`}
           style={bubbleStyle}
           onMouseEnter={onPause}
           onFocus={onPause}
@@ -231,61 +277,75 @@ export function LucianBubble({
               shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_20px_52px_rgba(0,0,0,0.62)]
               backdrop-blur-2xl"
           >
+            {/* Top rim light */}
             <div
               className={`pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent ${moodRim[mood]} to-transparent`}
             />
+            {/* Mood tint */}
             <div
               className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${moodBubbleTint[mood]} via-transparent to-transparent`}
             />
+            {/* Glow shadow */}
             <div
               className="pointer-events-none absolute inset-0 opacity-90"
               style={{ boxShadow: moodGlowShadow[mood] }}
             />
 
-            <div className="relative px-4 pb-4 pt-3.5">
-              <div className="mb-2.5 flex items-center justify-between gap-2">
-                <div className="inline-flex items-center gap-2">
-                  <span
-                    className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${moodChipBg[mood]} ${moodAccentText[mood]}`}
-                  >
-                    <Zap className="h-3 w-3" />
-                    Lucian · {moodLabel[mood]}
-                  </span>
+            {/* Header — full width */}
+            <div className="relative flex items-center justify-between gap-2 border-b border-white/[0.06] px-4 py-3">
+              <span
+                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${moodChipBg[mood]} ${moodAccentText[mood]}`}
+              >
+                <Zap className="h-3 w-3" />
+                Lucian · {moodLabel[mood]}
+              </span>
+              <button
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onMuteToday();
+                }}
+                aria-label="Lucian fuer heute stummschalten"
+                className="rounded-md p-1 text-zinc-500 transition-colors hover:text-zinc-200"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            {/* Body — sprite panel + text panel */}
+            <div className="relative flex items-stretch">
+              {/* Sprite panel */}
+              <div className="relative flex w-[72px] flex-shrink-0 items-center justify-center border-r border-white/[0.06] py-4">
+                <div
+                  className={`pointer-events-none absolute inset-0 ${moodSpriteGlow[mood]} blur-xl`}
+                />
+                <LucianSpriteAnimator animation={spriteAnimation} size={52} />
+              </div>
+
+              {/* Text panel */}
+              <div className="flex min-w-0 flex-1 flex-col justify-center px-4 py-3.5">
+                <p className="text-[14px] leading-snug text-zinc-100">
+                  {text}
+                </p>
+
+                <div className="mt-2 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-zinc-400">
+                  <span className="h-1 w-1 rounded-full bg-current" />
+                  <span>{moodSpell[mood]}</span>
                 </div>
-                <button
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onMuteToday();
-                  }}
-                  aria-label="Lucian fuer heute stummschalten"
-                  className="rounded-md p-1 text-zinc-500 transition-colors hover:text-zinc-200"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
+
+                {actionLabel && onAction ? (
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onAction();
+                    }}
+                    aria-label={actionAriaLabel ?? actionLabel}
+                    className={`mt-3 inline-flex w-fit items-center rounded-lg border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] transition ${moodActionButton[mood]}`}
+                  >
+                    {actionLabel}
+                  </button>
+                ) : null}
               </div>
-
-              <p className="text-[15px] leading-snug text-zinc-100">
-                {text}
-              </p>
-
-              <div className="mt-2 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-zinc-400">
-                <span className="h-1 w-1 rounded-full bg-current" />
-                <span>{moodSpell[mood]}</span>
-              </div>
-
-              {actionLabel && onAction ? (
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onAction();
-                  }}
-                  aria-label={actionAriaLabel ?? actionLabel}
-                  className={`mt-3 inline-flex w-fit items-center rounded-lg border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] transition ${moodActionButton[mood]}`}
-                >
-                  {actionLabel}
-                </button>
-              ) : null}
             </div>
           </div>
 
