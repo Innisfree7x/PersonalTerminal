@@ -42,8 +42,9 @@ export default function DashboardStats({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.05 }}
-        className="p-3 rounded-lg border border-border bg-surface/50 backdrop-blur-sm hover:border-primary/30 transition-colors group"
+        className="p-3 rounded-lg border border-border bg-surface/50 backdrop-blur-sm hover:border-primary/30 transition-colors group relative overflow-hidden"
       >
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-success/55 to-transparent" />
         <div className="flex items-center justify-between mb-1.5">
           <div className="p-1.5 rounded-md bg-success/10 text-success">
             <CheckCircle2 className="w-4 h-4" />
@@ -61,12 +62,13 @@ export default function DashboardStats({
             / {tasksToday}
           </span>
         </div>
-        <div className="w-full bg-surface h-1 rounded-full mt-2 overflow-hidden">
+        <div className="w-full bg-surface h-1.5 rounded-full mt-2 overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${(tasksCompleted / Math.max(tasksToday, 1)) * 100}%` }}
             transition={{ duration: 1, ease: "easeOut" }}
             className="h-full bg-success rounded-full"
+            style={{ boxShadow: '0 0 8px var(--color-success, #22c55e)' }}
           />
         </div>
       </motion.div>
@@ -76,8 +78,9 @@ export default function DashboardStats({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.1 }}
-        className="p-3 rounded-lg border border-border bg-surface/50 backdrop-blur-sm hover:border-university-accent/30 transition-colors group"
+        className="p-3 rounded-lg border border-border bg-surface/50 backdrop-blur-sm hover:border-university-accent/30 transition-colors group relative overflow-hidden"
       >
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-university-accent/55 to-transparent" />
         <div className="flex items-center justify-between mb-1.5">
           <div className="p-1.5 rounded-md bg-university-accent/10 text-university-accent">
             <GraduationCap className="w-4 h-4" />
@@ -112,6 +115,7 @@ export default function DashboardStats({
         transition={{ delay: 0.15 }}
         className="p-3 rounded-lg border border-border bg-surface/50 backdrop-blur-sm hover:border-warning/30 transition-colors group relative overflow-hidden"
       >
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-warning/55 to-transparent" />
         <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-br from-warning/10 to-transparent rounded-bl-full pointer-events-none" />
 
         <div className="flex items-center justify-between mb-1.5">
@@ -141,8 +145,9 @@ export default function DashboardStats({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2 }}
-        className="p-3 rounded-lg border border-border bg-surface/50 backdrop-blur-sm hover:border-career-accent/30 transition-colors group"
+        className="p-3 rounded-lg border border-border bg-surface/50 backdrop-blur-sm hover:border-career-accent/30 transition-colors group relative overflow-hidden"
       >
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-career-accent/55 to-transparent" />
         <div className="flex items-center justify-between mb-1.5">
           <div className="p-1.5 rounded-md bg-career-accent/10 text-career-accent">
             <Briefcase className="w-4 h-4" />

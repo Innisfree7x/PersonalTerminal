@@ -30,12 +30,13 @@ function HeaderClock() {
   }, []);
 
   return (
-    <div className="hidden md:flex items-center gap-3 px-4 py-1.5 rounded-lg bg-surface/50 border border-border">
+    <div className="hidden md:flex items-center gap-3 px-4 py-1.5 rounded-lg bg-surface/50 border border-border relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/28 to-transparent" />
       <div className="flex flex-col">
-        <span className="text-xs text-text-tertiary">
-          {format(currentTime, 'EEEE, MMMM d, yyyy')}
+        <span className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+          {format(currentTime, 'EEEE, MMMM d')}
         </span>
-        <span className="text-lg font-bold text-text-primary font-mono">
+        <span className="text-base font-bold text-text-primary font-mono tabular-nums tracking-tight leading-tight">
           {format(currentTime, 'HH:mm:ss')}
         </span>
       </div>
@@ -80,10 +81,15 @@ export default function Header() {
             </h1>
             
             {todayCompletion > 0 && pathname === '/today' && (
-              <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-primary/10">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                <span className="text-xs font-medium text-primary">
-                  {todayCompletion}% complete
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/[0.1] border border-primary/[0.18]">
+                <motion.div
+                  className="w-1.5 h-1.5 rounded-full bg-primary"
+                  animate={{ opacity: [1, 0.35, 1] }}
+                  transition={{ duration: 1.6, repeat: Infinity }}
+                  style={{ boxShadow: '0 0 5px currentColor' }}
+                />
+                <span className="text-[11px] font-semibold text-primary tabular-nums">
+                  {todayCompletion}%
                 </span>
               </div>
             )}
@@ -171,14 +177,15 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Progress Bar (for Today page) */}
+      {/* Progress Bar (for Today page) — glowing */}
       {pathname === '/today' && todayCompletion > 0 && (
-        <div className="h-0.5 bg-surface">
+        <div className="h-[2px] bg-surface">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${todayCompletion}%` }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
             className="h-full bg-gradient-to-r from-primary to-primary-light"
+            style={{ boxShadow: '0 0 10px var(--color-primary, #6366f1), 0 0 4px var(--color-primary, #6366f1)' }}
           />
         </div>
       )}

@@ -181,7 +181,9 @@ export default function Sidebar() {
         className={`fixed top-0 left-0 z-40 h-screen transition-all ${isOpen ? 'translate-x-0' : '-translate-x-full'
           } lg:translate-x-0 bg-surface/80 backdrop-blur-xl border-r border-border`}
       >
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col relative">
+          {/* Ambient top glow — ties sidebar to the primary colour */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-primary/[0.05] to-transparent" />
           {/* Logo / Brand */}
           <div className="h-16 flex items-center justify-between px-6 border-b border-border">
             {!isCollapsed ? (
@@ -249,22 +251,36 @@ export default function Sidebar() {
                   onTouchStart={() => handleNavIntent(item.href)}
                   className="relative block group"
                 >
-                  {/* Active indicator */}
+                  {/* Active indicator — animated flowing light */}
                   {isActive && (
                     <motion.div
                       layoutId="sidebar-active"
-                      className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary rounded-r-full"
+                      className="absolute left-0 top-[5px] bottom-[5px] w-[3px] rounded-full overflow-hidden"
                       transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    />
+                    >
+                      <motion.div
+                        className="absolute inset-x-0 bg-gradient-to-b from-primary/40 via-primary to-primary/40"
+                        style={{ height: '200%', top: '-50%' }}
+                        animate={{ y: ['-40%', '40%'] }}
+                        transition={{ duration: 1.8, repeat: Infinity, ease: 'linear' }}
+                      />
+                    </motion.div>
                   )}
 
                   <div
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive
-                        ? 'bg-primary/10 text-primary'
+                    className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all overflow-hidden ${isActive
+                        ? 'bg-primary/[0.13] text-primary'
                         : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
                       } ${isCollapsed ? 'justify-center' : ''}`}
                   >
-                    <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-primary' : ''}`} />
+                    {/* Active item subtle inner glow */}
+                    {isActive && (
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-primary/[0.08] to-transparent" />
+                    )}
+                    <Icon
+                      className="w-5 h-5 flex-shrink-0"
+                      style={isActive ? { filter: 'drop-shadow(0 0 5px currentColor)' } : undefined}
+                    />
                     {!isCollapsed && (
                       <>
                         <span className="flex-1 truncate">{item.name}</span>
