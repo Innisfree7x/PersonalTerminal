@@ -13,13 +13,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import {
   fetchTodayFocusSummary,
+  createFocusSession as createFocusSessionApi,
   type TodayFocusSummary,
+  type CreateFocusSessionPayload,
 } from '@/lib/api/focus-sessions';
 import type { FocusSessionCategory } from '@/lib/schemas/focusSession.schema';
-import {
-  createFocusSessionAction,
-  type CreateFocusSessionActionPayload,
-} from '@/app/actions/focus-sessions';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 
 type TimerStatus = 'idle' | 'running' | 'paused' | 'break' | 'break_paused';
@@ -143,9 +141,9 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
     refetchOnReconnect: false,
   });
 
-  // Save session mutation
+  // Save session mutation — uses REST API to avoid Next.js Server Action serialization limits
   const saveMutation = useMutation({
-    mutationFn: createFocusSessionAction,
+    mutationFn: (payload: CreateFocusSessionPayload) => createFocusSessionApi(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['focus', 'today'] });
       queryClient.invalidateQueries({ queryKey: ['focus', 'analytics'] });
@@ -189,15 +187,15 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
   const saveSession = useCallback(
     (completed: boolean, durationSeconds: number, plannedSeconds: number, type: 'focus' | 'break') => {
       if (!startedAtRef.current) return;
-      const payload: CreateFocusSessionActionPayload = {
+      const payload: CreateFocusSessionPayload = {
         sessionType: type,
         durationSeconds,
         plannedDurationSeconds: plannedSeconds,
         startedAt: startedAtRef.current.toISOString(),
         endedAt: new Date().toISOString(),
         completed,
-        label,
-        category,
+        label: label ?? null,
+        category: category ?? null,
       };
       saveMutation.mutate(payload);
     },

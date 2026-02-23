@@ -79,6 +79,20 @@ interface ApplicationPayload {
   updatedAt: string;
 }
 
+function breakResultMessage(result: DrillResult): { mood: LucianMood; text: string } {
+  if (result.score >= 2_000) {
+    return {
+      mood: 'celebrate',
+      text: `Stark. ${result.score} Punkte in 60 Sekunden. Momentum halten.`,
+    };
+  }
+
+  return {
+    mood: 'recovery',
+    text: `${result.score} Punkte. Reicht, um den Kopf zu resetten. Zurück in den Fokus.`,
+  };
+}
+
 // ─── Storage helpers (all safe for SSR) ─────────────────────────────────────
 function isMuted(): boolean {
   if (typeof window === 'undefined') return true;
@@ -247,6 +261,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
   const [current, setCurrent]     = useState<QueuedMessage | null>(null);
   const [visible, setVisible]     = useState(false);
   const [breakActive, setBreakActive] = useState(false);
+  const [pendingBreakResult, setPendingBreakResult] = useState<DrillResult | null>(null);
   const queueRef                  = useRef<QueuedMessage[]>([]);
   const contextHintShownRef       = useRef(false);
   const dismissTimerRef           = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -256,6 +271,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
   const hiddenAtRef               = useRef(0);
   const lastActivityRef           = useRef(Date.now());
   const lastBreakInviteAtRef      = useRef(0);
+  const breakActiveRef            = useRef(false);
   const contextHintsActive        = pathname?.startsWith('/today') ?? false;
   const todayIso                  = formatLocalDateKey(new Date());
 
@@ -324,12 +340,21 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
     }
   }, []);
 
-  const doHide = useCallback(() => {
+  useEffect(() => {
+    breakActiveRef.current = breakActive;
+  }, [breakActive]);
+
+  const doHide = useCallback((): void => {
     setVisible(false);
     clearDismissTimer();
     clearTransitionTimer();
     // After exit animation, show next queued message
     transitionTimerRef.current = setTimeout(() => {
+      if (breakActiveRef.current) {
+        setCurrent(null);
+        return;
+      }
+
       const next = queueRef.current.shift() ?? null;
       if (next) {
         setCurrent(next);
@@ -345,7 +370,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
     }, 220); // matches exit animation duration
   }, [clearDismissTimer, clearTransitionTimer]);
 
-  const startDismissTimer = useCallback((duration: number) => {
+  const startDismissTimer = useCallback((duration: number): void => {
     clearDismissTimer();
     remainingRef.current  = duration;
     startTimeRef.current  = Date.now();
@@ -489,6 +514,21 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
     };
   }, []);
 
+  // ── Route guard: break mode is dashboard-only ───────────────────────────────
+  useEffect(() => {
+    if (isDashboardPath(pathname ?? '')) return;
+    if (!breakActive && current?.kind !== 'break-invite' && !pendingBreakResult) return;
+
+    setBreakActive(false);
+    setPendingBreakResult(null);
+    if (current?.kind === 'break-invite') {
+      clearDismissTimer();
+      clearTransitionTimer();
+      setVisible(false);
+      setCurrent(null);
+    }
+  }, [breakActive, clearDismissTimer, clearTransitionTimer, current?.kind, pathname, pendingBreakResult]);
+
   // ── Inactivity break invite (7 min) ────────────────────────────────────────
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -517,6 +557,28 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
 
     return () => clearInterval(interval);
   }, [breakActive, current, pathname, showMessage, visible]);
+
+  // ── Resume queued messages when break mode ends ─────────────────────────────
+  useEffect(() => {
+    if (breakActive) return;
+    if (visible || current) return;
+    if (!isDashboardPath(pathname ?? '')) return;
+    if (!queueRef.current.length) return;
+    if (transitionTimerRef.current) return;
+    if (dismissTimerRef.current) return;
+
+    const next = queueRef.current.shift() ?? null;
+    if (!next) {
+      setCurrent(null);
+      return;
+    }
+
+    setCurrent(next);
+    setVisible(true);
+    markSeen(next.id);
+    recordCooldown();
+    startDismissTimer(next.durationMs ?? getDismissDuration(next.text));
+  }, [breakActive, current, pathname, startDismissTimer, visible]);
 
   // ── Ambient idle ticker ────────────────────────────────────────────────────
   useEffect(() => {
@@ -580,23 +642,31 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
     lastActivityRef.current = Date.now();
   }, []);
 
+  useEffect(() => {
+    if (breakActive) return;
+    if (!pendingBreakResult) return;
+    if (!isDashboardPath(pathname ?? '')) {
+      setPendingBreakResult(null);
+      return;
+    }
+
+    const payload = breakResultMessage(pendingBreakResult);
+    showMessage({
+      id: `break-result-${Date.now()}`,
+      text: payload.text,
+      mood: payload.mood,
+      priority: 2,
+      ariaRole: 'status',
+      durationMs: 9_000,
+    });
+    setPendingBreakResult(null);
+  }, [breakActive, pathname, pendingBreakResult, showMessage]);
+
   const handleBreakComplete = useCallback(
     (result: DrillResult) => {
-      const mood: LucianMood = result.score >= 2_000 ? 'celebrate' : 'recovery';
-      const text =
-        result.score >= 2_000
-          ? `Stark. ${result.score} Punkte in 60 Sekunden. Momentum halten.`
-          : `${result.score} Punkte. Reicht, um den Kopf zu resetten. Zurück in den Fokus.`;
-      showMessage({
-        id: `break-result-${Date.now()}`,
-        text,
-        mood,
-        priority: 2,
-        ariaRole: 'status',
-        durationMs: 9_000,
-      });
+      setPendingBreakResult(result);
     },
-    [showMessage],
+    [],
   );
 
   const breakInviteActive = current?.kind === 'break-invite';
