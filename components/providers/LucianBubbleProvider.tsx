@@ -13,6 +13,8 @@ import {
   type LucianMood,
 } from '@/lib/lucian/copy';
 import { LucianBubble } from '@/components/features/lucian/LucianBubble';
+import { LucianBreakOverlay } from '@/components/features/lucian/LucianBreakOverlay';
+import type { DrillResult } from '@/lib/lucian/game/targetDrill';
 
 // ─── localStorage / sessionStorage keys ─────────────────────────────────────
 const KEY_MUTED       = 'innis_lucian_muted';      // '1' = globally muted
@@ -24,6 +26,9 @@ const KEY_SESSION_ID  = 'innis_lucian_session_id';
 
 const GLOBAL_COOLDOWN_MS = 8 * 60 * 1000;  // 8 min between any messages
 const IDLE_INTERVAL_MS   = 45 * 60 * 1000; // ambient idle tick
+const BREAK_INVITE_AFTER_MS = 7 * 60 * 1000; // user choice: 7 min inactivity
+const BREAK_INVITE_COOLDOWN_MS = 30 * 60 * 1000;
+const BREAK_ROUND_SECONDS = 60;
 
 // ─── Dashboard route guard ───────────────────────────────────────────────────
 const DASHBOARD_PREFIXES = [
@@ -49,6 +54,8 @@ interface QueuedMessage {
   mood: LucianMood;
   priority: 0 | 1 | 2 | 3;
   ariaRole: 'status' | 'alert';
+  kind?: 'default' | 'break-invite';
+  durationMs?: number;
 }
 
 interface DashboardNextTasksPayload {
@@ -239,6 +246,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
   const pathname = usePathname();
   const [current, setCurrent]     = useState<QueuedMessage | null>(null);
   const [visible, setVisible]     = useState(false);
+  const [breakActive, setBreakActive] = useState(false);
   const queueRef                  = useRef<QueuedMessage[]>([]);
   const contextHintShownRef       = useRef(false);
   const dismissTimerRef           = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -246,6 +254,8 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
   const remainingRef              = useRef(0);
   const startTimeRef              = useRef(0);
   const hiddenAtRef               = useRef(0);
+  const lastActivityRef           = useRef(Date.now());
+  const lastBreakInviteAtRef      = useRef(0);
   const contextHintsActive        = pathname?.startsWith('/today') ?? false;
   const todayIso                  = formatLocalDateKey(new Date());
 
@@ -326,7 +336,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
         setVisible(true);
         markSeen(next.id);
         recordCooldown();
-        remainingRef.current = getDismissDuration(next.text);
+        remainingRef.current = next.durationMs ?? getDismissDuration(next.text);
         startTimeRef.current = Date.now();
         dismissTimerRef.current = setTimeout(doHide, remainingRef.current);
       } else {
@@ -363,7 +373,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
       setVisible(true);
       markSeen(msg.id);
       recordCooldown();
-      startDismissTimer(getDismissDuration(msg.text));
+      startDismissTimer(msg.durationMs ?? getDismissDuration(msg.text));
     } else if (msg.priority === 0 && current.priority > 0) {
       // P0 interrupts non-P0
       clearDismissTimer();
@@ -374,7 +384,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
         setVisible(true);
         markSeen(msg.id);
         recordCooldown();
-        startDismissTimer(getDismissDuration(msg.text));
+        startDismissTimer(msg.durationMs ?? getDismissDuration(msg.text));
       }, 220);
     } else if (queueRef.current.length < 2) {
       // Queue it
@@ -385,6 +395,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
 
   // ── Context-aware hint (max once per browser session) ─────────────────────
   useEffect(() => {
+    if (breakActive) return;
     if (!contextHintsActive) return;
     if (contextHintShownRef.current) return;
     if (typeof window === 'undefined') return;
@@ -430,12 +441,13 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
       priority: hint.priority,
       ariaRole: hint.priority === 0 ? 'alert' : 'status',
     });
-  }, [applicationsData, contextHintsActive, nextTasksData, recentSessionsData, showMessage, todayTasksData]);
+  }, [applicationsData, breakActive, contextHintsActive, nextTasksData, recentSessionsData, showMessage, todayTasksData]);
 
   // ── Champion event subscription ────────────────────────────────────────────
   useEffect(() => {
     const unsubscribe = subscribeChampionEvent((event) => {
       if (!isDashboardPath(pathname ?? '')) return;
+      if (breakActive) return;
       if (isMuted()) return;
       if (isOnCooldown()) return;
 
@@ -443,7 +455,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
       if (msg) showMessage(msg);
     });
     return unsubscribe;
-  }, [pathname, showMessage]);
+  }, [breakActive, pathname, showMessage]);
 
   // Cleanup all timers on unmount.
   useEffect(() => {
@@ -453,11 +465,65 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
     };
   }, [clearDismissTimer, clearTransitionTimer]);
 
+  // ── User activity tracking for break invites ───────────────────────────────
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const markActivity = () => {
+      const now = Date.now();
+      if (now - lastActivityRef.current < 3_000) return;
+      lastActivityRef.current = now;
+    };
+
+    const events: Array<keyof WindowEventMap> = [
+      'pointerdown',
+      'mousemove',
+      'keydown',
+      'touchstart',
+      'scroll',
+    ];
+    events.forEach((eventName) => window.addEventListener(eventName, markActivity, { passive: true }));
+
+    return () => {
+      events.forEach((eventName) => window.removeEventListener(eventName, markActivity));
+    };
+  }, []);
+
+  // ── Inactivity break invite (7 min) ────────────────────────────────────────
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      if (!isDashboardPath(pathname ?? '')) return;
+      if (breakActive) return;
+      if (current || visible) return;
+      if (isMuted()) return;
+      if (isOnCooldown()) return;
+
+      const now = Date.now();
+      if (now - lastActivityRef.current < BREAK_INVITE_AFTER_MS) return;
+      if (now - lastBreakInviteAtRef.current < BREAK_INVITE_COOLDOWN_MS) return;
+
+      lastBreakInviteAtRef.current = now;
+      showMessage({
+        id: `break-invite-${now}`,
+        text: 'Kurze Pause erkannt. 60 Sekunden Target Drill?',
+        mood: 'motivate',
+        priority: 3,
+        ariaRole: 'status',
+        kind: 'break-invite',
+        durationMs: 15_000,
+      });
+    }, 30_000);
+
+    return () => clearInterval(interval);
+  }, [breakActive, current, pathname, showMessage, visible]);
+
   // ── Ambient idle ticker ────────────────────────────────────────────────────
   useEffect(() => {
     const tick = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
       if (!isDashboardPath(pathname ?? '')) return;
+      if (breakActive) return;
       if (isMuted()) return;
       if (isOnCooldown()) return;
 
@@ -466,7 +532,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
     }, IDLE_INTERVAL_MS);
 
     return () => clearInterval(tick);
-  }, [pathname, showMessage]);
+  }, [breakActive, pathname, showMessage]);
 
   // ── Returning-user trigger (visibilitychange) ──────────────────────────────
   useEffect(() => {
@@ -481,6 +547,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
 
         if (away < AWAY_THRESHOLD_MS) return;
         if (!isDashboardPath(pathname ?? '')) return;
+        if (breakActive) return;
         if (isMuted()) return;
 
         const msg = pickMessage('recovery', 2) ?? pickMessage('idle', 3);
@@ -490,7 +557,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
 
     document.addEventListener('visibilitychange', handleVisibility);
     return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, [pathname, showMessage]);
+  }, [breakActive, pathname, showMessage]);
 
   // ── Dismiss handlers ───────────────────────────────────────────────────────
   const handleDismiss = useCallback(() => {
@@ -502,6 +569,38 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
     doHide();
   }, [doHide]);
 
+  const handleStartBreak = useCallback(() => {
+    lastActivityRef.current = Date.now();
+    setBreakActive(true);
+    doHide();
+  }, [doHide]);
+
+  const handleCloseBreak = useCallback(() => {
+    setBreakActive(false);
+    lastActivityRef.current = Date.now();
+  }, []);
+
+  const handleBreakComplete = useCallback(
+    (result: DrillResult) => {
+      const mood: LucianMood = result.score >= 2_000 ? 'celebrate' : 'recovery';
+      const text =
+        result.score >= 2_000
+          ? `Stark. ${result.score} Punkte in 60 Sekunden. Momentum halten.`
+          : `${result.score} Punkte. Reicht, um den Kopf zu resetten. Zurück in den Fokus.`;
+      showMessage({
+        id: `break-result-${Date.now()}`,
+        text,
+        mood,
+        priority: 2,
+        ariaRole: 'status',
+        durationMs: 9_000,
+      });
+    },
+    [showMessage],
+  );
+
+  const breakInviteActive = current?.kind === 'break-invite';
+
   return (
     <>
       {children}
@@ -511,12 +610,26 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
           mood={current.mood}
           ariaRole={current.ariaRole}
           visible={visible}
+          dismissOnBodyClick={!breakInviteActive}
           onDismiss={handleDismiss}
           onMuteToday={handleMuteToday}
           onPause={pauseDismiss}
           onResume={resumeDismiss}
+          {...(breakInviteActive
+            ? {
+                actionLabel: 'Start 60s Drill',
+                actionAriaLabel: 'Lucian Break Challenge starten',
+                onAction: handleStartBreak,
+              }
+            : {})}
         />
       )}
+      <LucianBreakOverlay
+        open={breakActive}
+        durationSeconds={BREAK_ROUND_SECONDS}
+        onClose={handleCloseBreak}
+        onComplete={handleBreakComplete}
+      />
     </>
   );
 }

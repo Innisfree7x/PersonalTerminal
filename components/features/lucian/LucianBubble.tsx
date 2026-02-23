@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { X } from 'lucide-react';
 import type { LucianMood } from '@/lib/lucian/copy';
@@ -75,10 +75,14 @@ interface LucianBubbleProps {
   mood: LucianMood;
   ariaRole: 'status' | 'alert';
   visible: boolean;
+  actionLabel?: string;
+  actionAriaLabel?: string;
+  dismissOnBodyClick?: boolean;
   onDismiss: () => void;
   onMuteToday: () => void;
   onPause: () => void;
   onResume: () => void;
+  onAction?: () => void;
 }
 
 export function LucianBubble({
@@ -86,13 +90,31 @@ export function LucianBubble({
   mood,
   ariaRole,
   visible,
+  actionLabel,
+  actionAriaLabel,
+  dismissOnBodyClick = true,
   onDismiss,
   onMuteToday,
   onPause,
   onResume,
+  onAction,
 }: LucianBubbleProps) {
   const prefersReducedMotion = useReducedMotion();
   const [phase, setPhase] = useState<'entry' | 'settled'>('settled');
+  const bubbleRef = useRef<HTMLDivElement | null>(null);
+  const [anchor, setAnchor] = useState<{
+    anchored: boolean;
+    left: number;
+    top: number;
+    tailSide: 'top' | 'bottom';
+    tailOffset: number;
+  }>({
+    anchored: false,
+    left: 0,
+    top: 0,
+    tailSide: 'bottom',
+    tailOffset: 160,
+  });
 
   useEffect(() => {
     if (!visible) return;
@@ -100,6 +122,54 @@ export function LucianBubble({
     const timer = setTimeout(() => setPhase('settled'), 1200);
     return () => clearTimeout(timer);
   }, [visible]);
+
+  useEffect(() => {
+    if (!visible) return;
+
+    const updatePosition = () => {
+      const bubbleEl = bubbleRef.current;
+      const championEl = document.querySelector('[data-champion-sprite="true"]') as HTMLElement | null;
+      if (!bubbleEl || !championEl) {
+        setAnchor((prev) => ({ ...prev, anchored: false }));
+        return;
+      }
+
+      const championRect = championEl.getBoundingClientRect();
+      const bubbleRect = bubbleEl.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const margin = 12;
+
+      let left = championRect.left + championRect.width / 2 - bubbleRect.width / 2;
+      left = Math.max(margin, Math.min(viewportWidth - bubbleRect.width - margin, left));
+
+      let top = championRect.top - bubbleRect.height - 14;
+      let tailSide: 'top' | 'bottom' = 'bottom';
+      if (top < margin) {
+        top = championRect.bottom + 14;
+        tailSide = 'top';
+      }
+
+      const championCenterX = championRect.left + championRect.width / 2;
+      const tailOffset = Math.max(22, Math.min(bubbleRect.width - 22, championCenterX - left));
+
+      setAnchor({
+        anchored: true,
+        left,
+        top,
+        tailSide,
+        tailOffset,
+      });
+    };
+
+    updatePosition();
+    const interval = window.setInterval(updatePosition, 90);
+    window.addEventListener('resize', updatePosition);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [text, visible]);
 
   const variants = prefersReducedMotion
     ? {
@@ -115,20 +185,23 @@ export function LucianBubble({
 
   const currentAnimation: LucianAnimation =
     phase === 'entry' ? 'walk' : moodAnimation[mood];
+  const bubbleStyle = anchor.anchored ? { left: anchor.left, top: anchor.top } : {};
 
   return (
     <AnimatePresence>
       {visible && (
         <motion.div
           key="lucian-bubble"
+          ref={bubbleRef}
           {...variants}
           transition={{ duration: 0.22, ease: 'easeOut' }}
-          className="fixed bottom-[100px] right-6 z-[49] w-[min(320px,calc(100vw-48px))]"
+          className={`fixed z-[49] w-[min(320px,calc(100vw-48px))] ${anchor.anchored ? '' : 'bottom-[100px] right-6'}`}
+          style={bubbleStyle}
           onMouseEnter={onPause}
           onFocus={onPause}
           onMouseLeave={onResume}
           onBlur={onResume}
-          onClick={onDismiss}
+          onClick={dismissOnBodyClick ? onDismiss : undefined}
           role={ariaRole}
           aria-live={ariaRole === 'alert' ? 'assertive' : 'polite'}
           aria-atomic="true"
@@ -194,10 +267,33 @@ export function LucianBubble({
                     <span className="h-1 w-1 rounded-full bg-current" />
                     <span>{moodSpell[mood]}</span>
                   </div>
+                  {actionLabel && onAction ? (
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onAction();
+                      }}
+                      aria-label={actionAriaLabel ?? actionLabel}
+                      className="mt-3 inline-flex w-fit items-center rounded-md border border-cyan-300/35 bg-cyan-400/12 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-cyan-100 transition hover:bg-cyan-400/20"
+                    >
+                      {actionLabel}
+                    </button>
+                  ) : null}
                 </div>
               </div>
             </div>
           </div>
+          {anchor.anchored && (
+            <div
+              className="pointer-events-none absolute h-3 w-3 rotate-45 border border-white/[0.08] bg-[#0d0d10]/95"
+              style={
+                anchor.tailSide === 'bottom'
+                  ? { left: anchor.tailOffset - 6, bottom: -6 }
+                  : { left: anchor.tailOffset - 6, top: -6 }
+              }
+            />
+          )}
         </motion.div>
       )}
     </AnimatePresence>
