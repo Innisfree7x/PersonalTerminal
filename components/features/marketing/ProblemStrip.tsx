@@ -66,16 +66,20 @@ export function ProblemStrip() {
           ))}
         </motion.div>
 
-        {/* Arrow down — "INNIS löst das" */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+        {/* Bridge to solution */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.7 }}
-          className="mt-10 text-center text-sm font-semibold tracking-widest uppercase text-zinc-600"
+          className="mt-12 flex flex-col items-center gap-4"
         >
-          INNIS ersetzt das alles
-        </motion.p>
+          <div className="h-8 w-px bg-gradient-to-b from-white/20 to-transparent" />
+          <p className="text-center text-2xl font-semibold tracking-tight text-[#FAF0E6] md:text-3xl">
+            Ein System.{' '}
+            <span className="text-zinc-500">Kein Chaos mehr.</span>
+          </p>
+        </motion.div>
       </div>
     </section>
   );

@@ -35,7 +35,7 @@ export function FAQSection() {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <section className="relative py-24 md:py-32">
+    <section className="relative py-20 md:py-28">
       <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       <div className="marketing-container">
