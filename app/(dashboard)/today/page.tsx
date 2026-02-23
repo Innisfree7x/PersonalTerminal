@@ -165,9 +165,11 @@ export default function TodayPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="relative flex items-start gap-3 p-4 rounded-xl bg-primary/10 border border-primary/20"
+            className="relative flex items-start gap-3 p-4 rounded-xl bg-primary/[0.08] border border-primary/20 overflow-hidden"
           >
-            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5"
+              style={{ boxShadow: '0 0 14px rgba(var(--color-primary-rgb, 99 102 241) / 0.25)' }}>
               <Sparkles className="w-4 h-4 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
