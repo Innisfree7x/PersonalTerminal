@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import {
   fetchTodayFocusSummary,
   type TodayFocusSummary,
@@ -149,6 +150,10 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
       queryClient.invalidateQueries({ queryKey: ['focus', 'today'] });
       queryClient.invalidateQueries({ queryKey: ['focus', 'analytics'] });
       queryClient.invalidateQueries({ queryKey: ['focus', 'sessions'] });
+    },
+    onError: (error) => {
+      console.error('[FocusTimer] Session save failed:', error);
+      toast.error('Session konnte nicht gespeichert werden. Bitte prüfe deine Verbindung.');
     },
   });
 

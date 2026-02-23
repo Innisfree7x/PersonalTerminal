@@ -2,95 +2,40 @@
 
 import { motion } from 'framer-motion';
 import { Play, Pause, RotateCcw, Coffee } from 'lucide-react';
-import { useState, useEffect, useRef, memo, useCallback } from 'react';
+import { memo, useState } from 'react';
 import { SkeletonCircle, Skeleton } from '@/components/ui';
+import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 
-/**
- * Pomodoro technique timer widget with work/break cycles
- * Features circular progress display, play/pause controls, and session tracking
- * 
- * @component
- * @example
- * <PomodoroTimer 
- *   workDuration={25}
- *   breakDuration={5}
- * />
- */
+const DURATIONS = [25, 50, 90] as const;
+type Duration = (typeof DURATIONS)[number];
+
 interface PomodoroTimerProps {
-  /** Work session duration in minutes (default: 25, min: 1, max: 60) */
-  workDuration?: number;
-  /** Break session duration in minutes (default: 5, min: 1, max: 30) */
-  breakDuration?: number;
-  /** Show loading skeleton (default: false) */
   isLoading?: boolean;
 }
 
-/**
- * Validate and clamp Pomodoro duration to acceptable range
- * Prevents invalid or extreme values from breaking the timer
- */
-function validateDuration(duration: number, min: number, max: number, defaultValue: number): number {
-  // Handle invalid numbers (NaN, Infinity, etc.)
-  if (!Number.isFinite(duration)) {
-    console.warn(`Invalid Pomodoro duration: ${duration}. Using default: ${defaultValue}`);
-    return defaultValue;
-  }
-  
-  // Clamp to acceptable range
-  if (duration < min) {
-    console.warn(`Pomodoro duration ${duration} below minimum ${min}. Using ${min}.`);
-    return min;
-  }
-  
-  if (duration > max) {
-    console.warn(`Pomodoro duration ${duration} above maximum ${max}. Using ${max}.`);
-    return max;
-  }
-  
-  return Math.round(duration); // Ensure integer value
-}
+const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: PomodoroTimerProps) {
+  const {
+    status,
+    timeLeft,
+    totalTime,
+    sessionType,
+    completedPomodoros,
+    startTimer,
+    pauseTimer,
+    resumeTimer,
+    stopTimer,
+  } = useFocusTimer();
 
-const PomodoroTimer = memo(function PomodoroTimer({ 
-  workDuration: rawWorkDuration = 25, 
-  breakDuration: rawBreakDuration = 5,
-  isLoading = false,
-}: PomodoroTimerProps) {
-  // Validate input durations
-  const workDuration = validateDuration(rawWorkDuration, 1, 60, 25);
-  const breakDuration = validateDuration(rawBreakDuration, 1, 30, 5);
-  
-  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS!
-  const [isRunning, setIsRunning] = useState(false);
-  const [isBreak, setIsBreak] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(workDuration * 60); // in seconds
-  const [completedPomodoros, setCompletedPomodoros] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [selectedDuration, setSelectedDuration] = useState<Duration>(25);
 
-  const totalTime = isBreak ? breakDuration * 60 : workDuration * 60;
-  const progress = ((totalTime - timeLeft) / totalTime) * 100;
+  const isIdle = status === 'idle';
+  const isRunning = status === 'running' || status === 'break';
+  const isBreak = sessionType === 'break';
 
-  useEffect(() => {
-    if (isRunning && timeLeft > 0) {
-      intervalRef.current = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0) {
-      // Timer finished
-      if (!isBreak) {
-        setCompletedPomodoros((prev) => prev + 1);
-      }
-      setIsRunning(false);
-      // Auto-switch to break or work
-      setIsBreak(!isBreak);
-      setTimeLeft(isBreak ? workDuration * 60 : breakDuration * 60);
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [isRunning, timeLeft, isBreak, workDuration, breakDuration]);
+  // When idle, show the selected duration as the "ready" state
+  const displayTime = isIdle ? selectedDuration * 60 : timeLeft;
+  const safeTotal = totalTime > 0 ? totalTime : selectedDuration * 60;
+  const progress = totalTime > 0 ? ((safeTotal - timeLeft) / safeTotal) * 100 : 0;
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -98,23 +43,20 @@ const PomodoroTimer = memo(function PomodoroTimer({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Memoized event handlers (prevents function recreation on every render)
-  const handlePlayPause = useCallback(() => {
-    setIsRunning((prev) => !prev);
-  }, []);
+  const handlePlayPause = () => {
+    if (status === 'idle') {
+      startTimer({ duration: selectedDuration });
+    } else if (status === 'running') {
+      pauseTimer();
+    } else if (status === 'paused') {
+      resumeTimer();
+    } else if (status === 'break') {
+      pauseTimer();
+    } else if (status === 'break_paused') {
+      resumeTimer();
+    }
+  };
 
-  const handleReset = useCallback(() => {
-    setIsRunning(false);
-    setTimeLeft(isBreak ? breakDuration * 60 : workDuration * 60);
-  }, [isBreak, breakDuration, workDuration]);
-
-  const handleToggleMode = useCallback(() => {
-    setIsRunning(false);
-    setIsBreak((prev) => !prev);
-    setTimeLeft(isBreak ? workDuration * 60 : breakDuration * 60);
-  }, [isBreak, workDuration, breakDuration]);
-
-  // Loading state - conditional RENDERING after all hooks!
   if (isLoading) {
     return (
       <div className="card-surface rounded-xl p-4">
@@ -143,28 +85,42 @@ const PomodoroTimer = memo(function PomodoroTimer({
 
   return (
     <div className="card-surface rounded-xl p-4">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Coffee className="w-5 h-5 text-warning" />
           <h3 className="text-base font-semibold text-text-primary">Pomodoro</h3>
         </div>
-        <button
-          onClick={handleToggleMode}
-          className="text-xs px-2 py-1 rounded-md bg-surface-hover hover:bg-primary/20 text-text-secondary hover:text-primary transition-colors"
-          aria-label={`Switch to ${isBreak ? 'work' : 'break'} mode`}
-        >
-          {isBreak ? '☕ Break' : '🍅 Work'}
-        </button>
+        <span className="text-xs px-2 py-1 rounded-md bg-surface-hover text-text-secondary">
+          {isBreak ? '☕ Break' : '🍅 Focus'}
+        </span>
       </div>
 
+      {/* Duration selector — only shown when idle */}
+      {isIdle && (
+        <div className="flex items-center justify-center gap-1.5 mb-3">
+          {DURATIONS.map((d) => (
+            <button
+              key={d}
+              onClick={() => setSelectedDuration(d)}
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                selectedDuration === d
+                  ? 'bg-primary text-white'
+                  : 'bg-surface-hover text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              {d}m
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Timer display */}
-      <div 
+      <div
         className="relative mb-6"
         role="timer"
-        aria-label={`${isBreak ? 'Break' : 'Work'} timer: ${formatTime(timeLeft)} remaining`}
+        aria-label={`${isBreak ? 'Break' : 'Focus'} timer: ${formatTime(displayTime)} remaining`}
         aria-live="polite"
       >
-        {/* Background circle */}
         <svg className="w-full h-32" viewBox="0 0 100 100" aria-hidden="true">
           <circle
             cx="50"
@@ -175,7 +131,6 @@ const PomodoroTimer = memo(function PomodoroTimer({
             strokeWidth="3"
             className="text-surface-hover"
           />
-          {/* Progress circle */}
           <motion.circle
             cx="50"
             cy="50"
@@ -199,16 +154,15 @@ const PomodoroTimer = memo(function PomodoroTimer({
           />
         </svg>
 
-        {/* Time text */}
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.span
             className="text-3xl font-bold text-text-primary font-mono"
-            key={timeLeft}
+            key={displayTime}
             initial={{ scale: 1.1 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.2 }}
           >
-            {formatTime(timeLeft)}
+            {formatTime(displayTime)}
           </motion.span>
         </div>
       </div>
@@ -228,11 +182,12 @@ const PomodoroTimer = memo(function PomodoroTimer({
         </motion.button>
 
         <motion.button
-          onClick={handleReset}
-          className="p-3 rounded-full bg-surface-hover text-text-secondary hover:bg-error/20 hover:text-error transition-all"
+          onClick={stopTimer}
+          className="p-3 rounded-full bg-surface-hover text-text-secondary hover:bg-error/20 hover:text-error transition-all disabled:opacity-30 disabled:pointer-events-none"
           whileHover={{ scale: 1.1, rotate: 180 }}
           whileTap={{ scale: 0.95 }}
-          aria-label="Reset timer to initial duration"
+          aria-label="Stop and reset timer"
+          disabled={status === 'idle'}
         >
           <RotateCcw className="w-5 h-5" />
         </motion.button>
@@ -261,7 +216,7 @@ const PomodoroTimer = memo(function PomodoroTimer({
         ))}
       </div>
       <p className="text-xs text-center text-text-tertiary">
-        {completedPomodoros}/4 sessions today
+        {completedPomodoros}/4 sessions · sessions are saved automatically
       </p>
     </div>
   );
