@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useReducedMotion } from 'framer-motion';
 
 export type LucianAnimation = 'idle' | 'walk' | 'victory' | 'panic' | 'meditate';
 
@@ -40,18 +41,20 @@ function frameDuration(animation: LucianAnimation): number {
 
 export function LucianSpriteAnimator({ animation, size = 64 }: LucianSpriteAnimatorProps) {
   const [frame, setFrame] = useState(0);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     const count = frameCount(animation);
-    const duration = frameDuration(animation);
     setFrame(0);
+    if (prefersReducedMotion) return;
 
+    const duration = frameDuration(animation);
     const interval = setInterval(() => {
       setFrame((prev) => (prev + 1) % count);
     }, duration);
 
     return () => clearInterval(interval);
-  }, [animation]);
+  }, [animation, prefersReducedMotion]);
 
   const row = animationRow(animation);
 

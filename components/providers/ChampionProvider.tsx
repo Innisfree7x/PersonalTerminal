@@ -86,6 +86,7 @@ interface EffectState {
   angle?: number;
   distance?: number;
   size?: number;
+  tone?: string;
 }
 
 const SETTINGS_KEY = 'prism-champion-settings';
@@ -267,11 +268,15 @@ function ChampionOverlay({
   const auraColor = (() => {
     if (animation === 'panic') return hexToRgba('#ef4444', 0.38);
     if (animation === 'victory') return hexToRgba('#f59e0b', 0.3);
-    if (isCasting) return hexToRgba(abilityColors.q, 0.52);
+    if (animation === 'cast_q') return hexToRgba(abilityColors.q, 0.52);
+    if (animation === 'cast_w') return hexToRgba(abilityColors.w, 0.48);
+    if (animation === 'cast_e') return hexToRgba(abilityColors.e, 0.42);
+    if (animation === 'cast_r') return hexToRgba(abilityColors.r, 0.56);
     if (animation === 'recall') return hexToRgba('#a78bfa', 0.28);
     if (animation === 'meditate') return hexToRgba(abilityColors.e, 0.22);
     return hexToRgba(abilityColors.q, 0.2);
   })();
+  const ultCinematicActive = effects.some((effect) => effect.type === 'r' || effect.type === 'r-lane');
   const championCenterX = position.x + championSize / 2;
   const championCenterY = position.y + championSize / 2;
   const visibleRangeRadius = (() => {
@@ -306,6 +311,20 @@ function ChampionOverlay({
           className="absolute inset-0"
           style={{
             boxShadow: `inset 0 0 0 1px ${hexToRgba(abilityColors.q, 0.18)}`,
+          }}
+        />
+      )}
+
+      {mode === 'active' && ultCinematicActive && (
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.12, 0.08, 0] }}
+          transition={{ duration: 0.55, ease: 'easeOut' }}
+          style={{
+            background: `radial-gradient(circle at center, ${hexToRgba(abilityColors.r, 0.2)} 0%, ${hexToRgba('#02040a', 0.72)} 70%)`,
+            mixBlendMode: 'screen',
           }}
         />
       )}
@@ -747,7 +766,7 @@ function ChampionOverlay({
                   width: effect.size ?? 44,
                   height: effect.size ?? 44,
                   backgroundColor: hexToRgba('#FFFFFF', 0.92),
-                  boxShadow: `0 0 40px ${hexToRgba(abilityColors.q, 0.95)}, 0 0 80px ${hexToRgba(abilityColors.q, 0.45)}, 0 0 120px ${hexToRgba(abilityColors.q, 0.18)}`,
+                  boxShadow: `0 0 40px ${hexToRgba(effect.tone ?? abilityColors.q, 0.95)}, 0 0 80px ${hexToRgba(effect.tone ?? abilityColors.q, 0.45)}, 0 0 120px ${hexToRgba(effect.tone ?? abilityColors.q, 0.18)}`,
                 }}
               />
             )}
@@ -847,6 +866,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
   const taskStreakRef = useRef(0);
 
   const championSize = SCALE_TO_SIZE[settings.renderScale];
+  const abilityColors = CHAMPION_CONFIG[settings.champion].colors;
 
   const updateSettings = useCallback((next: Partial<ChampionSettings>) => {
     setSettings((prev) => {
@@ -983,7 +1003,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       const center = { x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 };
       const angle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
       const beamDistance = 640;
-      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 34 }, 220);
+      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 34, tone: abilityColors.q }, 220);
       addEffect({ type: 'q', x: center.x, y: center.y, angle, distance: beamDistance }, 450);
       for (let i = 0; i < 6; i += 1) {
         const spread = (Math.random() - 0.5) * 16;
@@ -1028,10 +1048,10 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       const hitX = center.x + Math.cos(rad) * boltDistance;
       const hitY = center.y + Math.sin(rad) * boltDistance;
 
-      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 26 }, 200);
+      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 26, tone: abilityColors.w }, 200);
       addEffect({ type: 'w', x: center.x, y: center.y }, 260);
       addEffect({ type: 'w-bolt', x: center.x, y: center.y, angle, distance: boltDistance }, 360);
-      addEffect({ type: 'origin-flash', x: hitX, y: hitY, size: 42 }, 380);
+      addEffect({ type: 'origin-flash', x: hitX, y: hitY, size: 42, tone: abilityColors.w }, 380);
       addEffect({ type: 'w-mark', x: hitX, y: hitY }, 450);
       addEffect({ type: 'w-mark', x: hitX, y: hitY, angle: 45 }, 450);
       fireLightslinger(center, angle);
@@ -1077,7 +1097,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       setAnimation('cast_r');
       const center = { x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 };
       const baseAngle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
-      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 60 }, 160);
+      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 60, tone: abilityColors.r }, 160);
       addEffect({ type: 'r', x: center.x, y: center.y, angle: baseAngle }, 1100);
       for (let lane = -1; lane <= 1; lane += 2) {
         addEffect(
@@ -1125,6 +1145,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
     }
   }, [
     addEffect,
+    abilityColors,
     championSize,
     cooldownReadyAt,
     isMoving,

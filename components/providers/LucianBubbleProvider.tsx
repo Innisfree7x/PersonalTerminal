@@ -35,6 +35,13 @@ function isDashboardPath(pathname: string): boolean {
   return DASHBOARD_PREFIXES.some((p) => pathname.startsWith(p));
 }
 
+function formatLocalDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 // ─── Queued message shape ────────────────────────────────────────────────────
 interface QueuedMessage {
   id: string;
@@ -68,22 +75,34 @@ interface ApplicationPayload {
 // ─── Storage helpers (all safe for SSR) ─────────────────────────────────────
 function isMuted(): boolean {
   if (typeof window === 'undefined') return true;
-  if (localStorage.getItem(KEY_MUTED) === '1') return true;
-  const daily = localStorage.getItem(KEY_DAILY_MUTE);
-  if (daily === new Date().toISOString().slice(0, 10)) return true;
-  return false;
+  try {
+    if (localStorage.getItem(KEY_MUTED) === '1') return true;
+    const daily = localStorage.getItem(KEY_DAILY_MUTE);
+    if (daily === formatLocalDateKey(new Date())) return true;
+    return false;
+  } catch {
+    return false;
+  }
 }
 
 function isOnCooldown(): boolean {
   if (typeof window === 'undefined') return true;
-  const ts = localStorage.getItem(KEY_COOLDOWN);
-  if (!ts) return false;
-  return Date.now() - Number(ts) < GLOBAL_COOLDOWN_MS;
+  try {
+    const ts = localStorage.getItem(KEY_COOLDOWN);
+    if (!ts) return false;
+    return Date.now() - Number(ts) < GLOBAL_COOLDOWN_MS;
+  } catch {
+    return false;
+  }
 }
 
 function recordCooldown(): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(KEY_COOLDOWN, String(Date.now()));
+  try {
+    localStorage.setItem(KEY_COOLDOWN, String(Date.now()));
+  } catch {
+    // ignore storage errors
+  }
 }
 
 function getSeenIds(): string[] {
@@ -98,35 +117,54 @@ function getSeenIds(): string[] {
 function markSeen(id: string): void {
   if (typeof window === 'undefined') return;
   const seen = getSeenIds();
-  if (!seen.includes(id)) {
+  if (seen.includes(id)) return;
+  try {
     sessionStorage.setItem(KEY_SEEN, JSON.stringify([...seen, id]));
+  } catch {
+    // ignore storage errors
   }
 }
 
 function muteToday(): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(KEY_DAILY_MUTE, new Date().toISOString().slice(0, 10));
+  try {
+    localStorage.setItem(KEY_DAILY_MUTE, formatLocalDateKey(new Date()));
+  } catch {
+    // ignore storage errors
+  }
 }
 
 function getSessionId(): string {
   if (typeof window === 'undefined') return '';
-  let sessionId = sessionStorage.getItem(KEY_SESSION_ID);
-  if (!sessionId) {
-    sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-    sessionStorage.setItem(KEY_SESSION_ID, sessionId);
+  try {
+    let sessionId = sessionStorage.getItem(KEY_SESSION_ID);
+    if (!sessionId) {
+      sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      sessionStorage.setItem(KEY_SESSION_ID, sessionId);
+    }
+    return sessionId;
+  } catch {
+    return 'fallback-session';
   }
-  return sessionId;
 }
 
 function hasShownContextHintThisSession(): boolean {
   if (typeof window === 'undefined') return true;
   const sessionId = getSessionId();
-  return localStorage.getItem(KEY_SHOWN_AT) === sessionId;
+  try {
+    return localStorage.getItem(KEY_SHOWN_AT) === sessionId;
+  } catch {
+    return false;
+  }
 }
 
 function markContextHintShown(): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(KEY_SHOWN_AT, getSessionId());
+  try {
+    localStorage.setItem(KEY_SHOWN_AT, getSessionId());
+  } catch {
+    // ignore storage errors
+  }
 }
 
 // ─── Line picker ─────────────────────────────────────────────────────────────
@@ -208,9 +246,8 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
   const remainingRef              = useRef(0);
   const startTimeRef              = useRef(0);
   const hiddenAtRef               = useRef(0);
-  const dashboardActive           = isDashboardPath(pathname ?? '');
-
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const contextHintsActive        = pathname?.startsWith('/today') ?? false;
+  const todayIso                  = formatLocalDateKey(new Date());
 
   const { data: nextTasksData } = useQuery<DashboardNextTasksPayload | null>({
     queryKey: ['dashboard', 'next-tasks'],
@@ -219,9 +256,9 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
       if (!response.ok) return null;
       return (await response.json()) as DashboardNextTasksPayload;
     },
-    enabled: dashboardActive,
+    enabled: contextHintsActive,
     staleTime: 20 * 1000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
 
   const { data: todayTasksData } = useQuery<DailyTaskPayload[] | null>({
@@ -231,9 +268,9 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
       if (!response.ok) return null;
       return (await response.json()) as DailyTaskPayload[];
     },
-    enabled: dashboardActive,
+    enabled: contextHintsActive,
     staleTime: 20 * 1000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
 
   const { data: recentSessionsData } = useQuery<FocusSessionPayload[] | null>({
@@ -245,21 +282,21 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
       if (!response.ok) return null;
       return (await response.json()) as FocusSessionPayload[];
     },
-    enabled: dashboardActive,
+    enabled: contextHintsActive,
     staleTime: 30 * 1000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
 
   const { data: applicationsData } = useQuery<ApplicationPayload[] | null>({
     queryKey: ['career', 'applications', 'lucian-context'],
     queryFn: async () => {
-      const response = await fetch('/api/applications?limit=20');
+      const response = await fetch('/api/applications?limit=100');
       if (!response.ok) return null;
       return (await response.json()) as ApplicationPayload[];
     },
-    enabled: dashboardActive,
+    enabled: contextHintsActive,
     staleTime: 30 * 1000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
 
   // ── Timer helpers ──────────────────────────────────────────────────────────
@@ -348,7 +385,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
 
   // ── Context-aware hint (max once per browser session) ─────────────────────
   useEffect(() => {
-    if (!dashboardActive) return;
+    if (!contextHintsActive) return;
     if (contextHintShownRef.current) return;
     if (typeof window === 'undefined') return;
 
@@ -392,7 +429,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
     });
     markContextHintShown();
     contextHintShownRef.current = true;
-  }, [applicationsData, dashboardActive, nextTasksData, recentSessionsData, showMessage, todayTasksData]);
+  }, [applicationsData, contextHintsActive, nextTasksData, recentSessionsData, showMessage, todayTasksData]);
 
   // ── Champion event subscription ────────────────────────────────────────────
   useEffect(() => {

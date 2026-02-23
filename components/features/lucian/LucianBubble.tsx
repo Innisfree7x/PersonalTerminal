@@ -34,6 +34,15 @@ const moodGlow: Record<LucianMood, string> = {
   idle:      'bg-white/5',
 };
 
+// Mood → subtle right-panel tint
+const moodPanelTint: Record<LucianMood, string> = {
+  motivate:  'from-blue-500/[0.10]',
+  celebrate: 'from-yellow-500/[0.12]',
+  warning:   'from-red-500/[0.12]',
+  recovery:  'from-violet-500/[0.12]',
+  idle:      'from-white/[0.06]',
+};
+
 // Mood → display label
 const moodLabel: Record<LucianMood, string> = {
   motivate:  'MOTIVATE',
@@ -41,6 +50,15 @@ const moodLabel: Record<LucianMood, string> = {
   warning:   'WARNING',
   recovery:  'RECOVERY',
   idle:      'IDLE',
+};
+
+// Mood → companion "spell" tag
+const moodSpell: Record<LucianMood, string> = {
+  motivate:  'Relentless Drive',
+  celebrate: 'Momentum Surge',
+  warning:   'Deadline Pulse',
+  recovery:  'Reset Ritual',
+  idle:      'Standby Field',
 };
 
 // Mood → settled sprite animation
@@ -151,16 +169,33 @@ export function LucianBubble({
             <div className="flex items-stretch pb-3.5">
               {/* Left panel — sprite + mood glow */}
               <div className="relative flex w-20 flex-shrink-0 items-center justify-center border-r border-white/[0.06]">
-                <div
+                <motion.div
                   className={`pointer-events-none absolute inset-0 ${moodGlow[mood]} blur-lg`}
+                  animate={
+                    prefersReducedMotion
+                      ? { opacity: 0.7, scale: 1 }
+                      : { opacity: [0.45, 0.9, 0.45], scale: [0.92, 1.08, 0.92] }
+                  }
+                  transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
                 />
                 <LucianSpriteAnimator animation={currentAnimation} size={64} />
               </div>
 
               {/* Right panel — message text */}
-              <p className="flex flex-1 items-center px-4 text-[13px] leading-snug text-zinc-200">
-                {text}
-              </p>
+              <div className="relative flex flex-1 overflow-hidden">
+                <div
+                  className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${moodPanelTint[mood]} via-transparent to-transparent`}
+                />
+                <div className="relative flex w-full flex-col justify-center px-4">
+                  <p className="text-[13px] leading-snug text-zinc-200">
+                    {text}
+                  </p>
+                  <div className="mt-2 inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.16em] text-zinc-500">
+                    <span className="h-1 w-1 rounded-full bg-current" />
+                    <span>{moodSpell[mood]}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>

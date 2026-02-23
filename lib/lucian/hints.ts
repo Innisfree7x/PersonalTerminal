@@ -45,9 +45,25 @@ function today(nowIso?: string): Date {
   return nowIso ? new Date(nowIso) : new Date();
 }
 
+function localDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function parseLocalDateInput(input: string): Date {
+  const match = input.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return new Date(input);
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  return new Date(year, month - 1, day);
+}
+
 function daysUntil(dateStr: string, nowIso?: string): number {
   const now = today(nowIso);
-  const target = new Date(dateStr);
+  const target = parseLocalDateInput(dateStr);
   const diffMs = target.setHours(0, 0, 0, 0) - now.setHours(0, 0, 0, 0);
   return Math.round(diffMs / (1000 * 60 * 60 * 24));
 }
@@ -67,7 +83,7 @@ function currentHour(nowIso?: string): number {
 }
 
 function todayStr(nowIso?: string): string {
-  return today(nowIso).toISOString().slice(0, 10);
+  return localDateKey(today(nowIso));
 }
 
 // ─── Hint logic (priority order: 0 = highest) ────────────────────────────────
@@ -116,7 +132,7 @@ export function getLucianHint(ctx: LucianContext): LucianHint | null {
   }
 
   // ── P1: Prüfung in ≤ 7 Tagen + letzte Session > 2 Tage zurück ────────────
-  const lastSession = recentSessions
+  const lastSession = [...recentSessions]
     .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())[0];
   const daysSinceLastSession = lastSession
     ? daysSince(lastSession.startedAt, nowIso)
@@ -176,8 +192,9 @@ export function getLucianHint(ctx: LucianContext): LucianHint | null {
   }
 
   // ── P4: Bewerbung > 14 Tage ohne Update ──────────────────────────────────
-  const staleApp = applications
+  const staleApp = [...applications]
     .filter((a) => a.status !== 'offer' && a.status !== 'rejected')
+    .sort((a, b) => daysSince(b.updatedAt, nowIso) - daysSince(a.updatedAt, nowIso))
     .find((a) => daysSince(a.updatedAt, nowIso) >= 14);
 
   if (staleApp) {
