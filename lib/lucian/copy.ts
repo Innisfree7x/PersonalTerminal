@@ -22,6 +22,11 @@ export const LUCIAN_LINES: LucianLine[] = [
   { id: 'M12', mood: 'motivate', text: 'Momentum verliert sich schnell. Halte es.' },
   { id: 'M13', mood: 'motivate', text: 'Du kämpfst nicht für mich. Für dich. Das macht es schwerer — und wichtiger.' },
   { id: 'M14', mood: 'motivate', text: 'Ich warte nicht. Du auch nicht.' },
+  { id: 'M15', mood: 'motivate', text: 'Jede Session zählt. Auch die kurzen.' },
+  { id: 'M16', mood: 'motivate', text: 'Das System ist bereit. Bist du es?' },
+  { id: 'M17', mood: 'motivate', text: '25 Minuten. Danach kannst du wieder zweifeln.' },
+  { id: 'M18', mood: 'motivate', text: 'Ich hab keine Geduld für Ausreden. Du auch nicht.' },
+  { id: 'M19', mood: 'motivate', text: 'Kein Warm-up mehr. Direkt rein.' },
 
   // ── Celebrate ────────────────────────────────────────────────────────
   { id: 'C1',  mood: 'celebrate', text: 'Das. Genau das.' },
@@ -35,6 +40,9 @@ export const LUCIAN_LINES: LucianLine[] = [
   { id: 'C9',  mood: 'celebrate', text: 'Stark. Weiter.' },
   { id: 'C10', mood: 'celebrate', text: 'Erledigtes bleibt erledigt. Gut gemacht.' },
   { id: 'C11', mood: 'celebrate', text: 'Ich kämpfe lieber an deiner Seite als gegen dich. Heute warst du auf der richtigen Seite.' },
+  { id: 'C12', mood: 'celebrate', text: 'Heute hast du etwas bewiesen. Merk dir das Gefühl.' },
+  { id: 'C13', mood: 'celebrate', text: 'Fertig. Nächstes Kapitel.' },
+  { id: 'C14', mood: 'celebrate', text: 'Das war keine Selbstverständlichkeit.' },
 
   // ── Warning ──────────────────────────────────────────────────────────
   { id: 'W1',  mood: 'warning', text: 'Es ist {time}. Ich sag das ohne Urteil — aber ich sag es.' },
@@ -47,6 +55,8 @@ export const LUCIAN_LINES: LucianLine[] = [
   { id: 'W8',  mood: 'warning', text: 'Keine Session heute. Das Semester wartet nicht.' },
   { id: 'W9',  mood: 'warning', text: 'Noch {open} Tasks. Der Tag endet — die Liste nicht.' },
   { id: 'W10', mood: 'warning', text: 'Ich bin nicht dein Feind. Die Zeit ist es. Nutz sie.' },
+  { id: 'W11', mood: 'warning', text: 'Ich erinnere nicht gerne. Aber ich erinnere.' },
+  { id: 'W12', mood: 'warning', text: 'Das Fenster schließt sich. Ich nicht.' },
 
   // ── Recovery ─────────────────────────────────────────────────────────
   { id: 'R1',  mood: 'recovery', text: 'Rückschläge formen dich. Lass sie dich nicht definieren.' },
@@ -67,6 +77,11 @@ export const LUCIAN_LINES: LucianLine[] = [
   { id: 'N6',  mood: 'idle', text: 'Tick. Tock.' },
   { id: 'N7',  mood: 'idle', text: 'Alles bereit. Nur du fehlst noch.' },
   { id: 'N8',  mood: 'idle', text: 'Ich beobachte. Kein Druck. Nur Beobachtung.' },
+  { id: 'N9',  mood: 'idle', text: 'Alles wartet. Das System, die Deadlines — ich auch.' },
+  { id: 'N10', mood: 'idle', text: 'Der Tag ist lang. Nutze ihn.' },
+  { id: 'N11', mood: 'idle', text: 'Stille ist kein Fehler. Inaktivität schon.' },
+  { id: 'N12', mood: 'idle', text: 'Kein Lärm. Nur Fokus, wenn du bereit bist.' },
+  { id: 'N13', mood: 'idle', text: 'Ich bin hier. Nicht aufdringlich. Aber hier.' },
 ];
 
 export function getLinesForMood(mood: LucianMood): LucianLine[] {

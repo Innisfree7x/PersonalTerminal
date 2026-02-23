@@ -1,8 +1,11 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { X } from 'lucide-react';
 import type { LucianMood } from '@/lib/lucian/copy';
+import { LucianSpriteAnimator } from './LucianSpriteAnimator';
+import type { LucianAnimation } from './LucianSpriteAnimator';
 
 // Mood → luminous top border gradient
 const moodBorder: Record<LucianMood, string> = {
@@ -11,6 +14,42 @@ const moodBorder: Record<LucianMood, string> = {
   warning:   'via-red-400/55',
   recovery:  'via-violet-400/45',
   idle:      'via-white/20',
+};
+
+// Mood → header text color
+const moodHeaderColor: Record<LucianMood, string> = {
+  motivate:  'text-blue-400',
+  celebrate: 'text-yellow-400',
+  warning:   'text-red-400',
+  recovery:  'text-violet-400',
+  idle:      'text-zinc-500',
+};
+
+// Mood → glow behind sprite
+const moodGlow: Record<LucianMood, string> = {
+  motivate:  'bg-blue-500/10',
+  celebrate: 'bg-yellow-500/[12%]',
+  warning:   'bg-red-500/15',
+  recovery:  'bg-violet-500/10',
+  idle:      'bg-white/5',
+};
+
+// Mood → display label
+const moodLabel: Record<LucianMood, string> = {
+  motivate:  'MOTIVATE',
+  celebrate: 'CELEBRATE',
+  warning:   'WARNING',
+  recovery:  'RECOVERY',
+  idle:      'IDLE',
+};
+
+// Mood → settled sprite animation
+const moodAnimation: Record<LucianMood, LucianAnimation> = {
+  motivate:  'idle',
+  celebrate: 'victory',
+  warning:   'panic',
+  recovery:  'meditate',
+  idle:      'idle',
 };
 
 interface LucianBubbleProps {
@@ -35,6 +74,14 @@ export function LucianBubble({
   onResume,
 }: LucianBubbleProps) {
   const prefersReducedMotion = useReducedMotion();
+  const [phase, setPhase] = useState<'entry' | 'settled'>('settled');
+
+  useEffect(() => {
+    if (!visible) return;
+    setPhase('entry');
+    const timer = setTimeout(() => setPhase('settled'), 1200);
+    return () => clearTimeout(timer);
+  }, [visible]);
 
   const variants = prefersReducedMotion
     ? {
@@ -48,6 +95,9 @@ export function LucianBubble({
         exit:    { opacity: 0, y: -4              },
       };
 
+  const currentAnimation: LucianAnimation =
+    phase === 'entry' ? 'walk' : moodAnimation[mood];
+
   return (
     <AnimatePresence>
       {visible && (
@@ -55,12 +105,11 @@ export function LucianBubble({
           key="lucian-bubble"
           {...variants}
           transition={{ duration: 0.22, ease: 'easeOut' }}
-          className="fixed bottom-[100px] right-6 z-[49] w-[min(300px,calc(100vw-48px))]"
+          className="fixed bottom-[100px] right-6 z-[49] w-[min(320px,calc(100vw-48px))]"
           onMouseEnter={onPause}
           onFocus={onPause}
           onMouseLeave={onResume}
           onBlur={onResume}
-          // Click body = dismiss
           onClick={onDismiss}
           role={ariaRole}
           aria-live={ariaRole === 'alert' ? 'assertive' : 'polite'}
@@ -69,7 +118,7 @@ export function LucianBubble({
         >
           <div
             className="relative cursor-pointer overflow-hidden rounded-2xl border border-white/[0.08]
-              bg-[#0d0d10]/95 px-4 py-3.5
+              bg-[#0d0d10]/95
               shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_16px_40px_rgba(0,0,0,0.6)]
               backdrop-blur-2xl"
           >
@@ -79,14 +128,16 @@ export function LucianBubble({
                 bg-gradient-to-r from-transparent ${moodBorder[mood]} to-transparent`}
             />
 
-            {/* Header: label + mute button */}
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
-                Lucian
+            {/* Header: mood label + close button */}
+            <div className="flex items-center justify-between px-4 pb-2 pt-3">
+              <span
+                className={`text-[10px] font-semibold uppercase tracking-widest ${moodHeaderColor[mood]}`}
+              >
+                Lucian · {moodLabel[mood]}
               </span>
               <button
                 onClick={(e) => {
-                  e.stopPropagation(); // don't also trigger onDismiss
+                  e.stopPropagation();
                   onMuteToday();
                 }}
                 aria-label="Lucian für heute stummschalten"
@@ -96,8 +147,21 @@ export function LucianBubble({
               </button>
             </div>
 
-            {/* Message text */}
-            <p className="text-[13px] leading-snug text-zinc-200">{text}</p>
+            {/* Body: sprite panel + message panel */}
+            <div className="flex items-stretch pb-3.5">
+              {/* Left panel — sprite + mood glow */}
+              <div className="relative flex w-20 flex-shrink-0 items-center justify-center border-r border-white/[0.06]">
+                <div
+                  className={`pointer-events-none absolute inset-0 ${moodGlow[mood]} blur-lg`}
+                />
+                <LucianSpriteAnimator animation={currentAnimation} size={64} />
+              </div>
+
+              {/* Right panel — message text */}
+              <p className="flex flex-1 items-center px-4 text-[13px] leading-snug text-zinc-200">
+                {text}
+              </p>
+            </div>
           </div>
         </motion.div>
       )}
