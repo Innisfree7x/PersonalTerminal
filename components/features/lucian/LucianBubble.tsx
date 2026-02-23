@@ -37,6 +37,24 @@ const moodRim: Record<LucianMood, string> = {
   idle: 'via-white/25',
 };
 
+// Mood → CTA action button accent
+const moodActionButton: Record<LucianMood, string> = {
+  motivate:  'border-cyan-300/35 bg-cyan-400/15 text-cyan-100 hover:bg-cyan-400/25',
+  celebrate: 'border-amber-300/35 bg-amber-400/15 text-amber-100 hover:bg-amber-400/25',
+  warning:   'border-red-300/35 bg-red-400/15 text-red-100 hover:bg-red-400/25',
+  recovery:  'border-teal-300/35 bg-teal-400/15 text-teal-100 hover:bg-teal-400/25',
+  idle:      'border-zinc-300/25 bg-zinc-400/15 text-zinc-200 hover:bg-zinc-400/25',
+};
+
+// Mood → tail outer border color (matches rim light)
+const moodTailColor: Record<LucianMood, string> = {
+  motivate:  'bg-cyan-300/30',
+  celebrate: 'bg-amber-300/30',
+  warning:   'bg-red-300/35',
+  recovery:  'bg-teal-300/30',
+  idle:      'bg-white/[0.12]',
+};
+
 const moodGlowShadow: Record<LucianMood, string> = {
   motivate: '0 16px 48px rgba(34,211,238,0.14)',
   celebrate: '0 16px 48px rgba(245,158,11,0.16)',
@@ -263,7 +281,7 @@ export function LucianBubble({
                     onAction();
                   }}
                   aria-label={actionAriaLabel ?? actionLabel}
-                  className="mt-3 inline-flex w-fit items-center rounded-lg border border-cyan-300/35 bg-cyan-400/15 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-100 transition hover:bg-cyan-400/25"
+                  className={`mt-3 inline-flex w-fit items-center rounded-lg border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] transition ${moodActionButton[mood]}`}
                 >
                   {actionLabel}
                 </button>
@@ -280,7 +298,7 @@ export function LucianBubble({
                   : { left: anchor.tailOffset - 14, top: -14 }
               }
             >
-              <div className={`absolute inset-0 bg-white/[0.12] ${tailShapeClass}`} />
+              <div className={`absolute inset-0 ${moodTailColor[mood]} ${tailShapeClass}`} />
               <div className={`absolute inset-[1px] bg-[#0d1119]/95 ${tailShapeClass}`} />
             </div>
           )}
