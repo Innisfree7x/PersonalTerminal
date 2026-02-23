@@ -9,6 +9,7 @@ import { HowItWorksSection } from '@/components/features/marketing/HowItWorksSec
 import { PricingSection } from '@/components/features/marketing/PricingSection';
 import { FAQSection } from '@/components/features/marketing/FAQSection';
 import { CTASection } from '@/components/features/marketing/CTASection';
+import { FeatureMarquee } from '@/components/features/marketing/FeatureMarquee';
 
 export const metadata: Metadata = {
   title: 'Start',
@@ -34,6 +35,7 @@ export default async function LandingPage() {
   return (
     <>
       <HeroSection />
+      <FeatureMarquee />
       <ProblemStrip />
       <FeatureSection />
       <HowItWorksSection />

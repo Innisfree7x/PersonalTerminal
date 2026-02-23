@@ -140,12 +140,78 @@ export function FeatureSection() {
                 </div>
               ) : null}
 
+              {feature.id === 'goals' ? (
+                <div className="mt-5 space-y-2">
+                  {[
+                    { label: 'Fitness', pct: 80, color: 'bg-emerald-500/80' },
+                    { label: 'Lernen', pct: 95, color: 'bg-emerald-400/80' },
+                    { label: 'Karriere', pct: 52, color: 'bg-emerald-600/70' },
+                  ].map((goal) => (
+                    <div key={goal.label} className="flex items-center gap-2">
+                      <span className="w-14 shrink-0 text-[10px] text-zinc-500">{goal.label}</span>
+                      <div className="h-1 flex-1 rounded-full bg-white/5">
+                        <motion.div
+                          className={`h-1 rounded-full ${goal.color}`}
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${goal.pct}%` }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.8, delay: 0.2 }}
+                        />
+                      </div>
+                      <span className="w-8 shrink-0 text-right text-[10px] text-zinc-500">{goal.pct}%</span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              {feature.id === 'university' ? (
+                <div className="mt-5 space-y-3">
+                  <div className="inline-flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
+                    <span className="text-[10px] font-medium text-red-300">Klausur in 12 Tagen</span>
+                  </div>
+                  <div>
+                    <div className="mb-1.5 flex flex-wrap gap-1">
+                      {Array.from({ length: 12 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className={`h-2 w-2 rounded-sm ${i < 7 ? 'bg-violet-500/70' : 'bg-white/10'}`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-[10px] text-zinc-500">7 / 12 Übungen</span>
+                  </div>
+                </div>
+              ) : null}
+
               {feature.id === 'career' ? (
                 <div className="mt-5 grid grid-cols-2 gap-2 text-xs">
                   <span className="rounded-md border border-white/10 bg-white/[0.02] px-2 py-1 text-zinc-300">Applied 12</span>
                   <span className="rounded-md border border-white/10 bg-white/[0.02] px-2 py-1 text-zinc-300">Interview 4</span>
                   <span className="rounded-md border border-white/10 bg-white/[0.02] px-2 py-1 text-zinc-300">Offer 2</span>
                   <span className="rounded-md border border-white/10 bg-white/[0.02] px-2 py-1 text-zinc-300">Winrate 28%</span>
+                </div>
+              ) : null}
+
+              {feature.id === 'timer' ? (
+                <div className="mt-5 flex flex-col items-center gap-1 rounded-xl border border-white/10 bg-white/[0.02] py-3">
+                  <p className="font-mono text-lg font-semibold tracking-widest text-[#FAF0E6]">25 : 00</p>
+                  <p className="text-[10px] font-medium uppercase tracking-widest text-zinc-600">Fokus · Session 3</p>
+                </div>
+              ) : null}
+
+              {feature.id === 'analytics' ? (
+                <div className="mt-5 flex h-12 items-end gap-1">
+                  {[55, 80, 40, 90, 65].map((h, i) => (
+                    <motion.div
+                      key={i}
+                      className="flex-1 rounded-t-sm bg-sky-500/60"
+                      initial={{ height: 0 }}
+                      whileInView={{ height: `${h}%` }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: 0.1 + i * 0.07 }}
+                    />
+                  ))}
                 </div>
               ) : null}
             </motion.div>

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Menu, X, ArrowRight } from 'lucide-react';
 import { TrackedCtaLink } from './TrackedCtaLink';
 import { BrandLockup } from '@/components/shared/BrandLogo';
@@ -10,6 +10,13 @@ import { BrandLockup } from '@/components/shared/BrandLogo';
 export function MarketingNavbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const navLinks = [
     { href: '/features', label: 'Features' },
@@ -18,7 +25,7 @@ export function MarketingNavbar() {
   ] as const;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0A0A0A]/60 backdrop-blur-xl">
+    <header className={`sticky top-0 z-50 border-b backdrop-blur-xl transition-all duration-300 ${scrolled ? 'border-white/15 bg-[#0A0A0A]/85 shadow-lg shadow-black/40' : 'border-white/10 bg-[#0A0A0A]/60'}`}>
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-yellow-400/35 to-transparent" />
       <div className="mx-auto w-full max-w-6xl px-5 sm:px-8 h-[64px] flex items-center justify-between">
         {/* Logo */}

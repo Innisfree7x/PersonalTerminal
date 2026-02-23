@@ -16,16 +16,17 @@ export function ProductMockup() {
   return (
     <div className="relative">
       {/* Ambient glow behind mockup */}
-      <div className="pointer-events-none absolute -inset-6 rounded-3xl bg-gradient-to-tr from-red-500/10 via-transparent to-yellow-500/10 blur-3xl" />
+      <div className="pointer-events-none absolute -inset-10 rounded-3xl bg-gradient-to-tr from-red-500/15 via-transparent to-yellow-500/12 blur-3xl" />
+      <div className="pointer-events-none absolute inset-x-0 -bottom-8 mx-auto h-24 w-3/4 rounded-full bg-red-500/10 blur-2xl" />
 
       {/* Floating animation wrapper */}
       <motion.div
         animate={{ y: [0, -10, 0] }}
         transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-        className="relative [perspective:1400px]"
+        className="relative"
       >
         {/* Browser chrome */}
-        <div className="premium-card relative overflow-hidden rounded-3xl [transform:rotateY(-9deg)_rotateX(2deg)]">
+        <div className="premium-card relative overflow-hidden rounded-3xl">
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent" />
           {/* Browser top bar */}
           <div className="flex items-center gap-2 border-b border-white/10 bg-[#0A0A0A]/90 px-4 py-3">
@@ -40,7 +41,7 @@ export function ProductMockup() {
           </div>
 
           {/* Dashboard layout */}
-          <div className="flex" style={{ height: '320px' }}>
+          <div className="flex" style={{ height: '400px' }}>
             {/* Sidebar */}
             <div className="flex w-16 flex-shrink-0 flex-col items-center gap-4 border-r border-white/10 bg-[#0A0A0A] py-4">
               {/* Logo */}
