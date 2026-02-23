@@ -70,6 +70,7 @@ interface FocusTimerContextType {
 const FocusTimerContext = createContext<FocusTimerContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'prism-focus-timer';
+const SETTINGS_STORAGE_KEY = 'prism-timer-settings';
 
 interface PersistedState {
   status: TimerStatus;
@@ -80,6 +81,46 @@ interface PersistedState {
   label: string | null;
   category: FocusSessionCategory | null;
   completedPomodoros: number;
+}
+
+function safeStorage(): Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> | null {
+  if (typeof window === 'undefined') return null;
+  const storage = window.localStorage as Partial<Storage> | undefined;
+  if (!storage) return null;
+  if (typeof storage.getItem !== 'function') return null;
+  if (typeof storage.setItem !== 'function') return null;
+  if (typeof storage.removeItem !== 'function') return null;
+  return storage as Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+}
+
+function storageGet(key: string): string | null {
+  const storage = safeStorage();
+  if (!storage) return null;
+  try {
+    return storage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function storageSet(key: string, value: string): void {
+  const storage = safeStorage();
+  if (!storage) return;
+  try {
+    storage.setItem(key, value);
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function storageRemove(key: string): void {
+  const storage = safeStorage();
+  if (!storage) return;
+  try {
+    storage.removeItem(key);
+  } catch {
+    // ignore storage errors
+  }
 }
 
 function playNotificationSound() {
@@ -113,14 +154,12 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
   const [settings, setSettings] = useState<TimerSettings>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('prism-timer-settings');
-      if (saved) {
-        try {
-          return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
-        } catch {
-          // ignore
-        }
+    const saved = storageGet(SETTINGS_STORAGE_KEY);
+    if (saved) {
+      try {
+        return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+      } catch {
+        // ignore
       }
     }
     return DEFAULT_SETTINGS;
@@ -158,14 +197,14 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
 
   // Persist settings
   useEffect(() => {
-    localStorage.setItem('prism-timer-settings', JSON.stringify(settings));
+    storageSet(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
   }, [settings]);
 
   // Persist timer state to localStorage
   const persistState = useCallback(
     (s: TimerStatus, tl: number) => {
       if (s === 'idle') {
-        localStorage.removeItem(STORAGE_KEY);
+        storageRemove(STORAGE_KEY);
         return;
       }
       const persisted: PersistedState = {
@@ -178,7 +217,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
         category,
         completedPomodoros,
       };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
+      storageSet(STORAGE_KEY, JSON.stringify(persisted));
     },
     [sessionType, totalTime, label, category, completedPomodoros]
   );
@@ -233,7 +272,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
         setStatus('idle');
         setTimeLeft(0);
         startedAtRef.current = null;
-        localStorage.removeItem(STORAGE_KEY);
+        storageRemove(STORAGE_KEY);
       }
     } else {
       // Break completed
@@ -243,7 +282,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
       setStatus('idle');
       setTimeLeft(0);
       startedAtRef.current = null;
-      localStorage.removeItem(STORAGE_KEY);
+      storageRemove(STORAGE_KEY);
     }
   }, [sessionType, totalTime, completedPomodoros, settings, saveSession]);
 
@@ -277,7 +316,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
     if (hasRestoredRef.current) return;
     hasRestoredRef.current = true;
 
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = storageGet(STORAGE_KEY);
     if (!saved) return;
 
     try {
@@ -303,7 +342,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
 
         if (adjustedTimeLeft <= 0) {
           // Timer would have expired while page was closed
-          localStorage.removeItem(STORAGE_KEY);
+          storageRemove(STORAGE_KEY);
           setStatus('idle');
         } else {
           setTimeLeft(adjustedTimeLeft);
@@ -311,7 +350,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch {
-      localStorage.removeItem(STORAGE_KEY);
+      storageRemove(STORAGE_KEY);
     }
   }, []);
 
@@ -391,7 +430,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
     setSessionType('focus');
     startedAtRef.current = null;
     dispatchChampionEvent({ type: 'FOCUS_END' });
-    localStorage.removeItem(STORAGE_KEY);
+    storageRemove(STORAGE_KEY);
   }, [status, totalTime, timeLeft, saveSession]);
 
   const skipBreak = useCallback(() => {
@@ -402,7 +441,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
     setTimeLeft(0);
     startedAtRef.current = null;
     dispatchChampionEvent({ type: 'FOCUS_END' });
-    localStorage.removeItem(STORAGE_KEY);
+    storageRemove(STORAGE_KEY);
   }, []);
 
   const resetTimer = useCallback(() => {
@@ -417,7 +456,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
     setCompletedPomodoros(0);
     startedAtRef.current = null;
     dispatchChampionEvent({ type: 'FOCUS_END' });
-    localStorage.removeItem(STORAGE_KEY);
+    storageRemove(STORAGE_KEY);
   }, []);
 
   const updateSettings = useCallback((partial: Partial<TimerSettings>) => {

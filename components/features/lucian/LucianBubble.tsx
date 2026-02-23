@@ -152,22 +152,33 @@ export function LucianBubble({
       const championCenterX = championRect.left + championRect.width / 2;
       const tailOffset = Math.max(22, Math.min(bubbleRect.width - 22, championCenterX - left));
 
-      setAnchor({
-        anchored: true,
-        left,
-        top,
-        tailSide,
-        tailOffset,
+      setAnchor((prev) => {
+        const same =
+          prev.anchored &&
+          Math.abs(prev.left - left) < 0.5 &&
+          Math.abs(prev.top - top) < 0.5 &&
+          prev.tailSide === tailSide &&
+          Math.abs(prev.tailOffset - tailOffset) < 0.5;
+        if (same) return prev;
+        return {
+          anchored: true,
+          left,
+          top,
+          tailSide,
+          tailOffset,
+        };
       });
     };
 
     updatePosition();
-    const interval = window.setInterval(updatePosition, 90);
+    const interval = window.setInterval(updatePosition, 140);
     window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, { passive: true });
 
     return () => {
       window.clearInterval(interval);
       window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition);
     };
   }, [text, visible]);
 
