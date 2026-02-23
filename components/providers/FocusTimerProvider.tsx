@@ -152,8 +152,9 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
       queryClient.invalidateQueries({ queryKey: ['focus', 'sessions'] });
     },
     onError: (error) => {
-      console.error('[FocusTimer] Session save failed:', error);
-      toast.error('Session konnte nicht gespeichert werden. Bitte prüfe deine Verbindung.');
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error('[FocusTimer] Session save failed:', msg);
+      toast.error(`Session-Fehler: ${msg}`, { duration: 8000 });
     },
   });
 
