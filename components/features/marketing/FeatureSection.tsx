@@ -123,19 +123,61 @@ export function FeatureSection() {
               <p className="text-sm leading-relaxed text-zinc-400">{feature.description}</p>
 
               {feature.id === 'focus' ? (
-                <div className="mt-5 space-y-2.5">
-                  <div className="h-1.5 rounded-full bg-white/5">
-                    <motion.div
-                      className="h-1.5 rounded-full bg-red-500/80"
-                      initial={{ width: 0 }}
-                      whileInView={{ width: '72%' }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.9, delay: 0.3 }}
-                    />
+                <div className="mt-6 grid grid-cols-2 gap-4">
+                  {/* Left: Task list */}
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-600">Aufgaben heute</p>
+                    {[
+                      { label: 'Übungsblatt 8 einreichen', done: true },
+                      { label: 'Kap. 5 Klausurvorbereitung', done: true },
+                      { label: 'Bewerbung Praktikum', done: false },
+                      { label: 'LA II Zusammenfassung', done: false },
+                    ].map((task) => (
+                      <div key={task.label} className="flex items-center gap-2">
+                        <div className={`h-3 w-3 flex-shrink-0 rounded-full border ${task.done ? 'border-red-500 bg-red-500/30' : 'border-white/20'}`} />
+                        <span className={`text-[11px] leading-tight ${task.done ? 'text-zinc-600 line-through' : 'text-zinc-300'}`}>
+                          {task.label}
+                        </span>
+                      </div>
+                    ))}
+                    {/* Progress bar */}
+                    <div className="pt-2">
+                      <div className="h-1 rounded-full bg-white/5">
+                        <motion.div
+                          className="h-1 rounded-full bg-red-500/80"
+                          initial={{ width: 0 }}
+                          whileInView={{ width: '72%' }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.9, delay: 0.3 }}
+                        />
+                      </div>
+                      <div className="mt-1.5 flex items-center justify-between text-[10px]">
+                        <span className="text-zinc-600">Heute erledigt</span>
+                        <span className="font-semibold text-[#FAF0E6]">9 / 12</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-500">Heute erledigt</span>
-                    <span className="font-semibold text-[#FAF0E6]">9 / 12 Tasks</span>
+
+                  {/* Right: Timer + stats */}
+                  <div className="flex flex-col gap-3">
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-600">Fokus-Timer</p>
+                    <div className="flex flex-col items-center justify-center rounded-xl border border-white/10 bg-white/[0.02] py-4">
+                      <p className="font-mono text-2xl font-semibold tracking-widest text-[#FAF0E6]">23:14</p>
+                      <p className="mt-1 text-[9px] uppercase tracking-widest text-zinc-600">Session 2 · läuft</p>
+                      <div className="mt-2 h-1 w-16 rounded-full bg-white/5">
+                        <motion.div
+                          className="h-1 rounded-full bg-red-500/60"
+                          initial={{ width: 0 }}
+                          whileInView={{ width: '58%' }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 1.2, delay: 0.5 }}
+                        />
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3">
+                      <p className="text-[10px] text-zinc-600">Fokuszeit heute</p>
+                      <p className="text-lg font-bold text-[#FAF0E6]">2h 40m</p>
+                    </div>
                   </div>
                 </div>
               ) : null}
