@@ -27,6 +27,9 @@ export const LUCIAN_LINES: LucianLine[] = [
   { id: 'M17', mood: 'motivate', text: '25 Minuten. Danach kannst du wieder zweifeln.' },
   { id: 'M18', mood: 'motivate', text: 'Ich hab keine Geduld für Ausreden. Du auch nicht.' },
   { id: 'M19', mood: 'motivate', text: 'Kein Warm-up mehr. Direkt rein.' },
+  { id: 'M20', mood: 'motivate', text: 'Dein Konkurrent arbeitet gerade. Nur damit du es weißt.' },
+  { id: 'M21', mood: 'motivate', text: 'Kein Applaus. Nur Ergebnisse. Los.' },
+  { id: 'M22', mood: 'motivate', text: 'Nicht perfekt. Aber angefangen. Das reicht.' },
 
   // ── Celebrate ────────────────────────────────────────────────────────
   { id: 'C1',  mood: 'celebrate', text: 'Das. Genau das.' },
@@ -57,6 +60,9 @@ export const LUCIAN_LINES: LucianLine[] = [
   { id: 'W10', mood: 'warning', text: 'Ich bin nicht dein Feind. Die Zeit ist es. Nutz sie.' },
   { id: 'W11', mood: 'warning', text: 'Ich erinnere nicht gerne. Aber ich erinnere.' },
   { id: 'W12', mood: 'warning', text: 'Das Fenster schließt sich. Ich nicht.' },
+  { id: 'W13', mood: 'warning', text: 'Klausur in {n} Stunden. Nicht Tagen. Stunden.' },
+  { id: 'W14', mood: 'warning', text: 'Dein zukünftiges Ich schaut zu. Was siehst du?' },
+  { id: 'W15', mood: 'warning', text: 'Gestern hättest du das auch sagen können. Tu es heute.' },
 
   // ── Recovery ─────────────────────────────────────────────────────────
   { id: 'R1',  mood: 'recovery', text: 'Rückschläge formen dich. Lass sie dich nicht definieren.' },
@@ -67,6 +73,9 @@ export const LUCIAN_LINES: LucianLine[] = [
   { id: 'R6',  mood: 'recovery', text: 'Neu anfangen ist keine Niederlage.' },
   { id: 'R7',  mood: 'recovery', text: 'Der Streak ist weg. Dein Potenzial nicht.' },
   { id: 'R8',  mood: 'recovery', text: 'Kein Drama. Was steht heute an?' },
+  { id: 'R9',  mood: 'recovery', text: 'Reset ist kein Versagen. Versagen ist aufzuhören.' },
+  { id: 'R10', mood: 'recovery', text: 'Eine schlechte Woche ist kein schlechtes Leben.' },
+  { id: 'R11', mood: 'recovery', text: 'Du weißt wie es sich anfühlt wenn es klappt. Hol dir das zurück.' },
 
   // ── Idle ─────────────────────────────────────────────────────────────
   { id: 'N1',  mood: 'idle', text: 'System läuft. Lucian auch.' },

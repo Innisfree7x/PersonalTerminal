@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { MessageCircle, X } from 'lucide-react';
+import { Zap, X } from 'lucide-react';
 import type { LucianMood } from '@/lib/lucian/copy';
 
 const moodAccentText: Record<LucianMood, string> = {
@@ -101,7 +101,7 @@ export function LucianBubble({
   visible,
   actionLabel,
   actionAriaLabel,
-  dismissOnBodyClick = true,
+  dismissOnBodyClick = false,
   onDismiss,
   onMuteToday,
   onPause,
@@ -194,9 +194,9 @@ export function LucianBubble({
         exit: { opacity: 0 },
       }
     : {
-        initial: { opacity: 0, y: 6, scale: 0.98 },
+        initial: { opacity: 0, y: 16, scale: 0.92 },
         animate: { opacity: 1, y: 0, scale: 1 },
-        exit: { opacity: 0, y: -4 },
+        exit: { opacity: 0, y: -8, scale: 0.96 },
       };
 
   const bubbleStyle = anchor.anchored ? { left: anchor.left, top: anchor.top } : {};
@@ -212,7 +212,7 @@ export function LucianBubble({
           key="lucian-bubble"
           ref={bubbleRef}
           {...variants}
-          transition={{ duration: 0.24, ease: 'easeOut' }}
+          transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}
           className={`fixed z-[56] w-[min(420px,calc(100vw-40px))] ${anchor.anchored ? '' : 'bottom-[108px] right-6'}`}
           style={bubbleStyle}
           onMouseEnter={onPause}
@@ -248,7 +248,7 @@ export function LucianBubble({
                   <span
                     className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${moodChipBg[mood]} ${moodAccentText[mood]}`}
                   >
-                    <MessageCircle className="h-3 w-3" />
+                    <Zap className="h-3 w-3" />
                     Lucian · {moodLabel[mood]}
                   </span>
                 </div>
