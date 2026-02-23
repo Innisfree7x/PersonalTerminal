@@ -186,15 +186,15 @@ export default function NextBestActionWidget({
   });
 
   return (
-    <div className="card-surface rounded-xl px-3 py-2 border border-border">
-      <div className="flex items-start justify-between gap-2 mb-1">
+    <div className="card-surface rounded-xl border border-border px-4 py-4">
+      <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className="p-0.5 rounded-lg bg-primary/15 border border-primary/30">
-            <Zap className="w-3 h-3 text-primary" />
+          <div className="rounded-lg border border-primary/30 bg-primary/15 p-1.5">
+            <Zap className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <h2 className="text-xs font-semibold text-text-primary">Next Best Action</h2>
-            <p className="text-[9px] text-text-tertiary">One high-impact move for right now</p>
+            <h2 className="text-sm font-semibold text-text-primary">Next Best Action</h2>
+            <p className="text-xs text-text-tertiary">One high-impact move for right now</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -202,33 +202,33 @@ export default function NextBestActionWidget({
             {tone.label}
           </Badge>
           <div className="text-right leading-tight">
-            <div className="text-xs font-bold text-text-primary">{executionScore}</div>
-            <div className="text-[8px] uppercase tracking-wider text-text-tertiary">Execution</div>
+            <div className="text-lg font-bold text-text-primary">{executionScore}</div>
+            <div className="text-[9px] uppercase tracking-wider text-text-tertiary">Execution</div>
           </div>
         </div>
       </div>
 
       {activeCandidate ? (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-0.5 mb-1">
+          <div className="mb-3 grid grid-cols-1 gap-2.5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
             <motion.div
               key={activeCandidate.id}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-lg border border-primary/30 bg-primary/5 p-1.5"
+              className="rounded-xl border border-primary/20 bg-primary/[0.06] p-3"
             >
-              <div className="flex items-center gap-1.5 mb-0">
+              <div className="mb-1.5 flex items-center gap-1.5">
                 <Badge variant="primary" size="sm">
                   {activeCandidate.urgencyLabel}
                 </Badge>
-                <span className="text-[10px] text-text-tertiary">score {Math.round(activeCandidate.score)}</span>
+                <span className="text-xs text-text-tertiary">score {Math.round(activeCandidate.score)}</span>
               </div>
-              <div className="text-[13px] font-semibold text-text-primary leading-tight">{activeCandidate.title}</div>
+              <div className="text-lg font-semibold leading-tight text-text-primary">{activeCandidate.title}</div>
               {activeCandidate.subtitle && (
-                <div className="text-[10px] text-text-tertiary">{activeCandidate.subtitle}</div>
+                <div className="mt-0.5 text-sm text-text-tertiary">{activeCandidate.subtitle}</div>
               )}
               {activeCandidate.reasons.length > 0 && (
-                <div className="mt-0.5 flex flex-wrap gap-1">
+                <div className="mt-2 flex flex-wrap gap-1">
                   {activeCandidate.reasons.slice(0, 1).map((reason) => (
                     <span
                       key={reason}
@@ -242,37 +242,39 @@ export default function NextBestActionWidget({
             </motion.div>
 
             {topRisk ? (
-              <div className="rounded-lg border border-warning/30 bg-warning/10 px-1.5 py-1">
-                <div className="text-[9px] uppercase tracking-wider text-warning font-semibold">
+              <div className="rounded-xl border border-warning/25 bg-warning/[0.08] px-3 py-3">
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-warning">
                   Risk: {topRisk.severity}
                 </div>
-                <div className="text-[11px] text-text-primary leading-tight">{topRisk.title}</div>
-                <div className="text-[10px] text-text-tertiary">{topRisk.detail}</div>
+                <div className="text-base leading-tight text-text-primary">{topRisk.title}</div>
+                <div className="mt-0.5 text-sm text-text-tertiary">{topRisk.detail}</div>
               </div>
             ) : (
-              <div className="rounded-lg border border-border bg-surface/40 px-1.5 py-1 text-[10px] text-text-tertiary flex items-center">
+              <div className="flex items-center rounded-xl border border-border bg-surface/40 px-3 py-3 text-sm text-text-tertiary">
                 No high risk signal right now.
               </div>
             )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1">
-            <Button onClick={handleDoNow} disabled={isPending} variant="primary" size="sm" className="w-full h-7 text-xs">
-              <ArrowRight className="w-3 h-3 mr-1.5" />
+          <div className="mb-3 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <Button onClick={handleDoNow} disabled={isPending} variant="primary" size="sm" className="h-10 w-full text-sm">
+              <ArrowRight className="mr-2 h-4 w-4" />
               Do now
             </Button>
-            <Button onClick={handlePlanLater} disabled={isPending} variant="secondary" size="sm" className="w-full h-7 text-xs">
-              <CalendarClock className="w-3 h-3 mr-1.5" />
+            <Button onClick={handlePlanLater} disabled={isPending} variant="secondary" size="sm" className="h-10 w-full text-sm">
+              <CalendarClock className="mr-2 h-4 w-4" />
               Plan later
             </Button>
-            <Button onClick={handleDrop} disabled={isPending} variant="ghost" size="sm" className="w-full h-7 text-xs">
-              <XCircle className="w-3 h-3 mr-1.5" />
+            <Button onClick={handleDrop} disabled={isPending} variant="ghost" size="sm" className="h-10 w-full text-sm">
+              <XCircle className="mr-2 h-4 w-4" />
               Drop
             </Button>
           </div>
         </>
       ) : (
-        <div className="rounded-lg border border-border bg-surface/50 p-2 text-xs text-text-tertiary">
+        <div className="rounded-lg border border-border bg-surface/50 p-3 text-sm text-text-tertiary">
           No pending recommendation. Open Command Bar (`Cmd/Ctrl + K`) and run
           {' '}
           <span className="font-semibold text-text-secondary">Start Next Best Action</span>
