@@ -2,72 +2,63 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { MessageCircle, X } from 'lucide-react';
 import type { LucianMood } from '@/lib/lucian/copy';
-import { LucianSpriteAnimator } from './LucianSpriteAnimator';
-import type { LucianAnimation } from './LucianSpriteAnimator';
 
-// Mood → luminous top border gradient
-const moodBorder: Record<LucianMood, string> = {
-  motivate:  'via-blue-400/45',
-  celebrate: 'via-yellow-400/50',
-  warning:   'via-red-400/55',
-  recovery:  'via-teal-400/45',
-  idle:      'via-white/20',
+const moodAccentText: Record<LucianMood, string> = {
+  motivate: 'text-cyan-300',
+  celebrate: 'text-amber-300',
+  warning: 'text-red-300',
+  recovery: 'text-teal-300',
+  idle: 'text-zinc-400',
 };
 
-// Mood → header text color
-const moodHeaderColor: Record<LucianMood, string> = {
-  motivate:  'text-blue-400',
-  celebrate: 'text-yellow-400',
-  warning:   'text-red-400',
-  recovery:  'text-teal-400',
-  idle:      'text-zinc-500',
+const moodChipBg: Record<LucianMood, string> = {
+  motivate: 'bg-cyan-500/15 border-cyan-300/35',
+  celebrate: 'bg-amber-500/15 border-amber-300/35',
+  warning: 'bg-red-500/15 border-red-300/35',
+  recovery: 'bg-teal-500/15 border-teal-300/35',
+  idle: 'bg-zinc-500/15 border-zinc-300/25',
 };
 
-// Mood → glow behind sprite
-const moodGlow: Record<LucianMood, string> = {
-  motivate:  'bg-blue-500/10',
-  celebrate: 'bg-yellow-500/[12%]',
-  warning:   'bg-red-500/15',
-  recovery:  'bg-teal-500/10',
-  idle:      'bg-white/5',
+const moodBubbleTint: Record<LucianMood, string> = {
+  motivate: 'from-cyan-400/[0.09]',
+  celebrate: 'from-amber-400/[0.09]',
+  warning: 'from-red-400/[0.1]',
+  recovery: 'from-teal-400/[0.09]',
+  idle: 'from-white/[0.06]',
 };
 
-// Mood → subtle right-panel tint
-const moodPanelTint: Record<LucianMood, string> = {
-  motivate:  'from-blue-500/[0.10]',
-  celebrate: 'from-yellow-500/[0.12]',
-  warning:   'from-red-500/[0.12]',
-  recovery:  'from-teal-500/[0.12]',
-  idle:      'from-white/[0.06]',
+const moodRim: Record<LucianMood, string> = {
+  motivate: 'via-cyan-300/55',
+  celebrate: 'via-amber-300/55',
+  warning: 'via-red-300/60',
+  recovery: 'via-teal-300/55',
+  idle: 'via-white/25',
 };
 
-// Mood → display label
+const moodGlowShadow: Record<LucianMood, string> = {
+  motivate: '0 16px 48px rgba(34,211,238,0.14)',
+  celebrate: '0 16px 48px rgba(245,158,11,0.16)',
+  warning: '0 16px 48px rgba(239,68,68,0.18)',
+  recovery: '0 16px 48px rgba(20,184,166,0.14)',
+  idle: '0 16px 48px rgba(255,255,255,0.08)',
+};
+
 const moodLabel: Record<LucianMood, string> = {
-  motivate:  'MOTIVATE',
+  motivate: 'MOTIVATE',
   celebrate: 'CELEBRATE',
-  warning:   'WARNING',
-  recovery:  'RECOVERY',
-  idle:      'IDLE',
+  warning: 'WARNING',
+  recovery: 'RECOVERY',
+  idle: 'IDLE',
 };
 
-// Mood → companion "spell" tag
 const moodSpell: Record<LucianMood, string> = {
-  motivate:  'Relentless Drive',
+  motivate: 'Relentless Drive',
   celebrate: 'Momentum Surge',
-  warning:   'Deadline Pulse',
-  recovery:  'Reset Ritual',
-  idle:      'Standby Field',
-};
-
-// Mood → settled sprite animation
-const moodAnimation: Record<LucianMood, LucianAnimation> = {
-  motivate:  'idle',
-  celebrate: 'victory',
-  warning:   'panic',
-  recovery:  'meditate',
-  idle:      'idle',
+  warning: 'Deadline Pulse',
+  recovery: 'Reset Ritual',
+  idle: 'Standby Field',
 };
 
 interface LucianBubbleProps {
@@ -100,7 +91,6 @@ export function LucianBubble({
   onAction,
 }: LucianBubbleProps) {
   const prefersReducedMotion = useReducedMotion();
-  const [phase, setPhase] = useState<'entry' | 'settled'>('settled');
   const bubbleRef = useRef<HTMLDivElement | null>(null);
   const [anchor, setAnchor] = useState<{
     anchored: boolean;
@@ -113,15 +103,8 @@ export function LucianBubble({
     left: 0,
     top: 0,
     tailSide: 'bottom',
-    tailOffset: 160,
+    tailOffset: 180,
   });
-
-  useEffect(() => {
-    if (!visible) return;
-    setPhase('entry');
-    const timer = setTimeout(() => setPhase('settled'), 1200);
-    return () => clearTimeout(timer);
-  }, [visible]);
 
   useEffect(() => {
     if (!visible) return;
@@ -129,6 +112,7 @@ export function LucianBubble({
     const updatePosition = () => {
       const bubbleEl = bubbleRef.current;
       const championEl = document.querySelector('[data-champion-sprite="true"]') as HTMLElement | null;
+
       if (!bubbleEl || !championEl) {
         setAnchor((prev) => ({ ...prev, anchored: false }));
         return;
@@ -137,20 +121,21 @@ export function LucianBubble({
       const championRect = championEl.getBoundingClientRect();
       const bubbleRect = bubbleEl.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
-      const margin = 12;
+      const margin = 14;
 
       let left = championRect.left + championRect.width / 2 - bubbleRect.width / 2;
       left = Math.max(margin, Math.min(viewportWidth - bubbleRect.width - margin, left));
 
-      let top = championRect.top - bubbleRect.height - 14;
+      let top = championRect.top - bubbleRect.height - 16;
       let tailSide: 'top' | 'bottom' = 'bottom';
+
       if (top < margin) {
-        top = championRect.bottom + 14;
+        top = championRect.bottom + 16;
         tailSide = 'top';
       }
 
       const championCenterX = championRect.left + championRect.width / 2;
-      const tailOffset = Math.max(22, Math.min(bubbleRect.width - 22, championCenterX - left));
+      const tailOffset = Math.max(30, Math.min(bubbleRect.width - 30, championCenterX - left));
 
       setAnchor((prev) => {
         const same =
@@ -159,7 +144,9 @@ export function LucianBubble({
           Math.abs(prev.top - top) < 0.5 &&
           prev.tailSide === tailSide &&
           Math.abs(prev.tailOffset - tailOffset) < 0.5;
+
         if (same) return prev;
+
         return {
           anchored: true,
           left,
@@ -171,7 +158,7 @@ export function LucianBubble({
     };
 
     updatePosition();
-    const interval = window.setInterval(updatePosition, 140);
+    const interval = window.setInterval(updatePosition, 150);
     window.addEventListener('resize', updatePosition);
     window.addEventListener('scroll', updatePosition, { passive: true });
 
@@ -186,17 +173,19 @@ export function LucianBubble({
     ? {
         initial: { opacity: 0 },
         animate: { opacity: 1 },
-        exit:    { opacity: 0 },
+        exit: { opacity: 0 },
       }
     : {
-        initial: { opacity: 0, y: 8, scale: 0.97 },
-        animate: { opacity: 1, y: 0,  scale: 1    },
-        exit:    { opacity: 0, y: -4              },
+        initial: { opacity: 0, y: 6, scale: 0.98 },
+        animate: { opacity: 1, y: 0, scale: 1 },
+        exit: { opacity: 0, y: -4 },
       };
 
-  const currentAnimation: LucianAnimation =
-    phase === 'entry' ? 'walk' : moodAnimation[mood];
   const bubbleStyle = anchor.anchored ? { left: anchor.left, top: anchor.top } : {};
+  const tailShapeClass =
+    anchor.tailSide === 'bottom'
+      ? '[clip-path:polygon(50%_100%,0_0,100%_0)]'
+      : '[clip-path:polygon(0_100%,100%_100%,50%_0)]';
 
   return (
     <AnimatePresence>
@@ -205,8 +194,8 @@ export function LucianBubble({
           key="lucian-bubble"
           ref={bubbleRef}
           {...variants}
-          transition={{ duration: 0.22, ease: 'easeOut' }}
-          className={`fixed z-[49] w-[min(320px,calc(100vw-48px))] ${anchor.anchored ? '' : 'bottom-[100px] right-6'}`}
+          transition={{ duration: 0.24, ease: 'easeOut' }}
+          className={`fixed z-[56] w-[min(420px,calc(100vw-40px))] ${anchor.anchored ? '' : 'bottom-[108px] right-6'}`}
           style={bubbleStyle}
           onMouseEnter={onPause}
           onFocus={onPause}
@@ -216,94 +205,84 @@ export function LucianBubble({
           role={ariaRole}
           aria-live={ariaRole === 'alert' ? 'assertive' : 'polite'}
           aria-atomic="true"
-          aria-label="Lucian Companion-Hinweis"
+          aria-label="Lucian Companion Sprechblase"
         >
           <div
-            className="relative cursor-pointer overflow-hidden rounded-2xl border border-white/[0.08]
-              bg-[#0d0d10]/95
-              shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_16px_40px_rgba(0,0,0,0.6)]
+            className="relative cursor-pointer overflow-hidden rounded-[26px] border border-white/[0.12]
+              bg-[#0d1119]/95
+              shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_20px_52px_rgba(0,0,0,0.62)]
               backdrop-blur-2xl"
           >
-            {/* Mood-tinted luminous top border */}
             <div
-              className={`pointer-events-none absolute inset-x-0 top-0 h-px
-                bg-gradient-to-r from-transparent ${moodBorder[mood]} to-transparent`}
+              className={`pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent ${moodRim[mood]} to-transparent`}
+            />
+            <div
+              className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${moodBubbleTint[mood]} via-transparent to-transparent`}
+            />
+            <div
+              className="pointer-events-none absolute inset-0 opacity-90"
+              style={{ boxShadow: moodGlowShadow[mood] }}
             />
 
-            {/* Header: mood label + close button */}
-            <div className="flex items-center justify-between px-4 pb-2 pt-3">
-              <span
-                className={`text-[10px] font-semibold uppercase tracking-widest ${moodHeaderColor[mood]}`}
-              >
-                Lucian · {moodLabel[mood]}
-              </span>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onMuteToday();
-                }}
-                aria-label="Lucian für heute stummschalten"
-                className="rounded p-0.5 text-zinc-600 transition-colors hover:text-zinc-300"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-
-            {/* Body: sprite panel + message panel */}
-            <div className="flex items-stretch pb-3.5">
-              {/* Left panel — sprite + mood glow */}
-              <div className="relative flex w-20 flex-shrink-0 items-center justify-center border-r border-white/[0.06]">
-                <motion.div
-                  className={`pointer-events-none absolute inset-0 ${moodGlow[mood]} blur-lg`}
-                  animate={
-                    prefersReducedMotion
-                      ? { opacity: 0.7, scale: 1 }
-                      : { opacity: [0.45, 0.9, 0.45], scale: [0.92, 1.08, 0.92] }
-                  }
-                  transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                />
-                <LucianSpriteAnimator animation={currentAnimation} size={64} />
-              </div>
-
-              {/* Right panel — message text */}
-              <div className="relative flex flex-1 overflow-hidden">
-                <div
-                  className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${moodPanelTint[mood]} via-transparent to-transparent`}
-                />
-                <div className="relative flex w-full flex-col justify-center px-4">
-                  <p className="text-[13px] leading-snug text-zinc-200">
-                    {text}
-                  </p>
-                  <div className="mt-2 inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.16em] text-zinc-500">
-                    <span className="h-1 w-1 rounded-full bg-current" />
-                    <span>{moodSpell[mood]}</span>
-                  </div>
-                  {actionLabel && onAction ? (
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onAction();
-                      }}
-                      aria-label={actionAriaLabel ?? actionLabel}
-                      className="mt-3 inline-flex w-fit items-center rounded-md border border-cyan-300/35 bg-cyan-400/12 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-cyan-100 transition hover:bg-cyan-400/20"
-                    >
-                      {actionLabel}
-                    </button>
-                  ) : null}
+            <div className="relative px-4 pb-4 pt-3.5">
+              <div className="mb-2.5 flex items-center justify-between gap-2">
+                <div className="inline-flex items-center gap-2">
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${moodChipBg[mood]} ${moodAccentText[mood]}`}
+                  >
+                    <MessageCircle className="h-3 w-3" />
+                    Lucian · {moodLabel[mood]}
+                  </span>
                 </div>
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onMuteToday();
+                  }}
+                  aria-label="Lucian fuer heute stummschalten"
+                  className="rounded-md p-1 text-zinc-500 transition-colors hover:text-zinc-200"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
               </div>
+
+              <p className="text-[15px] leading-snug text-zinc-100">
+                {text}
+              </p>
+
+              <div className="mt-2 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-zinc-400">
+                <span className="h-1 w-1 rounded-full bg-current" />
+                <span>{moodSpell[mood]}</span>
+              </div>
+
+              {actionLabel && onAction ? (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onAction();
+                  }}
+                  aria-label={actionAriaLabel ?? actionLabel}
+                  className="mt-3 inline-flex w-fit items-center rounded-lg border border-cyan-300/35 bg-cyan-400/15 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-100 transition hover:bg-cyan-400/25"
+                >
+                  {actionLabel}
+                </button>
+              ) : null}
             </div>
           </div>
+
           {anchor.anchored && (
             <div
-              className="pointer-events-none absolute h-3 w-3 rotate-45 border border-white/[0.08] bg-[#0d0d10]/95"
+              className="pointer-events-none absolute h-4 w-7"
               style={
                 anchor.tailSide === 'bottom'
-                  ? { left: anchor.tailOffset - 6, bottom: -6 }
-                  : { left: anchor.tailOffset - 6, top: -6 }
+                  ? { left: anchor.tailOffset - 14, bottom: -14 }
+                  : { left: anchor.tailOffset - 14, top: -14 }
               }
-            />
+            >
+              <div className={`absolute inset-0 bg-white/[0.12] ${tailShapeClass}`} />
+              <div className={`absolute inset-[1px] bg-[#0d1119]/95 ${tailShapeClass}`} />
+            </div>
           )}
         </motion.div>
       )}
