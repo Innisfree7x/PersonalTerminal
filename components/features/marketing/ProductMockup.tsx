@@ -21,8 +21,8 @@ export function ProductMockup() {
 
       {/* Floating animation wrapper */}
       <motion.div
-        animate={{ y: [0, -10, 0] }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+        animate={{ y: [0, -5, 0] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
         className="relative"
       >
         {/* Browser chrome */}
