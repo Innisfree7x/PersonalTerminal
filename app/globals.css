@@ -23,10 +23,10 @@
   --text-tertiary: 100 103 135;
   /* #646787 */
 
-  --primary: 124 58 237;
-  /* #7c3aed - Purple */
-  --primary-hover: 109 40 217;
-  /* #6d28d9 */
+  --primary: 234 179 8;
+  /* #eab308 - Gold */
+  --primary-hover: 202 138 4;
+  /* #ca8a04 */
 
   --border: 40 40 55;
   /* #282837 */
@@ -47,8 +47,8 @@
   /* #ec4899 - Pink */
   --career-accent: 14 165 233;
   /* #0ea5e9 - Sky Blue */
-  --university-accent: 168 85 247;
-  /* #a855f7 - Purple */
+  --university-accent: 99 102 241;
+  /* #6366f1 - Indigo */
   --calendar-accent: 249 115 22;
   /* #f97316 - Orange */
 
@@ -65,7 +65,7 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  --shadow-glow: 0 0 20px rgb(124 58 237 / 0.3);
+  --shadow-glow: 0 0 20px rgb(234 179 8 / 0.3);
 
   --duration-fast: 150ms;
   --duration-base: 200ms;

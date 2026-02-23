@@ -12,7 +12,7 @@ const moodBorder: Record<LucianMood, string> = {
   motivate:  'via-blue-400/45',
   celebrate: 'via-yellow-400/50',
   warning:   'via-red-400/55',
-  recovery:  'via-violet-400/45',
+  recovery:  'via-teal-400/45',
   idle:      'via-white/20',
 };
 
@@ -21,7 +21,7 @@ const moodHeaderColor: Record<LucianMood, string> = {
   motivate:  'text-blue-400',
   celebrate: 'text-yellow-400',
   warning:   'text-red-400',
-  recovery:  'text-violet-400',
+  recovery:  'text-teal-400',
   idle:      'text-zinc-500',
 };
 
@@ -30,7 +30,7 @@ const moodGlow: Record<LucianMood, string> = {
   motivate:  'bg-blue-500/10',
   celebrate: 'bg-yellow-500/[12%]',
   warning:   'bg-red-500/15',
-  recovery:  'bg-violet-500/10',
+  recovery:  'bg-teal-500/10',
   idle:      'bg-white/5',
 };
 
@@ -39,7 +39,7 @@ const moodPanelTint: Record<LucianMood, string> = {
   motivate:  'from-blue-500/[0.10]',
   celebrate: 'from-yellow-500/[0.12]',
   warning:   'from-red-500/[0.12]',
-  recovery:  'from-violet-500/[0.12]',
+  recovery:  'from-teal-500/[0.12]',
   idle:      'from-white/[0.06]',
 };
 
