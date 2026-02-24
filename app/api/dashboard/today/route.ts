@@ -4,6 +4,7 @@ import { fetchApplications } from '@/lib/supabase/applications';
 import { startOfDay, endOfDay, addDays, differenceInDays } from 'date-fns';
 import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError } from '@/lib/api/server-errors';
+import { createApiTraceContext, withApiTraceHeaders } from '@/lib/api/observability';
 
 interface TodayPriorities {
   goalsDueToday: Array<{
@@ -32,9 +33,10 @@ interface TodayPriorities {
 /**
  * GET /api/dashboard/today - Fetch today's priorities (goals, interviews, follow-ups)
  */
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
+  const trace = createApiTraceContext(request, '/api/dashboard/today');
   const { user, errorResponse } = await requireApiAuth();
-  if (errorResponse) return errorResponse;
+  if (errorResponse) return withApiTraceHeaders(errorResponse, trace, { metricName: 'dash_today' });
 
   try {
     const today = new Date();
@@ -100,8 +102,14 @@ export async function GET(_request: NextRequest) {
       pendingFollowUps,
     };
 
-    return NextResponse.json(priorities);
+    const response = NextResponse.json(priorities);
+    return withApiTraceHeaders(response, trace, { metricName: 'dash_today' });
   } catch (error) {
-    return handleRouteError(error, 'Failed to fetch priorities', 'Error fetching today priorities');
+    const response = handleRouteError(
+      error,
+      'Failed to fetch priorities',
+      'Error fetching today priorities'
+    );
+    return withApiTraceHeaders(response, trace, { metricName: 'dash_today' });
   }
 }

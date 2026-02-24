@@ -20,6 +20,12 @@ Owner: Codex
 - `/today` load metric via `app/api/dashboard/next-tasks/route.ts`
   - Adds `X-Request-Id`
   - Logs success/failure with duration.
+- Standardized API observability headers for core dashboard/today routes:
+  - `Server-Timing`
+  - `X-Request-Id`
+  - `X-Observed-Route`
+  - `X-Observed-Method`
+  - Helper: `lib/api/observability.ts`
 
 3. SLO Snapshot in Ops Dashboard
 - New aggregation utility: `lib/ops/flowMetrics.ts`
@@ -38,6 +44,10 @@ Owner: Codex
 - New seed/reset script for blocker user:
   - `scripts/seedE2EBlockerUser.ts`
   - Script command: `npm run seed:e2e:blocker`
+- CI flake gate:
+  - `scripts/runBlockerE2EWithFlakeGate.mjs`
+  - Script command: `npm run test:e2e:blocker:ci`
+  - Default threshold: `2%` (`E2E_BLOCKER_FLAKE_THRESHOLD`)
 
 ## SLO Targets tracked
 
@@ -55,6 +65,7 @@ Owner: Codex
 3. Run `npm run seed:e2e:blocker`.
 4. Run `npm run test:e2e:blocker`.
 5. Validate `/analytics/ops` shows SLO cards with `Live` status.
+6. In CI, use `npm run test:e2e:blocker:ci` to enforce flake threshold.
 
 ## Notes
 

@@ -31,6 +31,7 @@ If credentials are missing, authenticated specs are skipped by design.
 - `npm run test:e2e:headed`
 - `npm run test:e2e:ui`
 - `npm run test:e2e:blocker`
+- `npm run test:e2e:blocker:ci` (JSON report + flake gate, default threshold 2%)
 - `npm run seed:e2e:blocker` (create/update blocker user and reset E2E-tagged test data)
 
 ## Notes
@@ -41,3 +42,4 @@ If credentials are missing, authenticated specs are skipped by design.
 - Default base URL is `http://127.0.0.1:3000` (from `playwright.config.mjs`).
 - Use `PLAYWRIGHT_BASE_URL` to point tests at another environment.
 - `/today` blocker latency threshold defaults to `2000ms` and can be overridden with `E2E_BLOCKER_TODAY_LOAD_SLO_MS`.
+- Flake gate threshold defaults to `2%` and can be overridden with `E2E_BLOCKER_FLAKE_THRESHOLD` (e.g. `0.015`).

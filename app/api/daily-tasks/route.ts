@@ -4,6 +4,7 @@ import { createDailyTaskSchema } from '@/lib/schemas/dailyTask.schema';
 import type { Database } from '@/lib/supabase/types';
 import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError } from '@/lib/api/server-errors';
+import { createApiTraceContext, withApiTraceHeaders } from '@/lib/api/observability';
 
 type DailyTaskInsert = Database['public']['Tables']['daily_tasks']['Insert'];
 type DailyTaskRow = Database['public']['Tables']['daily_tasks']['Row'];
@@ -26,8 +27,9 @@ function toDailyTaskResponse(task: DailyTaskRow) {
  * Query params: date (YYYY-MM-DD, defaults to today)
  */
 export async function GET(request: NextRequest) {
+  const trace = createApiTraceContext(request, '/api/daily-tasks');
   const { user, errorResponse } = await requireApiAuth();
-  if (errorResponse) return errorResponse;
+  if (errorResponse) return withApiTraceHeaders(errorResponse, trace, { metricName: 'daily_tasks_get' });
 
   try {
     const supabase = createClient();
@@ -46,9 +48,11 @@ export async function GET(request: NextRequest) {
       throw new Error(`Failed to fetch daily tasks: ${error.message}`);
     }
 
-    return NextResponse.json((data || []).map(toDailyTaskResponse));
+    const response = NextResponse.json((data || []).map(toDailyTaskResponse));
+    return withApiTraceHeaders(response, trace, { metricName: 'daily_tasks_get' });
   } catch (error) {
-    return handleRouteError(error, 'Failed to fetch daily tasks', 'Error fetching daily tasks');
+    const response = handleRouteError(error, 'Failed to fetch daily tasks', 'Error fetching daily tasks');
+    return withApiTraceHeaders(response, trace, { metricName: 'daily_tasks_get' });
   }
 }
 

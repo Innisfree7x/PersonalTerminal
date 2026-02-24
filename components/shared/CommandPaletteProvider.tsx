@@ -2,6 +2,7 @@
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import CommandPalette from './CommandPalette';
+import { useIntentExecutor } from '@/lib/command/executor';
 
 interface CommandPaletteContextType {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export const useCommandPalette = () => useContext(CommandPaletteContext);
 
 export default function CommandPaletteProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
+  useIntentExecutor();
 
   const open = () => setIsOpen(true);
   const close = () => setIsOpen(false);

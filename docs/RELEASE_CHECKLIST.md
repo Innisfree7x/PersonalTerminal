@@ -28,7 +28,7 @@ Execution steps live in `docs/GO_LIVE_RUNBOOK.md`.
 - [ ] `npm run type-check` passes.
 - [ ] `npm run lint` passes.
 - [ ] `npx vitest run` passes.
-- [ ] Blocker E2E suite is green in CI (`npm run test:e2e:blocker`).
+- [ ] Blocker E2E suite is green in CI (`npm run test:e2e:blocker:ci`, flake < 2%).
 - [ ] No failing required checks on the release commit.
 
 ## 3. Data Safety + Isolation

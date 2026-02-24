@@ -3,6 +3,7 @@ import { fetchCoursesWithExercises } from '@/lib/supabase/courses';
 import { startOfDay, differenceInDays } from 'date-fns';
 import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError } from '@/lib/api/server-errors';
+import { createApiTraceContext, withApiTraceHeaders } from '@/lib/api/observability';
 
 interface StudyTask {
   id: string;
@@ -17,9 +18,12 @@ interface StudyTask {
 /**
  * GET /api/dashboard/study-tasks - Fetch incomplete exercises prioritized by exam date
  */
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
+  const trace = createApiTraceContext(request, '/api/dashboard/study-tasks');
   const { user, errorResponse } = await requireApiAuth();
-  if (errorResponse) return errorResponse;
+  if (errorResponse) {
+    return withApiTraceHeaders(errorResponse, trace, { metricName: 'dash_study_tasks' });
+  }
 
   try {
     const today = startOfDay(new Date());
@@ -27,7 +31,8 @@ export async function GET(_request: NextRequest) {
     const coursesWithExercises = await fetchCoursesWithExercises(user.id);
 
     if (coursesWithExercises.length === 0) {
-      return NextResponse.json([]);
+      const emptyResponse = NextResponse.json([]);
+      return withApiTraceHeaders(emptyResponse, trace, { metricName: 'dash_study_tasks' });
     }
 
     // Find first incomplete exercise per course
@@ -84,8 +89,14 @@ export async function GET(_request: NextRequest) {
       return a.exerciseNumber - b.exerciseNumber;
     });
 
-    return NextResponse.json(studyTasks.slice(0, 5));
+    const response = NextResponse.json(studyTasks.slice(0, 5));
+    return withApiTraceHeaders(response, trace, { metricName: 'dash_study_tasks' });
   } catch (error) {
-    return handleRouteError(error, 'Failed to fetch study tasks', 'Error fetching study tasks');
+    const response = handleRouteError(
+      error,
+      'Failed to fetch study tasks',
+      'Error fetching study tasks'
+    );
+    return withApiTraceHeaders(response, trace, { metricName: 'dash_study_tasks' });
   }
 }

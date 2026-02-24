@@ -3,15 +3,18 @@ import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError } from '@/lib/api/server-errors';
 import { getDashboardNextTasks } from '@/lib/dashboard/queries';
 import { recordFlowMetric } from '@/lib/ops/flowMetrics';
+import { createApiTraceContext, withApiTraceHeaders } from '@/lib/api/observability';
 
 /**
  * GET /api/dashboard/next-tasks - Returns actionable next tasks
  */
 export async function GET(_request: NextRequest) {
-  const startedAt = Date.now();
-  const requestId = crypto.randomUUID();
+  const trace = createApiTraceContext(_request, '/api/dashboard/next-tasks');
+  const startedAt = trace.startedAt;
   const { user, errorResponse } = await requireApiAuth();
-  if (errorResponse) return errorResponse;
+  if (errorResponse) {
+    return withApiTraceHeaders(errorResponse, trace, { metricName: 'nexttasks' });
+  }
 
   try {
     const result = await getDashboardNextTasks(user.id);
@@ -22,18 +25,18 @@ export async function GET(_request: NextRequest) {
       durationMs,
       userId: user.id,
       route: '/api/dashboard/next-tasks',
-      requestId,
+      requestId: trace.requestId,
       context: {
         queryDurationMs: result.meta.queryDurationMs,
       },
     });
 
-    return NextResponse.json(result, {
+    const response = NextResponse.json(result, {
       headers: {
-        'Server-Timing': `nexttasks;dur=${durationMs}`,
-        'X-Request-Id': requestId,
+        'Server-Timing': `query_build;dur=${result.meta.queryDurationMs}`,
       },
     });
+    return withApiTraceHeaders(response, trace, { metricName: 'nexttasks' });
   } catch (error) {
     await recordFlowMetric({
       flow: 'today_load',
@@ -41,9 +44,14 @@ export async function GET(_request: NextRequest) {
       durationMs: Date.now() - startedAt,
       userId: user.id,
       route: '/api/dashboard/next-tasks',
-      requestId,
+      requestId: trace.requestId,
       errorCode: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
     });
-    return handleRouteError(error, 'Failed to fetch next tasks', 'Error fetching next tasks');
+    const response = handleRouteError(
+      error,
+      'Failed to fetch next tasks',
+      'Error fetching next tasks'
+    );
+    return withApiTraceHeaders(response, trace, { metricName: 'nexttasks' });
   }
 }
