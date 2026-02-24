@@ -186,8 +186,8 @@ export default function NextBestActionWidget({
   });
 
   return (
-    <div className="card-surface rounded-xl border border-border px-4 py-4">
-      <div className="mb-3 flex items-start justify-between gap-3">
+    <div className="card-surface rounded-xl border border-border px-4 py-3">
+      <div className="mb-2 flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
           <div className="rounded-lg border border-primary/30 bg-primary/15 p-1.5">
             <Zap className="h-4 w-4 text-primary" />
@@ -210,12 +210,12 @@ export default function NextBestActionWidget({
 
       {activeCandidate ? (
         <>
-          <div className="mb-3 grid grid-cols-1 gap-2.5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <div className="mb-2 grid grid-cols-1 gap-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
             <motion.div
               key={activeCandidate.id}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-xl border border-primary/20 bg-primary/[0.06] p-3"
+              className="rounded-xl border border-primary/20 bg-primary/[0.06] p-2.5"
             >
               <div className="mb-1.5 flex items-center gap-1.5">
                 <Badge variant="primary" size="sm">
@@ -242,7 +242,7 @@ export default function NextBestActionWidget({
             </motion.div>
 
             {topRisk ? (
-              <div className="rounded-xl border border-warning/25 bg-warning/[0.08] px-3 py-3">
+              <div className="rounded-xl border border-warning/25 bg-warning/[0.08] px-3 py-2.5">
                 <div className="text-[10px] font-semibold uppercase tracking-wider text-warning">
                   Risk: {topRisk.severity}
                 </div>
@@ -250,24 +250,24 @@ export default function NextBestActionWidget({
                 <div className="mt-0.5 text-sm text-text-tertiary">{topRisk.detail}</div>
               </div>
             ) : (
-              <div className="flex items-center rounded-xl border border-border bg-surface/40 px-3 py-3 text-sm text-text-tertiary">
+              <div className="flex items-center rounded-xl border border-border bg-surface/40 px-3 py-2.5 text-sm text-text-tertiary">
                 No high risk signal right now.
               </div>
             )}
           </div>
 
-          <div className="mb-3 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+          <div className="mb-2 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            <Button onClick={handleDoNow} disabled={isPending} variant="primary" size="sm" className="h-10 w-full text-sm">
+            <Button onClick={handleDoNow} disabled={isPending} variant="primary" size="sm" className="h-9 w-full text-sm">
               <ArrowRight className="mr-2 h-4 w-4" />
               Do now
             </Button>
-            <Button onClick={handlePlanLater} disabled={isPending} variant="secondary" size="sm" className="h-10 w-full text-sm">
+            <Button onClick={handlePlanLater} disabled={isPending} variant="secondary" size="sm" className="h-9 w-full text-sm">
               <CalendarClock className="mr-2 h-4 w-4" />
               Plan later
             </Button>
-            <Button onClick={handleDrop} disabled={isPending} variant="ghost" size="sm" className="h-10 w-full text-sm">
+            <Button onClick={handleDrop} disabled={isPending} variant="ghost" size="sm" className="h-9 w-full text-sm">
               <XCircle className="mr-2 h-4 w-4" />
               Drop
             </Button>

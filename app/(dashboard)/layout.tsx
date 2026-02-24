@@ -68,7 +68,7 @@ function DashboardLayoutInner({
             />
 
             {/* Content container */}
-            <div className="relative max-w-[1600px] mx-auto px-6 py-8">
+            <div className="relative max-w-[1600px] mx-auto px-6 pt-5 pb-8">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={pathname}
