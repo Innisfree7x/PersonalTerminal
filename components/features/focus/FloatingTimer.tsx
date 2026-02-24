@@ -3,6 +3,7 @@
 import { memo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Pause, Square, SkipForward, Timer, ChevronDown, ChevronUp, Flame, Clock, Zap } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import type { FocusSessionCategory } from '@/lib/schemas/focusSession.schema';
 
@@ -34,6 +35,7 @@ function formatMinutes(minutes: number): string {
 }
 
 const FloatingTimer = memo(function FloatingTimer() {
+  const router = useRouter();
   const {
     status,
     timeLeft,
@@ -68,6 +70,19 @@ const FloatingTimer = memo(function FloatingTimer() {
     if (inputLabel) opts.label = inputLabel;
     startTimer(opts);
     setInputLabel('');
+  };
+
+  const handleOpenFocusMode = () => {
+    if (status === 'idle') {
+      const opts: { duration: number; label?: string; category: FocusSessionCategory } = {
+        duration: selectedDuration,
+        category: selectedCategory,
+      };
+      opts.label = inputLabel || 'Focus Mode';
+      startTimer(opts);
+      setInputLabel('');
+    }
+    router.push('/focus');
   };
 
   // Minimized pill
@@ -253,6 +268,15 @@ const FloatingTimer = memo(function FloatingTimer() {
                 )}
               </div>
             )}
+
+            <motion.button
+              onClick={handleOpenFocusMode}
+              className="mt-3 w-full rounded-xl border border-primary/25 bg-primary/10 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+            >
+              Open Focus Mode
+            </motion.button>
           </div>
         ) : (
           /* Idle - Start configuration */
@@ -325,6 +349,15 @@ const FloatingTimer = memo(function FloatingTimer() {
               <Play className="w-4 h-4" />
               Start Focus ({selectedDuration}m)
             </button>
+
+            <motion.button
+              onClick={handleOpenFocusMode}
+              className="w-full py-2.5 rounded-xl border border-primary/25 bg-primary/10 text-primary font-medium text-sm hover:bg-primary/20 transition-colors"
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+            >
+              Start in Focus Mode
+            </motion.button>
           </div>
         )}
 
