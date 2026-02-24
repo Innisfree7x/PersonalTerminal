@@ -477,19 +477,25 @@ function ChampionOverlay({
         {effects.map((effect) => (
           <motion.div
             key={effect.id}
-            initial={{ opacity: 0, scale: 0.7 }}
+            initial={{ opacity: 0, scale: 0.88 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.1, ease: 'easeOut' }}
             className="absolute"
             style={{ left: effect.x, top: effect.y }}
           >
             {effect.type === 'q' && (
-              <>
+              <motion.div
+                className="absolute"
+                initial={{ scaleX: 0, rotate: effect.angle ?? 0 }}
+                animate={{ scaleX: 1, rotate: effect.angle ?? 0 }}
+                transition={{ duration: 0.16, ease: 'easeOut' }}
+                style={{ transformOrigin: 'left center' }}
+              >
                 {/* Outer diffuse glow */}
                 <div
-                  className="absolute origin-left rounded-full"
+                  className="absolute rounded-full"
                   style={{
-                    transform: `rotate(${effect.angle ?? 0}deg)`,
                     width: effect.distance ?? 900,
                     height: 30,
                     top: -6,
@@ -500,9 +506,8 @@ function ChampionOverlay({
                 />
                 {/* Main beam */}
                 <div
-                  className="absolute origin-left rounded-full"
+                  className="absolute rounded-full"
                   style={{
-                    transform: `rotate(${effect.angle ?? 0}deg)`,
                     width: effect.distance ?? 900,
                     height: 14,
                     top: 0,
@@ -513,9 +518,8 @@ function ChampionOverlay({
                 />
                 {/* White-hot core */}
                 <div
-                  className="absolute origin-left rounded-full"
+                  className="absolute rounded-full"
                   style={{
-                    transform: `rotate(${effect.angle ?? 0}deg)`,
                     width: (effect.distance ?? 900) - 22,
                     height: 4,
                     top: 5,
@@ -524,7 +528,7 @@ function ChampionOverlay({
                     boxShadow: `0 0 14px ${hexToRgba('#FFFFFF', 0.6)}`,
                   }}
                 />
-              </>
+              </motion.div>
             )}
             {effect.type === 'q-spark' && (
               <motion.div
@@ -648,10 +652,34 @@ function ChampionOverlay({
               </motion.div>
             )}
             {effect.type === 'e' && (
-              <div
-                className="h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full blur-sm"
-                style={{ backgroundColor: hexToRgba(abilityColors.e, 0.32) }}
-              />
+              <>
+                {/* Expanding impact ring */}
+                <motion.div
+                  className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px]"
+                  initial={{ opacity: 0.95, scale: 0.15 }}
+                  animate={{ opacity: 0, scale: 1.8 }}
+                  transition={{ duration: 0.32, ease: 'easeOut' }}
+                  style={{
+                    width: 72,
+                    height: 72,
+                    borderColor: hexToRgba(abilityColors.e, 0.95),
+                    boxShadow: `0 0 24px ${hexToRgba(abilityColors.e, 0.7)}, inset 0 0 16px ${hexToRgba(abilityColors.e, 0.3)}`,
+                  }}
+                />
+                {/* Inner flash bloom */}
+                <motion.div
+                  className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
+                  initial={{ opacity: 0.55, scale: 0.2 }}
+                  animate={{ opacity: 0, scale: 1.15 }}
+                  transition={{ duration: 0.22, ease: 'easeOut' }}
+                  style={{
+                    width: 44,
+                    height: 44,
+                    backgroundColor: hexToRgba(abilityColors.e, 0.28),
+                    filter: 'blur(8px)',
+                  }}
+                />
+              </>
             )}
             {effect.type === 'dash-ghost' && (
               <motion.div
@@ -669,10 +697,13 @@ function ChampionOverlay({
               />
             )}
             {effect.type === 'r' && (
-              <div
-                className="origin-left rounded-full"
+              <motion.div
+                className="rounded-full"
+                initial={{ scaleX: 0, rotate: effect.angle ?? 0 }}
+                animate={{ scaleX: 1, rotate: effect.angle ?? 0 }}
+                transition={{ duration: 0.22, ease: 'easeOut' }}
                 style={{
-                  transform: `rotate(${effect.angle ?? 0}deg)`,
+                  transformOrigin: 'left center',
                   width: 560,
                   height: 56,
                   marginTop: -24,
@@ -752,9 +783,14 @@ function ChampionOverlay({
               </motion.div>
             )}
             {effect.type === 'pentakill' && (
-              <div className="pointer-events-none -translate-x-1/2 -translate-y-1/2 text-4xl font-black tracking-[0.25em] text-amber-300 drop-shadow-[0_0_18px_rgba(251,191,36,0.8)]">
+              <motion.div
+                className="pointer-events-none -translate-x-1/2 -translate-y-1/2 text-4xl font-black tracking-[0.25em] text-amber-300 drop-shadow-[0_0_18px_rgba(251,191,36,0.8)]"
+                initial={{ opacity: 0, scale: 0.55, y: 10 }}
+                animate={{ opacity: [0, 1, 1, 0.85], scale: [0.55, 1.18, 0.97, 1], y: [10, -5, 1, 0] }}
+                transition={{ duration: 0.52, ease: 'easeOut', times: [0, 0.28, 0.55, 1] }}
+              >
                 PENTAKILL
-              </div>
+              </motion.div>
             )}
             {effect.type === 'origin-flash' && (
               <motion.div
