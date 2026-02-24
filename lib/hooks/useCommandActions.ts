@@ -1,7 +1,17 @@
 'use client';
 
 import { useEffect } from 'react';
+import type { ParsedIntent } from '@/lib/command/parser';
 
+// ── Intent execution event (consumed by lib/command/executor.ts — Codex) ──────
+export const PRISM_INTENT_EXECUTE_EVENT = 'prism:intent-execute';
+
+export function dispatchIntentExecute(intent: ParsedIntent): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(PRISM_INTENT_EXECUTE_EVENT, { detail: intent }));
+}
+
+// ── Legacy page-action events ─────────────────────────────────────────────────
 export type PrismCommandAction =
   | 'open-new-goal'
   | 'open-new-course'
