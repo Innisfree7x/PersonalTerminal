@@ -5,6 +5,7 @@
 
 ## Canonical Context (must-read)
 - Active planning source: `docs/PHASE12_MASTERPLAN.md`
+- Active execution source: `docs/PHASE12_EXECUTION_BLUEPRINT.md`
 - Context priority map: `docs/CONTEXT_CANON.md`
 - Reliability implementation baseline: `docs/PHASE11_TRACK6_IMPLEMENTATION.md`
 

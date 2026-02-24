@@ -9,14 +9,16 @@ Wenn zwei Dokumente widersprüchlich sind, gilt immer diese Prioritätsliste.
 
 ## Prioritätsreihenfolge (verbindlich)
 1. `docs/PHASE12_MASTERPLAN.md`
-2. `docs/PHASE11_TRACK6_IMPLEMENTATION.md`
-3. `docs/RELEASE_CHECKLIST.md`
-4. `docs/GO_LIVE_RUNBOOK.md`
-5. `CLAUDE.md` + `llms.txt` / `llms-full.txt` (nur als Assistenz-Kontext)
-6. Historische Phase-Dokumente (nur Referenz, nicht normativ)
+2. `docs/PHASE12_EXECUTION_BLUEPRINT.md`
+3. `docs/PHASE11_TRACK6_IMPLEMENTATION.md`
+4. `docs/RELEASE_CHECKLIST.md`
+5. `docs/GO_LIVE_RUNBOOK.md`
+6. `CLAUDE.md` + `llms.txt` / `llms-full.txt` (nur als Assistenz-Kontext)
+7. Historische Phase-Dokumente (nur Referenz, nicht normativ)
 
 ## Aktive Dokumente
 - `docs/PHASE12_MASTERPLAN.md` (aktive Phase-Planung)
+- `docs/PHASE12_EXECUTION_BLUEPRINT.md` (konkrete Umsetzung Tracks 3/4/5/6)
 - `docs/PHASE11_TRACK6_IMPLEMENTATION.md` (implementierte Reliability-Basis)
 - `docs/RELEASE_CHECKLIST.md` (Release-Gate)
 - `docs/GO_LIVE_RUNBOOK.md` (operativer Rollout)

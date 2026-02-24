@@ -6,6 +6,7 @@
 
 For current roadmap and implementation decisions, use:
 - `docs/PHASE12_MASTERPLAN.md`
+- `docs/PHASE12_EXECUTION_BLUEPRINT.md`
 - `docs/CONTEXT_CANON.md`
 - `docs/PHASE11_TRACK6_IMPLEMENTATION.md`
 

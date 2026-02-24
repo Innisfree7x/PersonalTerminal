@@ -129,5 +129,6 @@ Claude:
 ## 9) Referenzdokumente
 - `docs/CONTEXT_CANON.md`
 - `docs/PHASE11_TRACK6_IMPLEMENTATION.md`
+- `docs/PHASE12_EXECUTION_BLUEPRINT.md`
 - `docs/RELEASE_CHECKLIST.md`
 - `docs/GO_LIVE_RUNBOOK.md`
