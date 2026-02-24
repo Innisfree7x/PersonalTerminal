@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Play, Pause, RotateCcw, Coffee } from 'lucide-react';
 import { memo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { SkeletonCircle, Skeleton } from '@/components/ui';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 
@@ -14,6 +15,7 @@ interface PomodoroTimerProps {
 }
 
 const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: PomodoroTimerProps) {
+  const router = useRouter();
   const {
     status,
     timeLeft,
@@ -55,6 +57,13 @@ const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: Pomodor
     } else if (status === 'break_paused') {
       resumeTimer();
     }
+  };
+
+  const handleOpenFocusMode = () => {
+    if (status === 'idle') {
+      startTimer({ duration: selectedDuration, label: 'Focus Mode' });
+    }
+    router.push('/focus');
   };
 
   if (isLoading) {
@@ -192,6 +201,15 @@ const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: Pomodor
           <RotateCcw className="w-5 h-5" />
         </motion.button>
       </div>
+
+      <motion.button
+        onClick={handleOpenFocusMode}
+        className="mb-4 w-full rounded-lg border border-primary/25 bg-primary/10 px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+      >
+        {status === 'idle' ? 'Start in Focus Mode' : 'Open Focus Mode'}
+      </motion.button>
 
       {/* Completed pomodoros */}
       <div className="flex items-center justify-center gap-1 pb-2">
