@@ -101,6 +101,7 @@ function parseDeadline(raw: string): { iso: string; label: string } | null {
     const d = new Date(year, month, day);
     if (!explicitYear && d < today) d.setFullYear(d.getFullYear() + 1);
     if (isNaN(d.getTime())) return null;
+    if (d.getDate() !== day || d.getMonth() !== month) return null;
     return { iso: toIsoDate(d), label: toGermanLabel(d) };
   }
 
@@ -117,7 +118,7 @@ const OPEN_VERBS  = ['navigate to', 'gehe zu', 'go to', 'öffne', 'open'];
 /** True if `lower` starts with `verb` followed by whitespace or a quote */
 function startsWithVerb(lower: string, verb: string): boolean {
   if (!lower.startsWith(verb)) return false;
-  if (lower.length === verb.length) return false;
+  if (lower.length === verb.length) return true;
   const charAfter = lower[verb.length]!;
   return charAfter === ' ' || charAfter === '"' || charAfter === '\u201c';
 }

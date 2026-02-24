@@ -16,10 +16,13 @@ function todayIsoDate(): string {
 }
 
 function defaultGoalTargetDate(): Date {
-  const date = new Date();
-  date.setHours(0, 0, 0, 0);
-  date.setDate(date.getDate() + DEFAULT_GOAL_TARGET_DAYS);
-  return date;
+  const local = new Date();
+  local.setDate(local.getDate() + DEFAULT_GOAL_TARGET_DAYS);
+  const year = local.getFullYear();
+  const month = local.getMonth();
+  const day = local.getDate();
+  // Build as explicit UTC date to avoid timezone drift when serialized.
+  return new Date(Date.UTC(year, month, day, 12, 0, 0, 0));
 }
 
 function toErrorMessage(error: unknown): string {

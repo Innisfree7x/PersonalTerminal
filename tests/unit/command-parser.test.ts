@@ -57,7 +57,13 @@ describe('command parser', () => {
   });
 
   it('returns inline error for malformed focus command', () => {
-    const result = parseCommand('focus abc');
+    const result = parseCommand('focus');
+    expect(result).not.toBeNull();
+    expect(result && result.ok).toBe(false);
+  });
+
+  it('rejects invalid dd.mm date values', () => {
+    const result = parseCommand('erstelle task "Mathe" deadline 31.02.');
     expect(result).not.toBeNull();
     expect(result && result.ok).toBe(false);
   });
