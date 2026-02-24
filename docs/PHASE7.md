@@ -1,3 +1,7 @@
+> **Status: Archived (Historical).**
+> This document is kept for historical traceability and is **not** the active execution source anymore.
+> Use docs/PHASE12_MASTERPLAN.md and docs/CONTEXT_CANON.md as canonical context.
+
 # Phase 7 — Mobile PWA
 
 > **Vision:** INNIS ist auf dem iPhone installierbar und fühlt sich wie eine native App an.

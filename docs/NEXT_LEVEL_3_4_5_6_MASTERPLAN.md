@@ -1,7 +1,11 @@
+> **Status: Archived (Historical).**
+> This document is kept for historical traceability and is **not** the active execution source anymore.
+> Use docs/PHASE12_MASTERPLAN.md and docs/CONTEXT_CANON.md as canonical context.
+
 # NEXT LEVEL Masterplan (Tracks 3, 4, 5, 6)
 
 Stand: 2026-02-24
-Status: Active — Duo execution (Codex + Claude)
+Status: Archived — superseded by docs/PHASE12_MASTERPLAN.md
 Owner: Engineering
 
 ---

@@ -1,94 +1,138 @@
 # CLAUDE.md - Project Context
 
 ## Project Overview
-**INNIS** is a personal productivity dashboard built with Next.js 14 (App Router), TypeScript, Supabase, and TanStack React Query. It manages university courses, goals, career applications, daily tasks, focus time tracking, and Google Calendar integration.
+**INNIS** is a personal productivity system built with Next.js 14 (App Router), TypeScript, Supabase, and TanStack React Query. It combines university tracking, goals, career pipeline management, daily tasks, focus sessions, and Google Calendar integration.
+
+## Canonical Context (must-read)
+- Active planning source: `docs/PHASE12_MASTERPLAN.md`
+- Context priority map: `docs/CONTEXT_CANON.md`
+- Reliability implementation baseline: `docs/PHASE11_TRACK6_IMPLEMENTATION.md`
+
+Important:
+- Documents marked as historical/archived in `docs/CONTEXT_CANON.md` are non-normative.
+- If a historical phase doc conflicts with active planning docs, always follow Phase 12 + Context Canon.
+- Execution decisions must not be derived from archived phase docs unless explicitly requested for legacy analysis.
+- Before planning or implementation work, read `docs/CONTEXT_CANON.md` first.
+
+## Current App Structure
+- `app/(marketing)` contains landing + public pages (`/`, `/features`, `/pricing`, `/about`, `/privacy`, `/terms`).
+- `app/(dashboard)` contains authenticated product routes.
+- `app/auth` contains login/signup pages.
+- `app/onboarding` is the onboarding gate for authenticated users.
+- `app/actions` contains server actions used by dashboard features.
+- `app/api` contains API routes (user, admin, monitoring, cron, analytics ingress).
 
 ## Tech Stack
-- **Framework:** Next.js 14 (App Router, `app/` directory)
-- **Language:** TypeScript (strict mode, `exactOptionalPropertyTypes: true`)
-- **Database:** Supabase (PostgreSQL) via `@supabase/ssr`
+- **Framework:** Next.js 14 (App Router)
+- **Language:** TypeScript strict (`exactOptionalPropertyTypes: true`)
+- **Data/Auth:** Supabase PostgreSQL + Supabase Auth (`@supabase/ssr`)
 - **State/Fetching:** TanStack React Query v5
-- **Forms:** React Hook Form + Zod validation
-- **Styling:** Tailwind CSS + Framer Motion animations
-- **Charts:** Recharts v3.7
-- **UI:** Radix UI primitives, Lucide icons, cmdk command palette
+- **Validation:** Zod
+- **Forms:** React Hook Form
+- **UI/Styling:** Tailwind CSS, Radix UI, Framer Motion, Lucide, cmdk
+- **Charts/Analytics:** Recharts, `@vercel/analytics`, `@vercel/speed-insights`
 
-## Architecture Patterns
+## Auth and Access Control
 
-### API Layer
-- API routes in `app/api/` — all protected with `requireApiAuth()` from `lib/api/auth.ts`
-- Server-side Supabase client: `createClient()` from `lib/auth/server.ts` — create per-function, NOT singleton
-- **NEVER** use bare client from `lib/supabase/client.ts` in API routes (causes RLS failures)
-- Zod schemas in `lib/schemas/` validate all inputs
-- Supabase data layer in `lib/supabase/` (courses.ts, goals.ts, applications.ts, focusSessions.ts)
-- Frontend API client in `lib/api/` (goals.ts, applications.ts, daily-tasks.ts, calendar.ts, focus-sessions.ts)
+### Middleware
+`middleware.ts` enforces:
+- auth redirects for protected dashboard routes
+- onboarding gate (`/onboarding`) until `user_metadata.onboarding_completed === true`
+- authenticated users are redirected away from `/auth/*`
+- admin-only gate for `/analytics/ops`
 
-### Frontend Layer
-- Pages in `app/(dashboard)/` — all `'use client'` with React Query
-- Pattern: `useQuery` for fetching, `useMutation` for create/update/delete
-- Mutations invalidate queries on success, show error state on failure
-- Feature components in `components/features/{feature}/`
-- Shared UI components in `components/ui/`
+### API Protection Modes
+- **User APIs:** mostly protected via `requireApiAuth()` (`lib/api/auth.ts`)
+- **Admin APIs:** use `requireApiAdmin()` (e.g. monitoring health/incidents, debug)
+- **Non-user-ingress APIs:** selected endpoints intentionally do not use `requireApiAuth()`:
+  - `/api/analytics/event` (validated analytics ingestion, user optional)
+  - `/api/monitoring/error` (client error intake with ingress throttling)
+  - `/api/ops/flow-metrics` (login flow metric ingestion)
+  - `/api/cron/*` (protected via `requireCronAuth()` bearer secret)
 
-### Data Flow
-```
-Page → lib/api/*.ts (fetch functions) → /api/* routes → lib/supabase/*.ts → Supabase DB
-```
+### Supabase Clients
+- Request-scoped auth client: `createClient()` in `lib/auth/server.ts` (default for APIs/server logic).
+- Service-role admin client: `createAdminClient()` in `lib/auth/admin.ts` (cron/admin/ops jobs).
+- Avoid `lib/supabase/client.ts` in API routes because it is not request-cookie scoped.
 
-### Form Modal Pattern
-Every CRUD feature follows this pattern:
-1. Page has `editingX` state + `isModalOpen` state
-2. `createMutation` + `updateMutation` + `deleteMutation`
-3. Submit handler checks `editingX` to route to create or update
-4. Modal/Form receives `initialData`, `isEdit`, `isSaving`, `error` props
-5. Form uses `useEffect` with `reset(initialData ?? defaults)` for reactivity
+## Data and Rendering Patterns
+- Client pattern: `Page -> lib/api/*.ts -> /api/* -> lib/supabase/*.ts -> Supabase`.
+- Server-action pattern: `Page/Component -> app/actions/*.ts -> data/auth layer`.
+- Rendering is hybrid:
+  - Most dashboard pages are client-heavy (`useQuery`/`useMutation`).
+  - Some pages are server components (e.g. `app/(dashboard)/career/page.tsx`, `app/(dashboard)/analytics/ops/page.tsx`) and pass initial data to client components.
 
-### Global Providers (app/layout.tsx)
-```
-AuthProvider > QueryProvider > FocusTimerProvider > CommandPaletteProvider
-```
+## Provider Trees
 
-## Pages
+### Root (`app/layout.tsx`)
+`AuthProvider -> ThemeProvider -> SoundProvider -> QueryProvider -> FocusTimerProvider -> LucianBubbleProvider -> CommandPaletteProvider`, plus `ToastProvider`, `PerformanceMonitor`, Vercel Analytics, and Speed Insights.
+
+### Dashboard (`app/(dashboard)/layout.tsx`)
+`SidebarProvider -> PowerHotkeysProvider -> ChampionProvider` around the dashboard shell (Sidebar, Header, animated page container, FloatingTimer).
+
+## Key Routes
 | Route | Purpose |
-|-------|---------|
-| `/today` | Daily dashboard with tasks, schedule, study progress, deadlines |
-| `/calendar` | Weekly calendar with Google Calendar integration |
-| `/goals` | Goal tracking (fitness, career, learning, finance) |
-| `/university` | Course & exercise tracking (WS 2025/26) |
-| `/career` | Job application Kanban pipeline |
-| `/analytics` | Focus analytics with Recharts charts |
+|------|---------|
+| `/` | Marketing landing (redirects authenticated users to onboarding/today) |
+| `/onboarding` | Mandatory first-time setup |
+| `/today` | Command center (tasks, next best action, calendar context, stats) |
+| `/calendar` | Weekly calendar |
+| `/goals` | Goal tracking |
+| `/university` | Courses + exercise progress |
+| `/career` | Job application board |
+| `/analytics` | Focus analytics |
+| `/analytics/ops` | Admin operations health page |
+| `/settings` | Themes, sounds, hotkeys, profile/preferences |
+
+## Database Model (from `lib/supabase/types.ts`)
+Tables currently typed:
+- `goals`
+- `job_applications`
+- `courses`
+- `exercise_progress`
+- `daily_tasks`
+- `focus_sessions`
+- `admin_audit_logs`
+- `ops_flow_metrics`
+- `events` (legacy typed table; not used by current app flows)
+
+### RLS Summary
+Migration docs indicate owner-based isolation is expected:
+- `docs/migrations/2026-02-15_user-isolation.sql` adds `user_id` and owner-only policies for core product tables.
+- `docs/migrations/2026-02-16_admin_audit_logs.sql` adds admin-only read/insert policies.
+- `docs/migrations/2026-02-24_ops_flow_metrics.sql` adds controlled insert/read policies for flow metrics.
 
 ## Key Files
 | Path | Purpose |
 |------|---------|
-| `lib/supabase/types.ts` | Database type definitions (7 tables) |
-| `lib/schemas/*.schema.ts` | Zod validation schemas |
-| `lib/api/auth.ts` | API route auth middleware (`requireApiAuth`) |
-| `lib/auth/server.ts` | Server-side Supabase auth client (`createClient`) |
-| `components/providers/FocusTimerProvider.tsx` | Global focus timer context |
-| `components/features/focus/FloatingTimer.tsx` | Floating timer widget |
-
-## Database Tables
-`goals`, `job_applications`, `courses`, `exercise_progress`, `daily_tasks`, `focus_sessions`
-
-Note: `events` table exists in types.ts but NOT in Supabase DB.
-
-RLS: All tables use `FOR ALL TO authenticated USING (true) WITH CHECK (true)` — no `user_id` columns.
+| `lib/auth/server.ts` | Request-scoped Supabase auth client + auth helpers |
+| `lib/auth/admin.ts` | Service-role Supabase admin client |
+| `lib/api/auth.ts` | API auth helpers (`requireApiAuth`, `requireApiAdmin`) |
+| `lib/supabase/types.ts` | Supabase table typings |
+| `middleware.ts` | Route protection + onboarding/admin gating |
+| `app/layout.tsx` | Global providers + metadata |
+| `app/(dashboard)/layout.tsx` | Dashboard shell/providers + floating timer |
+| `lib/application/use-cases/execution-engine.ts` | Next Best Action ranking + execution score |
+| `components/providers/ChampionProvider.tsx` | VFX gamification layer — Q/W/E/R ability effects, sprite HUD, Pentakill |
+| `components/features/lucian/LucianBubble.tsx` | Contextual companion UI — Character-Card layout, mood-mapped sprite, walk-entry animation |
+| `lib/lucian/copy.ts` | Lucian companion message library (5 moods, 80+ lines) |
+| `lib/command/parser.ts` | Deterministic grammar parser for Command Palette intents (4 intents: task, goal, focus, page) |
 
 ## Commands
 ```bash
-npm run dev          # Start dev server
-npm run build        # Production build
-npm run type-check   # TypeScript check (tsc --noEmit)
-npm run lint         # ESLint
-npm run test         # Vitest
+npm run dev                   # Dev server
+npm run build                 # Production build
+npm run type-check            # TypeScript check
+npm run lint                  # ESLint
+npm run test                  # Vitest
+npm run test:e2e:blocker      # Critical Playwright blocker suite
+npm run test:e2e              # Full Playwright suite
 ```
 
 ## Conventions
-- Commit messages: conventional commits (feat:, fix:, docs:, etc.)
-- All dates stored as `YYYY-MM-DD` strings in Supabase, converted to `Date` objects on frontend
-- Supabase columns use `snake_case`, TypeScript types use `camelCase`
-- Conversion functions: `supabaseXToX()` and `xToSupabaseInsert()` in `lib/supabase/*.ts`
-- Pre-commit hooks: husky + lint-staged (eslint --fix, prettier --write)
-- TypeScript strict: use explicit object building instead of `undefined` in optional properties
-- User language: German for conversation, English for code
+- Supabase DB columns are `snake_case`; app models are `camelCase`.
+- Date-only fields are commonly stored as `YYYY-MM-DD`; timestamps are ISO strings.
+- Conversion helpers live in `lib/supabase/*.ts` (`supabaseXToX`, `xToSupabaseInsert`).
+- TS strict mode is enforced; avoid passing explicit `undefined` where optional properties are omitted.
+- Pre-commit: Husky + lint-staged (`eslint --fix`, `prettier --write`).
+- Team communication convention: German conversation, English code/content.

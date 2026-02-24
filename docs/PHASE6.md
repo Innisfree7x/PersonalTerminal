@@ -1,3 +1,7 @@
+> **Status: Archived (Historical).**
+> This document is kept for historical traceability and is **not** the active execution source anymore.
+> Use docs/PHASE12_MASTERPLAN.md and docs/CONTEXT_CANON.md as canonical context.
+
 # Phase 6 — Terminal Champion (LoL Desktop Pet)
 
 > **Vision:** Lucian lebt als Pixel Art Sprite im Terminal. Er läuft durch den ganzen Screen,

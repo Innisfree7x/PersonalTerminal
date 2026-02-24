@@ -2,6 +2,15 @@
 
 > Personal productivity dashboard for students — study tracker, goal management, career pipeline, focus timer, and daily planner in one place.
 
+## Canonical Planning Docs
+
+For current roadmap and implementation decisions, use:
+- `docs/PHASE12_MASTERPLAN.md`
+- `docs/CONTEXT_CANON.md`
+- `docs/PHASE11_TRACK6_IMPLEMENTATION.md`
+
+Archived phase docs are historical references only.
+
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green?logo=supabase)](https://supabase.com/)

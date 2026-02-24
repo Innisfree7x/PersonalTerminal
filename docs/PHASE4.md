@@ -1,3 +1,7 @@
+> **Status: Archived (Historical).**
+> This document is kept for historical traceability and is **not** the active execution source anymore.
+> Use docs/PHASE12_MASTERPLAN.md and docs/CONTEXT_CANON.md as canonical context.
+
 # Phase 4 — Power-User Experience (LoL-Style Hotkeys)
 
 > **Vision:** INNIS fühlt sich wie ein echtes Terminal an. Die Maus wird optional.

@@ -1,6 +1,11 @@
+> **Status: Archived (Historical).**
+> This document is kept for historical traceability and is **not** the active execution source anymore.
+> Use docs/PHASE12_MASTERPLAN.md and docs/CONTEXT_CANON.md as canonical context.
+
 # PHASE 12–14 LONG-TERM ROADMAP (INNIS)
 
 Stand: 2026-02-21
+Status: Archived planning snapshot — Phase 12 execution moved to docs/PHASE12_MASTERPLAN.md
 Horizont: Nächste 3 Phasen nach 8–11 Stabilisierung
 
 ## Leitprinzip

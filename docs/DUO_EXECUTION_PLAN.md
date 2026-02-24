@@ -1,3 +1,7 @@
+> **Status: Archived (Historical).**
+> This document is a historical execution snapshot and is no longer normative.
+> Use `docs/PHASE12_MASTERPLAN.md` and `docs/CONTEXT_CANON.md` as canonical context.
+
 # INNIS Duo Execution Plan (Codex + Claude)
 
 Dieses Dokument teilt die Arbeit zwischen Codex und Claude so auf, dass ihr schnell shippt, ohne euch gegenseitig zu blockieren.

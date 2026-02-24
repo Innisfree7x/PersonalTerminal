@@ -1,6 +1,11 @@
+> **Status: Archived (Historical).**
+> This document is kept for historical traceability and is **not** the active execution source anymore.
+> Use docs/PHASE12_MASTERPLAN.md and docs/CONTEXT_CANON.md as canonical context.
+
 # Phase 11: Core UX, Performance & Notifications
 
 Stand: 2026-02-21
+Status: Archived — implementation baseline moved to docs/PHASE11_TRACK6_IMPLEMENTATION.md
 Scope: Bug Fixes, Performance, E2E-Stabilisierung, Lucian Context-Aware, Email-Notifications
 
 ---

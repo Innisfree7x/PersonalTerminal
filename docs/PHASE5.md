@@ -1,3 +1,7 @@
+> **Status: Archived (Historical).**
+> This document is kept for historical traceability and is **not** the active execution source anymore.
+> Use docs/PHASE12_MASTERPLAN.md and docs/CONTEXT_CANON.md as canonical context.
+
 # Phase 5 — Notion Speed (Performance & Feel)
 
 > **Vision:** INNIS fühlt sich wie eine native App an. Kein sichtbarer Ladebalken mehr.

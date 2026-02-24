@@ -1,3 +1,7 @@
+> **Status: Archived (Historical).**
+> This roadmap status is a historical snapshot and is no longer normative.
+> Use `docs/PHASE12_MASTERPLAN.md` and `docs/CONTEXT_CANON.md` as canonical context.
+
 # High-End Roadmap Status (INNIS)
 
 Last updated: 2026-02-21
@@ -47,4 +51,4 @@ Last updated: 2026-02-21
 - `Phase 13`: monetization and growth engine
 - `Phase 14`: intelligent product layer (strictly utility-driven)
 
-See: `docs/PHASE12_14_LONG_TERM_ROADMAP.md`
+See: `docs/PHASE12_MASTERPLAN.md`
