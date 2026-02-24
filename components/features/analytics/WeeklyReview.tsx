@@ -50,6 +50,24 @@ function formatMinutes(min: number): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
+function parseDateOnly(date: string): Date {
+  const [rawYear = '1970', rawMonth = '01', rawDay = '01'] = date.split('-');
+  const year = Number.parseInt(rawYear, 10);
+  const month = Number.parseInt(rawMonth, 10);
+  const day = Number.parseInt(rawDay, 10);
+
+  const safeYear = Number.isFinite(year) ? year : 1970;
+  const safeMonth = Number.isFinite(month) ? month : 1;
+  const safeDay = Number.isFinite(day) ? day : 1;
+
+  return new Date(safeYear, safeMonth - 1, safeDay);
+}
+
+function formatWeekdayShort(date: string): string {
+  const value = new Intl.DateTimeFormat('de-DE', { weekday: 'short' }).format(parseDateOnly(date));
+  return value.replace('.', '');
+}
+
 // ── Rule-based recommendations ─────────────────────────────────────────────────
 
 interface WeekData {
@@ -330,6 +348,42 @@ export default function WeeklyReview() {
     applicationsStuck,
   };
 
+  const weeklyFocusDistribution = useMemo(() => {
+    const map = new Map((focusWeek?.dailyData ?? []).map((entry) => [entry.date, entry]));
+    const today = weekDates[weekDates.length - 1];
+
+    const days = weekDates.map((date) => {
+      const item = map.get(date);
+      return {
+        date,
+        label: formatWeekdayShort(date),
+        totalMinutes: item?.totalMinutes ?? 0,
+        sessions: item?.sessions ?? 0,
+        isToday: date === today,
+      };
+    });
+
+    const maxMinutes = Math.max(...days.map((day) => day.totalMinutes), 1);
+    const totalMinutes = days.reduce((sum, day) => sum + day.totalMinutes, 0);
+    const activeDays = days.filter((day) => day.totalMinutes > 0).length;
+    const averageMinutes = Math.round(totalMinutes / days.length);
+    let bestDay = null as (typeof days)[number] | null;
+    for (const day of days) {
+      if (!bestDay || day.totalMinutes > bestDay.totalMinutes) {
+        bestDay = day;
+      }
+    }
+
+    return {
+      days,
+      maxMinutes,
+      totalMinutes,
+      activeDays,
+      averageMinutes,
+      bestDay,
+    };
+  }, [focusWeek?.dailyData, weekDates]);
+
   const recommendations = useMemo(
     () => generateRecommendations(weekData),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -463,36 +517,61 @@ export default function WeeklyReview() {
         )}
       </div>
 
-      {/* Focus trend bar (if data available) */}
-      {focusWeek?.dailyData && focusWeek.dailyData.length > 0 && (
-        <div className="border-t border-white/[0.05] px-5 py-3">
-          <div className="flex items-end gap-1">
-            {focusWeek.dailyData.slice(-7).map((day, i) => {
-              const maxMin = Math.max(...focusWeek.dailyData.map((d) => d.totalMinutes), 1);
-              const height = Math.max(4, Math.round((day.totalMinutes / maxMin) * 28));
-              const isToday = i === focusWeek.dailyData.length - 1;
-              return (
-                <div
-                  key={day.date ?? i}
-                  title={`${day.date ?? ''}: ${formatMinutes(day.totalMinutes)}`}
-                  className={`flex-1 rounded-sm transition-all ${
-                    day.totalMinutes > 0
-                      ? isToday
-                        ? 'bg-amber-400/70'
-                        : 'bg-cyan-400/40'
-                      : 'bg-white/[0.04]'
-                  }`}
-                  style={{ height }}
-                />
-              );
-            })}
-          </div>
-          <p className="mt-1.5 flex items-center gap-1 text-[10px] text-zinc-600">
+      {/* Focus distribution (always 7-day normalized) */}
+      <div className="border-t border-white/[0.05] px-5 py-3.5">
+        <div className="flex items-center justify-between gap-2 text-[10px]">
+          <p className="flex items-center gap-1 text-zinc-500">
             <Trend value={weekData.focusMinutes} prev={prevWeekMinutes} />
-            Fokus-Verteilung diese Woche
+            Fokus-Verteilung (7 Tage)
+          </p>
+          <p className="text-zinc-500">
+            {formatMinutes(weeklyFocusDistribution.totalMinutes)} total · Ø {formatMinutes(weeklyFocusDistribution.averageMinutes)}
           </p>
         </div>
-      )}
+
+        <div className="mt-2.5 grid grid-cols-7 gap-1.5 sm:gap-2">
+          {weeklyFocusDistribution.days.map((day) => {
+            const ratio = day.totalMinutes > 0 ? day.totalMinutes / weeklyFocusDistribution.maxMinutes : 0;
+            const barHeight = Math.max(8, Math.round(ratio * 56));
+
+            return (
+              <div
+                key={day.date}
+                title={`${day.label}: ${formatMinutes(day.totalMinutes)} · ${day.sessions} Session${day.sessions === 1 ? '' : 'en'}`}
+                className={`rounded-lg border px-1.5 py-2 text-center ${
+                  day.isToday ? 'border-amber-300/25 bg-amber-500/[0.06]' : 'border-white/[0.06] bg-white/[0.02]'
+                }`}
+              >
+                <div className="flex h-16 items-end justify-center">
+                  <div
+                    className={`w-5 rounded-t-sm transition-all ${
+                      day.totalMinutes > 0
+                        ? day.isToday
+                          ? 'bg-amber-400/80'
+                          : 'bg-cyan-400/70'
+                        : 'bg-white/[0.08]'
+                    }`}
+                    style={{ height: `${barHeight}px` }}
+                  />
+                </div>
+                <p className={`mt-1 text-[10px] uppercase ${day.isToday ? 'text-amber-300' : 'text-zinc-500'}`}>{day.label}</p>
+                <p className={`mt-0.5 text-[10px] ${day.totalMinutes > 0 ? 'text-zinc-300' : 'text-zinc-600'}`}>
+                  {day.totalMinutes > 0 ? formatMinutes(day.totalMinutes) : '0m'}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-2 flex items-center justify-between text-[10px] text-zinc-600">
+          <span>{weeklyFocusDistribution.activeDays}/7 aktive Tage</span>
+          <span>
+            {weeklyFocusDistribution.bestDay && weeklyFocusDistribution.bestDay.totalMinutes > 0
+              ? `Peak: ${weeklyFocusDistribution.bestDay.label} · ${formatMinutes(weeklyFocusDistribution.bestDay.totalMinutes)}`
+              : 'Peak: noch keine Focus-Session'}
+          </span>
+        </div>
+      </div>
     </motion.section>
   );
 }
