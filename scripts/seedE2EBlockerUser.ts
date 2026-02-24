@@ -33,6 +33,29 @@ function requireEnv(name: string): string {
   return value;
 }
 
+function normalizeSupabaseUrl(rawUrl: string): string {
+  const normalized = rawUrl.trim().replace(/\/+$/, '');
+  if (!/^https:\/\/[^/]+$/.test(normalized)) {
+    throw new Error(
+      `Invalid NEXT_PUBLIC_SUPABASE_URL format: "${rawUrl}". Expected format: https://<project-ref>.supabase.co`
+    );
+  }
+  if (/supabase\.com\/dashboard/i.test(normalized)) {
+    throw new Error(
+      `NEXT_PUBLIC_SUPABASE_URL points to Supabase dashboard URL: "${rawUrl}". Use project API URL instead.`
+    );
+  }
+  return normalized;
+}
+
+function assertLikelySupabaseJwt(label: string, value: string): void {
+  if (!/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(value)) {
+    throw new Error(
+      `${label} does not look like a valid Supabase JWT. Verify you copied the full key value.`
+    );
+  }
+}
+
 async function findUserByEmail(
   client: any,
   email: string
@@ -98,10 +121,16 @@ async function resetBlockerData(client: any, userId: string): Promise<void> {
 async function main(): Promise<void> {
   loadEnvFromLocalFiles();
 
-  const supabaseUrl = requireEnv('NEXT_PUBLIC_SUPABASE_URL');
+  const supabaseUrl = normalizeSupabaseUrl(requireEnv('NEXT_PUBLIC_SUPABASE_URL'));
   const serviceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
   const blockerEmail = requireEnv('E2E_BLOCKER_EMAIL');
   const blockerPassword = requireEnv('E2E_BLOCKER_PASSWORD');
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+
+  assertLikelySupabaseJwt('SUPABASE_SERVICE_ROLE_KEY', serviceRoleKey);
+  if (anonKey) {
+    assertLikelySupabaseJwt('NEXT_PUBLIC_SUPABASE_ANON_KEY', anonKey);
+  }
 
   const admin = createClient(supabaseUrl, serviceRoleKey, {
     auth: {
