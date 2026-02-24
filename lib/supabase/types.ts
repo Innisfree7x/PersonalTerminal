@@ -306,6 +306,45 @@ export interface Database {
         };
         Relationships: [];
       };
+      ops_flow_metrics: {
+        Row: {
+          id: string;
+          flow: 'login' | 'create_task' | 'toggle_exercise' | 'today_load';
+          status: 'success' | 'failure';
+          duration_ms: number;
+          route: string | null;
+          request_id: string | null;
+          user_id: string | null;
+          error_code: string | null;
+          context: Json;
+          measured_at: string;
+        };
+        Insert: {
+          id?: string;
+          flow: 'login' | 'create_task' | 'toggle_exercise' | 'today_load';
+          status: 'success' | 'failure';
+          duration_ms: number;
+          route?: string | null;
+          request_id?: string | null;
+          user_id?: string | null;
+          error_code?: string | null;
+          context?: Json;
+          measured_at?: string;
+        };
+        Update: {
+          id?: string;
+          flow?: 'login' | 'create_task' | 'toggle_exercise' | 'today_load';
+          status?: 'success' | 'failure';
+          duration_ms?: number;
+          route?: string | null;
+          request_id?: string | null;
+          user_id?: string | null;
+          error_code?: string | null;
+          context?: Json;
+          measured_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -337,3 +376,4 @@ export type SupabaseExerciseProgress = Database['public']['Tables']['exercise_pr
 // Helper type for Focus Session
 export type SupabaseFocusSession = Database['public']['Tables']['focus_sessions']['Row'];
 export type SupabaseAdminAuditLog = Database['public']['Tables']['admin_audit_logs']['Row'];
+export type SupabaseOpsFlowMetric = Database['public']['Tables']['ops_flow_metrics']['Row'];

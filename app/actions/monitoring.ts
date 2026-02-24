@@ -12,6 +12,7 @@ import {
   type MonitoringHealthSnapshot,
 } from '@/lib/monitoring';
 import { createAdminAuditLog, fetchRecentAdminAuditLogs } from '@/lib/monitoring/audit';
+import { fetchOpsFlowSloSnapshot } from '@/lib/ops/flowMetrics';
 
 export type MonitoringIncidentAction = 'acknowledge' | 'resolve' | 'dismiss' | 'clear_all';
 
@@ -29,6 +30,8 @@ export async function fetchMonitoringHealthAction(
 ): Promise<MonitoringHealthSnapshot> {
   const user = await assertAdmin();
 
+  const flowSlo = await fetchOpsFlowSloSnapshot({ windowHours: 24 * 7 });
+
   if (!isMonitoringEnabled()) {
     return {
       generatedAt: new Date().toISOString(),
@@ -36,6 +39,7 @@ export async function fetchMonitoringHealthAction(
       topIncidents: [],
       auditLogMigrationApplied: false,
       recentAdminAuditLogs: [],
+      flowSlo,
     };
   }
 
@@ -54,6 +58,7 @@ export async function fetchMonitoringHealthAction(
     ...snapshot,
     auditLogMigrationApplied: migrationApplied,
     recentAdminAuditLogs,
+    flowSlo,
   };
 }
 

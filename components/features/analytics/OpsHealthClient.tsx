@@ -18,6 +18,18 @@ type IncidentActionPayload = {
   fingerprint?: string;
 };
 
+const FLOW_LABELS: Record<string, string> = {
+  login: 'Login',
+  create_task: 'Create Task',
+  toggle_exercise: 'Toggle Exercise',
+  today_load: '/today Load',
+};
+
+function formatMetric(value: number | null, suffix = ''): string {
+  if (value === null) return 'n/a';
+  return `${value.toFixed(2)}${suffix}`;
+}
+
 export default function OpsHealthClient() {
   const queryClient = useQueryClient();
   const [auditNextFetch, setAuditNextFetch] = useState(true);
@@ -115,6 +127,65 @@ export default function OpsHealthClient() {
             >
               {data.auditLogMigrationApplied ? 'Applied' : 'Missing'}
             </span>
+          </div>
+
+          <div className="card-surface rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <div className="text-sm font-semibold text-text-primary">Flow SLO Snapshot (7d)</div>
+                <div className="text-xs text-text-tertiary mt-1">
+                  Availability, p95 latency and error-budget burn for blocker flows
+                </div>
+              </div>
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                  data.flowSlo?.migrationApplied
+                    ? 'bg-success/15 text-success border border-success/30'
+                    : 'bg-error/15 text-error border border-error/30'
+                }`}
+              >
+                {data.flowSlo?.migrationApplied ? 'Live' : 'Missing table'}
+              </span>
+            </div>
+
+            {data.flowSlo?.migrationApplied ? (
+              <div className="space-y-2">
+                {data.flowSlo.flows.map((flow) => {
+                  const availabilityTarget = flow.target.availabilityPct;
+                  const p95Target = flow.target.p95Ms;
+                  const availabilityOk =
+                    flow.availabilityPct !== null && flow.availabilityPct >= availabilityTarget;
+                  const p95Ok = flow.p95Ms !== null && flow.p95Ms <= p95Target;
+                  const burnRate = flow.errorBudget.burnRate;
+
+                  return (
+                    <div key={flow.flow} className="rounded-lg border border-border bg-surface/60 px-3 py-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-sm font-medium text-text-primary">
+                          {FLOW_LABELS[flow.flow] || flow.flow}
+                        </div>
+                        <div className="text-xs text-text-tertiary">{flow.total} samples</div>
+                      </div>
+                      <div className="mt-1 grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+                        <div className={availabilityOk ? 'text-success' : 'text-error'}>
+                          Avail: {formatMetric(flow.availabilityPct, '%')} (target {availabilityTarget}%)
+                        </div>
+                        <div className={p95Ok ? 'text-success' : 'text-warning'}>
+                          p95: {flow.p95Ms === null ? 'n/a' : `${flow.p95Ms}ms`} (target {p95Target}ms)
+                        </div>
+                        <div className={burnRate !== null && burnRate > 1 ? 'text-error' : 'text-text-tertiary'}>
+                          Burn: {burnRate === null ? 'n/a' : `${burnRate.toFixed(2)}x`}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-sm text-text-tertiary">
+                `ops_flow_metrics` migration fehlt oder ist noch nicht ausgerollt.
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">

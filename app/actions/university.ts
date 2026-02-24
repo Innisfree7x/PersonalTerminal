@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { requireAuth } from '@/lib/auth/server';
+import { recordFlowMetric } from '@/lib/ops/flowMetrics';
 import {
   createCourseSchema,
   type CreateCourseInput,
@@ -51,17 +52,52 @@ export async function toggleExerciseCompletionAction(
   exerciseNumber: number,
   completed: boolean
 ): Promise<ExerciseProgress> {
-  const user = await requireAuth();
-  const result = await toggleUniversityExercise(
-    universityRepository,
-    user.id,
-    courseId,
-    exerciseNumber,
-    completed
-  );
-  revalidatePath('/university');
-  revalidatePath('/today');
-  return result;
+  const startedAt = Date.now();
+  let userId: string | null = null;
+
+  try {
+    const user = await requireAuth();
+    userId = user.id;
+    const result = await toggleUniversityExercise(
+      universityRepository,
+      user.id,
+      courseId,
+      exerciseNumber,
+      completed
+    );
+    revalidatePath('/university');
+    revalidatePath('/today');
+
+    await recordFlowMetric({
+      flow: 'toggle_exercise',
+      status: 'success',
+      durationMs: Date.now() - startedAt,
+      userId,
+      route: '/university',
+      context: {
+        completed,
+        exerciseNumber,
+      },
+    });
+
+    return result;
+  } catch (error) {
+    if (userId) {
+      await recordFlowMetric({
+        flow: 'toggle_exercise',
+        status: 'failure',
+        durationMs: Date.now() - startedAt,
+        userId,
+        route: '/university',
+        errorCode: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
+        context: {
+          completed,
+          exerciseNumber,
+        },
+      });
+    }
+    throw error;
+  }
 }
 
 export async function fetchCoursesAction(): Promise<CourseWithExercises[]> {

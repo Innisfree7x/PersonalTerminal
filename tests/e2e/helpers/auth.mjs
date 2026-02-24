@@ -1,12 +1,19 @@
-export function getE2ECredentials() {
+export function getE2ECredentials(mode = 'default') {
+  if (mode === 'blocker') {
+    return {
+      email: process.env.E2E_BLOCKER_EMAIL || process.env.E2E_EMAIL || '',
+      password: process.env.E2E_BLOCKER_PASSWORD || process.env.E2E_PASSWORD || '',
+    };
+  }
+
   return {
     email: process.env.E2E_EMAIL || '',
     password: process.env.E2E_PASSWORD || '',
   };
 }
 
-export function hasE2ECredentials() {
-  const { email, password } = getE2ECredentials();
+export function hasE2ECredentials(mode = 'default') {
+  const { email, password } = getE2ECredentials(mode);
   return Boolean(email && password);
 }
 
@@ -64,8 +71,9 @@ export async function completeOnboardingWizard(page) {
   await page.waitForURL('**/today', { timeout: 30_000 });
 }
 
-export async function login(page) {
-  const { email, password } = getE2ECredentials();
+export async function login(page, options = {}) {
+  const mode = options.mode || 'default';
+  const { email, password } = getE2ECredentials(mode);
   await submitLogin(page, email, password);
 
   if (page.url().endsWith('/onboarding')) {
@@ -73,7 +81,8 @@ export async function login(page) {
   }
 }
 
-export async function loginWithoutOnboarding(page) {
-  const { email, password } = getE2ECredentials();
+export async function loginWithoutOnboarding(page, options = {}) {
+  const mode = options.mode || 'default';
+  const { email, password } = getE2ECredentials(mode);
   await submitLogin(page, email, password);
 }

@@ -2,13 +2,16 @@ import { expect, test } from '@playwright/test';
 import { hasE2ECredentials, login } from '../helpers/auth.mjs';
 
 test.describe('@blocker exercise toggle', () => {
-  test.skip(!hasE2ECredentials(), 'Set E2E_EMAIL and E2E_PASSWORD to run authenticated E2E tests.');
+  test.skip(
+    !hasE2ECredentials('blocker'),
+    'Set E2E_BLOCKER_EMAIL/E2E_BLOCKER_PASSWORD (fallback: E2E_EMAIL/E2E_PASSWORD).'
+  );
 
   test('user can create course, toggle exercise complete, and persist state', async ({ page }) => {
     const suffix = Date.now().toString().slice(-6);
     const courseName = `E2E Blocker Course ${suffix}`;
 
-    await login(page);
+    await login(page, { mode: 'blocker' });
     await page.goto('/university?action=new-course');
 
     await expect(page.getByRole('heading', { name: /add new course/i })).toBeVisible();

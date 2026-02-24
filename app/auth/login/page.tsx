@@ -13,6 +13,52 @@ import { trackMarketingEvent } from '@/lib/analytics/marketing';
 
 const LAST_SEEN_KEY = 'innis_last_seen_at';
 
+type LoginMetricStatus = 'success' | 'failure';
+
+function toLoginErrorCode(error: unknown): string {
+  if (!(error instanceof Error)) return 'UNKNOWN_LOGIN_ERROR';
+
+  const fromName = error.name.trim().toUpperCase().replace(/[^A-Z0-9]+/g, '_');
+  if (fromName) return fromName.slice(0, 80);
+
+  const fromMessage = error.message.trim().toUpperCase().replace(/[^A-Z0-9]+/g, '_');
+  if (fromMessage) return fromMessage.slice(0, 80);
+  return 'UNKNOWN_LOGIN_ERROR';
+}
+
+function reportLoginFlowMetric(input: {
+  status: LoginMetricStatus;
+  durationMs: number;
+  errorCode?: string;
+}): void {
+  const payload = JSON.stringify({
+    flow: 'login',
+    status: input.status,
+    durationMs: Math.max(0, Math.round(input.durationMs)),
+    route: '/auth/login',
+    ...(input.errorCode ? { errorCode: input.errorCode } : {}),
+  });
+
+  try {
+    if (navigator.sendBeacon) {
+      const blob = new Blob([payload], { type: 'application/json' });
+      navigator.sendBeacon('/api/ops/flow-metrics', blob);
+      return;
+    }
+  } catch {
+    // Fallback below.
+  }
+
+  void fetch('/api/ops/flow-metrics', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: payload,
+    keepalive: true,
+  }).catch(() => {
+    // No-op.
+  });
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -24,9 +70,14 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     setLoading(true);
+    const flowStartedAt = performance.now();
 
     try {
       const result = await signIn(email, password);
+      reportLoginFlowMetric({
+        status: 'success',
+        durationMs: performance.now() - flowStartedAt,
+      });
       const now = Date.now();
       try {
         const previous = localStorage.getItem(LAST_SEEN_KEY);
@@ -44,6 +95,11 @@ export default function LoginPage() {
       router.push(target);
       router.refresh();
     } catch (err) {
+      reportLoginFlowMetric({
+        status: 'failure',
+        durationMs: performance.now() - flowStartedAt,
+        errorCode: toLoginErrorCode(err),
+      });
       setError(err instanceof Error ? err.message : 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.');
     } finally {
       setLoading(false);

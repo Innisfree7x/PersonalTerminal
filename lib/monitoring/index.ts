@@ -11,6 +11,7 @@ import {
   upsertIncident,
 } from '@/lib/monitoring/store';
 import type { AdminAuditLogRecord } from '@/lib/monitoring/audit';
+import type { OpsFlowSloSnapshot } from '@/lib/ops/flowMetrics';
 
 export type MonitoringSeverity = 'info' | 'warning' | 'error' | 'critical';
 
@@ -33,6 +34,7 @@ export interface MonitoringHealthSnapshot {
   topIncidents: MonitoringIncident[];
   auditLogMigrationApplied?: boolean;
   recentAdminAuditLogs?: AdminAuditLogRecord[];
+  flowSlo?: OpsFlowSloSnapshot;
 }
 
 function truncate(value: string, max = 4000): string {
