@@ -14,6 +14,7 @@ import HourlyDistributionChart from '@/components/features/analytics/HourlyDistr
 import CategoryBreakdown from '@/components/features/analytics/CategoryBreakdown';
 import WeekdayChart from '@/components/features/analytics/WeekdayChart';
 import RecentSessionsList from '@/components/features/analytics/RecentSessionsList';
+import WeeklyReview from '@/components/features/analytics/WeeklyReview';
 
 const TIME_RANGES = [
   { label: '7d', days: 7 },
@@ -95,6 +96,9 @@ export default function AnalyticsPage() {
           ))}
         </div>
       </motion.div>
+
+      {/* Weekly Review */}
+      <WeeklyReview />
 
       {/* Stats Cards */}
       {analyticsLoading ? (
