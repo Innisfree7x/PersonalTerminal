@@ -17,6 +17,7 @@ const routeTitles: Record<string, string> = {
   '/university': 'University',
   '/career': 'Career',
   '/analytics': 'Analytics',
+  '/focus': 'Focus',
 };
 
 function HeaderClock() {

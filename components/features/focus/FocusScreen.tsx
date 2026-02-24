@@ -1,0 +1,204 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowLeft, Pause, Play, SkipForward, Square, Sparkles, Timer } from 'lucide-react';
+import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
+
+type Quote = {
+  text: string;
+  source: string;
+};
+
+const FOCUS_QUOTES: Quote[] = [
+  { text: 'Discipline creates freedom.', source: 'Jocko Willink' },
+  { text: 'Small steps every day beat rare bursts of intensity.', source: 'INNIS' },
+  { text: 'You do not rise to goals. You fall to systems.', source: 'James Clear' },
+  { text: 'One focused session can change the whole day.', source: 'INNIS' },
+  { text: 'Stay with the task. Let the noise pass.', source: 'INNIS' },
+  { text: 'Consistency is a competitive advantage.', source: 'INNIS' },
+];
+
+const DURATION_PRESETS = [25, 50, 90];
+
+function formatTime(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const remaining = seconds % 60;
+  return `${minutes.toString().padStart(2, '0')}:${remaining.toString().padStart(2, '0')}`;
+}
+
+function formatMinutes(minutes: number): string {
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest > 0 ? `${hours}h ${rest}m` : `${hours}h`;
+}
+
+export default function FocusScreen() {
+  const {
+    status,
+    timeLeft,
+    sessionType,
+    todaySummary,
+    startTimer,
+    pauseTimer,
+    resumeTimer,
+    stopTimer,
+    skipBreak,
+  } = useFocusTimer();
+
+  const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Math.random() * FOCUS_QUOTES.length));
+  const currentQuote = FOCUS_QUOTES[quoteIndex] ?? FOCUS_QUOTES[0];
+
+  const isIdle = status === 'idle';
+  const isFocusRun = status === 'running';
+  const isFocusPaused = status === 'paused';
+  const isBreakRun = status === 'break';
+  const isBreakPaused = status === 'break_paused';
+  const isBreak = sessionType === 'break';
+  const timerLabel = isBreak ? 'Break' : 'Focus';
+
+  const summaryText = useMemo(() => {
+    if (!todaySummary) return 'Heute noch keine Session';
+    if (todaySummary.todaySessions === 0) return 'Heute noch keine Session';
+    return `${todaySummary.todaySessions} Session${todaySummary.todaySessions === 1 ? '' : 'en'} · ${formatMinutes(todaySummary.todayMinutes)}`;
+  }, [todaySummary]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setQuoteIndex((prev) => (prev + 1) % FOCUS_QUOTES.length);
+    }, 45_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-[#05080f] text-[#FAF0E6]">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.16),transparent_35%),radial-gradient(circle_at_78%_24%,rgba(234,179,8,0.18),transparent_38%),radial-gradient(circle_at_52%_86%,rgba(245,158,11,0.12),transparent_34%)]" />
+      <motion.div
+        className="pointer-events-none absolute -left-24 -top-24 h-[42vw] w-[42vw] rounded-full bg-cyan-300/10 blur-[130px]"
+        animate={{ x: [0, 40, 0], y: [0, 28, 0], scale: [1, 1.06, 1] }}
+        transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="pointer-events-none absolute -right-20 top-10 h-[38vw] w-[38vw] rounded-full bg-amber-300/10 blur-[130px]"
+        animate={{ x: [0, -30, 0], y: [0, -24, 0], scale: [1, 1.08, 1] }}
+        transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-30"
+        style={{
+          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px)',
+          backgroundSize: '30px 30px',
+        }}
+      />
+
+      <div className="relative flex min-h-screen flex-col px-4 py-5 sm:px-8 sm:py-7">
+        <div className="flex items-center justify-between">
+          <Link
+            href="/today"
+            className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-[#FAF0E6]"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Zurueck zu Today
+          </Link>
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] text-amber-200">
+            <Sparkles className="h-3.5 w-3.5" />
+            Focus Mode
+          </div>
+        </div>
+
+        <div className="mx-auto mt-12 flex w-full max-w-4xl flex-1 items-center justify-center">
+          <div className="w-full rounded-3xl border border-white/10 bg-white/[0.03] px-6 py-10 shadow-[0_14px_80px_rgba(0,0,0,0.55)] backdrop-blur-md sm:px-12 sm:py-14">
+            <AnimatePresence mode="wait">
+              <motion.blockquote
+                key={quoteIndex}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -18 }}
+                transition={{ duration: 0.35 }}
+                className="text-center"
+              >
+                <p className="text-balance text-2xl font-semibold leading-tight text-[#FAF0E6] sm:text-4xl">
+                  &ldquo;{currentQuote?.text}&rdquo;
+                </p>
+                <p className="mt-5 text-xs uppercase tracking-[0.2em] text-zinc-500">
+                  {currentQuote?.source}
+                </p>
+              </motion.blockquote>
+            </AnimatePresence>
+          </div>
+        </div>
+
+        <div className="mt-8 flex flex-wrap items-end justify-between gap-4">
+          <div className="rounded-2xl border border-white/10 bg-black/30 p-3.5 backdrop-blur-md">
+            <p className="text-[10px] uppercase tracking-[0.15em] text-zinc-500">Session Controls</p>
+            {isIdle ? (
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {DURATION_PRESETS.map((minutes) => (
+                  <button
+                    key={minutes}
+                    onClick={() => startTimer({ duration: minutes, label: 'Focus Mode' })}
+                    className="rounded-lg border border-cyan-300/25 bg-cyan-300/10 px-3 py-1.5 text-sm font-medium text-cyan-100 transition-colors hover:bg-cyan-300/20"
+                  >
+                    Start {minutes}m
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {(isFocusRun || isBreakRun) && (
+                  <button
+                    onClick={pauseTimer}
+                    className="inline-flex items-center gap-1 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-1.5 text-sm font-medium text-amber-200 transition-colors hover:bg-amber-300/20"
+                  >
+                    <Pause className="h-3.5 w-3.5" />
+                    Pause
+                  </button>
+                )}
+                {(isFocusPaused || isBreakPaused) && (
+                  <button
+                    onClick={resumeTimer}
+                    className="inline-flex items-center gap-1 rounded-lg border border-emerald-300/25 bg-emerald-300/10 px-3 py-1.5 text-sm font-medium text-emerald-200 transition-colors hover:bg-emerald-300/20"
+                  >
+                    <Play className="h-3.5 w-3.5" />
+                    Resume
+                  </button>
+                )}
+                {isBreak && (
+                  <button
+                    onClick={skipBreak}
+                    className="inline-flex items-center gap-1 rounded-lg border border-zinc-400/20 bg-zinc-400/10 px-3 py-1.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-400/20"
+                  >
+                    <SkipForward className="h-3.5 w-3.5" />
+                    Break skippen
+                  </button>
+                )}
+                {!isBreak && (
+                  <button
+                    onClick={stopTimer}
+                    className="inline-flex items-center gap-1 rounded-lg border border-red-300/25 bg-red-300/10 px-3 py-1.5 text-sm font-medium text-red-200 transition-colors hover:bg-red-300/20"
+                  >
+                    <Square className="h-3.5 w-3.5" />
+                    Stop
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="ml-auto min-w-[170px] rounded-2xl border border-white/10 bg-black/35 px-4 py-3.5 text-right shadow-[0_8px_35px_rgba(0,0,0,0.45)] backdrop-blur-lg">
+            <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-500">{timerLabel} Timer</p>
+            <p className={`mt-1 font-mono text-2xl font-semibold ${isBreak ? 'text-amber-200' : 'text-cyan-100'}`}>
+              {isIdle ? '--:--' : formatTime(timeLeft)}
+            </p>
+            <div className="mt-1 inline-flex items-center gap-1 text-[11px] text-zinc-400">
+              <Timer className="h-3 w-3" />
+              {summaryText}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -22,6 +22,7 @@ import {
   Moon,
   ShieldCheck,
   Terminal,
+  Timer,
   CheckCircle2,
   AlertTriangle,
   type LucideIcon,
@@ -177,6 +178,13 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       icon: BarChart3,
       action: () => router.push('/analytics'),
       keywords: ['analytics', 'stats', 'focus', 'charts', 'productivity'],
+    },
+    {
+      id: 'nav-focus',
+      label: 'Focus Mode',
+      icon: Timer,
+      action: () => router.push('/focus'),
+      keywords: ['focus', 'deep work', 'zen', 'study mode', 'timer screen'],
     },
     {
       id: 'nav-ops-health',

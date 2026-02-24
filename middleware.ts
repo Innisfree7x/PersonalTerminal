@@ -10,6 +10,7 @@ const PROTECTED_PREFIXES = [
   '/university',
   '/career',
   '/analytics',
+  '/focus',
   '/settings',
 ];
 
@@ -80,6 +81,7 @@ export const config = {
     '/university/:path*',
     '/career/:path*',
     '/analytics/:path*',
+    '/focus/:path*',
     '/settings/:path*',
     '/onboarding/:path*',
     '/auth/:path*',

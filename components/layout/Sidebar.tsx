@@ -12,6 +12,7 @@ import {
   GraduationCap,
   Briefcase,
   BarChart3,
+  Timer,
   ShieldCheck,
   ChevronLeft,
   Settings,
@@ -32,6 +33,7 @@ const baseNavigation = [
   { name: 'University', href: '/university', icon: GraduationCap, shortcut: '4' },
   { name: 'Career', href: '/career', icon: Briefcase, shortcut: '5' },
   { name: 'Analytics', href: '/analytics', icon: BarChart3, shortcut: '6' },
+  { name: 'Focus', href: '/focus', icon: Timer, shortcut: 'F' },
 ];
 
 export default function Sidebar() {

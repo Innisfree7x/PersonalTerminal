@@ -38,6 +38,18 @@ function DashboardLayoutInner({
 }) {
   const pathname = usePathname();
   const { isCollapsed } = useSidebar();
+  const isFocusRoute = pathname === '/focus';
+
+  if (isFocusRoute) {
+    return (
+      <ErrorBoundary
+        fallbackTitle="Focus Screen Error"
+        fallbackMessage="The focus screen failed to load. Please return to your dashboard."
+      >
+        <div className="min-h-screen bg-[#05080f]">{children}</div>
+      </ErrorBoundary>
+    );
+  }
 
   return (
     <ErrorBoundary
