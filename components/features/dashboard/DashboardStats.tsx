@@ -1,12 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import {
-  CheckCircle2,
-  GraduationCap,
-  Briefcase,
-  Flame,
-} from 'lucide-react';
+import { CheckCircle2, GraduationCap, Briefcase, Flame } from 'lucide-react';
 import AnimatedCounter from '@/components/ui/AnimatedCounter';
 
 interface DashboardStatsProps {
@@ -19,6 +14,15 @@ interface DashboardStatsProps {
   interviewsUpcoming: number;
 }
 
+function PulseDot({ className }: { className: string }) {
+  return (
+    <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
+      <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${className}`} />
+      <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${className}`} />
+    </span>
+  );
+}
+
 export default function DashboardStats({
   tasksToday,
   tasksCompleted,
@@ -28,151 +32,175 @@ export default function DashboardStats({
   goalsDueSoon,
   interviewsUpcoming,
 }: DashboardStatsProps) {
-  // Mock streak (will be real later)
+  // TODO: wire to real streak API (/api/user/streak)
   const streak = 3;
+
+  const taskPct = tasksToday > 0 ? (tasksCompleted / tasksToday) * 100 : 0;
+  const exercisePct = exercisesTotal > 0 ? (exercisesCompleted / exercisesTotal) * 100 : 0;
+  const streakPct = Math.min((streak / 7) * 100, 100);
+
+  const taskNumColor =
+    taskPct === 100 ? 'text-success' : taskPct > 0 ? 'text-warning' : 'text-error';
+  const taskBarColor =
+    taskPct === 100 ? 'bg-success' : taskPct > 0 ? 'bg-warning' : 'bg-error/50';
+
+  const examUrgent = nextExam !== null && nextExam.daysUntilExam <= 1;
+  const examWarning = nextExam !== null && nextExam.daysUntilExam <= 7;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -10 }}
+      initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="grid grid-cols-2 lg:grid-cols-4 gap-2"
+      transition={{ duration: 0.18 }}
+      className="relative flex items-stretch overflow-hidden rounded-xl border border-border/60 bg-surface/30 backdrop-blur-sm"
     >
-      {/* Tasks Progress */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.05 }}
-        className="px-2.5 py-2 rounded-lg border border-border bg-surface/50 backdrop-blur-sm hover:border-primary/30 transition-colors group relative overflow-hidden"
-      >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-success/55 to-transparent" />
-        <div className="flex items-center justify-between mb-0.5">
-          <div className="p-0.5 rounded-md bg-success/10 text-success">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-          </div>
-          <span className="text-[9px] font-medium text-text-tertiary uppercase tracking-wider">
-            Daily Tasks
-          </span>
-        </div>
-        <div className="flex items-baseline gap-1">
-          <AnimatedCounter
-            to={tasksCompleted}
-            className="text-xl leading-none font-bold text-text-primary"
-          />
-          <span className="text-sm leading-none text-text-tertiary font-medium">
-            / {tasksToday}
-          </span>
-        </div>
-        <div className="w-full bg-surface h-1 rounded-full mt-1 overflow-hidden">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${(tasksCompleted / Math.max(tasksToday, 1)) * 100}%` }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            className="h-full bg-success rounded-full"
-            style={{ boxShadow: '0 0 8px var(--color-success, #22c55e)' }}
-          />
-        </div>
-      </motion.div>
+      {/* ─── Tasks ──────────────────────────────────────── */}
+      <div className="relative flex flex-1 items-center gap-3 border-r border-border/40 px-4 py-2.5 transition-colors hover:bg-white/[0.025]">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-success/40 to-transparent" />
 
-      {/* University Progress */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.1 }}
-        className="px-2.5 py-2 rounded-lg border border-border bg-surface/50 backdrop-blur-sm hover:border-university-accent/30 transition-colors group relative overflow-hidden"
-      >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-university-accent/55 to-transparent" />
-        <div className="flex items-center justify-between mb-0.5">
-          <div className="p-0.5 rounded-md bg-university-accent/10 text-university-accent">
-            <GraduationCap className="w-3.5 h-3.5" />
-          </div>
-          <span className="text-[9px] font-medium text-text-tertiary uppercase tracking-wider">
-            Exercises
-          </span>
-        </div>
-        <div className="flex items-baseline gap-1">
-          <AnimatedCounter
-            to={exercisesCompleted}
-            className="text-xl leading-none font-bold text-text-primary"
-          />
-          <span className="text-sm leading-none text-text-tertiary font-medium">
-            / {exercisesTotal}
-          </span>
-        </div>
-        {nextExam && (
-          <div className="mt-0.5 text-[9px] flex items-center gap-1">
-            <span className={`px-1.5 py-0.5 rounded ${nextExam.daysUntilExam < 14 ? 'bg-error/10 text-error' : 'bg-surface text-text-secondary'
-              }`}>
-              {nextExam.daysUntilExam}d until exam
-            </span>
-          </div>
-        )}
-      </motion.div>
+        <CheckCircle2 className={`h-3.5 w-3.5 flex-shrink-0 ${taskNumColor}`} />
 
-      {/* Streak / Focus (Placeholder for Phase 3 advanced analytics) */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.15 }}
-        className="px-2.5 py-2 rounded-lg border border-border bg-surface/50 backdrop-blur-sm hover:border-warning/30 transition-colors group relative overflow-hidden"
-      >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-warning/55 to-transparent" />
-        <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-br from-warning/10 to-transparent rounded-bl-full pointer-events-none" />
-
-        <div className="flex items-center justify-between mb-0.5">
-          <div className="p-0.5 rounded-md bg-warning/10 text-warning streak-flame">
-            <Flame className="w-3.5 h-3.5" />
+        <div className="flex min-w-0 flex-1 flex-col gap-px">
+          <div className="flex items-baseline gap-1 leading-none">
+            <AnimatedCounter to={tasksCompleted} className={`text-lg font-bold leading-none ${taskNumColor}`} />
+            <span className="text-xs leading-none text-text-tertiary">/ {tasksToday}</span>
+            <span className="ml-1 text-[9px] font-medium uppercase tracking-wider text-text-tertiary">Tasks</span>
           </div>
-          <span className="text-[9px] font-medium text-text-tertiary uppercase tracking-wider">
-            Streak
-          </span>
-        </div>
-        <div className="flex items-baseline gap-1">
-          <AnimatedCounter
-            to={streak}
-            className="text-xl leading-none font-bold text-text-primary"
-          />
-          <span className="text-sm leading-none text-text-tertiary font-medium ml-1">
-            days
-          </span>
-        </div>
-        <div className="mt-0.5 text-[9px] text-text-secondary">
-          Keep it up! 🔥
-        </div>
-      </motion.div>
-
-      {/* Career / Goals Summary */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.2 }}
-        className="px-2.5 py-2 rounded-lg border border-border bg-surface/50 backdrop-blur-sm hover:border-career-accent/30 transition-colors group relative overflow-hidden"
-      >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-career-accent/55 to-transparent" />
-        <div className="flex items-center justify-between mb-0.5">
-          <div className="p-0.5 rounded-md bg-career-accent/10 text-career-accent">
-            <Briefcase className="w-3.5 h-3.5" />
-          </div>
-          <span className="text-[9px] font-medium text-text-tertiary uppercase tracking-wider">
-            Career
-          </span>
-        </div>
-        <div className="flex flex-col gap-0.5">
-          {interviewsUpcoming > 0 ? (
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] text-text-secondary">Next Interview</span>
-              <span className="text-xs font-semibold text-career-accent">{interviewsUpcoming}</span>
-            </div>
+          {taskPct === 100 && tasksToday > 0 ? (
+            <span className="text-[9px] font-medium text-success">All done · great work</span>
           ) : (
-            <div className="text-[11px] text-text-tertiary">No upcoming interviews</div>
+            <span className="text-[9px] text-text-tertiary">{tasksToday - tasksCompleted} remaining</span>
           )}
-          {goalsDueSoon > 0 && (
-            <div className="flex items-center justify-between mt-0.5 pt-0.5 border-t border-border/50">
-              <span className="text-[11px] text-text-secondary">Goals Due</span>
-              <span className="text-xs font-semibold text-error">{goalsDueSoon}</span>
+        </div>
+
+        {/* Progress rail */}
+        <div className="absolute inset-x-0 bottom-0 h-[2px] bg-border/20">
+          <motion.div
+            className={`h-full ${taskBarColor}`}
+            initial={{ width: 0 }}
+            animate={{ width: `${taskPct}%` }}
+            transition={{ duration: 1, ease: 'easeOut', delay: 0.15 }}
+            style={{ boxShadow: taskPct === 100 ? '0 0 6px var(--color-success, #22c55e)' : 'none' }}
+          />
+        </div>
+      </div>
+
+      {/* ─── Exercises ──────────────────────────────────── */}
+      <div className="relative flex flex-1 items-center gap-3 border-r border-border/40 px-4 py-2.5 transition-colors hover:bg-white/[0.025]">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-university-accent/40 to-transparent" />
+
+        <GraduationCap className="h-3.5 w-3.5 flex-shrink-0 text-university-accent" />
+
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="flex flex-col gap-px">
+            <div className="flex items-baseline gap-1 leading-none">
+              <AnimatedCounter to={exercisesCompleted} className="text-lg font-bold leading-none text-text-primary" />
+              <span className="text-xs leading-none text-text-tertiary">/ {exercisesTotal}</span>
+              <span className="ml-1 text-[9px] font-medium uppercase tracking-wider text-text-tertiary">Exercises</span>
+            </div>
+            <span className="text-[9px] text-text-tertiary">{Math.round(exercisePct)}% complete</span>
+          </div>
+
+          {nextExam && (
+            <div className="ml-auto flex items-center gap-1.5">
+              {examUrgent && <PulseDot className="bg-error" />}
+              <span
+                className={`text-[10px] font-semibold uppercase tracking-wide ${
+                  examUrgent ? 'text-error' : examWarning ? 'text-warning' : 'text-text-tertiary'
+                }`}
+              >
+                Exam {nextExam.daysUntilExam}d
+              </span>
             </div>
           )}
         </div>
-      </motion.div>
+
+        {/* Progress rail */}
+        <div className="absolute inset-x-0 bottom-0 h-[2px] bg-border/20">
+          <motion.div
+            className="h-full bg-university-accent/80"
+            initial={{ width: 0 }}
+            animate={{ width: `${exercisePct}%` }}
+            transition={{ duration: 1, ease: 'easeOut', delay: 0.25 }}
+          />
+        </div>
+      </div>
+
+      {/* ─── Streak ─────────────────────────────────────── */}
+      <div className="relative flex flex-1 items-center gap-3 border-r border-border/40 px-4 py-2.5 transition-colors hover:bg-white/[0.025]">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-warning/40 to-transparent" />
+
+        <Flame className="h-3.5 w-3.5 flex-shrink-0 text-warning" />
+
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="flex flex-col gap-px">
+            <div className="flex items-baseline gap-1 leading-none">
+              <AnimatedCounter to={streak} className="text-lg font-bold leading-none text-text-primary" />
+              <span className="text-xs leading-none text-text-tertiary">days</span>
+              <span className="ml-1 text-[9px] font-medium uppercase tracking-wider text-text-tertiary">Streak</span>
+            </div>
+            <span className="text-[9px] text-text-tertiary">{Math.max(0, 7 - streak)}d to weekly goal</span>
+          </div>
+
+          {streak > 0 && (
+            <div className="ml-auto flex items-center gap-1.5">
+              <PulseDot className="bg-warning" />
+              <span className="text-[9px] font-medium uppercase tracking-wide text-warning">Active</span>
+            </div>
+          )}
+        </div>
+
+        {/* Progress rail */}
+        <div className="absolute inset-x-0 bottom-0 h-[2px] bg-border/20">
+          <motion.div
+            className="h-full bg-warning/80"
+            initial={{ width: 0 }}
+            animate={{ width: `${streakPct}%` }}
+            transition={{ duration: 1, ease: 'easeOut', delay: 0.35 }}
+          />
+        </div>
+      </div>
+
+      {/* ─── Career ─────────────────────────────────────── */}
+      <div className="relative flex flex-1 items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/[0.025]">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-career-accent/35 to-transparent" />
+
+        <Briefcase className="h-3.5 w-3.5 flex-shrink-0 text-career-accent" />
+
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="flex flex-col gap-px">
+            <span className="text-[9px] font-medium uppercase tracking-wider text-text-tertiary">Career</span>
+            {interviewsUpcoming > 0 ? (
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg font-bold leading-none text-career-accent">{interviewsUpcoming}</span>
+                <span className="text-xs text-text-secondary">
+                  interview{interviewsUpcoming > 1 ? 's' : ''} upcoming
+                </span>
+              </div>
+            ) : (
+              <span className="text-xs text-text-tertiary">No upcoming interviews</span>
+            )}
+          </div>
+
+          {(goalsDueSoon > 0 || interviewsUpcoming > 0) && (
+            <div className="ml-auto flex items-center gap-1.5">
+              {goalsDueSoon > 0 ? (
+                <>
+                  <PulseDot className="bg-error" />
+                  <span className="text-[9px] font-semibold uppercase tracking-wide text-error">
+                    {goalsDueSoon} goal{goalsDueSoon > 1 ? 's' : ''} due
+                  </span>
+                </>
+              ) : (
+                <PulseDot className="bg-career-accent" />
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Progress rail — empty, structural only */}
+        <div className="absolute inset-x-0 bottom-0 h-[2px] bg-border/20" />
+      </div>
     </motion.div>
   );
 }
