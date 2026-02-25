@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { useAppSound } from '@/lib/hooks/useAppSound';
 import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
 import type { RankedExecutionCandidate, ExecutionRiskSignal } from '@/lib/application/use-cases/execution-engine';
+import { useStreak } from '@/lib/hooks/useStreak';
 import { createDailyTaskAction, updateDailyTaskAction } from '@/app/actions/daily-tasks';
 import { toggleExerciseCompletionAction } from '@/app/actions/university';
 
@@ -360,8 +361,7 @@ export default function CommandBar({
   riskSignals = [],
   onChanged,
 }: CommandBarProps) {
-  // TODO: wire to /api/user/streak
-  const streak = 3;
+  const { streak } = useStreak();
 
   const allDone = tasksToday > 0 && tasksCompleted >= tasksToday;
   const examDays = nextExam?.daysUntilExam ?? null;
