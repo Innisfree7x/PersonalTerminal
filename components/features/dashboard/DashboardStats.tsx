@@ -89,7 +89,7 @@ export default function DashboardStats({
           }}
         />
 
-        <div className="relative z-10 flex flex-1 items-center gap-3 px-4 py-3.5">
+        <div className="relative z-10 flex flex-1 items-center gap-3 px-4 py-2">
           <CheckCircle2 className="h-4 w-4 flex-shrink-0 opacity-50" style={{ color: taskColor }} />
 
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -98,17 +98,17 @@ export default function DashboardStats({
             </span>
             <div className="flex items-baseline gap-1 leading-none">
               <span
-                className={`text-[1.85rem] font-black leading-none tabular-nums ${taskLabel}`}
-                style={{ textShadow: `0 0 20px ${taskColor}88`, letterSpacing: '-0.025em' }}
+                className={`text-[1.5rem] font-black leading-none tabular-nums ${taskLabel}`}
+                style={{ letterSpacing: '-0.025em' }}
               >
                 <AnimatedCounter to={tasksCompleted} />
               </span>
               <span className="mb-0.5 text-sm font-medium text-text-tertiary/60">/ {tasksToday}</span>
             </div>
             {allDone ? (
-              <span className="text-[9px] font-medium text-emerald-400/70">All done · great work</span>
+              <span className="text-xs font-medium text-emerald-400/80">All done · great work</span>
             ) : (
-              <span className="text-[9px] text-text-tertiary/50">{tasksToday - tasksCompleted} remaining</span>
+              <span className="text-xs text-text-tertiary/75">{tasksToday - tasksCompleted} remaining</span>
             )}
           </div>
         </div>
@@ -128,7 +128,7 @@ export default function DashboardStats({
           }}
         />
 
-        <div className="relative z-10 flex flex-1 items-center gap-3 px-4 py-3.5">
+        <div className="relative z-10 flex flex-1 items-center gap-3 px-4 py-2">
           <GraduationCap className="h-4 w-4 flex-shrink-0 text-amber-400/50" />
 
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -137,14 +137,14 @@ export default function DashboardStats({
             </span>
             <div className="flex items-baseline gap-1 leading-none">
               <span
-                className="text-[1.85rem] font-black leading-none tabular-nums text-amber-400"
-                style={{ textShadow: '0 0 20px rgba(251,191,36,0.45)', letterSpacing: '-0.025em' }}
+                className="text-[1.5rem] font-black leading-none tabular-nums text-amber-400"
+                style={{ letterSpacing: '-0.025em' }}
               >
                 <AnimatedCounter to={exercisesCompleted} />
               </span>
               <span className="mb-0.5 text-sm font-medium text-text-tertiary/60">/ {exercisesTotal}</span>
             </div>
-            <span className="text-[9px] text-text-tertiary/50">{Math.round(exercisePct)}% complete</span>
+            <span className="text-xs text-text-tertiary/75">{Math.round(exercisePct)}% complete</span>
           </div>
 
           {nextExam && (
@@ -180,7 +180,7 @@ export default function DashboardStats({
           }}
         />
 
-        <div className="relative z-10 flex flex-1 items-center gap-3 px-4 py-3.5">
+        <div className="relative z-10 flex flex-1 items-center gap-3 px-4 py-2">
           <Flame className="h-4 w-4 flex-shrink-0 text-orange-400/50" />
 
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -189,14 +189,14 @@ export default function DashboardStats({
             </span>
             <div className="flex items-baseline gap-1 leading-none">
               <span
-                className="text-[1.85rem] font-black leading-none tabular-nums text-orange-400"
-                style={{ textShadow: '0 0 20px rgba(251,146,60,0.45)', letterSpacing: '-0.025em' }}
+                className="text-[1.5rem] font-black leading-none tabular-nums text-orange-400"
+                style={{ letterSpacing: '-0.025em' }}
               >
                 <AnimatedCounter to={streak} />
               </span>
               <span className="mb-0.5 text-sm font-medium text-text-tertiary/60">days</span>
             </div>
-            <span className="text-[9px] text-text-tertiary/50">{Math.max(0, 7 - streak)}d to weekly goal</span>
+            <span className="text-xs text-text-tertiary/75">{Math.max(0, 7 - streak)}d to weekly goal</span>
           </div>
 
           {streak > 0 && (
@@ -234,7 +234,7 @@ export default function DashboardStats({
           }}
         />
 
-        <div className="relative z-10 flex flex-1 items-center gap-3 px-4 py-3.5">
+        <div className="relative z-10 flex flex-1 items-center gap-3 px-4 py-2">
           <Briefcase className="h-4 w-4 flex-shrink-0 text-sky-400/50" />
 
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -244,8 +244,8 @@ export default function DashboardStats({
             {interviewsUpcoming > 0 ? (
               <div className="flex items-baseline gap-1 leading-none">
                 <span
-                  className="text-[1.85rem] font-black leading-none tabular-nums text-sky-400"
-                  style={{ textShadow: '0 0 22px rgba(56,189,248,0.5)' }}
+                  className="text-[1.5rem] font-black leading-none tabular-nums text-sky-400"
+                  style={{ letterSpacing: '-0.025em' }}
                 >
                   {interviewsUpcoming}
                 </span>
@@ -256,17 +256,17 @@ export default function DashboardStats({
             ) : (
               <span
                 className="text-[1.1rem] font-bold leading-tight text-sky-400/60"
-                style={{ textShadow: '0 0 16px rgba(56,189,248,0.3)' }}
+                style={{ letterSpacing: '-0.015em' }}
               >
                 No interviews
               </span>
             )}
             {goalsDueSoon > 0 ? (
-              <span className="text-[9px] font-medium text-red-400/70">
+              <span className="text-xs font-medium text-red-400/80">
                 {goalsDueSoon} goal{goalsDueSoon > 1 ? 's' : ''} due soon
               </span>
             ) : (
-              <span className="text-[9px] text-text-tertiary/50">Pipeline active</span>
+              <span className="text-xs text-text-tertiary/75">Pipeline active</span>
             )}
           </div>
 
