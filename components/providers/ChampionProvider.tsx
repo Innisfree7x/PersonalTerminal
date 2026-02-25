@@ -67,16 +67,20 @@ interface EffectState {
   id: string;
   type:
     | 'q'
+    | 'q-arc'
     | 'q-spark'
     | 'q-flare'
     | 'w'
     | 'w-bolt'
     | 'w-mark'
+    | 'w-shockwave'
     | 'e'
+    | 'e-streak'
     | 'dash-ghost'
     | 'r'
     | 'r-lane'
     | 'r-bullet'
+    | 'r-muzzle'
     | 'pentakill'
     | 'origin-flash'
     | 'landing-ring'
@@ -262,6 +266,9 @@ function ChampionOverlay({
   const championSize = SCALE_TO_SIZE[settings.renderScale];
   const championConfig = CHAMPION_CONFIG[settings.champion];
   const spriteRow = animationRow(animation);
+  // Guard against transient out-of-range frames when animations switch rows
+  // (e.g. walk -> cast_w with fewer frames), which otherwise causes a brief blank sprite.
+  const activeFrame = frame % Math.max(1, frameCount(animation));
   const abilityColors = championConfig.colors;
   const isWalking = animation === 'walk';
   const isCasting = animation.startsWith('cast_');
@@ -296,7 +303,7 @@ function ChampionOverlay({
     backgroundImage: `url(${championConfig.spriteSheet})`,
     // Render exactly one sprite frame and scale it up to championSize.
     backgroundSize: `${championSize * championConfig.sheetColumns}px ${championSize * championConfig.sheetRows}px`,
-    backgroundPosition: `-${frame * championSize}px -${spriteRow * championSize}px`,
+    backgroundPosition: `-${activeFrame * championSize}px -${spriteRow * championSize}px`,
     backgroundRepeat: 'no-repeat' as const,
     imageRendering: 'pixelated' as const,
     transform: direction === 'left' ? 'scaleX(-1) rotate(-1.5deg)' : 'scaleX(1) rotate(1.5deg)',
@@ -324,6 +331,48 @@ function ChampionOverlay({
           transition={{ duration: 0.55, ease: 'easeOut' }}
           style={{
             background: `radial-gradient(circle at center, ${hexToRgba(abilityColors.r, 0.2)} 0%, ${hexToRgba('#02040a', 0.72)} 70%)`,
+            mixBlendMode: 'screen',
+          }}
+        />
+      )}
+
+      {mode === 'active' && effects.some((effect) => effect.type === 'q' || effect.type === 'q-arc') && (
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.08, 0] }}
+          transition={{ duration: 0.24, ease: 'easeOut' }}
+          style={{
+            background: `radial-gradient(circle at 50% 50%, ${hexToRgba(abilityColors.q, 0.16)} 0%, transparent 62%)`,
+            mixBlendMode: 'screen',
+          }}
+        />
+      )}
+
+      {mode === 'active' && effects.some((effect) => effect.type === 'w' || effect.type === 'w-bolt' || effect.type === 'w-shockwave') && (
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.06, 0] }}
+          transition={{ duration: 0.26, ease: 'easeOut' }}
+          style={{
+            background: `radial-gradient(circle at 50% 45%, ${hexToRgba(abilityColors.w, 0.12)} 0%, transparent 65%)`,
+            mixBlendMode: 'screen',
+          }}
+        />
+      )}
+
+      {mode === 'active' && effects.some((effect) => effect.type === 'e' || effect.type === 'e-streak') && (
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.06, 0] }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+          style={{
+            background: `radial-gradient(circle at 50% 55%, ${hexToRgba(abilityColors.e, 0.14)} 0%, transparent 66%)`,
             mixBlendMode: 'screen',
           }}
         />
@@ -530,6 +579,22 @@ function ChampionOverlay({
                 />
               </motion.div>
             )}
+            {effect.type === 'q-arc' && (
+              <motion.div
+                className="absolute origin-left"
+                initial={{ opacity: 0.85, scaleX: 0.2 }}
+                animate={{ opacity: [0.85, 0.55, 0], scaleX: [0.2, 1, 1.05] }}
+                transition={{ duration: 0.44, ease: 'easeOut' }}
+                style={{
+                  transform: `rotate(${effect.angle ?? 0}deg) translateY(${effect.size ?? 0}px)`,
+                  width: effect.distance ?? 640,
+                  height: 8,
+                  borderRadius: 999,
+                  background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 0.62)}, ${hexToRgba(abilityColors.q, 0.7)}, ${hexToRgba(abilityColors.q, 0.18)}, transparent)`,
+                  boxShadow: `0 0 18px ${hexToRgba(abilityColors.q, 0.6)}, inset 0 0 10px ${hexToRgba('#FFFFFF', 0.2)}`,
+                }}
+              />
+            )}
             {effect.type === 'q-spark' && (
               <motion.div
                 className="h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full"
@@ -651,6 +716,20 @@ function ChampionOverlay({
                 </div>
               </motion.div>
             )}
+            {effect.type === 'w-shockwave' && (
+              <motion.div
+                className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-[2px]"
+                initial={{ opacity: 0.9, scale: 0.2 }}
+                animate={{ opacity: [0.9, 0.55, 0], scale: [0.2, 1, 1.18] }}
+                transition={{ duration: 0.46, ease: 'easeOut' }}
+                style={{
+                  width: effect.size ?? 88,
+                  height: effect.size ?? 88,
+                  borderColor: hexToRgba(abilityColors.w, 0.72),
+                  boxShadow: `0 0 24px ${hexToRgba(abilityColors.w, 0.58)}, inset 0 0 18px ${hexToRgba(abilityColors.w, 0.18)}`,
+                }}
+              />
+            )}
             {effect.type === 'e' && (
               <>
                 {/* Expanding impact ring */}
@@ -680,6 +759,21 @@ function ChampionOverlay({
                   }}
                 />
               </>
+            )}
+            {effect.type === 'e-streak' && (
+              <motion.div
+                className="absolute origin-left rounded-full"
+                initial={{ opacity: 0.85, scaleX: 0.08 }}
+                animate={{ opacity: [0.85, 0.55, 0], scaleX: [0.08, 1, 1.03] }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                style={{
+                  transform: `rotate(${effect.angle ?? 0}deg)`,
+                  width: effect.distance ?? 220,
+                  height: 14,
+                  background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 0.9)}, ${hexToRgba(abilityColors.e, 0.82)}, ${hexToRgba(abilityColors.e, 0.22)}, transparent)`,
+                  boxShadow: `0 0 20px ${hexToRgba(abilityColors.e, 0.66)}, 0 0 8px ${hexToRgba('#FFFFFF', 0.45)}`,
+                }}
+              />
             )}
             {effect.type === 'dash-ghost' && (
               <motion.div
@@ -747,6 +841,37 @@ function ChampionOverlay({
                     boxShadow: `0 0 20px ${hexToRgba(abilityColors.r, 0.85)}, 0 0 6px ${hexToRgba('#FFFFFF', 0.7)}`,
                   }}
                 />
+              </motion.div>
+            )}
+            {effect.type === 'r-muzzle' && (
+              <motion.div
+                className="absolute -translate-x-1/2 -translate-y-1/2"
+                initial={{ opacity: 1, scale: 0.7 }}
+                animate={{ opacity: [1, 0.7, 0], scale: [0.7, 1.2, 1.6] }}
+                transition={{ duration: 0.26, ease: 'easeOut' }}
+              >
+                <div
+                  className="relative"
+                  style={{
+                    width: 68,
+                    height: 68,
+                    transform: `rotate(${effect.angle ?? 0}deg)`,
+                  }}
+                >
+                  <div
+                    className="absolute left-1/2 top-1/2 h-3 w-14 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                    style={{
+                      background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 1)}, ${hexToRgba(abilityColors.r, 0.82)}, transparent)`,
+                      boxShadow: `0 0 22px ${hexToRgba(abilityColors.r, 0.8)}`,
+                    }}
+                  />
+                  <div
+                    className="absolute left-1/2 top-1/2 h-14 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                    style={{
+                      background: `linear-gradient(to bottom, ${hexToRgba('#FFFFFF', 0.95)}, ${hexToRgba(abilityColors.r, 0.72)}, transparent)`,
+                    }}
+                  />
+                </div>
               </motion.div>
             )}
             {effect.type === 'move' && (
@@ -1041,6 +1166,8 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       const beamDistance = 640;
       addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 34, tone: abilityColors.q }, 220);
       addEffect({ type: 'q', x: center.x, y: center.y, angle, distance: beamDistance }, 450);
+      addEffect({ type: 'q-arc', x: center.x, y: center.y, angle, distance: beamDistance, size: -10 }, 460);
+      addEffect({ type: 'q-arc', x: center.x, y: center.y, angle, distance: beamDistance, size: 10 }, 520);
       for (let i = 0; i < 6; i += 1) {
         const spread = (Math.random() - 0.5) * 16;
         addEffect(
@@ -1090,6 +1217,8 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       addEffect({ type: 'origin-flash', x: hitX, y: hitY, size: 42, tone: abilityColors.w }, 380);
       addEffect({ type: 'w-mark', x: hitX, y: hitY }, 450);
       addEffect({ type: 'w-mark', x: hitX, y: hitY, angle: 45 }, 450);
+      addEffect({ type: 'w-shockwave', x: hitX, y: hitY, size: 82 }, 420);
+      addEffect({ type: 'w-shockwave', x: hitX, y: hitY, size: 118 }, 520);
       fireLightslinger(center, angle);
       startCooldown('w');
       window.setTimeout(() => setAnimation(isMoving ? 'walk' : 'idle'), 320);
@@ -1104,6 +1233,9 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
         championSize
       );
       const targetCenter = { x: target.x + championSize / 2, y: target.y + championSize / 2 };
+      const dashAngle = (Math.atan2(targetCenter.y - currentCenter.y, targetCenter.x - currentCenter.x) * 180) / Math.PI;
+      const dashDistance = Math.hypot(targetCenter.x - currentCenter.x, targetCenter.y - currentCenter.y);
+      addEffect({ type: 'e-streak', x: currentCenter.x, y: currentCenter.y, angle: dashAngle, distance: dashDistance }, 340);
       for (let i = 1; i <= 4; i += 1) {
         const ratio = i / 5;
         addEffect(
@@ -1118,7 +1250,6 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       addEffect({ type: 'e', x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 }, 400);
       addEffect({ type: 'landing-ring', x: targetCenter.x, y: targetCenter.y, size: 76 }, 340);
       addEffect({ type: 'landing-ring', x: targetCenter.x, y: targetCenter.y, size: 48 }, 420);
-      const dashAngle = (Math.atan2(targetCenter.y - currentCenter.y, targetCenter.x - currentCenter.x) * 180) / Math.PI;
       fireLightslinger(targetCenter, dashAngle);
       positionRef.current = target;
       setPosition(target);
@@ -1134,6 +1265,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       const center = { x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 };
       const baseAngle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
       addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 60, tone: abilityColors.r }, 160);
+      addEffect({ type: 'r-muzzle', x: center.x, y: center.y, angle: baseAngle }, 260);
       addEffect({ type: 'r', x: center.x, y: center.y, angle: baseAngle }, 1100);
       for (let lane = -1; lane <= 1; lane += 2) {
         addEffect(
@@ -1288,6 +1420,11 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
     });
     return unsubscribe;
   }, [addEffect, awardXp, championSize, play, settings.eventReactions, settings.soundsEnabled]);
+
+  useEffect(() => {
+    // Reset to frame 0 when switching animation rows to avoid brief blank frames.
+    setFrame(0);
+  }, [animation]);
 
   useEffect(() => {
     const animationInterval = window.setInterval(() => {
