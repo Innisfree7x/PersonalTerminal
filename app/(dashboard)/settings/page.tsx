@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/lib/auth/AuthProvider';
-import { useTheme } from '@/components/providers/ThemeProvider';
+import { useTheme, type Theme, type AccentColor } from '@/components/providers/ThemeProvider';
 import {
     User,
     Mail,
@@ -33,23 +33,32 @@ import { usePowerHotkeys, type SummonerSpellAction } from '@/components/provider
 import { useChampion } from '@/components/providers/ChampionProvider';
 
 const themes = [
-    { id: 'gold', name: 'Gold (Premium)', color: 'linear-gradient(135deg, #2e2412 0%, #000 100%)', border: '#ca8a04' },
-    { id: 'midnight', name: 'Midnight', color: '#0A0A0A', border: '#262626' },
-    { id: 'nord', name: 'Nord', color: '#2E3440', border: '#4C566A' },
-    { id: 'dracula', name: 'Dracula', color: '#282a36', border: '#6272a4' },
-    { id: 'ocean', name: 'Ocean', color: '#0f172a', border: '#334155' },
-    { id: 'emerald', name: 'Emerald', color: '#022c22', border: '#065f46' },
-] as const;
+    { id: 'gold', name: 'Gold (Premium)', preview: 'linear-gradient(135deg, #2f2412 0%, #0b0908 100%)', border: '#ca8a04', tag: 'Metal' },
+    { id: 'platinum', name: 'Platinum', preview: 'linear-gradient(135deg, #1d2430 0%, #0a0f16 100%)', border: '#64748b', tag: 'Metal' },
+    { id: 'sapphire', name: 'Sapphire', preview: 'linear-gradient(135deg, #162646 0%, #070e1e 100%)', border: '#0ea5e9', tag: 'Metal' },
+    { id: 'copper', name: 'Copper', preview: 'linear-gradient(135deg, #3d2318 0%, #140d0a 100%)', border: '#ea580c', tag: 'Metal' },
+    { id: 'amethyst', name: 'Amethyst', preview: 'linear-gradient(135deg, #362357 0%, #130d1f 100%)', border: '#a855f7', tag: 'Metal' },
+    { id: 'midnight', name: 'Midnight', preview: '#0A0A0A', border: '#262626' },
+    { id: 'nord', name: 'Nord', preview: '#2E3440', border: '#4C566A' },
+    { id: 'dracula', name: 'Dracula', preview: '#282a36', border: '#6272a4' },
+    { id: 'ocean', name: 'Ocean', preview: '#0f172a', border: '#334155' },
+    { id: 'emerald', name: 'Emerald', preview: '#022c22', border: '#065f46' },
+] as const satisfies ReadonlyArray<{ id: Theme; name: string; preview: string; border: string; tag?: string }>;
 
 const accents = [
-    { id: 'red', name: 'Red', color: 'bg-red-500' },
-    { id: 'gold', name: 'Gold', color: 'bg-yellow-500' },
-    { id: 'purple', name: 'Purple', color: 'bg-purple-600' },
-    { id: 'blue', name: 'Blue', color: 'bg-blue-500' },
-    { id: 'green', name: 'Green', color: 'bg-emerald-500' },
-    { id: 'orange', name: 'Orange', color: 'bg-orange-500' },
-    { id: 'pink', name: 'Pink', color: 'bg-pink-500' },
-] as const;
+    { id: 'gold', name: 'Gold', swatch: 'linear-gradient(135deg, rgb(234 179 8), rgb(245 158 11))' },
+    { id: 'sunset', name: 'Sunset', swatch: 'linear-gradient(135deg, rgb(249 115 22), rgb(236 72 153))' },
+    { id: 'aurora', name: 'Aurora', swatch: 'linear-gradient(135deg, rgb(16 185 129), rgb(59 130 246))' },
+    { id: 'royal', name: 'Royal', swatch: 'linear-gradient(135deg, rgb(99 102 241), rgb(236 72 153))' },
+    { id: 'plasma', name: 'Plasma', swatch: 'linear-gradient(135deg, rgb(168 85 247), rgb(59 130 246))' },
+    { id: 'ember', name: 'Ember', swatch: 'linear-gradient(135deg, rgb(239 68 68), rgb(245 158 11))' },
+    { id: 'red', name: 'Red', swatch: 'radial-gradient(circle at 30% 25%, rgb(248 113 113), rgb(220 38 38))' },
+    { id: 'purple', name: 'Purple', swatch: 'radial-gradient(circle at 30% 25%, rgb(192 132 252), rgb(109 40 217))' },
+    { id: 'blue', name: 'Blue', swatch: 'radial-gradient(circle at 30% 25%, rgb(96 165 250), rgb(37 99 235))' },
+    { id: 'green', name: 'Green', swatch: 'radial-gradient(circle at 30% 25%, rgb(52 211 153), rgb(5 150 105))' },
+    { id: 'orange', name: 'Orange', swatch: 'radial-gradient(circle at 30% 25%, rgb(251 146 60), rgb(234 88 12))' },
+    { id: 'pink', name: 'Pink', swatch: 'radial-gradient(circle at 30% 25%, rgb(244 114 182), rgb(219 39 119))' },
+] as const satisfies ReadonlyArray<{ id: AccentColor; name: string; swatch: string }>;
 
 export default function SettingsPage() {
     const { user, signOut, refreshUser } = useAuth();
@@ -233,7 +242,7 @@ export default function SettingsPage() {
                         <Monitor className="w-4 h-4" />
                         Interface Theme
                     </label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                         {themes.map((t) => (
                             <motion.button
                                 key={t.id}
@@ -247,7 +256,7 @@ export default function SettingsPage() {
                             >
                                 <div
                                     className="w-full aspect-video rounded-lg mb-3 shadow-inner"
-                                    style={{ background: t.color, borderColor: t.border, borderWidth: 1 }}
+                                    style={{ background: t.preview, borderColor: t.border, borderWidth: 1 }}
                                 >
                                     <div className="w-full h-full p-2 flex gap-2">
                                         <div className="w-1/4 h-full rounded bg-white/5" />
@@ -261,6 +270,11 @@ export default function SettingsPage() {
                                     <span className={`text-sm font-medium ${theme === t.id ? 'text-primary' : 'text-text-secondary group-hover:text-text-primary'}`}>
                                         {t.name}
                                     </span>
+                                    {'tag' in t && t.tag ? (
+                                        <span className="rounded-full border border-white/15 bg-white/5 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-text-tertiary">
+                                            {t.tag}
+                                        </span>
+                                    ) : null}
                                     {theme === t.id && (
                                         <motion.div
                                             layoutId="theme-check"
@@ -281,20 +295,23 @@ export default function SettingsPage() {
                         <Sparkles className="w-4 h-4" />
                         Accent Color
                     </label>
-                    <div className="flex flex-wrap gap-4">
+                    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
                         {accents.map((a) => (
                             <motion.button
                                 key={a.id}
                                 onClick={() => { setAccentColor(a.id); play('click'); }}
-                                className={`group relative w-12 h-12 rounded-full flex items-center justify-center transition-all ${accentColor === a.id
-                                    ? 'ring-4 ring-offset-2 ring-offset-background'
+                                className={`group relative h-12 w-12 rounded-full flex items-center justify-center transition-all ${accentColor === a.id
+                                    ? 'ring-4 ring-offset-2 ring-offset-background ring-primary'
                                     : 'hover:scale-110'
-                                    } ${accentColor === a.id ? 'ring-primary' : ''}`}
+                                    }`}
                                 title={a.name}
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
                             >
-                                <div className={`w-full h-full rounded-full ${a.color} shadow-lg`} />
+                                <div
+                                    className="w-full h-full rounded-full border border-white/15 shadow-lg"
+                                    style={{ background: a.swatch }}
+                                />
                                 {accentColor === a.id && (
                                     <Check className="absolute w-6 h-6 text-white drop-shadow-md" />
                                 )}

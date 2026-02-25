@@ -27,6 +27,8 @@
   /* #eab308 - Gold */
   --primary-hover: 202 138 4;
   /* #ca8a04 */
+  --primary-secondary: 245 158 11;
+  /* #f59e0b */
 
   --border: 40 40 55;
   /* #282837 */
@@ -177,16 +179,100 @@
   /* Gold-500 */
   --primary-hover: 202 138 4;
   /* Gold-600 */
+  --primary-secondary: 245 158 11;
 }
 
-/* Dynamic Metal Background for Gold Theme */
-/* This mimics the Revolut "Metal" sheen */
-[data-theme='gold'] body {
+/* Platinum Theme (Premium Silver) */
+[data-theme='platinum'] {
+  --background: 8 11 16;
+  --surface: 19 24 33;
+  --surface-hover: 30 38 50;
+  --text-primary: 241 245 249;
+  --text-secondary: 184 198 216;
+  --text-tertiary: 123 139 162;
+  --border: 58 70 92;
+  --border-secondary: 39 49 67;
+  --primary: 148 163 184;
+  --primary-hover: 100 116 139;
+  --primary-secondary: 56 189 248;
+}
+
+/* Sapphire Theme (Premium Blue Metal) */
+[data-theme='sapphire'] {
+  --background: 7 14 30;
+  --surface: 16 28 52;
+  --surface-hover: 24 40 72;
+  --text-primary: 239 246 255;
+  --text-secondary: 186 210 236;
+  --text-tertiary: 125 159 196;
+  --border: 44 66 103;
+  --border-secondary: 28 43 70;
+  --primary: 56 189 248;
+  --primary-hover: 14 165 233;
+  --primary-secondary: 99 102 241;
+}
+
+/* Copper Theme (Premium Bronze) */
+[data-theme='copper'] {
+  --background: 19 11 9;
+  --surface: 36 21 16;
+  --surface-hover: 54 32 24;
+  --text-primary: 255 241 229;
+  --text-secondary: 232 192 164;
+  --text-tertiary: 192 143 111;
+  --border: 92 55 42;
+  --border-secondary: 64 38 29;
+  --primary: 234 88 12;
+  --primary-hover: 194 65 12;
+  --primary-secondary: 245 158 11;
+}
+
+/* Amethyst Theme (Premium Violet) */
+[data-theme='amethyst'] {
+  --background: 19 13 31;
+  --surface: 33 22 52;
+  --surface-hover: 49 34 74;
+  --text-primary: 245 243 255;
+  --text-secondary: 206 186 245;
+  --text-tertiary: 167 139 250;
+  --border: 78 55 124;
+  --border-secondary: 57 39 88;
+  --primary: 168 85 247;
+  --primary-hover: 147 51 234;
+  --primary-secondary: 236 72 153;
+}
+
+/* Dynamic metal backgrounds for premium themes */
+[data-theme='gold'] body,
+[data-theme='platinum'] body,
+[data-theme='sapphire'] body,
+[data-theme='copper'] body,
+[data-theme='amethyst'] body {
   background: radial-gradient(circle at 50% -20%, #423010 0%, #000000 60%);
   background-attachment: fixed;
 }
 
-[data-theme='gold'] body::before {
+[data-theme='platinum'] body {
+  background: radial-gradient(circle at 50% -24%, rgb(113 132 160 / 0.5) 0%, rgb(8 11 16) 60%);
+}
+
+[data-theme='sapphire'] body {
+  background: radial-gradient(circle at 50% -24%, rgb(56 189 248 / 0.25) 0%, rgb(7 14 30) 60%);
+}
+
+[data-theme='copper'] body {
+  background: radial-gradient(circle at 50% -22%, rgb(245 158 11 / 0.2) 0%, rgb(19 11 9) 60%);
+}
+
+[data-theme='amethyst'] body {
+  background: radial-gradient(circle at 50% -24%, rgb(168 85 247 / 0.25) 0%, rgb(19 13 31) 60%);
+}
+
+[data-theme='gold'] body::before,
+[data-theme='platinum'] body::before,
+[data-theme='sapphire'] body::before,
+[data-theme='copper'] body::before,
+[data-theme='amethyst'] body::before {
   content: '';
   position: fixed;
   top: -50%;
@@ -195,7 +281,8 @@
   height: 200%;
   background: conic-gradient(from 0deg at 50% 50%,
       transparent 0deg,
-      rgba(234, 179, 8, 0.05) 60deg,
+      rgb(var(--primary) / 0.06) 60deg,
+      rgb(var(--primary-secondary) / 0.04) 100deg,
       transparent 120deg,
       transparent 360deg);
   animation: metal-sheen 20s linear infinite;
@@ -235,6 +322,7 @@
     background-image: radial-gradient(
       ellipse 80% 45% at 50% -8%,
       rgb(var(--primary) / 0.08) 0%,
+      rgb(var(--primary-secondary) / 0.04) 35%,
       transparent 60%
     );
   }

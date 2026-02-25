@@ -81,12 +81,13 @@ function KanbanColumn({
     focusedApplicationId: string | null;
     onApplicationFocus: (id: string) => void;
 }) {
-    const { setNodeRef } = useDroppable({
-        id: column.status,
-    });
+  const { setNodeRef } = useDroppable({
+    id: column.status,
+  });
+  const useCompactColumnLayout = applications.length > 4;
 
-    return (
-        <div className="flex flex-col h-full">
+  return (
+    <div className="flex flex-col h-full">
             {/* Column Header */}
             <div className="bg-surface border border-border rounded-t-lg p-4">
                 <div className="flex items-center justify-between mb-2">
@@ -104,7 +105,11 @@ function KanbanColumn({
             <div
                 ref={setNodeRef}
                 data-testid={`career-column-${column.status}`}
-                className="flex-1 bg-surface/30 border-x border-b border-border rounded-b-lg p-3 space-y-3 min-h-[200px]"
+                className={`flex-1 bg-surface/30 border-x border-b border-border rounded-b-lg min-h-[200px] ${
+                    useCompactColumnLayout
+                        ? 'max-h-[620px] overflow-y-auto pr-1.5 p-2.5 space-y-2'
+                        : 'p-3 space-y-3'
+                }`}
             >
                 <SortableContext
                     items={applications.map(app => app.id)}

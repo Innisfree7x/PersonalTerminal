@@ -68,22 +68,29 @@ export default function FocusScreen() {
   useEffect(() => {
     const interval = setInterval(() => {
       setQuoteIndex((prev) => (prev + 1) % FOCUS_QUOTES.length);
-    }, 45_000);
+    }, 300_000);
     return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#05080f] text-[#FAF0E6]">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.16),transparent_35%),radial-gradient(circle_at_78%_24%,rgba(234,179,8,0.18),transparent_38%),radial-gradient(circle_at_52%_86%,rgba(245,158,11,0.12),transparent_34%)]" />
+      <motion.div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.16),transparent_35%),radial-gradient(circle_at_78%_24%,rgba(234,179,8,0.18),transparent_38%),radial-gradient(circle_at_52%_86%,rgba(245,158,11,0.12),transparent_34%)]"
+        animate={{
+          filter: ['hue-rotate(0deg)', 'hue-rotate(18deg)', 'hue-rotate(-10deg)', 'hue-rotate(0deg)'],
+          opacity: [0.95, 1, 0.92, 0.95],
+        }}
+        transition={{ duration: 140, repeat: Infinity, ease: 'easeInOut' }}
+      />
       <motion.div
         className="pointer-events-none absolute -left-24 -top-24 h-[42vw] w-[42vw] rounded-full bg-cyan-300/10 blur-[130px]"
-        animate={{ x: [0, 40, 0], y: [0, 28, 0], scale: [1, 1.06, 1] }}
-        transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
+        animate={{ x: [0, 55, 0], y: [0, 36, 0], scale: [1, 1.08, 1] }}
+        transition={{ duration: 54, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
         className="pointer-events-none absolute -right-20 top-10 h-[38vw] w-[38vw] rounded-full bg-amber-300/10 blur-[130px]"
-        animate={{ x: [0, -30, 0], y: [0, -24, 0], scale: [1, 1.08, 1] }}
-        transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
+        animate={{ x: [0, -42, 0], y: [0, -28, 0], scale: [1, 1.1, 1] }}
+        transition={{ duration: 62, repeat: Infinity, ease: 'easeInOut' }}
       />
       <div
         className="pointer-events-none absolute inset-0 opacity-30"
@@ -100,7 +107,7 @@ export default function FocusScreen() {
             className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-[#FAF0E6]"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            Zurueck zu Today
+            Zurück zu Today
           </Link>
           <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] text-amber-200">
             <Sparkles className="h-3.5 w-3.5" />
@@ -171,7 +178,7 @@ export default function FocusScreen() {
                     className="inline-flex items-center gap-1 rounded-lg border border-zinc-400/20 bg-zinc-400/10 px-3 py-1.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-400/20"
                   >
                     <SkipForward className="h-3.5 w-3.5" />
-                    Break skippen
+                    Break überspringen
                   </button>
                 )}
                 {!isBreak && (

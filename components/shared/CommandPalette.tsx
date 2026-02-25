@@ -52,7 +52,7 @@ type CommandItem = {
   shortcut?: string;
 };
 
-const THEME_CYCLE = ['midnight', 'nord', 'gold'] as const;
+const THEME_CYCLE = ['gold', 'platinum', 'sapphire', 'copper', 'amethyst', 'midnight'] as const;
 
 // ── Intent icon + accent per intent kind ──────────────────────────────────────
 const intentMeta: Record<
@@ -207,6 +207,10 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     { id: 'theme-midnight', label: 'Theme: Midnight', icon: Moon, action: () => setTheme('midnight'), keywords: ['theme', 'dark', 'midnight'] },
     { id: 'theme-nord', label: 'Theme: Nord', icon: Palette, action: () => setTheme('nord'), keywords: ['theme', 'nord', 'blue', 'gray'] },
     { id: 'theme-gold', label: 'Theme: Gold', icon: Palette, action: () => setTheme('gold'), keywords: ['theme', 'gold', 'premium', 'warm'] },
+    { id: 'theme-platinum', label: 'Theme: Platinum', icon: Palette, action: () => setTheme('platinum'), keywords: ['theme', 'platinum', 'premium', 'silver', 'metal'] },
+    { id: 'theme-sapphire', label: 'Theme: Sapphire', icon: Palette, action: () => setTheme('sapphire'), keywords: ['theme', 'sapphire', 'premium', 'blue', 'metal'] },
+    { id: 'theme-copper', label: 'Theme: Copper', icon: Palette, action: () => setTheme('copper'), keywords: ['theme', 'copper', 'premium', 'bronze', 'warm'] },
+    { id: 'theme-amethyst', label: 'Theme: Amethyst', icon: Palette, action: () => setTheme('amethyst'), keywords: ['theme', 'amethyst', 'premium', 'violet'] },
     { id: 'theme-dracula', label: 'Theme: Dracula', icon: Palette, action: () => setTheme('dracula'), keywords: ['theme', 'dracula', 'purple', 'vampire'] },
     { id: 'theme-ocean', label: 'Theme: Ocean', icon: Palette, action: () => setTheme('ocean'), keywords: ['theme', 'ocean', 'blue', 'deep'] },
     { id: 'theme-emerald', label: 'Theme: Emerald', icon: Palette, action: () => setTheme('emerald'), keywords: ['theme', 'emerald', 'green', 'nature'] },
@@ -268,14 +272,14 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     },
     {
       id: 'action-theme-cycle',
-      label: 'Cycle Theme (Midnight → Nord → Gold)',
+      label: 'Cycle Premium Themes',
       icon: Palette,
       action: () => {
         const currentIndex = THEME_CYCLE.indexOf(theme as (typeof THEME_CYCLE)[number]);
         const nextTheme = THEME_CYCLE[(currentIndex + 1) % THEME_CYCLE.length] ?? 'midnight';
         setTheme(nextTheme);
       },
-      keywords: ['theme', 'toggle', 'switch', 'cycle', 'midnight', 'nord', 'gold'],
+      keywords: ['theme', 'toggle', 'switch', 'cycle', 'premium', 'gold', 'platinum', 'sapphire', 'copper', 'amethyst'],
       shortcut: 'T',
     },
     {

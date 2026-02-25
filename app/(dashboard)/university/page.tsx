@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfDay, differenceInDays } from 'date-fns';
 import { LayoutGroup, motion } from 'framer-motion';
@@ -183,6 +183,7 @@ export default function UniversityPage() {
 
   // Find next exam
   const today = startOfDay(new Date());
+  const todayTs = today.getTime();
   const upcomingExams = courses
     .filter((course) => course.examDate && startOfDay(course.examDate) >= today)
     .sort((a, b) => {
@@ -193,6 +194,28 @@ export default function UniversityPage() {
   const daysUntilNextExam = nextExam?.examDate
     ? differenceInDays(nextExam.examDate, today)
     : null;
+
+  // Sort by nearest exam: upcoming first (soonest), then recent past exams, then courses without exam date.
+  const sortedCourses = useMemo(() => {
+    return [...courses].sort((a, b) => {
+      const aExam = a.examDate ? startOfDay(a.examDate).getTime() : null;
+      const bExam = b.examDate ? startOfDay(b.examDate).getTime() : null;
+
+      if (aExam === null && bExam === null) {
+        return b.createdAt.getTime() - a.createdAt.getTime();
+      }
+      if (aExam === null) return 1;
+      if (bExam === null) return -1;
+
+      const aUpcoming = aExam >= todayTs;
+      const bUpcoming = bExam >= todayTs;
+
+      if (aUpcoming && bUpcoming) return aExam - bExam;
+      if (aUpcoming !== bUpcoming) return aUpcoming ? -1 : 1;
+
+      return bExam - aExam;
+    });
+  }, [courses, todayTs]);
 
   const handleSubmitCourse = (data: CreateCourseInput) => {
     if (editingCourse) {
@@ -219,9 +242,9 @@ export default function UniversityPage() {
   };
 
   const { focusedId: focusedCourseId, setFocusedId: setFocusedCourseId } = useListNavigation<CourseWithExercises>({
-    items: courses,
+    items: sortedCourses,
     getId: (course) => course.id,
-    enabled: courses.length > 0 && !isModalOpen,
+    enabled: sortedCourses.length > 0 && !isModalOpen,
     onEnter: handleEditCourse,
   });
 
@@ -404,7 +427,7 @@ export default function UniversityPage() {
 
       <LayoutGroup id="university-cards">
         {/* Course Cards */}
-        {courses.length === 0 ? (
+        {sortedCourses.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -433,7 +456,7 @@ export default function UniversityPage() {
           </motion.div>
         ) : (
           <div className="space-y-4">
-            {courses.map((course) => (
+            {sortedCourses.map((course) => (
               <motion.div
                 key={course.id}
                 initial={{ opacity: 0, y: 20 }}
