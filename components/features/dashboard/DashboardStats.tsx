@@ -1,5 +1,7 @@
 'use client';
 
+import type { ReactNode } from 'react';
+import type { LucideIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, GraduationCap, Briefcase, Flame } from 'lucide-react';
 import AnimatedCounter from '@/components/ui/AnimatedCounter';
@@ -23,9 +25,119 @@ function PulseDot({ className }: { className: string }) {
   );
 }
 
-/** Thin vertical separator */
 function Sep() {
-  return <div className="w-px self-stretch bg-white/[0.05]" />;
+  return <div className="w-px self-stretch bg-gradient-to-b from-transparent via-white/[0.12] to-transparent" />;
+}
+
+type ChipTone = 'muted' | 'danger' | 'warning' | 'success' | 'info';
+
+function RailChip({ label, tone, pulse = false }: { label: string; tone: ChipTone; pulse?: boolean }) {
+  const toneClasses: Record<ChipTone, string> = {
+    muted: 'border-white/[0.1] bg-white/[0.04] text-text-tertiary',
+    danger: 'border-red-500/35 bg-red-500/10 text-red-300',
+    warning: 'border-amber-500/35 bg-amber-500/10 text-amber-300',
+    success: 'border-emerald-500/35 bg-emerald-500/10 text-emerald-300',
+    info: 'border-sky-500/35 bg-sky-500/10 text-sky-300',
+  };
+  const pulseColor: Record<ChipTone, string> = {
+    muted: 'bg-zinc-400',
+    danger: 'bg-red-400',
+    warning: 'bg-amber-400',
+    success: 'bg-emerald-400',
+    info: 'bg-sky-400',
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.14em] ${toneClasses[tone]}`}
+    >
+      {pulse ? <PulseDot className={pulseColor[tone]} /> : null}
+      {label}
+    </span>
+  );
+}
+
+type RailTone = 'task' | 'exercise' | 'streak' | 'career';
+
+const RAIL_TONE: Record<RailTone, { icon: string; value: string; progress: string; glow: string }> = {
+  task: {
+    icon: 'text-red-300/80',
+    value: 'text-red-300',
+    progress: 'bg-red-400/70',
+    glow: 'from-red-500/14',
+  },
+  exercise: {
+    icon: 'text-amber-300/80',
+    value: 'text-amber-300',
+    progress: 'bg-amber-400/70',
+    glow: 'from-amber-500/14',
+  },
+  streak: {
+    icon: 'text-orange-300/80',
+    value: 'text-orange-300',
+    progress: 'bg-orange-400/70',
+    glow: 'from-orange-500/14',
+  },
+  career: {
+    icon: 'text-sky-300/80',
+    value: 'text-sky-300',
+    progress: 'bg-sky-400/70',
+    glow: 'from-sky-500/14',
+  },
+};
+
+function RailSegment({
+  icon: Icon,
+  tone,
+  label,
+  value,
+  valueMeta,
+  subtitle,
+  chip,
+  progress,
+}: {
+  icon: LucideIcon;
+  tone: RailTone;
+  label: string;
+  value: ReactNode;
+  valueMeta?: string;
+  subtitle: string;
+  chip?: ReactNode;
+  progress: number;
+}) {
+  const style = RAIL_TONE[tone];
+  const clampedProgress = Math.max(0, Math.min(progress, 100));
+
+  return (
+    <div className="group relative flex flex-1 min-w-[210px] items-center px-4 py-3 transition-colors hover:bg-white/[0.025]">
+      <div className={`pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r ${style.glow} to-transparent opacity-60`} />
+      <div className="relative z-10 min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <Icon className={`h-4 w-4 flex-shrink-0 ${style.icon}`} />
+          <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-text-tertiary/70">
+            {label}
+          </span>
+          {chip ? <div className="ml-auto">{chip}</div> : null}
+        </div>
+
+        <div className="mt-1 flex items-baseline gap-1.5 leading-none">
+          <span className={`text-[1.65rem] font-black leading-none tabular-nums ${style.value}`}>{value}</span>
+          {valueMeta ? <span className="mb-0.5 text-sm font-medium text-text-tertiary/60">{valueMeta}</span> : null}
+        </div>
+
+        <p className="mt-1 text-[11px] text-text-tertiary/80">{subtitle}</p>
+
+        <div className="mt-2 h-[2px] w-full rounded-full bg-white/[0.05]">
+          <motion.div
+            className={`h-[2px] rounded-full ${style.progress}`}
+            initial={{ width: 0 }}
+            animate={{ width: `${clampedProgress}%` }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+          />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function DashboardStats({
@@ -40,251 +152,131 @@ export default function DashboardStats({
   // TODO: wire to /api/user/streak
   const streak = 3;
 
-  const taskPct     = tasksToday > 0     ? (tasksCompleted / tasksToday) * 100        : 0;
+  const taskPct = tasksToday > 0 ? (tasksCompleted / tasksToday) * 100 : 0;
   const exercisePct = exercisesTotal > 0 ? (exercisesCompleted / exercisesTotal) * 100 : 0;
-  const streakPct   = Math.min((streak / 7) * 100, 100);
+  const streakPct = Math.min((streak / 7) * 100, 100);
 
   const allDone = taskPct === 100 && tasksToday > 0;
-  // Left stripe + bloom + number color per urgency
-  const taskColor  = allDone ? '#34d399' : taskPct > 0 ? '#fbbf24' : '#f87171';
-  const taskLabel  = allDone ? 'text-emerald-400' : taskPct > 0 ? 'text-amber-400' : 'text-red-400';
-
-  const examUrgent  = nextExam !== null && nextExam.daysUntilExam <= 1;
+  const examUrgent = nextExam !== null && nextExam.daysUntilExam <= 1;
   const examWarning = nextExam !== null && nextExam.daysUntilExam <= 7;
+  const tasksRemaining = Math.max(tasksToday - tasksCompleted, 0);
+  const examDays = nextExam?.daysUntilExam ?? null;
+  const careerProgress = interviewsUpcoming > 0
+    ? Math.min(100, interviewsUpcoming * 25)
+    : goalsDueSoon > 0
+      ? 45
+      : 18;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
-      className="relative flex items-stretch overflow-hidden rounded-xl border border-white/[0.08] bg-slate-900/75 backdrop-blur-md"
+      transition={{ duration: 0.24 }}
+      className="relative overflow-hidden rounded-2xl border border-white/[0.1] bg-slate-950/70 backdrop-blur-xl"
       style={{
         boxShadow:
-          '0 1px 2px rgba(0,0,0,0.25), 0 6px 20px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.05)',
+          '0 2px 4px rgba(0,0,0,0.35), 0 16px 36px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.06)',
       }}
     >
-      {/* Master 4-colour gradient line at bottom */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.24] to-transparent" />
       <div
         className="absolute inset-x-0 bottom-0 h-px"
         style={{
           background:
-            'linear-gradient(to right, rgba(52,211,153,0.8) 0%, rgba(251,191,36,0.8) 33%, rgba(251,146,60,0.8) 66%, rgba(56,189,248,0.8) 100%)',
+            'linear-gradient(to right, rgba(248,113,113,0.6) 0%, rgba(251,191,36,0.6) 33%, rgba(251,146,60,0.6) 66%, rgba(56,189,248,0.6) 100%)',
         }}
       />
-
-      {/* ─── TASKS ───────────────────────────────────────────── */}
-      <div className="group relative flex flex-1 cursor-default items-center hover:bg-white/[0.025] transition-all duration-150">
-        {/* Left accent stripe — dynamic colour */}
-        <div
-          className="w-[2px] self-stretch flex-shrink-0 transition-opacity"
-          style={{ backgroundColor: taskColor }}
-        />
-
-        {/* Bloom behind content */}
-        <div
-          className="pointer-events-none absolute left-0 top-1/2 h-24 w-36 -translate-y-1/2 opacity-30 transition-opacity group-hover:opacity-55"
-          style={{
-            background: `radial-gradient(ellipse at left, ${taskColor}22 0%, transparent 70%)`,
-            filter: 'blur(18px)',
-          }}
-        />
-
-        <div className="relative z-10 flex flex-1 items-center gap-3 px-4 py-2">
-          <CheckCircle2 className="h-4 w-4 flex-shrink-0 opacity-50" style={{ color: taskColor }} />
-
-          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="font-mono text-[8.5px] font-semibold uppercase tracking-[0.18em] text-text-tertiary/70">
-              Daily Tasks
-            </span>
-            <div className="flex items-baseline gap-1 leading-none">
-              <span
-                className={`text-[1.5rem] font-black leading-none tabular-nums ${taskLabel}`}
-                style={{ letterSpacing: '-0.025em' }}
-              >
-                <AnimatedCounter to={tasksCompleted} />
-              </span>
-              <span className="mb-0.5 text-sm font-medium text-text-tertiary/60">/ {tasksToday}</span>
-            </div>
-            {allDone ? (
-              <span className="text-xs font-medium text-emerald-400/80">All done · great work</span>
-            ) : (
-              <span className="text-xs text-text-tertiary/75">{tasksToday - tasksCompleted} remaining</span>
-            )}
-          </div>
-        </div>
+      <div className="pointer-events-none absolute right-3 top-2 hidden items-center gap-1 rounded-full border border-white/[0.1] bg-black/25 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-text-tertiary/70 lg:flex">
+        <span className="text-text-tertiary/50">Cmd+K</span>
+        <span>Command Rail</span>
       </div>
 
-      <Sep />
-
-      {/* ─── EXERCISES ───────────────────────────────────────── */}
-      <div className="group relative flex flex-1 cursor-default items-center hover:bg-white/[0.025] transition-all duration-150">
-        <div className="w-[2px] self-stretch flex-shrink-0 bg-amber-500/80" />
-
-        <div
-          className="pointer-events-none absolute left-0 top-1/2 h-24 w-36 -translate-y-1/2 opacity-30 transition-opacity group-hover:opacity-55"
-          style={{
-            background: 'radial-gradient(ellipse at left, rgba(251,191,36,0.18) 0%, transparent 70%)',
-            filter: 'blur(18px)',
-          }}
-        />
-
-        <div className="relative z-10 flex flex-1 items-center gap-3 px-4 py-2">
-          <GraduationCap className="h-4 w-4 flex-shrink-0 text-amber-400/50" />
-
-          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="font-mono text-[8.5px] font-semibold uppercase tracking-[0.18em] text-text-tertiary/70">
-              Exercises
-            </span>
-            <div className="flex items-baseline gap-1 leading-none">
-              <span
-                className="text-[1.5rem] font-black leading-none tabular-nums text-amber-400"
-                style={{ letterSpacing: '-0.025em' }}
-              >
-                <AnimatedCounter to={exercisesCompleted} />
-              </span>
-              <span className="mb-0.5 text-sm font-medium text-text-tertiary/60">/ {exercisesTotal}</span>
-            </div>
-            <span className="text-xs text-text-tertiary/75">{Math.round(exercisePct)}% complete</span>
-          </div>
-
-          {nextExam && (
-            <div className="ml-auto flex items-center gap-1.5">
-              {examUrgent && <PulseDot className="bg-red-500" />}
-              <span
-                className={`rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-widest ${
-                  examUrgent
-                    ? 'bg-red-500/15 text-red-400'
-                    : examWarning
-                      ? 'bg-amber-500/12 text-amber-400'
-                      : 'bg-white/[0.05] text-text-tertiary'
-                }`}
-              >
-                Exam {nextExam.daysUntilExam}d
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <Sep />
-
-      {/* ─── STREAK ──────────────────────────────────────────── */}
-      <div className="group relative flex flex-1 cursor-default items-center hover:bg-white/[0.025] transition-all duration-150">
-        <div className="w-[2px] self-stretch flex-shrink-0 bg-orange-500/80" />
-
-        <div
-          className="pointer-events-none absolute left-0 top-1/2 h-24 w-36 -translate-y-1/2 opacity-30 transition-opacity group-hover:opacity-55"
-          style={{
-            background: 'radial-gradient(ellipse at left, rgba(251,146,60,0.18) 0%, transparent 70%)',
-            filter: 'blur(18px)',
-          }}
-        />
-
-        <div className="relative z-10 flex flex-1 items-center gap-3 px-4 py-2">
-          <Flame className="h-4 w-4 flex-shrink-0 text-orange-400/50" />
-
-          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="font-mono text-[8.5px] font-semibold uppercase tracking-[0.18em] text-text-tertiary/70">
-              Streak
-            </span>
-            <div className="flex items-baseline gap-1 leading-none">
-              <span
-                className="text-[1.5rem] font-black leading-none tabular-nums text-orange-400"
-                style={{ letterSpacing: '-0.025em' }}
-              >
-                <AnimatedCounter to={streak} />
-              </span>
-              <span className="mb-0.5 text-sm font-medium text-text-tertiary/60">days</span>
-            </div>
-            <span className="text-xs text-text-tertiary/75">{Math.max(0, 7 - streak)}d to weekly goal</span>
-          </div>
-
-          {streak > 0 && (
-            <div className="ml-auto flex items-center gap-1.5">
-              <PulseDot className="bg-orange-400" />
-              <span className="font-mono text-[9px] font-semibold uppercase tracking-widest text-orange-400/80">
-                Active
-              </span>
-            </div>
-          )}
-
-          {/* Mini progress bar */}
-          <div className="absolute inset-x-0 bottom-0 h-[2px] bg-white/[0.04]">
-            <motion.div
-              className="h-full bg-orange-500/70"
-              initial={{ width: 0 }}
-              animate={{ width: `${streakPct}%` }}
-              transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
+      <div className="relative flex items-stretch overflow-x-auto">
+        <RailSegment
+          icon={CheckCircle2}
+          tone="task"
+          label="Daily Tasks"
+          value={<AnimatedCounter to={tasksCompleted} />}
+          valueMeta={`/ ${tasksToday}`}
+          subtitle={allDone ? 'All done, momentum is high' : `${tasksRemaining} remaining`}
+          chip={
+            <RailChip
+              label={allDone ? 'Clear' : tasksToday === 0 ? 'Idle' : taskPct === 0 ? 'Hot' : 'Active'}
+              tone={allDone ? 'success' : tasksToday === 0 ? 'muted' : taskPct === 0 ? 'danger' : 'warning'}
+              pulse={!allDone && tasksToday > 0}
             />
-          </div>
-        </div>
-      </div>
-
-      <Sep />
-
-      {/* ─── CAREER ──────────────────────────────────────────── */}
-      <div className="group relative flex flex-1 cursor-default items-center hover:bg-white/[0.025] transition-all duration-150">
-        <div className="w-[2px] self-stretch flex-shrink-0 bg-sky-500/70" />
-
-        <div
-          className="pointer-events-none absolute left-0 top-1/2 h-24 w-36 -translate-y-1/2 opacity-30 transition-opacity group-hover:opacity-55"
-          style={{
-            background: 'radial-gradient(ellipse at left, rgba(56,189,248,0.15) 0%, transparent 70%)',
-            filter: 'blur(18px)',
-          }}
+          }
+          progress={taskPct}
         />
 
-        <div className="relative z-10 flex flex-1 items-center gap-3 px-4 py-2">
-          <Briefcase className="h-4 w-4 flex-shrink-0 text-sky-400/50" />
+        <Sep />
 
-          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="font-mono text-[8.5px] font-semibold uppercase tracking-[0.18em] text-text-tertiary/70">
-              Career
-            </span>
-            {interviewsUpcoming > 0 ? (
-              <div className="flex items-baseline gap-1 leading-none">
-                <span
-                  className="text-[1.5rem] font-black leading-none tabular-nums text-sky-400"
-                  style={{ letterSpacing: '-0.025em' }}
-                >
-                  {interviewsUpcoming}
-                </span>
-                <span className="mb-0.5 text-sm font-medium text-text-tertiary/60">
-                  interview{interviewsUpcoming > 1 ? 's' : ''}
-                </span>
-              </div>
-            ) : (
-              <span
-                className="text-[1.1rem] font-bold leading-tight text-sky-400/60"
-                style={{ letterSpacing: '-0.015em' }}
-              >
-                No interviews
-              </span>
-            )}
-            {goalsDueSoon > 0 ? (
-              <span className="text-xs font-medium text-red-400/80">
-                {goalsDueSoon} goal{goalsDueSoon > 1 ? 's' : ''} due soon
-              </span>
-            ) : (
-              <span className="text-xs text-text-tertiary/75">Pipeline active</span>
-            )}
-          </div>
+        <RailSegment
+          icon={GraduationCap}
+          tone="exercise"
+          label="Exercises"
+          value={<AnimatedCounter to={exercisesCompleted} />}
+          valueMeta={`/ ${exercisesTotal}`}
+          subtitle={`${Math.round(exercisePct)}% complete`}
+          chip={
+            <RailChip
+              label={
+                examDays === null
+                  ? 'On track'
+                  : examDays < 0
+                    ? `${Math.abs(examDays)}d late`
+                    : `Exam ${examDays}d`
+              }
+              tone={examDays === null ? 'muted' : examUrgent ? 'danger' : examWarning ? 'warning' : 'muted'}
+              pulse={examDays !== null && examUrgent}
+            />
+          }
+          progress={exercisePct}
+        />
 
-          {(goalsDueSoon > 0 || interviewsUpcoming > 0) && (
-            <div className="ml-auto flex items-center gap-1.5">
-              {goalsDueSoon > 0 ? (
-                <>
-                  <PulseDot className="bg-red-500" />
-                  <span className="font-mono text-[9px] font-semibold uppercase tracking-widest text-red-400">
-                    {goalsDueSoon} due
-                  </span>
-                </>
-              ) : (
-                <PulseDot className="bg-sky-400" />
-              )}
-            </div>
-          )}
-        </div>
+        <Sep />
+
+        <RailSegment
+          icon={Flame}
+          tone="streak"
+          label="Streak"
+          value={<AnimatedCounter to={streak} />}
+          valueMeta="days"
+          subtitle={`${Math.max(0, 7 - streak)}d to weekly goal`}
+          chip={<RailChip label={streak > 0 ? 'Active' : 'Cold'} tone={streak > 0 ? 'warning' : 'muted'} pulse={streak > 0} />}
+          progress={streakPct}
+        />
+
+        <Sep />
+
+        <RailSegment
+          icon={Briefcase}
+          tone="career"
+          label="Career"
+          value={<AnimatedCounter to={interviewsUpcoming} />}
+          valueMeta="interviews"
+          subtitle={
+            goalsDueSoon > 0
+              ? `${goalsDueSoon} goal${goalsDueSoon > 1 ? 's' : ''} due soon`
+              : interviewsUpcoming > 0
+                ? 'Pipeline active'
+                : 'No interviews yet'
+          }
+          chip={
+            <RailChip
+              label={
+                goalsDueSoon > 0
+                  ? `${goalsDueSoon} due`
+                  : interviewsUpcoming > 0
+                    ? `${interviewsUpcoming} live`
+                    : 'Quiet'
+              }
+              tone={goalsDueSoon > 0 ? 'danger' : interviewsUpcoming > 0 ? 'info' : 'muted'}
+              pulse={goalsDueSoon > 0 || interviewsUpcoming > 0}
+            />
+          }
+          progress={careerProgress}
+        />
       </div>
     </motion.div>
   );
