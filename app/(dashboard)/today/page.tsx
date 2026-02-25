@@ -9,9 +9,8 @@ import { X, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import FocusTasks from '@/components/features/dashboard/FocusTasks';
-import NextBestActionWidget from '@/components/features/dashboard/NextBestActionWidget';
+import CommandBar from '@/components/features/dashboard/CommandBar';
 import ScheduleColumn from '@/components/features/dashboard/ScheduleColumn';
-import DashboardStats from '@/components/features/dashboard/DashboardStats';
 import QuickActionsWidget from '@/components/features/dashboard/QuickActionsWidget';
 import StudyProgress from '@/components/features/dashboard/StudyProgress';
 import UpcomingDeadlines from '@/components/features/dashboard/UpcomingDeadlines';
@@ -195,24 +194,18 @@ export default function TodayPage() {
         )}
       </AnimatePresence>
 
-      {/* Stats Bar - Real Data */}
-      {stats && (
-        <DashboardStats
-          tasksToday={stats.tasksToday}
-          tasksCompleted={stats.tasksCompleted}
-          exercisesCompleted={stats.exercisesThisWeek}
-          exercisesTotal={stats.exercisesTotal}
-          nextExam={
-            stats.nextExam && typeof stats.nextExam.daysUntilExam === 'number'
-              ? { name: stats.nextExam.name, daysUntilExam: stats.nextExam.daysUntilExam }
-              : null
-          }
-          goalsDueSoon={stats.goalsDueSoon}
-          interviewsUpcoming={stats.interviewsUpcoming}
-        />
-      )}
-
-      <NextBestActionWidget
+      <CommandBar
+        tasksToday={stats?.tasksToday ?? 0}
+        tasksCompleted={stats?.tasksCompleted ?? 0}
+        exercisesCompleted={stats?.exercisesThisWeek ?? 0}
+        exercisesTotal={stats?.exercisesTotal ?? 0}
+        nextExam={
+          stats?.nextExam && typeof stats.nextExam.daysUntilExam === 'number'
+            ? { name: stats.nextExam.name, daysUntilExam: stats.nextExam.daysUntilExam }
+            : null
+        }
+        goalsDueSoon={stats?.goalsDueSoon ?? 0}
+        interviewsUpcoming={stats?.interviewsUpcoming ?? 0}
         executionScore={nextTasksData?.executionScore ?? 0}
         nextBestAction={nextTasksData?.nextBestAction ?? null}
         alternatives={nextTasksData?.nextBestAlternatives ?? []}
