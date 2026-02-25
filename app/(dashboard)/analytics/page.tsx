@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Clock, Target, Flame, TrendingUp, Zap, Award } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/AuthProvider';
+import { useStreak } from '@/lib/hooks/useStreak';
 import { isAdminUser } from '@/lib/auth/authorization';
 import { fetchFocusAnalytics, fetchFocusSessions } from '@/lib/api/focus-sessions';
 import AnalyticsStatCard from '@/components/features/analytics/AnalyticsStatCard';
@@ -33,6 +34,7 @@ export default function AnalyticsPage() {
   const [selectedRange, setSelectedRange] = useState(30);
   const { user } = useAuth();
   const isAdmin = isAdminUser(user);
+  const { streak, activeDaysLast30 } = useStreak();
 
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
     queryKey: ['focus', 'analytics', selectedRange],
@@ -128,9 +130,9 @@ export default function AnalyticsPage() {
           />
           <AnalyticsStatCard
             title="Current Streak"
-            value={`${analytics.currentStreak}d`}
-            numericValue={analytics.currentStreak}
-            subtitle={`Longest: ${analytics.longestStreak}d`}
+            value={`${streak}d`}
+            numericValue={streak}
+            subtitle={`${activeDaysLast30} active days / 30d`}
             icon={Flame}
             color="text-orange-400"
             delay={0.1}
