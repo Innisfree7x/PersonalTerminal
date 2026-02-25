@@ -77,27 +77,55 @@ export default function FocusScreen() {
       <motion.div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.16),transparent_35%),radial-gradient(circle_at_78%_24%,rgba(234,179,8,0.18),transparent_38%),radial-gradient(circle_at_52%_86%,rgba(245,158,11,0.12),transparent_34%)]"
         animate={{
-          filter: ['hue-rotate(0deg)', 'hue-rotate(18deg)', 'hue-rotate(-10deg)', 'hue-rotate(0deg)'],
-          opacity: [0.95, 1, 0.92, 0.95],
+          opacity: [0.86, 0.93, 0.86],
+          scale: [1, 1.015, 1],
         }}
-        transition={{ duration: 140, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 180, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="pointer-events-none absolute inset-[-12%] bg-[conic-gradient(from_190deg_at_50%_45%,rgba(56,189,248,0.08),transparent_24%,rgba(245,158,11,0.08),transparent_60%,rgba(99,102,241,0.06),transparent_100%)] blur-3xl"
+        animate={{
+          rotate: [0, 4, 0, -3, 0],
+          scale: [1, 1.02, 1],
+          opacity: [0.2, 0.28, 0.22, 0.26, 0.2],
+        }}
+        transition={{ duration: 130, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="pointer-events-none absolute inset-0 opacity-25 mix-blend-soft-light"
+        style={{
+          backgroundImage: 'linear-gradient(115deg, rgba(255,255,255,0.03) 0%, transparent 36%, rgba(255,255,255,0.02) 63%, transparent 100%)',
+          backgroundSize: '220% 220%',
+        }}
+        animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
+        transition={{ duration: 96, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
         className="pointer-events-none absolute -left-24 -top-24 h-[42vw] w-[42vw] rounded-full bg-cyan-300/10 blur-[130px]"
-        animate={{ x: [0, 55, 0], y: [0, 36, 0], scale: [1, 1.08, 1] }}
-        transition={{ duration: 54, repeat: Infinity, ease: 'easeInOut' }}
+        animate={{ x: [0, 24, 0], y: [0, 16, 0], scale: [1, 1.04, 1] }}
+        transition={{ duration: 92, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
         className="pointer-events-none absolute -right-20 top-10 h-[38vw] w-[38vw] rounded-full bg-amber-300/10 blur-[130px]"
-        animate={{ x: [0, -42, 0], y: [0, -28, 0], scale: [1, 1.1, 1] }}
-        transition={{ duration: 62, repeat: Infinity, ease: 'easeInOut' }}
+        animate={{ x: [0, -20, 0], y: [0, -14, 0], scale: [1, 1.05, 1] }}
+        transition={{ duration: 108, repeat: Infinity, ease: 'easeInOut' }}
       />
-      <div
+      <motion.div
+        className="pointer-events-none absolute left-[20%] top-[58%] h-[34vw] w-[34vw] rounded-full bg-indigo-300/10 blur-[140px]"
+        animate={{ x: [0, -12, 0], y: [0, 10, 0], scale: [1, 1.04, 1] }}
+        transition={{ duration: 124, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
         className="pointer-events-none absolute inset-0 opacity-30"
         style={{
           backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px)',
           backgroundSize: '30px 30px',
         }}
+        animate={{
+          backgroundPosition: ['0px 0px', '24px 14px', '0px 0px'],
+          opacity: [0.22, 0.3, 0.24],
+        }}
+        transition={{ duration: 128, repeat: Infinity, ease: 'easeInOut' }}
       />
 
       <div className="relative flex min-h-screen flex-col px-4 py-5 sm:px-8 sm:py-7">
@@ -115,8 +143,8 @@ export default function FocusScreen() {
           </div>
         </div>
 
-        <div className="mx-auto mt-12 flex w-full max-w-4xl flex-1 items-center justify-center">
-          <div className="w-full rounded-3xl border border-white/10 bg-white/[0.03] px-6 py-10 shadow-[0_14px_80px_rgba(0,0,0,0.55)] backdrop-blur-md sm:px-12 sm:py-14">
+        <div className="mx-auto mt-10 flex w-full max-w-4xl flex-1 items-center justify-center sm:mt-12">
+          <div className="w-full rounded-3xl border border-white/15 bg-[linear-gradient(180deg,rgba(9,14,24,0.84),rgba(6,10,17,0.64))] px-6 py-9 shadow-[0_14px_80px_rgba(0,0,0,0.55)] backdrop-blur-md sm:px-10 sm:py-12 lg:px-12">
             <AnimatePresence mode="wait">
               <motion.blockquote
                 key={quoteIndex}
@@ -126,10 +154,10 @@ export default function FocusScreen() {
                 transition={{ duration: 0.35 }}
                 className="text-center"
               >
-                <p className="text-balance text-2xl font-semibold leading-tight text-[#FAF0E6] sm:text-4xl">
+                <p className="text-balance text-xl font-semibold leading-[1.28] text-[#FAF0E6] sm:text-3xl lg:text-4xl">
                   &ldquo;{currentQuote?.text}&rdquo;
                 </p>
-                <p className="mt-5 text-xs uppercase tracking-[0.2em] text-zinc-500">
+                <p className="mt-4 text-[11px] uppercase tracking-[0.2em] text-zinc-400 sm:text-xs">
                   {currentQuote?.source}
                 </p>
               </motion.blockquote>
@@ -137,8 +165,8 @@ export default function FocusScreen() {
           </div>
         </div>
 
-        <div className="mt-8 flex flex-wrap items-end justify-between gap-4">
-          <div className="rounded-2xl border border-white/10 bg-black/30 p-3.5 backdrop-blur-md">
+        <div className="mt-8 flex flex-wrap items-stretch justify-between gap-3 sm:gap-4 md:items-end">
+          <div className="w-full flex-1 rounded-2xl border border-white/10 bg-black/30 p-3.5 backdrop-blur-md sm:min-w-[320px]">
             <p className="text-[10px] uppercase tracking-[0.15em] text-zinc-500">Session Controls</p>
             {isIdle ? (
               <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -194,7 +222,7 @@ export default function FocusScreen() {
             )}
           </div>
 
-          <div className="ml-auto min-w-[170px] rounded-2xl border border-white/10 bg-black/35 px-4 py-3.5 text-right shadow-[0_8px_35px_rgba(0,0,0,0.45)] backdrop-blur-lg">
+          <div className="ml-auto w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3.5 text-right shadow-[0_8px_35px_rgba(0,0,0,0.45)] backdrop-blur-lg sm:w-auto sm:min-w-[190px]">
             <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-500">{timerLabel} Timer</p>
             <p className={`mt-1 font-mono text-2xl font-semibold ${isBreak ? 'text-amber-200' : 'text-cyan-100'}`}>
               {isIdle ? '--:--' : formatTime(timeLeft)}

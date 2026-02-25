@@ -231,58 +231,70 @@ export default function SettingsPage() {
                         <Palette className="w-5 h-5" />
                         Appearance
                     </h2>
-                    <span className="text-xs font-medium px-2 py-1 rounded bg-primary/10 text-primary">
+                    <span className="settings-chip">
                         Saved to local storage
                     </span>
                 </div>
 
                 {/* Theme Picker */}
-                <div className="space-y-3">
+                <div className="space-y-3 rounded-2xl border border-border bg-surface/60 p-4 sm:p-5">
                     <label className="text-sm font-medium text-text-secondary flex items-center gap-2">
                         <Monitor className="w-4 h-4" />
                         Interface Theme
                     </label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    <p className="text-xs text-text-tertiary">
+                        Premium themes stay visually consistent across desktop and tablet layouts.
+                    </p>
+                    <div className="settings-theme-grid">
                         {themes.map((t) => (
                             <motion.button
                                 key={t.id}
                                 onClick={() => { setTheme(t.id); play('click'); }}
-                                className={`relative group p-4 rounded-xl border-2 text-left transition-all ${theme === t.id
-                                    ? 'border-primary ring-2 ring-primary/20'
-                                    : 'border-border hover:border-primary/50'
-                                    }`}
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
+                                className={`settings-theme-card ${theme === t.id ? 'settings-theme-card--active' : ''}`}
+                                whileHover={{ scale: 1.012 }}
+                                whileTap={{ scale: 0.99 }}
                             >
-                                <div
-                                    className="w-full aspect-video rounded-lg mb-3 shadow-inner"
-                                    style={{ background: t.preview, borderColor: t.border, borderWidth: 1 }}
-                                >
-                                    <div className="w-full h-full p-2 flex gap-2">
-                                        <div className="w-1/4 h-full rounded bg-white/5" />
-                                        <div className="flex-1 space-y-2">
-                                            <div className="h-2 w-3/4 rounded bg-white/10" />
-                                            <div className="h-2 w-1/2 rounded bg-white/10" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className={`text-sm font-medium ${theme === t.id ? 'text-primary' : 'text-text-secondary group-hover:text-text-primary'}`}>
-                                        {t.name}
-                                    </span>
+                                <div className="mb-3 flex items-start justify-between gap-2">
                                     {'tag' in t && t.tag ? (
                                         <span className="rounded-full border border-white/15 bg-white/5 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-text-tertiary">
                                             {t.tag}
                                         </span>
-                                    ) : null}
-                                    {theme === t.id && (
+                                    ) : (
+                                        <span className="rounded-full border border-white/10 bg-white/[0.03] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-text-tertiary">
+                                            Core
+                                        </span>
+                                    )}
+                                    {theme === t.id ? (
                                         <motion.div
                                             layoutId="theme-check"
-                                            className="bg-primary text-white p-0.5 rounded-full"
+                                            className="rounded-full border border-primary/40 bg-primary/15 p-1 text-primary"
                                         >
-                                            <Check className="w-3 h-3" />
+                                            <Check className="h-3 w-3" />
                                         </motion.div>
-                                    )}
+                                    ) : null}
+                                </div>
+                                <div
+                                    className="settings-theme-preview"
+                                    style={{ background: t.preview, borderColor: t.border }}
+                                >
+                                    <div className="h-full w-full p-2.5">
+                                        <div className="flex h-full gap-2.5 rounded-lg border border-white/10 bg-black/15 p-2">
+                                            <div className="h-full w-6 shrink-0 rounded-md bg-white/10" />
+                                            <div className="flex-1 space-y-1.5">
+                                                <div className="h-2.5 w-4/5 rounded bg-white/20" />
+                                                <div className="h-2.5 w-2/3 rounded bg-white/12" />
+                                                <div className="h-2.5 w-3/4 rounded bg-white/10" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="mt-3 min-h-[2.5rem]">
+                                    <span className={`block text-sm font-semibold leading-tight ${theme === t.id ? 'text-text-primary' : 'text-text-secondary group-hover:text-text-primary'}`}>
+                                        {t.name}
+                                    </span>
+                                    <span className="mt-1 block text-[11px] text-text-tertiary">
+                                        {theme === t.id ? 'Aktiv' : 'Select'}
+                                    </span>
                                 </div>
                             </motion.button>
                         ))}
@@ -290,31 +302,35 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Accent Color Picker */}
-                <div className="space-y-3 pt-4 border-t border-border">
+                <div className="space-y-3 border-t border-border pt-5">
                     <label className="text-sm font-medium text-text-secondary flex items-center gap-2">
                         <Sparkles className="w-4 h-4" />
                         Accent Color
                     </label>
-                    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
+                    <div className="settings-accent-grid">
                         {accents.map((a) => (
                             <motion.button
                                 key={a.id}
                                 onClick={() => { setAccentColor(a.id); play('click'); }}
-                                className={`group relative h-12 w-12 rounded-full flex items-center justify-center transition-all ${accentColor === a.id
-                                    ? 'ring-4 ring-offset-2 ring-offset-background ring-primary'
-                                    : 'hover:scale-110'
-                                    }`}
+                                className={`settings-accent-chip ${accentColor === a.id ? 'settings-accent-chip--active' : ''}`}
                                 title={a.name}
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
+                                whileHover={{ scale: 1.03 }}
+                                whileTap={{ scale: 0.98 }}
                             >
                                 <div
-                                    className="w-full h-full rounded-full border border-white/15 shadow-lg"
+                                    className="settings-accent-swatch"
                                     style={{ background: a.swatch }}
-                                />
-                                {accentColor === a.id && (
-                                    <Check className="absolute w-6 h-6 text-white drop-shadow-md" />
-                                )}
+                                >
+                                    <span className="settings-accent-swatch-overlay" />
+                                </div>
+                                <span className="text-[11px] font-medium text-text-secondary">
+                                    {a.name}
+                                </span>
+                                {accentColor === a.id ? (
+                                    <span className="absolute right-1.5 top-1.5 rounded-full border border-primary/35 bg-primary/20 p-0.5 text-primary">
+                                        <Check className="h-3 w-3" />
+                                    </span>
+                                ) : null}
                             </motion.button>
                         ))}
                     </div>
@@ -328,7 +344,7 @@ export default function SettingsPage() {
                         <Music className="w-5 h-5" />
                         Sound
                     </h2>
-                    <span className="text-xs font-medium px-2 py-1 rounded bg-primary/10 text-primary">
+                    <span className="settings-chip">
                         Saved to local storage
                     </span>
                 </div>
@@ -413,7 +429,7 @@ export default function SettingsPage() {
                         <MessageSquare className="w-5 h-5" />
                         Lucian Companion
                     </h2>
-                    <span className="text-xs font-medium px-2 py-1 rounded bg-primary/10 text-primary">
+                    <span className="settings-chip">
                         Saved to local storage
                     </span>
                 </div>
@@ -501,7 +517,7 @@ export default function SettingsPage() {
                         <Sparkles className="w-5 h-5" />
                         Power Hotkeys
                     </h2>
-                    <span className="text-xs font-medium px-2 py-1 rounded bg-primary/10 text-primary">
+                    <span className="settings-chip">
                         LoL-style controls
                     </span>
                 </div>
@@ -563,7 +579,7 @@ export default function SettingsPage() {
                         <Sparkles className="w-5 h-5" />
                         Terminal Champion
                     </h2>
-                    <span className="text-xs font-medium px-2 py-1 rounded bg-primary/10 text-primary">
+                    <span className="settings-chip">
                         Phase 6
                     </span>
                 </div>
