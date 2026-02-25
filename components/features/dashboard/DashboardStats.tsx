@@ -57,7 +57,11 @@ export default function DashboardStats({
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      className="relative flex items-stretch overflow-hidden rounded-xl border border-white/[0.06] bg-[#07090f]"
+      className="relative flex items-stretch overflow-hidden rounded-xl border border-white/[0.08] bg-slate-900/75 backdrop-blur-md"
+      style={{
+        boxShadow:
+          '0 1px 2px rgba(0,0,0,0.25), 0 6px 20px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.05)',
+      }}
     >
       {/* Master 4-colour gradient line at bottom */}
       <div
@@ -69,7 +73,7 @@ export default function DashboardStats({
       />
 
       {/* ─── TASKS ───────────────────────────────────────────── */}
-      <div className="group relative flex flex-1 cursor-default items-center hover:bg-white/[0.018] transition-colors">
+      <div className="group relative flex flex-1 cursor-default items-center hover:bg-white/[0.025] transition-all duration-150">
         {/* Left accent stripe — dynamic colour */}
         <div
           className="w-[2px] self-stretch flex-shrink-0 transition-opacity"
@@ -78,7 +82,7 @@ export default function DashboardStats({
 
         {/* Bloom behind content */}
         <div
-          className="pointer-events-none absolute left-0 top-1/2 h-24 w-36 -translate-y-1/2 opacity-50 transition-opacity group-hover:opacity-75"
+          className="pointer-events-none absolute left-0 top-1/2 h-24 w-36 -translate-y-1/2 opacity-30 transition-opacity group-hover:opacity-55"
           style={{
             background: `radial-gradient(ellipse at left, ${taskColor}22 0%, transparent 70%)`,
             filter: 'blur(18px)',
@@ -95,7 +99,7 @@ export default function DashboardStats({
             <div className="flex items-baseline gap-1 leading-none">
               <span
                 className={`text-[1.85rem] font-black leading-none tabular-nums ${taskLabel}`}
-                style={{ textShadow: `0 0 22px ${taskColor}99` }}
+                style={{ textShadow: `0 0 20px ${taskColor}88`, letterSpacing: '-0.025em' }}
               >
                 <AnimatedCounter to={tasksCompleted} />
               </span>
@@ -113,11 +117,11 @@ export default function DashboardStats({
       <Sep />
 
       {/* ─── EXERCISES ───────────────────────────────────────── */}
-      <div className="group relative flex flex-1 cursor-default items-center hover:bg-white/[0.018] transition-colors">
+      <div className="group relative flex flex-1 cursor-default items-center hover:bg-white/[0.025] transition-all duration-150">
         <div className="w-[2px] self-stretch flex-shrink-0 bg-amber-500/80" />
 
         <div
-          className="pointer-events-none absolute left-0 top-1/2 h-24 w-36 -translate-y-1/2 opacity-50 transition-opacity group-hover:opacity-75"
+          className="pointer-events-none absolute left-0 top-1/2 h-24 w-36 -translate-y-1/2 opacity-30 transition-opacity group-hover:opacity-55"
           style={{
             background: 'radial-gradient(ellipse at left, rgba(251,191,36,0.18) 0%, transparent 70%)',
             filter: 'blur(18px)',
@@ -134,7 +138,7 @@ export default function DashboardStats({
             <div className="flex items-baseline gap-1 leading-none">
               <span
                 className="text-[1.85rem] font-black leading-none tabular-nums text-amber-400"
-                style={{ textShadow: '0 0 22px rgba(251,191,36,0.5)' }}
+                style={{ textShadow: '0 0 20px rgba(251,191,36,0.45)', letterSpacing: '-0.025em' }}
               >
                 <AnimatedCounter to={exercisesCompleted} />
               </span>
@@ -165,11 +169,11 @@ export default function DashboardStats({
       <Sep />
 
       {/* ─── STREAK ──────────────────────────────────────────── */}
-      <div className="group relative flex flex-1 cursor-default items-center hover:bg-white/[0.018] transition-colors">
+      <div className="group relative flex flex-1 cursor-default items-center hover:bg-white/[0.025] transition-all duration-150">
         <div className="w-[2px] self-stretch flex-shrink-0 bg-orange-500/80" />
 
         <div
-          className="pointer-events-none absolute left-0 top-1/2 h-24 w-36 -translate-y-1/2 opacity-50 transition-opacity group-hover:opacity-75"
+          className="pointer-events-none absolute left-0 top-1/2 h-24 w-36 -translate-y-1/2 opacity-30 transition-opacity group-hover:opacity-55"
           style={{
             background: 'radial-gradient(ellipse at left, rgba(251,146,60,0.18) 0%, transparent 70%)',
             filter: 'blur(18px)',
@@ -186,7 +190,7 @@ export default function DashboardStats({
             <div className="flex items-baseline gap-1 leading-none">
               <span
                 className="text-[1.85rem] font-black leading-none tabular-nums text-orange-400"
-                style={{ textShadow: '0 0 22px rgba(251,146,60,0.5)' }}
+                style={{ textShadow: '0 0 20px rgba(251,146,60,0.45)', letterSpacing: '-0.025em' }}
               >
                 <AnimatedCounter to={streak} />
               </span>
@@ -219,11 +223,11 @@ export default function DashboardStats({
       <Sep />
 
       {/* ─── CAREER ──────────────────────────────────────────── */}
-      <div className="group relative flex flex-1 cursor-default items-center hover:bg-white/[0.018] transition-colors">
+      <div className="group relative flex flex-1 cursor-default items-center hover:bg-white/[0.025] transition-all duration-150">
         <div className="w-[2px] self-stretch flex-shrink-0 bg-sky-500/70" />
 
         <div
-          className="pointer-events-none absolute left-0 top-1/2 h-24 w-36 -translate-y-1/2 opacity-50 transition-opacity group-hover:opacity-75"
+          className="pointer-events-none absolute left-0 top-1/2 h-24 w-36 -translate-y-1/2 opacity-30 transition-opacity group-hover:opacity-55"
           style={{
             background: 'radial-gradient(ellipse at left, rgba(56,189,248,0.15) 0%, transparent 70%)',
             filter: 'blur(18px)',
