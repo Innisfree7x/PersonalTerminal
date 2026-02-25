@@ -9,7 +9,7 @@ import { toggleExerciseCompletionAction } from '@/app/actions/university';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Badge } from '@/components/ui/Badge';
-import { ChevronDown, ChevronUp, Edit2, Trash2, Calendar, BookOpen } from 'lucide-react';
+import { ChevronDown, ChevronUp, Edit2, Trash2, Calendar, BookOpen, CheckCircle2, Star } from 'lucide-react';
 
 interface CourseCardProps {
   course: CourseWithExercises;
@@ -42,11 +42,21 @@ export default function CourseCard({
     ? differenceInDays(startOfDay(course.examDate), startOfDay(new Date()))
     : null;
 
+  const examWritten = daysUntilExam !== null && daysUntilExam < 0;
+
   const getExamUrgency = () => {
-    if (!daysUntilExam) return 'default';
+    if (daysUntilExam === null) return 'default';
+    if (examWritten) return 'default';
     if (daysUntilExam < 45) return 'error';
     if (daysUntilExam <= 60) return 'warning';
     return 'info';
+  };
+
+  const gradeColor = (grade: number) => {
+    if (grade <= 1.3) return 'text-emerald-400';
+    if (grade <= 2.3) return 'text-sky-400';
+    if (grade <= 3.3) return 'text-amber-400';
+    return 'text-red-400';
   };
 
   const toggleMutation = useMutation({
@@ -96,8 +106,12 @@ export default function CourseCard({
       {...(listNavId ? { 'data-list-nav-id': listNavId } : {})}
       data-focused={focused ? 'true' : 'false'}
       layoutId={`course-card-${course.id}`}
-      className={`group relative bg-gradient-to-br from-university-accent/10 to-transparent backdrop-blur-sm border rounded-xl overflow-hidden card-hover-glow cursor-pointer ${
-        focused ? 'border-primary/70 ring-1 ring-primary/40' : 'border-university-accent/30'
+      className={`group relative bg-gradient-to-br backdrop-blur-sm border rounded-xl overflow-hidden card-hover-glow cursor-pointer ${
+        examWritten
+          ? 'from-emerald-500/[0.06] to-transparent border-emerald-500/25'
+          : focused
+            ? 'from-university-accent/10 to-transparent border-primary/70 ring-1 ring-primary/40'
+            : 'from-university-accent/10 to-transparent border-university-accent/30'
       }`}
       whileHover={{ y: -2 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
@@ -108,7 +122,11 @@ export default function CourseCard({
       <div className="absolute inset-0 bg-gradient-to-br from-university-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
       {/* Left border accent */}
-      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-university-accent to-university-accent/70" />
+      <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${
+        examWritten
+          ? 'from-emerald-500 to-emerald-500/60'
+          : 'from-university-accent to-university-accent/70'
+      }`} />
 
       <div className="relative z-10 p-6">
         {focused && (
@@ -144,11 +162,31 @@ export default function CourseCard({
                     <Calendar className="w-3 h-3" />
                     <span>{format(course.examDate, 'dd.MM.yyyy')}</span>
                   </div>
-                  {daysUntilExam !== null && (
+                  {examWritten ? (
+                    <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1 rounded-md bg-emerald-500/12 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-400">
+                        <CheckCircle2 className="h-3 w-3" />
+                        Klausur geschrieben
+                      </div>
+                      {course.expectedGrade ? (
+                        <div className={`flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold bg-white/[0.06] ${gradeColor(course.expectedGrade)}`}>
+                          <Star className="h-3 w-3" />
+                          {course.expectedGrade.toFixed(1)}
+                        </div>
+                      ) : (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onEdit(); }}
+                          className="rounded-md bg-white/[0.05] px-1.5 py-0.5 text-[10px] text-text-tertiary hover:text-text-primary hover:bg-white/[0.09] transition-colors"
+                        >
+                          Note eintragen →
+                        </button>
+                      )}
+                    </div>
+                  ) : daysUntilExam !== null ? (
                     <Badge variant={getExamUrgency()} size="sm">
                       {daysUntilExam}d left
                     </Badge>
-                  )}
+                  ) : null}
                 </>
               )}
             </div>

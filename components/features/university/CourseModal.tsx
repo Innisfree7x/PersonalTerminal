@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { differenceInDays, startOfDay } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -65,6 +66,11 @@ export default function CourseModal({
     reset();
     onClose();
   };
+
+  // Determine if exam has already been written (for grade field visibility)
+  const examWrittenForModal = isEdit && layoutCourse?.examDate
+    ? differenceInDays(startOfDay(layoutCourse.examDate), startOfDay(new Date())) < 0
+    : false;
 
   const completedCount = layoutCourse
     ? layoutCourse.exercises.filter((ex) => ex.completed).length
@@ -198,6 +204,26 @@ export default function CourseModal({
               <p className="text-xs text-red-400 mt-1">{String(errors.examDate.message)}</p>
             )}
           </div>
+
+          {/* Expected Grade — only visible after exam date has passed */}
+          {examWrittenForModal && (
+            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.06] p-3">
+              <label htmlFor="course-expected-grade" className="block text-sm font-medium text-emerald-400 mb-1">
+                Erwartete Note
+                <span className="ml-1.5 text-[10px] font-normal text-gray-400">(Klausur geschrieben)</span>
+              </label>
+              <select
+                id="course-expected-grade"
+                {...register('expectedGrade', { setValueAs: (v) => v === '' ? undefined : parseFloat(v) })}
+                className="w-full px-3 py-2 bg-gray-800 dark:bg-gray-900 text-gray-100 border border-gray-700 rounded focus:outline-none focus:border-emerald-500 font-mono"
+              >
+                <option value="">— Note noch nicht bekannt —</option>
+                {[1.0, 1.3, 1.7, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0, 5.0].map((g) => (
+                  <option key={g} value={g}>{g.toFixed(1)}{g === 5.0 ? ' (Nicht bestanden)' : ''}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Semester */}
           <div>

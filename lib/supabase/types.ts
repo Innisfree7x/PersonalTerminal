@@ -177,6 +177,7 @@ export interface Database {
           exam_date: string | null; // ISO date string
           semester: string;
           created_at: string; // ISO timestamp
+          expected_grade: number | null; // 1.0–5.0 German scale, null = not entered
         };
         Insert: {
           id?: string;
@@ -187,6 +188,7 @@ export interface Database {
           exam_date?: string | null; // ISO date string
           semester: string;
           created_at?: string; // ISO timestamp
+          expected_grade?: number | null;
         };
         Update: {
           id?: string;
@@ -197,6 +199,7 @@ export interface Database {
           exam_date?: string | null; // ISO date string
           semester?: string;
           created_at?: string; // ISO timestamp
+          expected_grade?: number | null;
         };
         Relationships: [];
       };

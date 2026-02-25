@@ -11,6 +11,7 @@ interface CourseProgress {
   total: number;
   percentage: number;
   daysUntilExam?: number;
+  expectedGrade?: number;
 }
 
 interface StudyProgressProps {
@@ -55,15 +56,20 @@ export default function StudyProgress({ courses }: StudyProgressProps) {
 
       <div className="space-y-3">
         {courses.map((course, index) => {
-          const examUrgency =
-            course.daysUntilExam !== undefined && course.daysUntilExam < 30
-              ? 'urgent'
-              : course.daysUntilExam !== undefined && course.daysUntilExam < 60
-                ? 'warning'
-                : 'normal';
+          const examWritten = course.daysUntilExam !== undefined && course.daysUntilExam < 0;
 
-          const barColor =
-            examUrgency === 'urgent'
+          const examUrgency =
+            examWritten
+              ? 'done'
+              : course.daysUntilExam !== undefined && course.daysUntilExam < 30
+                ? 'urgent'
+                : course.daysUntilExam !== undefined && course.daysUntilExam < 60
+                  ? 'warning'
+                  : 'normal';
+
+          const barColor = examWritten
+            ? 'bg-emerald-500/70'
+            : examUrgency === 'urgent'
               ? 'bg-error'
               : examUrgency === 'warning'
                 ? 'bg-warning'
@@ -78,7 +84,7 @@ export default function StudyProgress({ courses }: StudyProgressProps) {
               className="space-y-1.5"
             >
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-text-primary truncate">
+                <span className={`text-sm font-medium truncate ${examWritten ? 'text-text-secondary' : 'text-text-primary'}`}>
                   {course.name}
                 </span>
                 <span className="text-xs text-text-tertiary font-mono ml-2 flex-shrink-0">
@@ -97,17 +103,26 @@ export default function StudyProgress({ courses }: StudyProgressProps) {
 
               {course.daysUntilExam !== undefined && (
                 <div className="flex justify-end">
-                  <span
-                    className={`text-[10px] font-medium ${
-                      examUrgency === 'urgent'
-                        ? 'text-error'
-                        : examUrgency === 'warning'
-                          ? 'text-warning'
-                          : 'text-text-tertiary'
-                    }`}
-                  >
-                    Prüfung in {course.daysUntilExam}d
-                  </span>
+                  {examWritten ? (
+                    <span className="text-[10px] font-medium text-emerald-400/80">
+                      Geschrieben
+                      {course.expectedGrade && (
+                        <span className="ml-1.5 font-bold">· {course.expectedGrade.toFixed(1)}</span>
+                      )}
+                    </span>
+                  ) : (
+                    <span
+                      className={`text-[10px] font-medium ${
+                        examUrgency === 'urgent'
+                          ? 'text-error'
+                          : examUrgency === 'warning'
+                            ? 'text-warning'
+                            : 'text-text-tertiary'
+                      }`}
+                    >
+                      Prüfung in {course.daysUntilExam}d
+                    </span>
+                  )}
                 </div>
               )}
             </motion.div>

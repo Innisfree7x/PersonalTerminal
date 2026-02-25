@@ -17,6 +17,7 @@ export const createCourseSchema = z.object({
     )
     .optional(),
   semester: z.string().min(1, 'Semester is required').max(50),
+  expectedGrade: z.number().min(1.0).max(5.0).optional(),
 });
 
 export type CreateCourseInput = z.infer<typeof createCourseSchema>;

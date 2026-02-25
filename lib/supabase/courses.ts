@@ -18,6 +18,7 @@ export function supabaseCoursetoCourse(row: SupabaseCourse): Course {
     examDate: row.exam_date ? new Date(row.exam_date) : undefined,
     semester: row.semester,
     createdAt: new Date(row.created_at),
+    expectedGrade: row.expected_grade ?? undefined,
   };
 }
 
@@ -156,6 +157,7 @@ export async function updateCourse(userId: string, id: string, updates: Partial<
     updateData.exam_date = updates.examDate ? (updates.examDate.toISOString().split('T')[0] ?? '') : null;
   }
   if (updates.semester !== undefined) updateData.semester = updates.semester;
+  if (updates.expectedGrade !== undefined) updateData.expected_grade = updates.expectedGrade ?? null;
 
   const { data, error } = await supabase
     .from('courses')

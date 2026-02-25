@@ -74,6 +74,7 @@ interface StudyProgressCourse {
   percentage: number;
   examDate?: string;
   daysUntilExam?: number;
+  expectedGrade?: number;
 }
 
 interface DashboardTaskStats {
@@ -471,6 +472,7 @@ export async function getDashboardNextTasks(userId: string): Promise<DashboardNe
       ...(course.examDate
         ? { daysUntilExam: differenceInDays(startOfDay(course.examDate), todayStart) }
         : {}),
+      ...(course.expectedGrade !== undefined ? { expectedGrade: course.expectedGrade } : {}),
     };
   });
 
