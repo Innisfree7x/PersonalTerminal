@@ -172,12 +172,13 @@ export default function DashboardStats({
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.24 }}
-      className="relative overflow-hidden rounded-2xl border border-white/[0.1] bg-slate-950/70 backdrop-blur-xl"
+      className="relative overflow-hidden rounded-2xl border border-white/[0.1] bg-slate-900/55 backdrop-blur-xl"
       style={{
         boxShadow:
-          '0 2px 4px rgba(0,0,0,0.35), 0 16px 36px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.06)',
+          '0 2px 4px rgba(0,0,0,0.24), 0 14px 30px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.08)',
       }}
     >
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.1),transparent_45%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.08),transparent_42%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.24] to-transparent" />
       <div
         className="absolute inset-x-0 bottom-0 h-px"
