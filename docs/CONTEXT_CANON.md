@@ -20,6 +20,8 @@ Wenn zwei Dokumente widersprüchlich sind, gilt immer diese Prioritätsliste.
 - `docs/PHASE12_MASTERPLAN.md` (aktive Phase-Planung)
 - `docs/PHASE12_EXECUTION_BLUEPRINT.md` (konkrete Umsetzung Tracks 3/4/5/6)
 - `docs/PHASE11_TRACK6_IMPLEMENTATION.md` (implementierte Reliability-Basis)
+- `docs/AGENT_WORKFLOW.md` (verbindliches 3-Agent Operating Model)
+- `docs/AGENT_TASK_TEMPLATE.md` (standardisiertes Task-Briefing fuer Agents)
 - `docs/RELEASE_CHECKLIST.md` (Release-Gate)
 - `docs/GO_LIVE_RUNBOOK.md` (operativer Rollout)
 - `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/DATABASE.md` (technische Referenz)
