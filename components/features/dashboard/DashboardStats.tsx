@@ -26,7 +26,7 @@ function PulseDot({ className }: { className: string }) {
 }
 
 function Sep() {
-  return <div className="w-px self-stretch bg-gradient-to-b from-transparent via-white/[0.12] to-transparent" />;
+  return <div className="w-px self-stretch bg-gradient-to-b from-transparent via-border to-transparent" />;
 }
 
 type ChipTone = 'muted' | 'danger' | 'warning' | 'success' | 'info';
@@ -61,28 +61,28 @@ type RailTone = 'task' | 'exercise' | 'streak' | 'career';
 
 const RAIL_TONE: Record<RailTone, { icon: string; value: string; progress: string; glow: string }> = {
   task: {
-    icon: 'text-red-300/80',
-    value: 'text-red-300',
-    progress: 'bg-red-400/70',
-    glow: 'from-red-500/14',
+    icon: 'text-red-300/75',
+    value: 'text-red-300/95',
+    progress: 'bg-red-400/60',
+    glow: 'from-red-500/10',
   },
   exercise: {
-    icon: 'text-amber-300/80',
-    value: 'text-amber-300',
-    progress: 'bg-amber-400/70',
-    glow: 'from-amber-500/14',
+    icon: 'text-amber-300/75',
+    value: 'text-amber-300/95',
+    progress: 'bg-amber-400/60',
+    glow: 'from-amber-500/10',
   },
   streak: {
-    icon: 'text-orange-300/80',
-    value: 'text-orange-300',
-    progress: 'bg-orange-400/70',
-    glow: 'from-orange-500/14',
+    icon: 'text-orange-300/75',
+    value: 'text-orange-300/95',
+    progress: 'bg-orange-400/60',
+    glow: 'from-orange-500/10',
   },
   career: {
-    icon: 'text-sky-300/80',
-    value: 'text-sky-300',
-    progress: 'bg-sky-400/70',
-    glow: 'from-sky-500/14',
+    icon: 'text-sky-300/75',
+    value: 'text-sky-300/90',
+    progress: 'bg-sky-400/55',
+    glow: 'from-sky-500/8',
   },
 };
 
@@ -109,8 +109,8 @@ function RailSegment({
   const clampedProgress = Math.max(0, Math.min(progress, 100));
 
   return (
-    <div className="group relative flex flex-1 min-w-[210px] items-center px-4 py-3 transition-colors hover:bg-white/[0.025]">
-      <div className={`pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r ${style.glow} to-transparent opacity-60`} />
+    <div className="group relative flex flex-1 min-w-[200px] items-center px-4 py-2.5 transition-colors hover:bg-surface-hover/50">
+      <div className={`pointer-events-none absolute inset-y-0 left-0 w-20 bg-gradient-to-r ${style.glow} to-transparent opacity-55`} />
       <div className="relative z-10 min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <Icon className={`h-4 w-4 flex-shrink-0 ${style.icon}`} />
@@ -127,9 +127,9 @@ function RailSegment({
 
         <p className="mt-1 text-[11px] text-text-tertiary/80">{subtitle}</p>
 
-        <div className="mt-2 h-[2px] w-full rounded-full bg-white/[0.05]">
+        <div className="mt-2 h-[1.5px] w-full rounded-full bg-border/60">
           <motion.div
-            className={`h-[2px] rounded-full ${style.progress}`}
+            className={`h-[1.5px] rounded-full ${style.progress}`}
             initial={{ width: 0 }}
             animate={{ width: `${clampedProgress}%` }}
             transition={{ duration: 0.7, ease: 'easeOut' }}
@@ -172,25 +172,21 @@ export default function DashboardStats({
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.24 }}
-      className="relative overflow-hidden rounded-2xl border border-white/[0.1] bg-slate-900/55 backdrop-blur-xl"
+      className="relative overflow-hidden rounded-xl border border-border bg-surface/65 backdrop-blur-md"
       style={{
         boxShadow:
-          '0 2px 4px rgba(0,0,0,0.24), 0 14px 30px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.08)',
+          '0 1px 2px rgba(0,0,0,0.2), 0 10px 22px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.05)',
       }}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.1),transparent_45%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.08),transparent_42%)]" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.24] to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.06),transparent_45%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.04),transparent_42%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.14] to-transparent" />
       <div
         className="absolute inset-x-0 bottom-0 h-px"
         style={{
           background:
-            'linear-gradient(to right, rgba(248,113,113,0.6) 0%, rgba(251,191,36,0.6) 33%, rgba(251,146,60,0.6) 66%, rgba(56,189,248,0.6) 100%)',
+            'linear-gradient(to right, rgba(248,113,113,0.45) 0%, rgba(251,191,36,0.45) 33%, rgba(251,146,60,0.45) 66%, rgba(56,189,248,0.42) 100%)',
         }}
       />
-      <div className="pointer-events-none absolute right-3 top-2 hidden items-center gap-1 rounded-full border border-white/[0.1] bg-black/25 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-text-tertiary/70 lg:flex">
-        <span className="text-text-tertiary/50">Cmd+K</span>
-        <span>Command Rail</span>
-      </div>
 
       <div className="relative flex items-stretch overflow-x-auto">
         <RailSegment
@@ -201,11 +197,11 @@ export default function DashboardStats({
           valueMeta={`/ ${tasksToday}`}
           subtitle={allDone ? 'All done, momentum is high' : `${tasksRemaining} remaining`}
           chip={
-            <RailChip
-              label={allDone ? 'Clear' : tasksToday === 0 ? 'Idle' : taskPct === 0 ? 'Hot' : 'Active'}
-              tone={allDone ? 'success' : tasksToday === 0 ? 'muted' : taskPct === 0 ? 'danger' : 'warning'}
-              pulse={!allDone && tasksToday > 0}
-            />
+            allDone ? (
+              <RailChip label="Clear" tone="success" />
+            ) : taskPct === 0 && tasksToday > 0 ? (
+              <RailChip label="Hot" tone="danger" pulse />
+            ) : undefined
           }
           progress={taskPct}
         />
@@ -220,17 +216,13 @@ export default function DashboardStats({
           valueMeta={`/ ${exercisesTotal}`}
           subtitle={`${Math.round(exercisePct)}% complete`}
           chip={
-            <RailChip
-              label={
-                examDays === null
-                  ? 'On track'
-                  : examDays < 0
-                    ? `${Math.abs(examDays)}d late`
-                    : `Exam ${examDays}d`
-              }
-              tone={examDays === null ? 'muted' : examUrgent ? 'danger' : examWarning ? 'warning' : 'muted'}
-              pulse={examDays !== null && examUrgent}
-            />
+            examDays === null ? undefined : (
+              <RailChip
+                label={examDays < 0 ? `${Math.abs(examDays)}d late` : `Exam ${examDays}d`}
+                tone={examUrgent ? 'danger' : examWarning ? 'warning' : 'muted'}
+                pulse={examUrgent}
+              />
+            )
           }
           progress={exercisePct}
         />
@@ -264,17 +256,11 @@ export default function DashboardStats({
                 : 'No interviews yet'
           }
           chip={
-            <RailChip
-              label={
-                goalsDueSoon > 0
-                  ? `${goalsDueSoon} due`
-                  : interviewsUpcoming > 0
-                    ? `${interviewsUpcoming} live`
-                    : 'Quiet'
-              }
-              tone={goalsDueSoon > 0 ? 'danger' : interviewsUpcoming > 0 ? 'info' : 'muted'}
-              pulse={goalsDueSoon > 0 || interviewsUpcoming > 0}
-            />
+            goalsDueSoon > 0 ? (
+              <RailChip label={`${goalsDueSoon} due`} tone="danger" pulse />
+            ) : interviewsUpcoming > 0 ? (
+              <RailChip label={`${interviewsUpcoming} live`} tone="info" />
+            ) : undefined
           }
           progress={careerProgress}
         />
