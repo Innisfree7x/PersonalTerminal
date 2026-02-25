@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { GraduationCap } from 'lucide-react';
 import Link from 'next/link';
@@ -19,6 +20,30 @@ interface StudyProgressProps {
 }
 
 export default function StudyProgress({ courses }: StudyProgressProps) {
+  const sortedCourses = useMemo(() => {
+    return [...courses].sort((a, b) => {
+      const aDays = a.daysUntilExam;
+      const bDays = b.daysUntilExam;
+
+      const aHasExam = typeof aDays === 'number';
+      const bHasExam = typeof bDays === 'number';
+
+      if (!aHasExam && !bHasExam) return 0;
+      if (!aHasExam) return 1;
+      if (!bHasExam) return -1;
+
+      const aUpcoming = (aDays as number) >= 0;
+      const bUpcoming = (bDays as number) >= 0;
+
+      // Upcoming exams always come first and are sorted by nearest date.
+      if (aUpcoming && bUpcoming) return (aDays as number) - (bDays as number);
+      if (aUpcoming !== bUpcoming) return aUpcoming ? -1 : 1;
+
+      // Past exams stay below upcoming ones; closest past exam appears first.
+      return (bDays as number) - (aDays as number);
+    });
+  }, [courses]);
+
   if (courses.length === 0) {
     return (
       <div className="card-surface rounded-xl p-4">
@@ -55,7 +80,7 @@ export default function StudyProgress({ courses }: StudyProgressProps) {
       </div>
 
       <div className="space-y-3">
-        {courses.map((course, index) => {
+        {sortedCourses.map((course, index) => {
           const examWritten = course.daysUntilExam !== undefined && course.daysUntilExam < 0;
 
           const examUrgency =
