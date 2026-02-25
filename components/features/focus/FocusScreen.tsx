@@ -49,6 +49,7 @@ export default function FocusScreen() {
   } = useFocusTimer();
 
   const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Math.random() * FOCUS_QUOTES.length));
+  const [customMinutes, setCustomMinutes] = useState('');
   const currentQuote = FOCUS_QUOTES[quoteIndex] ?? FOCUS_QUOTES[0];
 
   const isIdle = status === 'idle';
@@ -71,6 +72,21 @@ export default function FocusScreen() {
     }, 300_000);
     return () => clearInterval(interval);
   }, []);
+
+  const getValidCustomDuration = () => {
+    const parsed = Number(customMinutes);
+    if (!Number.isFinite(parsed)) return null;
+    const normalized = Math.round(parsed);
+    if (normalized < 5 || normalized > 240) return null;
+    return normalized;
+  };
+
+  const startCustomSession = () => {
+    const duration = getValidCustomDuration();
+    if (!duration) return;
+    startTimer({ duration, label: 'Focus Mode' });
+    setCustomMinutes('');
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#05080f] text-[#FAF0E6]">
@@ -144,7 +160,7 @@ export default function FocusScreen() {
         </div>
 
         <div className="mx-auto mt-10 flex w-full max-w-4xl flex-1 items-center justify-center sm:mt-12">
-          <div className="w-full rounded-3xl border border-white/15 bg-[linear-gradient(180deg,rgba(9,14,24,0.84),rgba(6,10,17,0.64))] px-6 py-9 shadow-[0_14px_80px_rgba(0,0,0,0.55)] backdrop-blur-md sm:px-10 sm:py-12 lg:px-12">
+          <div className="w-full rounded-3xl border border-white/12 bg-[linear-gradient(180deg,rgba(9,14,24,0.52),rgba(6,10,17,0.32))] px-6 py-9 shadow-[0_12px_70px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:px-10 sm:py-12 lg:px-12">
             <AnimatePresence mode="wait">
               <motion.blockquote
                 key={quoteIndex}
@@ -165,20 +181,45 @@ export default function FocusScreen() {
           </div>
         </div>
 
-        <div className="mt-8 flex flex-wrap items-stretch justify-between gap-3 sm:gap-4 md:items-end">
-          <div className="w-full flex-1 rounded-2xl border border-white/10 bg-black/30 p-3.5 backdrop-blur-md sm:min-w-[320px]">
+        <div className="mt-8 flex flex-wrap items-stretch gap-3 sm:flex-nowrap sm:items-end sm:justify-between sm:gap-4">
+          <div className="w-full shrink-0 rounded-2xl border border-white/10 bg-black/28 p-3 backdrop-blur-md sm:w-auto sm:max-w-[560px]">
             <p className="text-[10px] uppercase tracking-[0.15em] text-zinc-500">Session Controls</p>
             {isIdle ? (
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                {DURATION_PRESETS.map((minutes) => (
+              <div className="mt-2 flex flex-col gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  {DURATION_PRESETS.map((minutes) => (
+                    <button
+                      key={minutes}
+                      onClick={() => startTimer({ duration: minutes, label: 'Focus Mode' })}
+                      className="rounded-lg border border-cyan-300/25 bg-cyan-300/10 px-3 py-1.5 text-sm font-medium text-cyan-100 transition-colors hover:bg-cyan-300/20"
+                    >
+                      Start {minutes}m
+                    </button>
+                  ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] text-zinc-400">Eigene Zeit:</span>
+                  <input
+                    type="number"
+                    min={5}
+                    max={240}
+                    step={5}
+                    value={customMinutes}
+                    onChange={(e) => setCustomMinutes(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') startCustomSession();
+                    }}
+                    placeholder="Min"
+                    className="w-[88px] rounded-lg border border-white/15 bg-white/[0.04] px-2.5 py-1.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-300/35"
+                  />
                   <button
-                    key={minutes}
-                    onClick={() => startTimer({ duration: minutes, label: 'Focus Mode' })}
-                    className="rounded-lg border border-cyan-300/25 bg-cyan-300/10 px-3 py-1.5 text-sm font-medium text-cyan-100 transition-colors hover:bg-cyan-300/20"
+                    onClick={startCustomSession}
+                    disabled={!getValidCustomDuration()}
+                    className="rounded-lg border border-cyan-300/25 bg-cyan-300/10 px-3 py-1.5 text-sm font-medium text-cyan-100 transition-colors hover:bg-cyan-300/20 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Start {minutes}m
+                    Start Custom
                   </button>
-                ))}
+                </div>
               </div>
             ) : (
               <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -222,7 +263,7 @@ export default function FocusScreen() {
             )}
           </div>
 
-          <div className="ml-auto w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3.5 text-right shadow-[0_8px_35px_rgba(0,0,0,0.45)] backdrop-blur-lg sm:w-auto sm:min-w-[190px]">
+          <div className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3.5 text-right shadow-[0_8px_35px_rgba(0,0,0,0.45)] backdrop-blur-lg sm:ml-auto sm:w-auto sm:min-w-[190px]">
             <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-500">{timerLabel} Timer</p>
             <p className={`mt-1 font-mono text-2xl font-semibold ${isBreak ? 'text-amber-200' : 'text-cyan-100'}`}>
               {isIdle ? '--:--' : formatTime(timeLeft)}

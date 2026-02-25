@@ -54,6 +54,7 @@ const FloatingTimer = memo(function FloatingTimer() {
   } = useFocusTimer();
 
   const [selectedDuration, setSelectedDuration] = useState(25);
+  const [customMinutes, setCustomMinutes] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<FocusSessionCategory>('study');
   const [inputLabel, setInputLabel] = useState('');
 
@@ -70,6 +71,21 @@ const FloatingTimer = memo(function FloatingTimer() {
     if (inputLabel) opts.label = inputLabel;
     startTimer(opts);
     setInputLabel('');
+  };
+
+  const getValidCustomDuration = () => {
+    const parsed = Number(customMinutes);
+    if (!Number.isFinite(parsed)) return null;
+    const normalized = Math.round(parsed);
+    if (normalized < 5 || normalized > 240) return null;
+    return normalized;
+  };
+
+  const applyCustomDuration = () => {
+    const nextDuration = getValidCustomDuration();
+    if (!nextDuration) return;
+    setSelectedDuration(nextDuration);
+    setCustomMinutes('');
   };
 
   const handleOpenFocusMode = () => {
@@ -284,22 +300,47 @@ const FloatingTimer = memo(function FloatingTimer() {
             {/* Duration presets */}
             <div>
               <label className="text-xs text-text-tertiary mb-1.5 block">Duration</label>
-              <div className="flex gap-2">
-                {DURATION_PRESETS.map((preset) => (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  {DURATION_PRESETS.map((preset) => (
+                    <button
+                      key={preset.minutes}
+                      onClick={() => setSelectedDuration(preset.minutes)}
+                      className={`
+                        flex-1 py-2 rounded-xl text-sm font-medium transition-colors
+                        ${selectedDuration === preset.minutes
+                          ? 'bg-primary/15 text-primary border border-primary/30'
+                          : 'bg-surface-hover text-text-secondary hover:text-text-primary border border-transparent'
+                        }
+                      `}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-text-tertiary">Eigene Zeit</span>
+                  <input
+                    type="number"
+                    min={5}
+                    max={240}
+                    step={5}
+                    value={customMinutes}
+                    onChange={(e) => setCustomMinutes(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') applyCustomDuration();
+                    }}
+                    placeholder="Min"
+                    className="min-w-0 w-20 rounded-xl bg-surface-hover border border-border px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-primary/50 transition-colors"
+                  />
                   <button
-                    key={preset.minutes}
-                    onClick={() => setSelectedDuration(preset.minutes)}
-                    className={`
-                      flex-1 py-2 rounded-xl text-sm font-medium transition-colors
-                      ${selectedDuration === preset.minutes
-                        ? 'bg-primary/15 text-primary border border-primary/30'
-                        : 'bg-surface-hover text-text-secondary hover:text-text-primary border border-transparent'
-                      }
-                    `}
+                    onClick={applyCustomDuration}
+                    disabled={!getValidCustomDuration()}
+                    className="rounded-xl border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {preset.label}
+                    Übernehmen
                   </button>
-                ))}
+                </div>
               </div>
             </div>
 

@@ -8,7 +8,6 @@ import { SkeletonCircle, Skeleton } from '@/components/ui';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 
 const DURATIONS = [25, 50, 90] as const;
-type Duration = (typeof DURATIONS)[number];
 
 interface PomodoroTimerProps {
   isLoading?: boolean;
@@ -28,7 +27,8 @@ const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: Pomodor
     stopTimer,
   } = useFocusTimer();
 
-  const [selectedDuration, setSelectedDuration] = useState<Duration>(25);
+  const [selectedDuration, setSelectedDuration] = useState<number>(25);
+  const [customMinutes, setCustomMinutes] = useState('');
 
   const isIdle = status === 'idle';
   const isRunning = status === 'running' || status === 'break';
@@ -57,6 +57,21 @@ const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: Pomodor
     } else if (status === 'break_paused') {
       resumeTimer();
     }
+  };
+
+  const getValidCustomDuration = () => {
+    const parsed = Number(customMinutes);
+    if (!Number.isFinite(parsed)) return null;
+    const normalized = Math.round(parsed);
+    if (normalized < 5 || normalized > 240) return null;
+    return normalized;
+  };
+
+  const applyCustomDuration = () => {
+    const nextDuration = getValidCustomDuration();
+    if (!nextDuration) return;
+    setSelectedDuration(nextDuration);
+    setCustomMinutes('');
   };
 
   const handleOpenFocusMode = () => {
@@ -106,20 +121,45 @@ const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: Pomodor
 
       {/* Duration selector — only shown when idle */}
       {isIdle && (
-        <div className="flex items-center justify-center gap-1.5 mb-3">
-          {DURATIONS.map((d) => (
+        <div className="mb-3 space-y-2">
+          <div className="flex items-center justify-center gap-1.5">
+            {DURATIONS.map((d) => (
+              <button
+                key={d}
+                onClick={() => setSelectedDuration(d)}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                  selectedDuration === d
+                    ? 'bg-primary text-white'
+                    : 'bg-surface-hover text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                {d}m
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-[11px] text-text-tertiary">Eigene Zeit</span>
+            <input
+              type="number"
+              min={5}
+              max={240}
+              step={5}
+              value={customMinutes}
+              onChange={(e) => setCustomMinutes(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') applyCustomDuration();
+              }}
+              placeholder="Min"
+              className="w-20 rounded-md border border-border bg-surface-hover px-2 py-1 text-xs text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/35"
+            />
             <button
-              key={d}
-              onClick={() => setSelectedDuration(d)}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                selectedDuration === d
-                  ? 'bg-primary text-white'
-                  : 'bg-surface-hover text-text-secondary hover:text-text-primary'
-              }`}
+              onClick={applyCustomDuration}
+              disabled={!getValidCustomDuration()}
+              className="rounded-md border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {d}m
+              Übernehmen
             </button>
-          ))}
+          </div>
         </div>
       )}
 

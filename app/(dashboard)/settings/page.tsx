@@ -254,25 +254,14 @@ export default function SettingsPage() {
                                 whileHover={{ scale: 1.012 }}
                                 whileTap={{ scale: 0.99 }}
                             >
-                                <div className="mb-3 flex items-start justify-between gap-2">
-                                    {'tag' in t && t.tag ? (
-                                        <span className="rounded-full border border-white/15 bg-white/5 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-text-tertiary">
-                                            {t.tag}
-                                        </span>
-                                    ) : (
-                                        <span className="rounded-full border border-white/10 bg-white/[0.03] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-text-tertiary">
-                                            Core
-                                        </span>
-                                    )}
-                                    {theme === t.id ? (
-                                        <motion.div
-                                            layoutId="theme-check"
-                                            className="rounded-full border border-primary/40 bg-primary/15 p-1 text-primary"
-                                        >
-                                            <Check className="h-3 w-3" />
-                                        </motion.div>
-                                    ) : null}
-                                </div>
+                                {theme === t.id ? (
+                                    <motion.div
+                                        layoutId="theme-check"
+                                        className="absolute right-2 top-2 rounded-full border border-primary/40 bg-primary/15 p-1 text-primary"
+                                    >
+                                        <Check className="h-3 w-3" />
+                                    </motion.div>
+                                ) : null}
                                 <div
                                     className="settings-theme-preview"
                                     style={{ background: t.preview, borderColor: t.border }}
@@ -289,9 +278,20 @@ export default function SettingsPage() {
                                     </div>
                                 </div>
                                 <div className="mt-3 min-h-[2.5rem]">
-                                    <span className={`block text-sm font-semibold leading-tight ${theme === t.id ? 'text-text-primary' : 'text-text-secondary group-hover:text-text-primary'}`}>
-                                        {t.name}
-                                    </span>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className={`block text-sm font-semibold leading-tight ${theme === t.id ? 'text-text-primary' : 'text-text-secondary'}`}>
+                                            {t.name}
+                                        </span>
+                                        {'tag' in t && t.tag ? (
+                                            <span className="rounded-full border border-white/15 bg-white/5 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-text-tertiary">
+                                                {t.tag}
+                                            </span>
+                                        ) : (
+                                            <span className="rounded-full border border-white/10 bg-white/[0.03] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-text-tertiary">
+                                                Core
+                                            </span>
+                                        )}
+                                    </div>
                                     <span className="mt-1 block text-[11px] text-text-tertiary">
                                         {theme === t.id ? 'Aktiv' : 'Select'}
                                     </span>
@@ -323,7 +323,7 @@ export default function SettingsPage() {
                                 >
                                     <span className="settings-accent-swatch-overlay" />
                                 </div>
-                                <span className="text-[11px] font-medium text-text-secondary">
+                                <span className="min-w-0 truncate text-[11px] font-medium text-text-secondary">
                                     {a.name}
                                 </span>
                                 {accentColor === a.id ? (
