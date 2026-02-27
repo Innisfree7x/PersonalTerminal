@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, Pause, Play, SkipForward, Square, Sparkles, Timer } from 'lucide-react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { ArrowLeft, Eye, EyeOff, Pause, Play, SkipForward, Square, Sparkles, Timer } from 'lucide-react';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
+import { useChampion } from '@/components/providers/ChampionProvider';
 
 type Quote = {
   text: string;
@@ -36,6 +37,7 @@ function formatMinutes(minutes: number): string {
 }
 
 export default function FocusScreen() {
+  const prefersReducedMotion = useReducedMotion();
   const {
     status,
     timeLeft,
@@ -47,6 +49,7 @@ export default function FocusScreen() {
     stopTimer,
     skipBreak,
   } = useFocusTimer();
+  const { settings: championSettings, updateSettings: updateChampionSettings } = useChampion();
 
   const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Math.random() * FOCUS_QUOTES.length));
   const [customMinutes, setCustomMinutes] = useState('');
@@ -92,60 +95,60 @@ export default function FocusScreen() {
     <div className="relative min-h-screen overflow-hidden bg-[#05080f] text-[#FAF0E6]">
       <motion.div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.16),transparent_35%),radial-gradient(circle_at_78%_24%,rgba(234,179,8,0.18),transparent_38%),radial-gradient(circle_at_52%_86%,rgba(245,158,11,0.12),transparent_34%)]"
-        animate={{
-          opacity: [0.86, 0.93, 0.86],
-          scale: [1, 1.015, 1],
-        }}
-        transition={{ duration: 180, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ willChange: 'transform' }}
+        animate={prefersReducedMotion ? false : { scale: [1, 1.01, 1] }}
+        transition={{ duration: 220, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
         className="pointer-events-none absolute inset-[-12%] bg-[conic-gradient(from_190deg_at_50%_45%,rgba(56,189,248,0.08),transparent_24%,rgba(245,158,11,0.08),transparent_60%,rgba(99,102,241,0.06),transparent_100%)] blur-3xl"
-        animate={{
+        style={{ willChange: 'transform' }}
+        animate={prefersReducedMotion ? false : {
           rotate: [0, 4, 0, -3, 0],
-          scale: [1, 1.02, 1],
-          opacity: [0.2, 0.28, 0.22, 0.26, 0.2],
+          scale: [1, 1.015, 1],
         }}
         transition={{ duration: 130, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
-        className="pointer-events-none absolute inset-0 opacity-25 mix-blend-soft-light"
+        className="pointer-events-none absolute inset-0 opacity-20"
         style={{
-          backgroundImage: 'linear-gradient(115deg, rgba(255,255,255,0.03) 0%, transparent 36%, rgba(255,255,255,0.02) 63%, transparent 100%)',
+          willChange: 'background-position',
+          backgroundImage: 'linear-gradient(115deg, rgba(255,255,255,0.022) 0%, transparent 36%, rgba(255,255,255,0.015) 63%, transparent 100%)',
           backgroundSize: '220% 220%',
         }}
-        animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
-        transition={{ duration: 96, repeat: Infinity, ease: 'easeInOut' }}
+        animate={prefersReducedMotion ? false : { backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
+        transition={{ duration: 180, repeat: Infinity, ease: 'linear' }}
       />
       <motion.div
         className="pointer-events-none absolute -left-24 -top-24 h-[42vw] w-[42vw] rounded-full bg-cyan-300/10 blur-[130px]"
-        animate={{ x: [0, 24, 0], y: [0, 16, 0], scale: [1, 1.04, 1] }}
+        style={{ willChange: 'transform' }}
+        animate={prefersReducedMotion ? false : { x: [0, 18, 0], y: [0, 12, 0] }}
         transition={{ duration: 92, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
         className="pointer-events-none absolute -right-20 top-10 h-[38vw] w-[38vw] rounded-full bg-amber-300/10 blur-[130px]"
-        animate={{ x: [0, -20, 0], y: [0, -14, 0], scale: [1, 1.05, 1] }}
+        style={{ willChange: 'transform' }}
+        animate={prefersReducedMotion ? false : { x: [0, -16, 0], y: [0, -10, 0] }}
         transition={{ duration: 108, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
         className="pointer-events-none absolute left-[20%] top-[58%] h-[34vw] w-[34vw] rounded-full bg-indigo-300/10 blur-[140px]"
-        animate={{ x: [0, -12, 0], y: [0, 10, 0], scale: [1, 1.04, 1] }}
+        style={{ willChange: 'transform' }}
+        animate={prefersReducedMotion ? false : { x: [0, -10, 0], y: [0, 8, 0] }}
         transition={{ duration: 124, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
         className="pointer-events-none absolute inset-0 opacity-30"
         style={{
+          willChange: 'background-position',
           backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px)',
           backgroundSize: '30px 30px',
         }}
-        animate={{
-          backgroundPosition: ['0px 0px', '24px 14px', '0px 0px'],
-          opacity: [0.22, 0.3, 0.24],
-        }}
-        transition={{ duration: 128, repeat: Infinity, ease: 'easeInOut' }}
+        animate={prefersReducedMotion ? false : { backgroundPosition: ['0px 0px', '24px 14px', '0px 0px'] }}
+        transition={{ duration: 160, repeat: Infinity, ease: 'linear' }}
       />
 
       <div className="relative flex min-h-screen flex-col px-4 py-5 sm:px-8 sm:py-7">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <Link
             href="/today"
             className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-[#FAF0E6]"
@@ -153,9 +156,23 @@ export default function FocusScreen() {
             <ArrowLeft className="h-3.5 w-3.5" />
             Zurück zu Today
           </Link>
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] text-amber-200">
-            <Sparkles className="h-3.5 w-3.5" />
-            Focus Mode
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => updateChampionSettings({ enabled: !championSettings.enabled })}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] transition-colors ${
+                championSettings.enabled
+                  ? 'border-cyan-300/25 bg-cyan-300/10 text-cyan-200 hover:bg-cyan-300/20'
+                  : 'border-zinc-500/30 bg-black/35 text-zinc-300 hover:bg-zinc-700/30'
+              }`}
+            >
+              {championSettings.enabled ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+              Lucian {championSettings.enabled ? 'an' : 'aus'}
+            </button>
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] text-amber-200">
+              <Sparkles className="h-3.5 w-3.5" />
+              Focus Mode
+            </div>
           </div>
         </div>
 
