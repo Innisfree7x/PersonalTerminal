@@ -96,55 +96,46 @@ export default function FocusScreen() {
       <motion.div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.16),transparent_35%),radial-gradient(circle_at_78%_24%,rgba(234,179,8,0.18),transparent_38%),radial-gradient(circle_at_52%_86%,rgba(245,158,11,0.12),transparent_34%)]"
         style={{ willChange: 'transform' }}
-        animate={prefersReducedMotion ? false : { scale: [1, 1.01, 1] }}
+        animate={prefersReducedMotion ? false : { scale: [1, 1.006, 1], opacity: [0.9, 0.94, 0.9] }}
         transition={{ duration: 220, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
         className="pointer-events-none absolute inset-[-12%] bg-[conic-gradient(from_190deg_at_50%_45%,rgba(56,189,248,0.08),transparent_24%,rgba(245,158,11,0.08),transparent_60%,rgba(99,102,241,0.06),transparent_100%)] blur-3xl"
-        style={{ willChange: 'transform' }}
-        animate={prefersReducedMotion ? false : {
-          rotate: [0, 4, 0, -3, 0],
-          scale: [1, 1.015, 1],
-        }}
-        transition={{ duration: 130, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ willChange: 'opacity' }}
+        animate={prefersReducedMotion ? false : { opacity: [0.2, 0.24, 0.2] }}
+        transition={{ duration: 150, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
         className="pointer-events-none absolute inset-0 opacity-20"
         style={{
-          willChange: 'background-position',
           backgroundImage: 'linear-gradient(115deg, rgba(255,255,255,0.022) 0%, transparent 36%, rgba(255,255,255,0.015) 63%, transparent 100%)',
           backgroundSize: '220% 220%',
         }}
-        animate={prefersReducedMotion ? false : { backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
-        transition={{ duration: 180, repeat: Infinity, ease: 'linear' }}
       />
       <motion.div
         className="pointer-events-none absolute -left-24 -top-24 h-[42vw] w-[42vw] rounded-full bg-cyan-300/10 blur-[130px]"
         style={{ willChange: 'transform' }}
-        animate={prefersReducedMotion ? false : { x: [0, 18, 0], y: [0, 12, 0] }}
-        transition={{ duration: 92, repeat: Infinity, ease: 'easeInOut' }}
+        animate={prefersReducedMotion ? false : { x: [0, 12, 0], y: [0, 8, 0] }}
+        transition={{ duration: 108, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
         className="pointer-events-none absolute -right-20 top-10 h-[38vw] w-[38vw] rounded-full bg-amber-300/10 blur-[130px]"
         style={{ willChange: 'transform' }}
-        animate={prefersReducedMotion ? false : { x: [0, -16, 0], y: [0, -10, 0] }}
-        transition={{ duration: 108, repeat: Infinity, ease: 'easeInOut' }}
+        animate={prefersReducedMotion ? false : { x: [0, -10, 0], y: [0, -6, 0] }}
+        transition={{ duration: 122, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
         className="pointer-events-none absolute left-[20%] top-[58%] h-[34vw] w-[34vw] rounded-full bg-indigo-300/10 blur-[140px]"
         style={{ willChange: 'transform' }}
-        animate={prefersReducedMotion ? false : { x: [0, -10, 0], y: [0, 8, 0] }}
-        transition={{ duration: 124, repeat: Infinity, ease: 'easeInOut' }}
+        animate={prefersReducedMotion ? false : { x: [0, -6, 0], y: [0, 5, 0] }}
+        transition={{ duration: 132, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
         className="pointer-events-none absolute inset-0 opacity-30"
         style={{
-          willChange: 'background-position',
           backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px)',
           backgroundSize: '30px 30px',
         }}
-        animate={prefersReducedMotion ? false : { backgroundPosition: ['0px 0px', '24px 14px', '0px 0px'] }}
-        transition={{ duration: 160, repeat: Infinity, ease: 'linear' }}
       />
 
       <div className="relative flex min-h-screen flex-col px-4 py-5 sm:px-8 sm:py-7">
@@ -185,7 +176,7 @@ export default function FocusScreen() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -18 }}
                 transition={{ duration: 0.35 }}
-                className="text-center"
+                className="min-h-[7.5rem] text-center sm:min-h-[9.25rem] lg:min-h-[10rem]"
               >
                 <p className="text-balance text-xl font-semibold leading-[1.28] text-[#FAF0E6] sm:text-3xl lg:text-4xl">
                   &ldquo;{currentQuote?.text}&rdquo;
@@ -202,7 +193,7 @@ export default function FocusScreen() {
           <div className="w-full shrink-0 rounded-2xl border border-white/10 bg-black/28 p-3 backdrop-blur-md sm:w-auto sm:max-w-[560px]">
             <p className="text-[10px] uppercase tracking-[0.15em] text-zinc-500">Session Controls</p>
             {isIdle ? (
-              <div className="mt-2 flex flex-col gap-2">
+              <div className="mt-2 flex min-h-[5.5rem] flex-col gap-2">
                 <div className="flex flex-wrap items-center gap-2">
                   {DURATION_PRESETS.map((minutes) => (
                     <button
@@ -239,7 +230,7 @@ export default function FocusScreen() {
                 </div>
               </div>
             ) : (
-              <div className="mt-2 flex flex-wrap items-center gap-2">
+              <div className="mt-2 flex min-h-[5.5rem] flex-wrap items-center gap-2">
                 {(isFocusRun || isBreakRun) && (
                   <button
                     onClick={pauseTimer}
