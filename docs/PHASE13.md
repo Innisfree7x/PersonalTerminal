@@ -18,6 +18,7 @@ Ship a stable, premium Focus/Lucian experience with measurable performance and r
 - Lucian sprite/ability baseline improved:
   - rebuilt sprite sheet (`public/sprites/lucian-sprites.svg`)
   - frame guard + animation row transition safety in `components/providers/ChampionProvider.tsx`
+  - canonical VFX timing contract published in `lib/champion/vfxConfig.ts`
 - Dashboard study progress ordering by nearest exam date in `components/features/dashboard/StudyProgress.tsx`.
 - Career board compact behavior for larger lists in `components/features/career/CareerBoard.tsx`.
 - Gate-4 telemetry events are wired in code paths:

@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { isTypingTarget } from '@/lib/hotkeys/guards';
 import { dispatchChampionEvent, subscribeChampionEvent, type ChampionEvent } from '@/lib/champion/championEvents';
 import { CHAMPION_CONFIG, type ChampionId } from '@/lib/champion/config';
+import { CHAMPION_VFX_CONFIG } from '@/lib/champion/vfxConfig';
 import { useAppSound } from '@/lib/hooks/useAppSound';
 import { trackAppEvent } from '@/lib/analytics/client';
 
@@ -104,24 +105,10 @@ const SCALE_TO_SIZE: Record<ChampionScale, number> = {
   large: 212,
 };
 
-const ABILITY_COOLDOWNS: Record<AbilityKey, number> = {
-  q: 8,
-  w: 15,
-  e: 5,
-  r: 60,
-};
-const ABILITY_CAST_ANIMATION: Record<AbilityKey, ChampionAnimation> = {
-  q: 'cast_q',
-  w: 'cast_w',
-  e: 'cast_e',
-  r: 'cast_r',
-};
-const ABILITY_ANIMATION_LOCK_MS: Record<AbilityKey, number> = {
-  q: 320,
-  w: 320,
-  e: 220,
-  r: 1000,
-};
+const ABILITY_COOLDOWNS: Record<AbilityKey, number> = CHAMPION_VFX_CONFIG.abilityCooldownSeconds;
+const ABILITY_CAST_ANIMATION: Record<AbilityKey, ChampionAnimation> = CHAMPION_VFX_CONFIG.castAnimations;
+const ABILITY_ANIMATION_LOCK_MS: Record<AbilityKey, number> = CHAMPION_VFX_CONFIG.castAnimationLockMs;
+const REACTION_ANIMATION_DURATION_MS = CHAMPION_VFX_CONFIG.reactionAnimationDurationMs;
 const MOVE_COMMAND_COLOR = '#22C55E';
 
 const DEFAULT_SETTINGS: ChampionSettings = {
@@ -1436,25 +1423,25 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
 
       if (event.type === 'TASK_COMPLETED') {
         taskStreakRef.current += 1;
-        playReactionAnimation('victory');
+        playReactionAnimation('victory', REACTION_ANIMATION_DURATION_MS.victory);
         if (settings.soundsEnabled) play('champ-victory');
       }
 
       if (event.type === 'GOAL_CREATED') {
-        playReactionAnimation('recall');
+        playReactionAnimation('recall', REACTION_ANIMATION_DURATION_MS.recall);
       }
 
       if (event.type === 'APPLICATION_SENT') {
-        playReactionAnimation('cast_r', 700);
+        playReactionAnimation('cast_r', REACTION_ANIMATION_DURATION_MS.cast_r);
       }
 
       if (event.type === 'DEADLINE_WARNING') {
-        playReactionAnimation('panic');
+        playReactionAnimation('panic', REACTION_ANIMATION_DURATION_MS.panic);
         if (settings.soundsEnabled) play('champ-panic');
       }
 
       if (event.type === 'FOCUS_START') {
-        playReactionAnimation('meditate', 1200);
+        playReactionAnimation('meditate', REACTION_ANIMATION_DURATION_MS.meditate);
         if (settings.soundsEnabled) play('champ-focus');
       }
 
@@ -1469,13 +1456,13 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (event.type === 'LEVEL_UP') {
-        playReactionAnimation('recall', 1000);
+        playReactionAnimation('recall', REACTION_ANIMATION_DURATION_MS.recall);
         if (settings.soundsEnabled) play('champ-level-up');
       }
 
       if (event.type === 'STREAK_BROKEN') {
         taskStreakRef.current = 0;
-        playReactionAnimation('recall');
+        playReactionAnimation('recall', REACTION_ANIMATION_DURATION_MS.recall);
         if (settings.soundsEnabled) play('champ-panic');
       }
 
