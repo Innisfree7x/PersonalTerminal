@@ -4,14 +4,14 @@
 **INNIS** is a personal productivity system built with Next.js 14 (App Router), TypeScript, Supabase, and TanStack React Query. It combines university tracking, goals, career pipeline management, daily tasks, focus sessions, and Google Calendar integration.
 
 ## Canonical Context (must-read)
-- Active planning source: `docs/PHASE12_MASTERPLAN.md`
-- Active execution source: `docs/PHASE12_EXECUTION_BLUEPRINT.md`
+- Active planning + execution source: `docs/PHASE13.md`
 - Context priority map: `docs/CONTEXT_CANON.md`
 - Reliability implementation baseline: `docs/PHASE11_TRACK6_IMPLEMENTATION.md`
+- Phase 12 (completed): `docs/PHASE12_MASTERPLAN.md` — non-normative, historical reference only
 
 Important:
 - Documents marked as historical/archived in `docs/CONTEXT_CANON.md` are non-normative.
-- If a historical phase doc conflicts with active planning docs, always follow Phase 12 + Context Canon.
+- If a historical phase doc conflicts with active planning docs, always follow Phase 13 + Context Canon.
 - Execution decisions must not be derived from archived phase docs unless explicitly requested for legacy analysis.
 - Before planning or implementation work, read `docs/CONTEXT_CANON.md` first.
 
@@ -116,6 +116,9 @@ Migration docs indicate owner-based isolation is expected:
 | `lib/application/use-cases/execution-engine.ts` | Next Best Action ranking + execution score |
 | `components/providers/ChampionProvider.tsx` | VFX gamification layer — Q/W/E/R ability effects, sprite HUD, Pentakill |
 | `components/features/lucian/LucianBubble.tsx` | Contextual companion UI — Character-Card layout, mood-mapped sprite, walk-entry animation |
+| `components/features/dashboard/CommandBar.tsx` | Unified command bar — stats (tasks/exercises/streak/career) + inline NBA, ~56px, card-surface |
+| `lib/hooks/useStreak.ts` | React Query hook for `/api/user/streak` (task-based streak, 5min staleTime) |
+| `public/sprites/lucian-sprites.svg` | Lucian pixel art spritesheet — 8×10 grid, 48×48px frames, 5 animations |
 | `lib/lucian/copy.ts` | Lucian companion message library (5 moods, 80+ lines) |
 | `lib/command/parser.ts` | Deterministic grammar parser for Command Palette intents (4 intents: task, goal, focus, page) |
 
