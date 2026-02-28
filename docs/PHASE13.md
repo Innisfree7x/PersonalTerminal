@@ -19,6 +19,7 @@ Ship a stable, premium Focus/Lucian experience with measurable performance and r
   - rebuilt sprite sheet (`public/sprites/lucian-sprites.svg`)
   - frame guard + animation row transition safety in `components/providers/ChampionProvider.tsx`
   - canonical VFX timing contract published in `lib/champion/vfxConfig.ts`
+  - VFX preset system shipped (`performance`, `balanced`, `cinematic`) with settings control + provider integration
 - Dashboard study progress ordering by nearest exam date in `components/features/dashboard/StudyProgress.tsx`.
 - Career board compact behavior for larger lists in `components/features/career/CareerBoard.tsx`.
 - Gate-4 telemetry events are wired in code paths:
@@ -33,7 +34,7 @@ Ship a stable, premium Focus/Lucian experience with measurable performance and r
 - Gate 1 (13.1 Focus UX Stability): In progress (major fixes shipped, final performance baseline + visual signoff pending)
 - Gate 2 (13.2 Lucian VFX 2.0): In progress
 - Gate 2a (stability): In progress (flicker/disappear mitigations shipped, regression verification still required)
-- Gate 2b (preset system): Not started
+- Gate 2b (preset system): In progress (core preset config + settings UI + runtime effect scaling shipped)
 - Gate 3 (13.3 Dashboard Density & Control): In progress (partially shipped)
 - Gate 4 (13.4 QA + Observability + Release): In progress (event wiring shipped; final visual baseline + blocker E2E + GO/NO-GO pending)
 

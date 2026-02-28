@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { isTypingTarget } from '@/lib/hotkeys/guards';
 import { dispatchChampionEvent, subscribeChampionEvent, type ChampionEvent } from '@/lib/champion/championEvents';
 import { CHAMPION_CONFIG, type ChampionId } from '@/lib/champion/config';
-import { CHAMPION_VFX_CONFIG } from '@/lib/champion/vfxConfig';
+import { CHAMPION_VFX_CONFIG, type ChampionVfxPreset } from '@/lib/champion/vfxConfig';
 import { useAppSound } from '@/lib/hooks/useAppSound';
 import { trackAppEvent } from '@/lib/analytics/client';
 
@@ -39,6 +39,7 @@ type AbilityKey = 'q' | 'w' | 'e' | 'r';
 interface ChampionSettings {
   enabled: boolean;
   champion: ChampionId;
+  vfxPreset: ChampionVfxPreset;
   renderScale: ChampionScale;
   passiveBehavior: PassiveBehavior;
   eventReactions: EventReactionMode;
@@ -114,6 +115,7 @@ const MOVE_COMMAND_COLOR = '#22C55E';
 const DEFAULT_SETTINGS: ChampionSettings = {
   enabled: true,
   champion: 'lucian',
+  vfxPreset: 'balanced',
   renderScale: 'normal',
   passiveBehavior: 'active',
   eventReactions: 'all',
@@ -129,6 +131,10 @@ const XP_FOR_ACTION: Record<string, number> = {
   APPLICATION_SENT: 30,
   FOCUS_END: 50,
 };
+
+function isChampionVfxPreset(value: unknown): value is ChampionVfxPreset {
+  return value === 'performance' || value === 'balanced' || value === 'cinematic';
+}
 
 const ChampionContext = createContext<ChampionContextValue | undefined>(undefined);
 
@@ -270,6 +276,7 @@ function ChampionOverlay({
   // (e.g. walk -> cast_w with fewer frames), which otherwise causes a brief blank sprite.
   const activeFrame = frame % Math.max(1, frameCount(animation));
   const abilityColors = championConfig.colors;
+  const presetProfile = CHAMPION_VFX_CONFIG.presets[settings.vfxPreset];
   const isWalking = animation === 'walk';
   const isCasting = animation.startsWith('cast_');
   const auraColor = (() => {
@@ -336,7 +343,7 @@ function ChampionOverlay({
         />
       )}
 
-      {mode === 'active' && effects.some((effect) => effect.type === 'q' || effect.type === 'q-arc') && (
+      {mode === 'active' && presetProfile.ambientAbilityFlashes && effects.some((effect) => effect.type === 'q' || effect.type === 'q-arc') && (
         <motion.div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0"
@@ -350,7 +357,7 @@ function ChampionOverlay({
         />
       )}
 
-      {mode === 'active' && effects.some((effect) => effect.type === 'w' || effect.type === 'w-bolt' || effect.type === 'w-shockwave') && (
+      {mode === 'active' && presetProfile.ambientAbilityFlashes && effects.some((effect) => effect.type === 'w' || effect.type === 'w-bolt' || effect.type === 'w-shockwave') && (
         <motion.div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0"
@@ -364,7 +371,7 @@ function ChampionOverlay({
         />
       )}
 
-      {mode === 'active' && effects.some((effect) => effect.type === 'e' || effect.type === 'e-streak') && (
+      {mode === 'active' && presetProfile.ambientAbilityFlashes && effects.some((effect) => effect.type === 'e' || effect.type === 'e-streak') && (
         <motion.div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0"
@@ -418,18 +425,42 @@ function ChampionOverlay({
         {/* Ambient aura — pulses and shifts colour with animation state */}
         <motion.div
           className="pointer-events-none absolute inset-0 rounded-full"
-          animate={{ opacity: [0.48, 0.78, 0.48], scale: [1.28, 1.46, 1.28] }}
+          animate={{
+            opacity: [
+              0.48 * presetProfile.auraOpacityMultiplier,
+              0.78 * presetProfile.auraOpacityMultiplier,
+              0.48 * presetProfile.auraOpacityMultiplier,
+            ],
+            scale: [
+              1.28 * presetProfile.auraScaleMultiplier,
+              1.46 * presetProfile.auraScaleMultiplier,
+              1.28 * presetProfile.auraScaleMultiplier,
+            ],
+          }}
           transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
           style={{ backgroundColor: auraColor, filter: 'blur(24px)' }}
         />
 
         {/* Secondary soft halo ring */}
-        <motion.div
-          className="pointer-events-none absolute inset-0 rounded-full"
-          animate={{ opacity: [0.18, 0.32, 0.18], scale: [1.55, 1.7, 1.55] }}
-          transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }}
-          style={{ backgroundColor: auraColor, filter: 'blur(38px)' }}
-        />
+        {presetProfile.showSecondaryHalo && (
+          <motion.div
+            className="pointer-events-none absolute inset-0 rounded-full"
+            animate={{
+              opacity: [
+                0.18 * presetProfile.auraOpacityMultiplier,
+                0.32 * presetProfile.auraOpacityMultiplier,
+                0.18 * presetProfile.auraOpacityMultiplier,
+              ],
+              scale: [
+                1.55 * presetProfile.auraScaleMultiplier,
+                1.7 * presetProfile.auraScaleMultiplier,
+                1.55 * presetProfile.auraScaleMultiplier,
+              ],
+            }}
+            transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }}
+            style={{ backgroundColor: auraColor, filter: 'blur(38px)' }}
+          />
+        )}
 
         {/* Ground shadow ellipse */}
         <div
@@ -1032,6 +1063,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
 
   const championSize = SCALE_TO_SIZE[settings.renderScale];
   const abilityColors = CHAMPION_CONFIG[settings.champion].colors;
+  const vfxPresetProfile = CHAMPION_VFX_CONFIG.presets[settings.vfxPreset];
 
   const updateSettings = useCallback((next: Partial<ChampionSettings>) => {
     setSettings((prev) => {
@@ -1049,6 +1081,11 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       setEffects((prev) => prev.filter((entry) => entry.id !== id));
     }, ttl);
   }, []);
+
+  const scaleEffectTtl = useCallback(
+    (baseTtl: number) => Math.max(120, Math.round(baseTtl * vfxPresetProfile.effectTtlMultiplier)),
+    [vfxPresetProfile.effectTtlMultiplier]
+  );
 
   const setBaseAnimation = useCallback(() => {
     setAnimation(isMovingRef.current ? 'walk' : 'idle');
@@ -1125,7 +1162,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
     });
   }, [championSize]);
 
-  const fireLightslinger = useCallback((center: Position, baseAngle: number) => {
+  const fireLightslinger = useCallback((center: Position, baseAngle: number, ttlMs: number) => {
     for (let i = 0; i < 2; i += 1) {
       window.setTimeout(() => {
         addEffect(
@@ -1136,7 +1173,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
             angle: baseAngle + (i === 0 ? -3 : 3),
             distance: 240 + Math.random() * 60,
           },
-          320
+          ttlMs
         );
       }, i * 95);
     }
@@ -1221,11 +1258,11 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       const center = { x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 };
       const angle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
       const beamDistance = 640;
-      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 34, tone: abilityColors.q }, 220);
-      addEffect({ type: 'q', x: center.x, y: center.y, angle, distance: beamDistance }, 450);
-      addEffect({ type: 'q-arc', x: center.x, y: center.y, angle, distance: beamDistance, size: -10 }, 460);
-      addEffect({ type: 'q-arc', x: center.x, y: center.y, angle, distance: beamDistance, size: 10 }, 520);
-      for (let i = 0; i < 6; i += 1) {
+      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 34, tone: abilityColors.q }, scaleEffectTtl(220));
+      addEffect({ type: 'q', x: center.x, y: center.y, angle, distance: beamDistance }, scaleEffectTtl(450));
+      addEffect({ type: 'q-arc', x: center.x, y: center.y, angle, distance: beamDistance, size: -10 }, scaleEffectTtl(460));
+      addEffect({ type: 'q-arc', x: center.x, y: center.y, angle, distance: beamDistance, size: 10 }, scaleEffectTtl(520));
+      for (let i = 0; i < vfxPresetProfile.qSparkCount; i += 1) {
         const spread = (Math.random() - 0.5) * 16;
         addEffect(
           {
@@ -1235,7 +1272,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
             angle: angle + spread,
             distance: 50 + Math.random() * 95,
           },
-          380
+          scaleEffectTtl(380)
         );
       }
       const flares = [160, 320, 520];
@@ -1248,11 +1285,11 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
             y: center.y + Math.sin(rad) * distance,
             size: 14 + idx * 4,
           },
-          320
+          scaleEffectTtl(320)
         );
       });
       markElementsOnBeam(angle);
-      fireLightslinger(center, angle);
+      fireLightslinger(center, angle, scaleEffectTtl(320));
       startCooldown('q');
       return;
     }
@@ -1267,15 +1304,15 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       const hitX = center.x + Math.cos(rad) * boltDistance;
       const hitY = center.y + Math.sin(rad) * boltDistance;
 
-      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 26, tone: abilityColors.w }, 200);
-      addEffect({ type: 'w', x: center.x, y: center.y }, 260);
-      addEffect({ type: 'w-bolt', x: center.x, y: center.y, angle, distance: boltDistance }, 360);
-      addEffect({ type: 'origin-flash', x: hitX, y: hitY, size: 42, tone: abilityColors.w }, 380);
-      addEffect({ type: 'w-mark', x: hitX, y: hitY }, 450);
-      addEffect({ type: 'w-mark', x: hitX, y: hitY, angle: 45 }, 450);
-      addEffect({ type: 'w-shockwave', x: hitX, y: hitY, size: 82 }, 420);
-      addEffect({ type: 'w-shockwave', x: hitX, y: hitY, size: 118 }, 520);
-      fireLightslinger(center, angle);
+      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 26, tone: abilityColors.w }, scaleEffectTtl(200));
+      addEffect({ type: 'w', x: center.x, y: center.y }, scaleEffectTtl(260));
+      addEffect({ type: 'w-bolt', x: center.x, y: center.y, angle, distance: boltDistance }, scaleEffectTtl(360));
+      addEffect({ type: 'origin-flash', x: hitX, y: hitY, size: 42, tone: abilityColors.w }, scaleEffectTtl(380));
+      addEffect({ type: 'w-mark', x: hitX, y: hitY }, scaleEffectTtl(450));
+      addEffect({ type: 'w-mark', x: hitX, y: hitY, angle: 45 }, scaleEffectTtl(450));
+      addEffect({ type: 'w-shockwave', x: hitX, y: hitY, size: 82 }, scaleEffectTtl(420));
+      addEffect({ type: 'w-shockwave', x: hitX, y: hitY, size: 118 }, scaleEffectTtl(520));
+      fireLightslinger(center, angle, scaleEffectTtl(320));
       startCooldown('w');
       return;
     }
@@ -1290,22 +1327,23 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       const targetCenter = { x: target.x + championSize / 2, y: target.y + championSize / 2 };
       const dashAngle = (Math.atan2(targetCenter.y - currentCenter.y, targetCenter.x - currentCenter.x) * 180) / Math.PI;
       const dashDistance = Math.hypot(targetCenter.x - currentCenter.x, targetCenter.y - currentCenter.y);
-      addEffect({ type: 'e-streak', x: currentCenter.x, y: currentCenter.y, angle: dashAngle, distance: dashDistance }, 340);
-      for (let i = 1; i <= 4; i += 1) {
-        const ratio = i / 5;
+      addEffect({ type: 'e-streak', x: currentCenter.x, y: currentCenter.y, angle: dashAngle, distance: dashDistance }, scaleEffectTtl(340));
+      const dashGhostCount = vfxPresetProfile.dashGhostCount;
+      for (let i = 1; i <= dashGhostCount; i += 1) {
+        const ratio = i / (dashGhostCount + 1);
         addEffect(
           {
             type: 'dash-ghost',
             x: currentCenter.x + (targetCenter.x - currentCenter.x) * ratio,
             y: currentCenter.y + (targetCenter.y - currentCenter.y) * ratio,
           },
-          220 + i * 30
+          scaleEffectTtl(220 + i * 30)
         );
       }
-      addEffect({ type: 'e', x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 }, 400);
-      addEffect({ type: 'landing-ring', x: targetCenter.x, y: targetCenter.y, size: 76 }, 340);
-      addEffect({ type: 'landing-ring', x: targetCenter.x, y: targetCenter.y, size: 48 }, 420);
-      fireLightslinger(targetCenter, dashAngle);
+      addEffect({ type: 'e', x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 }, scaleEffectTtl(400));
+      addEffect({ type: 'landing-ring', x: targetCenter.x, y: targetCenter.y, size: 76 }, scaleEffectTtl(340));
+      addEffect({ type: 'landing-ring', x: targetCenter.x, y: targetCenter.y, size: 48 }, scaleEffectTtl(420));
+      fireLightslinger(targetCenter, dashAngle, scaleEffectTtl(320));
       positionRef.current = target;
       setPosition(target);
       setTargetPosition(target);
@@ -1318,9 +1356,9 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       const castToken = startLockedAnimation(ABILITY_CAST_ANIMATION.r, ABILITY_ANIMATION_LOCK_MS.r);
       const center = { x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 };
       const baseAngle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
-      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 60, tone: abilityColors.r }, 160);
-      addEffect({ type: 'r-muzzle', x: center.x, y: center.y, angle: baseAngle }, 260);
-      addEffect({ type: 'r', x: center.x, y: center.y, angle: baseAngle }, 1100);
+      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 60, tone: abilityColors.r }, scaleEffectTtl(160));
+      addEffect({ type: 'r-muzzle', x: center.x, y: center.y, angle: baseAngle }, scaleEffectTtl(260));
+      addEffect({ type: 'r', x: center.x, y: center.y, angle: baseAngle }, scaleEffectTtl(1100));
       for (let lane = -1; lane <= 1; lane += 2) {
         addEffect(
           {
@@ -1331,10 +1369,10 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
             distance: 520,
             size: lane * 8,
           },
-          380
+          scaleEffectTtl(380)
         );
       }
-      for (let i = 0; i < 30; i += 1) {
+      for (let i = 0; i < vfxPresetProfile.rBulletCount; i += 1) {
         const angle = baseAngle + (Math.random() - 0.5) * 8;
         const laneOffset = i % 2 === 0 ? -8 : 8;
         window.setTimeout(() => {
@@ -1346,7 +1384,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
               angle,
               distance: 420 + Math.random() * 140,
             },
-            560
+            scaleEffectTtl(560)
           );
         }, i * 95);
       }
@@ -1356,7 +1394,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
         window.setTimeout(() => element.removeAttribute('data-champion-targeted'), 1200);
       });
       if (taskStreakRef.current >= 5) {
-        addEffect({ type: 'pentakill', x: window.innerWidth / 2, y: window.innerHeight / 3 }, 1700);
+        addEffect({ type: 'pentakill', x: window.innerWidth / 2, y: window.innerHeight / 3 }, scaleEffectTtl(1700));
         dispatchChampionEvent({ type: 'PENTAKILL', count: taskStreakRef.current });
         if (settings.soundsEnabled) play('champ-pentakill');
         taskStreakRef.current = 0;
@@ -1369,14 +1407,18 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
     abilityColors,
     championSize,
     cooldownReadyAt,
+    fireLightslinger,
     markElementsOnBeam,
     pathname,
     play,
+    scaleEffectTtl,
     scheduleAnimationTransition,
     settings.soundsEnabled,
     startCooldown,
     startLockedAnimation,
-    fireLightslinger,
+    vfxPresetProfile.dashGhostCount,
+    vfxPresetProfile.qSparkCount,
+    vfxPresetProfile.rBulletCount,
   ]);
 
   useEffect(() => {
@@ -1385,7 +1427,12 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
     const savedPosition = localStorage.getItem(POSITION_KEY);
     if (savedSettings) {
       try {
-        setSettings({ ...DEFAULT_SETTINGS, ...(JSON.parse(savedSettings) as Partial<ChampionSettings>) });
+        const parsed = JSON.parse(savedSettings) as Partial<ChampionSettings>;
+        setSettings({
+          ...DEFAULT_SETTINGS,
+          ...parsed,
+          vfxPreset: isChampionVfxPreset(parsed.vfxPreset) ? parsed.vfxPreset : DEFAULT_SETTINGS.vfxPreset,
+        });
       } catch {
         // ignore
       }

@@ -26,4 +26,17 @@ describe('CHAMPION_VFX_CONFIG', () => {
     expect(CHAMPION_VFX_CONFIG.castAnimationLockMs.e).toBeGreaterThan(0);
     expect(CHAMPION_VFX_CONFIG.castAnimationLockMs.r).toBeGreaterThan(0);
   });
+
+  it('defines preset profiles with expected performance-to-cinematic scaling', () => {
+    const { performance, balanced, cinematic } = CHAMPION_VFX_CONFIG.presets;
+
+    expect(performance.qSparkCount).toBeLessThan(balanced.qSparkCount);
+    expect(balanced.qSparkCount).toBeLessThan(cinematic.qSparkCount);
+
+    expect(performance.rBulletCount).toBeLessThan(balanced.rBulletCount);
+    expect(balanced.rBulletCount).toBeLessThan(cinematic.rBulletCount);
+
+    expect(performance.effectTtlMultiplier).toBeLessThanOrEqual(1);
+    expect(cinematic.effectTtlMultiplier).toBeGreaterThanOrEqual(1);
+  });
 });

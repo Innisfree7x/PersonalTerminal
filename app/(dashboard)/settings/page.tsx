@@ -60,6 +60,12 @@ const accents = [
     { id: 'pink', name: 'Pink', swatch: 'radial-gradient(circle at 30% 25%, rgb(244 114 182), rgb(219 39 119))' },
 ] as const satisfies ReadonlyArray<{ id: AccentColor; name: string; swatch: string }>;
 
+const championVfxPresetDescriptions = {
+    performance: 'Lowest VFX load for older devices and maximum smoothness.',
+    balanced: 'Default preset with strong readability and stable performance.',
+    cinematic: 'Heavier spell polish with denser particles and longer afterglow.',
+} as const;
+
 export default function SettingsPage() {
     const { user, signOut, refreshUser } = useAuth();
     const { theme, setTheme, accentColor, setAccentColor } = useTheme();
@@ -664,6 +670,24 @@ export default function SettingsPage() {
                                 <option value="none">No reactions</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-text-secondary">VFX preset</label>
+                        <select
+                            value={championSettings.vfxPreset}
+                            onChange={(event) =>
+                                updateChampionSettings({ vfxPreset: event.target.value as 'performance' | 'balanced' | 'cinematic' })
+                            }
+                            className="w-full px-3 py-2 bg-surface-hover text-text-primary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        >
+                            <option value="performance">Performance</option>
+                            <option value="balanced">Balanced</option>
+                            <option value="cinematic">Cinematic</option>
+                        </select>
+                        <p className="text-xs text-text-tertiary">
+                            {championVfxPresetDescriptions[championSettings.vfxPreset]}
+                        </p>
                     </div>
 
                     <div className="space-y-2">
