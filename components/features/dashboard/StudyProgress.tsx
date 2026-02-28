@@ -20,6 +20,13 @@ interface StudyProgressProps {
 }
 
 export default function StudyProgress({ courses }: StudyProgressProps) {
+  const aggregateProgress = useMemo(() => {
+    const totalUnits = courses.reduce((sum, course) => sum + course.total, 0);
+    if (totalUnits === 0) return 0;
+    const completedUnits = courses.reduce((sum, course) => sum + course.completed, 0);
+    return Math.round((completedUnits / totalUnits) * 100);
+  }, [courses]);
+
   const sortedCourses = useMemo(() => {
     return [...courses].sort((a, b) => {
       const aDays = a.daysUntilExam;
@@ -46,16 +53,16 @@ export default function StudyProgress({ courses }: StudyProgressProps) {
 
   if (courses.length === 0) {
     return (
-      <div className="card-surface rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <GraduationCap className="w-5 h-5 text-university-accent" />
-          <h3 className="text-base font-semibold text-text-primary">Lernfortschritt</h3>
+      <div className="rounded-xl bg-amber-500/[0.06] p-4 backdrop-blur-sm">
+        <div className="mb-3 flex items-center gap-2">
+          <GraduationCap className="h-4 w-4 text-amber-300" />
+          <h3 className="text-sm font-semibold text-text-primary">Study Progress</h3>
         </div>
-        <div className="text-center py-4 space-y-2">
+        <div className="space-y-2 py-4 text-center">
           <p className="text-sm text-text-tertiary">Noch keine Kurse angelegt.</p>
           <Link
             href="/university"
-            className="inline-block text-xs font-medium text-primary hover:underline"
+            className="inline-block text-xs font-medium text-amber-300 hover:underline"
           >
             Ersten Kurs hinzufügen →
           </Link>
@@ -65,21 +72,26 @@ export default function StudyProgress({ courses }: StudyProgressProps) {
   }
 
   return (
-    <div className="card-surface rounded-xl p-4">
-      <div className="flex items-center justify-between mb-3">
+    <div className="flex h-full flex-col rounded-xl bg-amber-500/[0.06] p-4 backdrop-blur-sm">
+      <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
-          <GraduationCap className="w-5 h-5 text-university-accent" />
-          <h3 className="text-base font-semibold text-text-primary">Lernfortschritt</h3>
+          <GraduationCap className="h-4 w-4 text-amber-300" />
+          <h3 className="text-sm font-semibold text-text-primary">Study Progress</h3>
         </div>
+        <p className="text-4xl font-black tabular-nums leading-none text-amber-300">{aggregateProgress}%</p>
+      </div>
+
+      <div className="mb-2 flex items-center justify-between border-b border-amber-400/15 pb-2">
         <Link
           href="/university"
-          className="text-xs text-text-tertiary hover:text-primary transition-colors"
+          className="text-xs text-text-tertiary transition-colors hover:text-amber-300"
         >
           Alle anzeigen
         </Link>
+        <span className="text-[11px] text-text-tertiary">{courses.length} Kurse</span>
       </div>
 
-      <div className="space-y-3">
+      <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto pr-1">
         {sortedCourses.map((course, index) => {
           const examWritten = course.daysUntilExam !== undefined && course.daysUntilExam < 0;
 
@@ -97,15 +109,15 @@ export default function StudyProgress({ courses }: StudyProgressProps) {
             : examUrgency === 'urgent'
               ? 'bg-error'
               : examUrgency === 'warning'
-                ? 'bg-warning'
-                : 'bg-university-accent';
+                ? 'bg-amber-400/70'
+                : 'bg-amber-300/75';
 
           return (
             <motion.div
               key={course.id}
-              initial={{ opacity: 0, x: 10 }}
+              initial={{ opacity: 0, x: 8 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
+              transition={{ delay: index * 0.04, duration: 0.2 }}
               className="space-y-1.5"
             >
               <div className="flex items-center justify-between">

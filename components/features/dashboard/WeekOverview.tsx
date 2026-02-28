@@ -5,7 +5,7 @@ import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, addDays, startOfWeek, isSameDay, isToday } from 'date-fns';
 import { useState, memo, useCallback, useEffect } from 'react';
 import { Skeleton } from '@/components/ui';
-import { getEventDensityColor, getEventDensityEmoji, EventDensity } from '@/lib/utils/colors';
+import { getEventDensityColor, EventDensity } from '@/lib/utils/colors';
 import { fetchDashboardWeekEventsAction } from '@/app/actions/dashboard';
 
 /**
@@ -100,19 +100,32 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
     setWeekOffset((prev) => prev + 1);
   }, []);
 
+  const getDensityDot = (type: EventDensity): string => {
+    switch (type) {
+      case 'low':
+        return 'bg-emerald-400/80';
+      case 'medium':
+        return 'bg-amber-400/80';
+      case 'high':
+        return 'bg-red-400/80';
+      default:
+        return 'bg-transparent';
+    }
+  };
+
   return (
-    <div className="card-surface rounded-xl p-4">
+    <div className="flex h-full flex-col rounded-xl bg-surface/25 p-4 backdrop-blur-sm">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-calendar-accent" />
-          <h3 className="text-base font-semibold text-text-primary">Week Overview</h3>
+          <Calendar className="h-4 w-4 text-sky-300" />
+          <h3 className="text-sm font-semibold text-text-primary">Week Overview</h3>
         </div>
         <div className="flex items-center gap-1">
           <motion.button
             onClick={handlePrevWeek}
-            className="p-1 rounded hover:bg-surface-hover text-text-secondary hover:text-text-primary transition-colors"
-            whileHover={{ scale: 1.1 }}
+            className="rounded p-1 text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary"
+            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.9 }}
             aria-label="View previous week"
           >
@@ -120,8 +133,8 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
           </motion.button>
           <motion.button
             onClick={handleNextWeek}
-            className="p-1 rounded hover:bg-surface-hover text-text-secondary hover:text-text-primary transition-colors"
-            whileHover={{ scale: 1.1 }}
+            className="rounded p-1 text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary"
+            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.9 }}
             aria-label="View next week"
           >
@@ -132,12 +145,12 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
 
       {isLoading ? (
         <>
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-1.5">
             {Array.from({ length: 7 }).map((_, i) => (
-              <Skeleton key={i} className="h-20 rounded-lg" />
+              <Skeleton key={i} className="h-14 rounded-md" />
             ))}
           </div>
-          <div className="mt-4 pt-4 border-t border-border">
+          <div className="mt-3 border-t border-border pt-3">
             <Skeleton className="h-3 w-full" />
           </div>
         </>
@@ -145,38 +158,37 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
         <>
           {/* Week grid */}
           <div 
-            className="grid grid-cols-7 gap-2"
+            className="grid grid-cols-7 gap-1.5"
             role="list"
             aria-label="Week overview calendar"
           >
         {weekDays.map((day, index) => {
           const eventType = getEventType(day);
-          const eventDot = getEventDensityEmoji(eventType);
           const today = isToday(day);
 
           return (
             <motion.div
               key={day.toISOString()}
-              className={`relative flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all ${
+              className={`relative flex min-h-[56px] flex-col items-center justify-center gap-0.5 rounded-md border transition-colors ${
                 today
-                  ? 'border-primary bg-primary/10 ring-2 ring-primary/20'
+                  ? 'border-primary/60 bg-primary/[0.12]'
                   : getEventDensityColor(eventType)
               }`}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              whileHover={{ scale: 1.05, y: -2 }}
+              transition={{ delay: index * 0.03, duration: 0.18 }}
+              whileHover={{ y: -1 }}
               role="listitem"
               aria-label={`${format(day, 'EEEE, MMMM d')}${today ? ' (Today)' : ''}: ${getEventCount(day)} event${getEventCount(day) !== 1 ? 's' : ''}`}
             >
               {/* Day name */}
-              <span className="text-[10px] font-medium text-text-tertiary uppercase">
+              <span className="text-[9px] font-medium uppercase text-text-tertiary">
                 {format(day, 'EEE')}
               </span>
 
               {/* Date */}
               <span
-                className={`text-lg font-bold ${
+                className={`text-sm font-semibold ${
                   today ? 'text-primary' : 'text-text-primary'
                 }`}
               >
@@ -184,24 +196,16 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
               </span>
 
               {/* Event indicator */}
-              {eventDot && (
-                <span className="text-xs" title={`${getEventCount(day)} event(s)`}>
-                  {eventDot}
-                </span>
+              {eventType !== 'none' && (
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${getDensityDot(eventType)}`}
+                  title={`${getEventCount(day)} event(s)`}
+                />
               )}
 
               {/* Today label */}
               {today && (
-                <div className="absolute -top-1 -right-1">
-                  <motion.span
-                    className="flex h-3 w-3"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
-                  </motion.span>
-                </div>
+                <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-primary" />
               )}
             </motion.div>
           );
@@ -209,18 +213,18 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
           </div>
 
           {/* Legend */}
-          <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs text-text-tertiary">
+          <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-[10px] text-text-tertiary">
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-surface-hover"></span> None
+          <span className="h-2 w-2 rounded-full bg-surface-hover"></span> 0
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-success"></span> 1
+          <span className="h-2 w-2 rounded-full bg-emerald-400/80"></span> 1
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-warning"></span> 2
+          <span className="h-2 w-2 rounded-full bg-amber-400/80"></span> 2
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-error"></span> 3+
+          <span className="h-2 w-2 rounded-full bg-red-400/80"></span> 3+
         </span>
           </div>
         </>
