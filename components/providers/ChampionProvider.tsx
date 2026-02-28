@@ -15,6 +15,7 @@ import { isTypingTarget } from '@/lib/hotkeys/guards';
 import { dispatchChampionEvent, subscribeChampionEvent, type ChampionEvent } from '@/lib/champion/championEvents';
 import { CHAMPION_CONFIG, type ChampionId } from '@/lib/champion/config';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import { trackAppEvent } from '@/lib/analytics/client';
 
 type ChampionMode = 'passive' | 'active';
 type ChampionAnimation =
@@ -1215,6 +1216,11 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
   const castAbility = useCallback((ability: AbilityKey) => {
     const readyAt = cooldownReadyAt[ability];
     if (readyAt > Date.now()) return;
+    void trackAppEvent('lucian_spell_cast', {
+      route: pathname,
+      source: 'champion_provider',
+      ability,
+    });
 
     if (settings.soundsEnabled) {
       if (ability === 'q') play('champ-q');
@@ -1377,6 +1383,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
     championSize,
     cooldownReadyAt,
     markElementsOnBeam,
+    pathname,
     play,
     scheduleAnimationTransition,
     settings.soundsEnabled,

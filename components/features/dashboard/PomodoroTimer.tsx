@@ -6,6 +6,7 @@ import { memo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SkeletonCircle, Skeleton } from '@/components/ui';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
+import { trackAppEvent } from '@/lib/analytics/client';
 
 const DURATIONS = [25, 50, 90] as const;
 
@@ -70,6 +71,11 @@ const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: Pomodor
   const applyCustomDuration = () => {
     const nextDuration = getValidCustomDuration();
     if (!nextDuration) return;
+    void trackAppEvent('focus_custom_duration_used', {
+      route: '/today',
+      source: 'pomodoro_widget',
+      duration_minutes: nextDuration,
+    });
     setSelectedDuration(nextDuration);
     setCustomMinutes('');
   };

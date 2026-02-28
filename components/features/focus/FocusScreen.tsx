@@ -6,6 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ArrowLeft, Eye, EyeOff, Pause, Play, SkipForward, Square, Sparkles, Timer } from 'lucide-react';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import { useChampion } from '@/components/providers/ChampionProvider';
+import { trackAppEvent } from '@/lib/analytics/client';
 
 type Quote = {
   text: string;
@@ -70,6 +71,10 @@ export default function FocusScreen() {
   }, [todaySummary]);
 
   useEffect(() => {
+    void trackAppEvent('focus_screen_open', { route: '/focus', source: 'focus_screen' });
+  }, []);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       setQuoteIndex((prev) => (prev + 1) % FOCUS_QUOTES.length);
     }, 300_000);
@@ -87,8 +92,23 @@ export default function FocusScreen() {
   const startCustomSession = () => {
     const duration = getValidCustomDuration();
     if (!duration) return;
+    void trackAppEvent('focus_custom_duration_used', {
+      route: '/focus',
+      source: 'focus_screen',
+      duration_minutes: duration,
+    });
     startTimer({ duration, label: 'Focus Mode' });
     setCustomMinutes('');
+  };
+
+  const handleLucianToggle = () => {
+    const enabled = !championSettings.enabled;
+    updateChampionSettings({ enabled });
+    void trackAppEvent('lucian_toggle_changed', {
+      route: '/focus',
+      source: 'focus_screen',
+      enabled,
+    });
   };
 
   return (
@@ -150,7 +170,7 @@ export default function FocusScreen() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => updateChampionSettings({ enabled: !championSettings.enabled })}
+              onClick={handleLucianToggle}
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] transition-colors ${
                 championSettings.enabled
                   ? 'border-cyan-300/25 bg-cyan-300/10 text-cyan-200 hover:bg-cyan-300/20'

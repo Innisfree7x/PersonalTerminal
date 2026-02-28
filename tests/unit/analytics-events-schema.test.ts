@@ -25,5 +25,17 @@ describe('analyticsEventSchema', () => {
 
     expect(parsed.success).toBe(false);
   });
-});
 
+  it('accepts lucian spell cast payload', () => {
+    const parsed = analyticsEventSchema.safeParse({
+      name: 'lucian_spell_cast',
+      payload: {
+        route: '/today',
+        source: 'champion_provider',
+        ability: 'q',
+      },
+    });
+
+    expect(parsed.success).toBe(true);
+  });
+});

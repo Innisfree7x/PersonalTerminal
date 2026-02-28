@@ -15,6 +15,10 @@ export const ANALYTICS_EVENT_NAMES = [
   'first_task_created',
   'first_course_created',
   'day2_return',
+  'focus_screen_open',
+  'focus_custom_duration_used',
+  'lucian_toggle_changed',
+  'lucian_spell_cast',
 ] as const;
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENT_NAMES)[number];
@@ -30,6 +34,10 @@ export const analyticsPayloadSchema = z
     demo_seeded: z.boolean().optional(),
     ids_removed: z.number().int().min(0).max(5000).optional(),
     count: z.number().int().min(0).max(100).optional(),
+    route: z.string().max(100).optional(),
+    duration_minutes: z.number().int().min(1).max(600).optional(),
+    enabled: z.boolean().optional(),
+    ability: z.enum(['q', 'w', 'e', 'r']).optional(),
   })
   .catchall(z.union([z.string(), z.number(), z.boolean(), z.null()]));
 
@@ -39,4 +47,3 @@ export const analyticsEventSchema = z.object({
 });
 
 export type AnalyticsEventInput = z.infer<typeof analyticsEventSchema>;
-

@@ -20,6 +20,11 @@ Ship a stable, premium Focus/Lucian experience with measurable performance and r
   - frame guard + animation row transition safety in `components/providers/ChampionProvider.tsx`
 - Dashboard study progress ordering by nearest exam date in `components/features/dashboard/StudyProgress.tsx`.
 - Career board compact behavior for larger lists in `components/features/career/CareerBoard.tsx`.
+- Gate-4 telemetry events are wired in code paths:
+  - `focus_screen_open`
+  - `focus_custom_duration_used`
+  - `lucian_toggle_changed`
+  - `lucian_spell_cast`
 
 ## Gate status
 - Gate 1 (13.1 Focus UX Stability): In progress (major fixes shipped, final performance baseline + visual signoff pending)
@@ -27,7 +32,7 @@ Ship a stable, premium Focus/Lucian experience with measurable performance and r
 - Gate 2a (stability): In progress (flicker/disappear mitigations shipped, regression verification still required)
 - Gate 2b (preset system): Not started
 - Gate 3 (13.3 Dashboard Density & Control): In progress (partially shipped)
-- Gate 4 (13.4 QA + Observability + Release): Not started (blocked by Gate 2 + 3 completion)
+- Gate 4 (13.4 QA + Observability + Release): In progress (event wiring shipped; final visual baseline + blocker E2E + GO/NO-GO pending)
 
 ## Execution Model (Sequenced Gates)
 Gate 1 must pass before Gate 2 starts.  
