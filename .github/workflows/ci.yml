@@ -126,13 +126,16 @@ jobs:
             MISSING_KEYS="${MISSING_KEYS} SUPABASE_SERVICE_ROLE_KEY"
           fi
 
+          # Accept canonical Supabase project URLs. Keep strict enough to catch obvious mistakes.
           if [ -n "${SUPABASE_URL}" ] && ! echo "${SUPABASE_URL}" | grep -Eq '^https://[a-zA-Z0-9-]+\.supabase\.co$'; then
             INVALID_KEYS="${INVALID_KEYS} NEXT_PUBLIC_SUPABASE_URL"
           fi
-          if [ -n "${NEXT_PUBLIC_SUPABASE_ANON_KEY}" ] && ! echo "${NEXT_PUBLIC_SUPABASE_ANON_KEY}" | grep -Eq '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'; then
+          # Support both legacy JWT anon keys and newer publishable key format.
+          if [ -n "${NEXT_PUBLIC_SUPABASE_ANON_KEY}" ] && ! echo "${NEXT_PUBLIC_SUPABASE_ANON_KEY}" | grep -Eq '^([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+|sb_publishable_[A-Za-z0-9_-]+)$'; then
             INVALID_KEYS="${INVALID_KEYS} NEXT_PUBLIC_SUPABASE_ANON_KEY"
           fi
-          if [ -n "${SUPABASE_SERVICE_ROLE_KEY}" ] && ! echo "${SUPABASE_SERVICE_ROLE_KEY}" | grep -Eq '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'; then
+          # Support both legacy JWT service role keys and newer secret key format.
+          if [ -n "${SUPABASE_SERVICE_ROLE_KEY}" ] && ! echo "${SUPABASE_SERVICE_ROLE_KEY}" | grep -Eq '^([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+|sb_secret_[A-Za-z0-9_-]+)$'; then
             INVALID_KEYS="${INVALID_KEYS} SUPABASE_SERVICE_ROLE_KEY"
           fi
 
