@@ -115,16 +115,25 @@ function main() {
   const summary = summarizeFlakeMetrics(reportJson);
   const flakePct = (summary.flakeRate * 100).toFixed(2);
   const thresholdPct = (threshold * 100).toFixed(2);
+  const infraErrors = Array.isArray(reportJson.errors) ? reportJson.errors : [];
 
   console.log(
     `[flake-gate] total=${summary.total}, passed=${summary.passed}, failed=${summary.failed}, skipped=${summary.skipped}, flaky=${summary.flaky}`
   );
   console.log(`[flake-gate] flake_rate=${flakePct}% (threshold=${thresholdPct}%)`);
   console.log(`[flake-gate] report=${reportPathAbs}`);
+  if (infraErrors.length > 0) {
+    console.error(`[flake-gate] infra_errors=${infraErrors.length}`);
+  }
 
   if (process.env.CI && summary.total === 0) {
     console.error('[flake-gate] No executed blocker tests in CI. Failing run.');
     process.exit(1);
+  }
+
+  if (infraErrors.length > 0) {
+    console.error('[flake-gate] Infrastructure/runtime errors detected in Playwright report.');
+    process.exit(run.status || 1);
   }
 
   if (run.status !== 0) {

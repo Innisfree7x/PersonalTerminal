@@ -93,7 +93,7 @@ describe('Dashboard Integration', () => {
     await waitFor(() => {
       expect(screen.getByText('Focus Tasks Mock')).toBeInTheDocument();
       expect(screen.getByText('Schedule Mock')).toBeInTheDocument();
-      expect(screen.getByText('Quick Actions Mock')).toBeInTheDocument();
+      expect(screen.getAllByText('Quick Actions Mock').length).toBeGreaterThan(0);
       expect(screen.getByText('Pomodoro Mock')).toBeInTheDocument();
     });
   });

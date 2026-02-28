@@ -25,6 +25,10 @@
 
 If credentials are missing, authenticated specs are skipped by design.
 
+CI note:
+- On non-main branches, missing/invalid blocker secrets skip authenticated E2E.
+- On `main`, missing/invalid blocker secrets fail the E2E gate intentionally.
+
 ## Run
 
 - `npm run test:e2e`
@@ -43,3 +47,4 @@ If credentials are missing, authenticated specs are skipped by design.
 - Use `PLAYWRIGHT_BASE_URL` to point tests at another environment.
 - `/today` blocker latency threshold defaults to `2000ms` and can be overridden with `E2E_BLOCKER_TODAY_LOAD_SLO_MS`.
 - Flake gate threshold defaults to `2%` and can be overridden with `E2E_BLOCKER_FLAKE_THRESHOLD` (e.g. `0.015`).
+- Flake gate runner now fails hard on Playwright infrastructure/runtime errors (e.g. webServer boot failure).

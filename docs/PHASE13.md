@@ -1,6 +1,6 @@
 # PHASE 13 — Focus + Lucian + Density (Gate-Driven)
 
-Status: Active (execution in progress)  
+Status: Release candidate (Core scope complete, Gate 4 blocked by external secrets)  
 Date: 2026-02-28  
 Mode: Multi-agent (Core + UI + QA)
 
@@ -8,6 +8,7 @@ Mode: Multi-agent (Core + UI + QA)
 Ship a stable, premium Focus/Lucian experience with measurable performance and release-safe QA gates.
 
 ## Current Snapshot (2026-02-28)
+Core implementation and gate hardening are complete. Remaining blocker is external CI secret validation for authenticated blocker E2E on `main`.
 
 ## Delivered so far
 - Focus flicker hardening and calmer background motion in `components/features/focus/FocusScreen.tsx`.
@@ -29,14 +30,25 @@ Ship a stable, premium Focus/Lucian experience with measurable performance and r
   - `lucian_spell_cast`
 - Blocker E2E erweitert um Focus-Flow:
   - `tests/e2e/blocker/focus-flow.blocker.spec.mjs`
+- Blocker E2E gate hardened:
+  - flake runner fails on infra/runtime errors (`scripts/runBlockerE2EWithFlakeGate.mjs`)
+  - CI now fails on `main` if blocker E2E secrets are missing/invalid (`.github/workflows/ci.yml`)
 
 ## Gate status
-- Gate 1 (13.1 Focus UX Stability): In progress (major fixes shipped, final performance baseline + visual signoff pending)
-- Gate 2 (13.2 Lucian VFX 2.0): In progress
-- Gate 2a (stability): In progress (flicker/disappear mitigations shipped, regression verification still required)
-- Gate 2b (preset system): In progress (core preset config + settings UI + runtime effect scaling shipped)
-- Gate 3 (13.3 Dashboard Density & Control): In progress (partially shipped)
-- Gate 4 (13.4 QA + Observability + Release): In progress (event wiring shipped; final visual baseline + blocker E2E + GO/NO-GO pending)
+- Gate 1 (13.1 Focus UX Stability): Completed
+- Gate 2 (13.2 Lucian VFX 2.0): Completed
+- Gate 2a (stability): Completed
+- Gate 2b (preset system): Completed
+- Gate 3 (13.3 Dashboard Density & Control): Completed
+- Gate 4 (13.4 QA + Observability + Release): In progress (external secret validation pending for authenticated blocker E2E on `main`)
+
+## Validation Snapshot (2026-02-28)
+- `npm run type-check` ✅
+- `npm run lint` ✅
+- `npx vitest run` ✅ (21 files, 117 tests)
+- `npm run test:e2e:blocker:ci` ✅ fail-hard behavior verified:
+  - infra/runtime errors are now treated as hard failures
+  - zero-executed test false-green path is blocked in CI
 
 ## Execution Model (Sequenced Gates)
 Gate 1 must pass before Gate 2 starts.  

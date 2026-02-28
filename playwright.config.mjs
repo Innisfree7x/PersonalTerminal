@@ -18,7 +18,7 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
     ? undefined
     : {
-        command: `npm run dev -- --port ${PORT}`,
+        command: `npm run dev -- --hostname 127.0.0.1 --port ${PORT}`,
         url: BASE_URL,
         timeout: 120_000,
         reuseExistingServer: !process.env.CI,
