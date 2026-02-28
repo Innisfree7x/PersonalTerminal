@@ -109,6 +109,18 @@ const ABILITY_COOLDOWNS: Record<AbilityKey, number> = {
   e: 5,
   r: 60,
 };
+const ABILITY_CAST_ANIMATION: Record<AbilityKey, ChampionAnimation> = {
+  q: 'cast_q',
+  w: 'cast_w',
+  e: 'cast_e',
+  r: 'cast_r',
+};
+const ABILITY_ANIMATION_LOCK_MS: Record<AbilityKey, number> = {
+  q: 320,
+  w: 320,
+  e: 220,
+  r: 1000,
+};
 const MOVE_COMMAND_COLOR = '#22C55E';
 
 const DEFAULT_SETTINGS: ChampionSettings = {
@@ -1025,6 +1037,10 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
   const randomWalkTimeoutRef = useRef<number | null>(null);
   const moveRafRef = useRef<number | null>(null);
   const taskStreakRef = useRef(0);
+  const isMovingRef = useRef(false);
+  const animationLockUntilRef = useRef(0);
+  const animationSequenceRef = useRef(0);
+  const animationTimeoutsRef = useRef<number[]>([]);
 
   const championSize = SCALE_TO_SIZE[settings.renderScale];
   const abilityColors = CHAMPION_CONFIG[settings.champion].colors;
@@ -1045,6 +1061,54 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       setEffects((prev) => prev.filter((entry) => entry.id !== id));
     }, ttl);
   }, []);
+
+  const setBaseAnimation = useCallback(() => {
+    setAnimation(isMovingRef.current ? 'walk' : 'idle');
+  }, []);
+
+  const clearAnimationTimeouts = useCallback(() => {
+    animationTimeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    animationTimeoutsRef.current = [];
+  }, []);
+
+  const scheduleAnimationTimeout = useCallback((callback: () => void, delayMs: number) => {
+    const timeoutId = window.setTimeout(callback, delayMs);
+    animationTimeoutsRef.current.push(timeoutId);
+  }, []);
+
+  const startLockedAnimation = useCallback((next: ChampionAnimation, durationMs: number) => {
+    animationSequenceRef.current += 1;
+    const token = animationSequenceRef.current;
+    animationLockUntilRef.current = Date.now() + durationMs;
+    clearAnimationTimeouts();
+    setAnimation(next);
+    scheduleAnimationTimeout(() => {
+      if (animationSequenceRef.current !== token) return;
+      animationLockUntilRef.current = 0;
+      setBaseAnimation();
+    }, durationMs);
+    return token;
+  }, [clearAnimationTimeouts, scheduleAnimationTimeout, setBaseAnimation]);
+
+  const scheduleAnimationTransition = useCallback((token: number, next: ChampionAnimation, delayMs: number) => {
+    scheduleAnimationTimeout(() => {
+      if (animationSequenceRef.current !== token) return;
+      setAnimation(next);
+    }, delayMs);
+  }, [scheduleAnimationTimeout]);
+
+  const playReactionAnimation = useCallback((next: ChampionAnimation, durationMs = 900) => {
+    if (Date.now() < animationLockUntilRef.current) return false;
+    animationSequenceRef.current += 1;
+    const token = animationSequenceRef.current;
+    clearAnimationTimeouts();
+    setAnimation(next);
+    scheduleAnimationTimeout(() => {
+      if (animationSequenceRef.current !== token) return;
+      setBaseAnimation();
+    }, durationMs);
+    return true;
+  }, [clearAnimationTimeouts, scheduleAnimationTimeout, setBaseAnimation]);
 
   const markElementsInRange = useCallback((radius: number) => {
     const elements = document.querySelectorAll<HTMLElement>('[data-interactive]');
@@ -1160,7 +1224,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (ability === 'q') {
-      setAnimation('cast_q');
+      startLockedAnimation(ABILITY_CAST_ANIMATION.q, ABILITY_ANIMATION_LOCK_MS.q);
       const center = { x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 };
       const angle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
       const beamDistance = 640;
@@ -1197,12 +1261,11 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       markElementsOnBeam(angle);
       fireLightslinger(center, angle);
       startCooldown('q');
-      window.setTimeout(() => setAnimation(isMoving ? 'walk' : 'idle'), 320);
       return;
     }
 
     if (ability === 'w') {
-      setAnimation('cast_w');
+      startLockedAnimation(ABILITY_CAST_ANIMATION.w, ABILITY_ANIMATION_LOCK_MS.w);
       const center = { x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 };
       const angle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
       const distToPointer = Math.hypot(pointerRef.current.x - center.x, pointerRef.current.y - center.y);
@@ -1221,12 +1284,11 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       addEffect({ type: 'w-shockwave', x: hitX, y: hitY, size: 118 }, 520);
       fireLightslinger(center, angle);
       startCooldown('w');
-      window.setTimeout(() => setAnimation(isMoving ? 'walk' : 'idle'), 320);
       return;
     }
 
     if (ability === 'e') {
-      setAnimation('cast_e');
+      startLockedAnimation(ABILITY_CAST_ANIMATION.e, ABILITY_ANIMATION_LOCK_MS.e);
       const currentCenter = { x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 };
       const target = clampToViewport(
         { x: pointerRef.current.x - championSize / 2, y: pointerRef.current.y - championSize / 2 },
@@ -1256,12 +1318,11 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       setTargetPosition(target);
       localStorage.setItem(POSITION_KEY, JSON.stringify(target));
       startCooldown('e');
-      window.setTimeout(() => setAnimation('idle'), 220);
       return;
     }
 
     if (ability === 'r') {
-      setAnimation('cast_r');
+      const castToken = startLockedAnimation(ABILITY_CAST_ANIMATION.r, ABILITY_ANIMATION_LOCK_MS.r);
       const center = { x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 };
       const baseAngle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
       addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 60, tone: abilityColors.r }, 160);
@@ -1308,19 +1369,19 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
         taskStreakRef.current = 0;
       }
       startCooldown('r');
-      window.setTimeout(() => setAnimation('victory'), 260);
-      window.setTimeout(() => setAnimation(isMoving ? 'walk' : 'idle'), 1000);
+      scheduleAnimationTransition(castToken, 'victory', 260);
     }
   }, [
     addEffect,
     abilityColors,
     championSize,
     cooldownReadyAt,
-    isMoving,
     markElementsOnBeam,
     play,
+    scheduleAnimationTransition,
     settings.soundsEnabled,
     startCooldown,
+    startLockedAnimation,
     fireLightslinger,
   ]);
 
@@ -1368,30 +1429,32 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
 
       if (event.type === 'TASK_COMPLETED') {
         taskStreakRef.current += 1;
-        setAnimation('victory');
+        playReactionAnimation('victory');
         if (settings.soundsEnabled) play('champ-victory');
       }
 
       if (event.type === 'GOAL_CREATED') {
-        setAnimation('recall');
+        playReactionAnimation('recall');
       }
 
       if (event.type === 'APPLICATION_SENT') {
-        setAnimation('cast_r');
+        playReactionAnimation('cast_r', 700);
       }
 
       if (event.type === 'DEADLINE_WARNING') {
-        setAnimation('panic');
+        playReactionAnimation('panic');
         if (settings.soundsEnabled) play('champ-panic');
       }
 
       if (event.type === 'FOCUS_START') {
-        setAnimation('meditate');
+        playReactionAnimation('meditate', 1200);
         if (settings.soundsEnabled) play('champ-focus');
       }
 
       if (event.type === 'FOCUS_END') {
-        setAnimation('idle');
+        if (Date.now() >= animationLockUntilRef.current) {
+          setBaseAnimation();
+        }
       }
 
       if (event.type === 'PAGE_CHANGE') {
@@ -1399,13 +1462,13 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (event.type === 'LEVEL_UP') {
-        setAnimation('recall');
+        playReactionAnimation('recall', 1000);
         if (settings.soundsEnabled) play('champ-level-up');
       }
 
       if (event.type === 'STREAK_BROKEN') {
         taskStreakRef.current = 0;
-        setAnimation('recall');
+        playReactionAnimation('recall');
         if (settings.soundsEnabled) play('champ-panic');
       }
 
@@ -1413,13 +1476,19 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       if (xpDelta > 0) {
         awardXp(xpDelta);
       }
-
-      window.setTimeout(() => {
-        setAnimation((current) => (current === 'walk' ? 'walk' : 'idle'));
-      }, 900);
     });
     return unsubscribe;
-  }, [addEffect, awardXp, championSize, play, settings.eventReactions, settings.soundsEnabled]);
+  }, [addEffect, awardXp, championSize, play, playReactionAnimation, setBaseAnimation, settings.eventReactions, settings.soundsEnabled]);
+
+  useEffect(() => {
+    isMovingRef.current = isMoving;
+  }, [isMoving]);
+
+  useEffect(() => {
+    return () => {
+      clearAnimationTimeouts();
+    };
+  }, [clearAnimationTimeouts]);
 
   useEffect(() => {
     // Reset to frame 0 when switching animation rows to avoid brief blank frames.
@@ -1464,7 +1533,9 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       setTargetPosition(target);
       setIsMoving(true);
       setDirection(target.x < positionRef.current.x ? 'left' : 'right');
-      setAnimation('walk');
+      if (Date.now() >= animationLockUntilRef.current) {
+        setAnimation('walk');
+      }
       addEffect({ type: 'move', x: clientX, y: clientY }, 450);
       if (settings.soundsEnabled) play('champ-move');
     };
@@ -1566,7 +1637,9 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
         const distance = Math.hypot(dx, dy);
         if (distance < 2) {
           setIsMoving(false);
-          setAnimation('idle');
+          if (Date.now() >= animationLockUntilRef.current) {
+            setAnimation('idle');
+          }
           localStorage.setItem(POSITION_KEY, JSON.stringify(current));
           return current;
         }
@@ -1605,7 +1678,9 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
         setTargetPosition(target);
         setDirection(target.x < positionRef.current.x ? 'left' : 'right');
         setIsMoving(true);
-        setAnimation('walk');
+        if (Date.now() >= animationLockUntilRef.current) {
+          setAnimation('walk');
+        }
         schedule();
       }, delay);
     };
