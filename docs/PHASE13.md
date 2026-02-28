@@ -25,6 +25,8 @@ Ship a stable, premium Focus/Lucian experience with measurable performance and r
   - `focus_custom_duration_used`
   - `lucian_toggle_changed`
   - `lucian_spell_cast`
+- Blocker E2E erweitert um Focus-Flow:
+  - `tests/e2e/blocker/focus-flow.blocker.spec.mjs`
 
 ## Gate status
 - Gate 1 (13.1 Focus UX Stability): In progress (major fixes shipped, final performance baseline + visual signoff pending)
