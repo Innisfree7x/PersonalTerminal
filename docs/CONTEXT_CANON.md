@@ -1,6 +1,6 @@
 # Context Canon (Single Source of Truth)
 
-Stand: 2026-02-24  
+Stand: 2026-02-28  
 Status: Active
 
 ## Zweck
@@ -8,17 +8,19 @@ Dieses Dokument definiert verbindlich, welche Quellen für aktuelle Entscheidung
 Wenn zwei Dokumente widersprüchlich sind, gilt immer diese Prioritätsliste.
 
 ## Prioritätsreihenfolge (verbindlich)
-1. `docs/PHASE12_MASTERPLAN.md`
-2. `docs/PHASE12_EXECUTION_BLUEPRINT.md`
-3. `docs/PHASE11_TRACK6_IMPLEMENTATION.md`
-4. `docs/RELEASE_CHECKLIST.md`
-5. `docs/GO_LIVE_RUNBOOK.md`
-6. `CLAUDE.md` + `llms.txt` / `llms-full.txt` (nur als Assistenz-Kontext)
-7. Historische Phase-Dokumente (nur Referenz, nicht normativ)
+1. `docs/PHASE13.md` (aktueller Ausfuehrungsplan, Gate-Status)
+2. `docs/PHASE12_MASTERPLAN.md` (strategischer Parent)
+3. `docs/PHASE12_EXECUTION_BLUEPRINT.md` (Execution-Baseline Tracks 3/4/5/6)
+4. `docs/PHASE11_TRACK6_IMPLEMENTATION.md` (Reliability-Basis)
+5. `docs/RELEASE_CHECKLIST.md`
+6. `docs/GO_LIVE_RUNBOOK.md`
+7. `CLAUDE.md` + `llms.txt` / `llms-full.txt` (nur als Assistenz-Kontext)
+8. Historische Phase-Dokumente (nur Referenz, nicht normativ)
 
 ## Aktive Dokumente
-- `docs/PHASE12_MASTERPLAN.md` (aktive Phase-Planung)
-- `docs/PHASE12_EXECUTION_BLUEPRINT.md` (konkrete Umsetzung Tracks 3/4/5/6)
+- `docs/PHASE13.md` (aktive Gate-Ausfuehrung fuer Focus/Lucian/Density)
+- `docs/PHASE12_MASTERPLAN.md` (strategischer Rahmen, Nordstern und KPI-System)
+- `docs/PHASE12_EXECUTION_BLUEPRINT.md` (Baseline fuer laufende Tracks 3/4/5/6)
 - `docs/PHASE11_TRACK6_IMPLEMENTATION.md` (implementierte Reliability-Basis)
 - `docs/AGENT_WORKFLOW.md` (verbindliches 3-Agent Operating Model)
 - `docs/AGENT_TASK_TEMPLATE.md` (standardisiertes Task-Briefing fuer Agents)
@@ -51,6 +53,7 @@ Die folgenden Dokumente sind abgeschlossen oder durch neuere Planung ersetzt:
 ## Regeln für Codex/Claude
 - "Active" Entscheidungen nur aus den aktiven Dokumenten ableiten.
 - Historische Dokumente nur nutzen, wenn konkrete Legacy-Details benötigt werden.
-- Bei Unklarheit: `PHASE12_MASTERPLAN.md` hat Vorrang.
+- Bei Unklarheit in aktueller Ausfuehrung: `PHASE13.md` hat Vorrang.
+- Bei strategischen KPI-/Roadmap-Fragen: `PHASE12_MASTERPLAN.md` hat Vorrang.
 - Nach jedem größeren Planwechsel muss diese Datei aktualisiert werden.
 - KI-Kontextdateien (`CLAUDE.md`, `llms*.txt`) duerfen keine aktive Anweisung enthalten, die diesem Canon widerspricht.

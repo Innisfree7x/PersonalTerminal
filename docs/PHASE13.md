@@ -1,11 +1,33 @@
 # PHASE 13 — Focus + Lucian + Density (Gate-Driven)
 
-Status: Planning only (no execution yet)  
-Date: 2026-02-27  
+Status: Active (execution in progress)  
+Date: 2026-02-28  
 Mode: Multi-agent (Core + UI + QA)
 
 ## Goal
 Ship a stable, premium Focus/Lucian experience with measurable performance and release-safe QA gates.
+
+## Current Snapshot (2026-02-28)
+
+## Delivered so far
+- Focus flicker hardening and calmer background motion in `components/features/focus/FocusScreen.tsx`.
+- Focus Lucian toggle (`Lucian an/aus`) live in `components/features/focus/FocusScreen.tsx`.
+- Custom duration support available in both:
+  - `components/features/focus/FocusScreen.tsx`
+  - `components/features/dashboard/PomodoroTimer.tsx`
+- Lucian sprite/ability baseline improved:
+  - rebuilt sprite sheet (`public/sprites/lucian-sprites.svg`)
+  - frame guard + animation row transition safety in `components/providers/ChampionProvider.tsx`
+- Dashboard study progress ordering by nearest exam date in `components/features/dashboard/StudyProgress.tsx`.
+- Career board compact behavior for larger lists in `components/features/career/CareerBoard.tsx`.
+
+## Gate status
+- Gate 1 (13.1 Focus UX Stability): In progress (major fixes shipped, final performance baseline + visual signoff pending)
+- Gate 2 (13.2 Lucian VFX 2.0): In progress
+- Gate 2a (stability): In progress (flicker/disappear mitigations shipped, regression verification still required)
+- Gate 2b (preset system): Not started
+- Gate 3 (13.3 Dashboard Density & Control): In progress (partially shipped)
+- Gate 4 (13.4 QA + Observability + Release): Not started (blocked by Gate 2 + 3 completion)
 
 ## Execution Model (Sequenced Gates)
 Gate 1 must pass before Gate 2 starts.  
@@ -44,6 +66,9 @@ Support: UI, QA
   - No recurring long-task spikes caused by focus background animation.
   - Stable rendering under normal interaction.
 - `type-check`, `lint`, `vitest` green.
+- Controls include:
+  - custom duration input
+  - Lucian on/off toggle
 
 ### Blockers
 - None (start here first).
@@ -76,6 +101,7 @@ Acceptance Criteria:
 
 ### Blockers
 - Gate 1 must be green.
+- `vfxConfig` contract must be published by Core before UI preset layering.
 
 ---
 
@@ -86,6 +112,7 @@ Support: Core, QA
 ### Scope
 - Career board compact mode for high item counts (e.g. >4 applications).
 - Clarify and refine top command rail only for documented remaining issues.
+- Keep focus/pomodoro controls visually compact without reducing capability.
 
 ### Command Rail Clarification (required before coding)
 - Explicitly list unresolved issue(s), e.g.:
@@ -138,6 +165,7 @@ Support: Core
 - Visual baseline diff approved.
 - CI fully green.
 - No open P0/P1 issues.
+- Final GO/NO-GO written in QA handoff doc.
 
 ### Blockers
 - Gate 2 and Gate 3 completed.
