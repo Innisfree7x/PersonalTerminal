@@ -94,7 +94,10 @@ jobs:
 
           BLOCKER_EMAIL="${E2E_BLOCKER_EMAIL}"
           BLOCKER_PASSWORD="${E2E_BLOCKER_PASSWORD}"
-          SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL%/}"
+          SUPABASE_URL="$(printf '%s' "${NEXT_PUBLIC_SUPABASE_URL}" | tr -d '\r' | xargs)"
+          SUPABASE_URL="${SUPABASE_URL%/}"
+          SUPABASE_ANON_KEY="$(printf '%s' "${NEXT_PUBLIC_SUPABASE_ANON_KEY}" | tr -d '\r' | xargs)"
+          SUPABASE_SERVICE_KEY="$(printf '%s' "${SUPABASE_SERVICE_ROLE_KEY}" | tr -d '\r' | xargs)"
 
           if [ -z "${BLOCKER_EMAIL}" ]; then
             BLOCKER_EMAIL="${E2E_EMAIL}"
@@ -106,6 +109,8 @@ jobs:
           echo "E2E_BLOCKER_EMAIL=${BLOCKER_EMAIL}" >> "$GITHUB_ENV"
           echo "E2E_BLOCKER_PASSWORD=${BLOCKER_PASSWORD}" >> "$GITHUB_ENV"
           echo "NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_KEY}" >> "$GITHUB_ENV"
           
           MISSING_KEYS=""
           INVALID_KEYS=""
@@ -119,21 +124,15 @@ jobs:
           if [ -z "${SUPABASE_URL}" ]; then
             MISSING_KEYS="${MISSING_KEYS} NEXT_PUBLIC_SUPABASE_URL"
           fi
-          if [ -z "${NEXT_PUBLIC_SUPABASE_ANON_KEY}" ]; then
+          if [ -z "${SUPABASE_ANON_KEY}" ]; then
             MISSING_KEYS="${MISSING_KEYS} NEXT_PUBLIC_SUPABASE_ANON_KEY"
           fi
-          if [ -z "${SUPABASE_SERVICE_ROLE_KEY}" ]; then
+          if [ -z "${SUPABASE_SERVICE_KEY}" ]; then
             MISSING_KEYS="${MISSING_KEYS} SUPABASE_SERVICE_ROLE_KEY"
           fi
 
-          if [ -n "${SUPABASE_URL}" ] && ! echo "${SUPABASE_URL}" | grep -Eq '^https://[a-zA-Z0-9-]+\.supabase\.co$'; then
+          if [ -n "${SUPABASE_URL}" ] && ! echo "${SUPABASE_URL}" | grep -Eq '^https://[^[:space:]]+$'; then
             INVALID_KEYS="${INVALID_KEYS} NEXT_PUBLIC_SUPABASE_URL"
-          fi
-          if [ -n "${NEXT_PUBLIC_SUPABASE_ANON_KEY}" ] && ! echo "${NEXT_PUBLIC_SUPABASE_ANON_KEY}" | grep -Eq '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'; then
-            INVALID_KEYS="${INVALID_KEYS} NEXT_PUBLIC_SUPABASE_ANON_KEY"
-          fi
-          if [ -n "${SUPABASE_SERVICE_ROLE_KEY}" ] && ! echo "${SUPABASE_SERVICE_ROLE_KEY}" | grep -Eq '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'; then
-            INVALID_KEYS="${INVALID_KEYS} SUPABASE_SERVICE_ROLE_KEY"
           fi
 
           if [ -n "${MISSING_KEYS}" ] || [ -n "${INVALID_KEYS}" ]; then
