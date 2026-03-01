@@ -92,15 +92,21 @@ jobs:
             exit 0
           fi
 
-          BLOCKER_EMAIL="${E2E_BLOCKER_EMAIL:-${E2E_EMAIL}}"
-          BLOCKER_PASSWORD="${E2E_BLOCKER_PASSWORD:-${E2E_PASSWORD}}"
+          # Trim whitespace/carriage-returns from secrets (common copy-paste issue)
+          trim() { printf '%s' "$1" | tr -d '\r\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'; }
+
+          BLOCKER_EMAIL="$(trim "${E2E_BLOCKER_EMAIL:-${E2E_EMAIL}}")"
+          BLOCKER_PASSWORD="$(trim "${E2E_BLOCKER_PASSWORD:-${E2E_PASSWORD}}")"
+          TRIMMED_URL="$(trim "${NEXT_PUBLIC_SUPABASE_URL}")"
+          TRIMMED_ANON="$(trim "${NEXT_PUBLIC_SUPABASE_ANON_KEY}")"
+          TRIMMED_SERVICE="$(trim "${SUPABASE_SERVICE_ROLE_KEY}")"
 
           MISSING=""
-          [ -z "${BLOCKER_EMAIL}" ]                  && MISSING="${MISSING} E2E_BLOCKER_EMAIL"
-          [ -z "${BLOCKER_PASSWORD}" ]               && MISSING="${MISSING} E2E_BLOCKER_PASSWORD"
-          [ -z "${NEXT_PUBLIC_SUPABASE_URL}" ]        && MISSING="${MISSING} NEXT_PUBLIC_SUPABASE_URL"
-          [ -z "${NEXT_PUBLIC_SUPABASE_ANON_KEY}" ]   && MISSING="${MISSING} NEXT_PUBLIC_SUPABASE_ANON_KEY"
-          [ -z "${SUPABASE_SERVICE_ROLE_KEY}" ]        && MISSING="${MISSING} SUPABASE_SERVICE_ROLE_KEY"
+          [ -z "${BLOCKER_EMAIL}" ]   && MISSING="${MISSING} E2E_BLOCKER_EMAIL"
+          [ -z "${BLOCKER_PASSWORD}" ] && MISSING="${MISSING} E2E_BLOCKER_PASSWORD"
+          [ -z "${TRIMMED_URL}" ]      && MISSING="${MISSING} NEXT_PUBLIC_SUPABASE_URL"
+          [ -z "${TRIMMED_ANON}" ]     && MISSING="${MISSING} NEXT_PUBLIC_SUPABASE_ANON_KEY"
+          [ -z "${TRIMMED_SERVICE}" ]  && MISSING="${MISSING} SUPABASE_SERVICE_ROLE_KEY"
 
           if [ -n "${MISSING}" ]; then
             echo "run_e2e=false" >> "$GITHUB_OUTPUT"
@@ -115,8 +121,17 @@ jobs:
             exit 0
           fi
 
-          echo "E2E_BLOCKER_EMAIL=${BLOCKER_EMAIL}" >> "$GITHUB_ENV"
-          echo "E2E_BLOCKER_PASSWORD=${BLOCKER_PASSWORD}" >> "$GITHUB_ENV"
+          # Debug: print lengths so we can detect corruption without leaking values
+          echo "Secret lengths: URL=${#TRIMMED_URL} ANON=${#TRIMMED_ANON} SERVICE=${#TRIMMED_SERVICE} EMAIL=${#BLOCKER_EMAIL}"
+
+          # Write trimmed values to GITHUB_ENV for subsequent steps
+          {
+            echo "E2E_BLOCKER_EMAIL=${BLOCKER_EMAIL}"
+            echo "E2E_BLOCKER_PASSWORD=${BLOCKER_PASSWORD}"
+            echo "NEXT_PUBLIC_SUPABASE_URL=${TRIMMED_URL}"
+            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${TRIMMED_ANON}"
+            echo "SUPABASE_SERVICE_ROLE_KEY=${TRIMMED_SERVICE}"
+          } >> "$GITHUB_ENV"
 
           echo "All E2E secrets present."
           echo "run_e2e=true" >> "$GITHUB_OUTPUT"
