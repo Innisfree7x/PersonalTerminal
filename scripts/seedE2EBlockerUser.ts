@@ -68,14 +68,13 @@ function normalizeSupabaseUrl(rawUrl: string): string {
 function assertLikelySupabaseKey(
   label: string,
   value: string,
-  options?: { allowPublishable?: boolean; allowSecret?: boolean }
+  options?: { allowSecret?: boolean }
 ): void {
   const trimmed = value.trim().replace(/^['"]|['"]$/g, '');
   const isJwt = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(trimmed);
-  const isPublishable = options?.allowPublishable === true && /^sb_publishable_[A-Za-z0-9_-]+$/.test(trimmed);
   const isSecret = options?.allowSecret === true && /^sb_secret_[A-Za-z0-9_-]+$/.test(trimmed);
 
-  if (!isJwt && !isPublishable && !isSecret) {
+  if (!isJwt && !isSecret) {
     throw new Error(
       `${label} does not look like a valid Supabase key. Verify you copied the full key value.`
     );
@@ -151,12 +150,8 @@ async function main(): Promise<void> {
   const serviceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY').replace(/^['"]|['"]$/g, '');
   const blockerEmail = requireEnv('E2E_BLOCKER_EMAIL');
   const blockerPassword = requireEnv('E2E_BLOCKER_PASSWORD');
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim().replace(/^['"]|['"]$/g, '');
 
   assertLikelySupabaseKey('SUPABASE_SERVICE_ROLE_KEY', serviceRoleKey, { allowSecret: true });
-  if (anonKey) {
-    assertLikelySupabaseKey('NEXT_PUBLIC_SUPABASE_ANON_KEY', anonKey, { allowPublishable: true });
-  }
 
   const admin = createClient(supabaseUrl, serviceRoleKey, {
     auth: {
