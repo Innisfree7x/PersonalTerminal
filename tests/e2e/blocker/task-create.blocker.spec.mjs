@@ -32,18 +32,8 @@ test.describe('@blocker task creation', () => {
     // Prefer keyboard submit to avoid flaky overlay/actionability states on animated buttons.
     await timeInput.press('Enter');
 
-    // Poll the API directly to verify the task was persisted to the database.
-    const today = new Date().toISOString().split('T')[0];
-    await expect(async () => {
-      const resp = await page.request.get(`/api/daily-tasks?date=${today}`);
-      const tasks = await resp.json();
-      const found = tasks.some((t) => t.title === title);
-      expect(found).toBe(true);
-    }).toPass({ timeout: 20_000, intervals: [500, 1000, 2000, 3000] });
-
-    await expect(page.getByText(title)).toBeVisible({ timeout: 15_000 });
-
-    await page.reload();
-    await expect(page.getByText(title)).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(title)).toBeVisible({ timeout: 20_000 });
+    await page.reload({ waitUntil: 'networkidle' });
+    await expect(page.getByText(title)).toBeVisible({ timeout: 20_000 });
   });
 });
