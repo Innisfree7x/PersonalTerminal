@@ -36,6 +36,9 @@ jobs:
       - name: Unit tests
         run: npx vitest run
 
+      - name: Production build
+        run: npm run build
+
   e2e:
     name: E2E Blocker Suite (Authenticated, Serial)
     runs-on: ubuntu-latest

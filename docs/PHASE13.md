@@ -1,14 +1,15 @@
 # PHASE 13 — Focus + Lucian + Density (Gate-Driven)
 
-Status: Release candidate (Core scope complete, Gate 4 blocked by external secrets)  
+Status: Archived execution plan (core scope delivered; stabilization closed on 2026-03-01)  
 Date: 2026-02-28  
 Mode: Multi-agent (Core + UI + QA)
 
 ## Goal
 Ship a stable, premium Focus/Lucian experience with measurable performance and release-safe QA gates.
 
-## Current Snapshot (2026-02-28)
-Core implementation and gate hardening are complete. Remaining blocker is external CI secret validation for authenticated blocker E2E on `main`.
+## Current Snapshot (2026-03-01)
+Core implementation and gate hardening were completed for Phase-13 scope.  
+All release-critical blockers from the follow-up CI/deploy incident chain were resolved on 2026-03-01.
 
 ## Delivered so far
 - Focus flicker hardening and calmer background motion in `components/features/focus/FocusScreen.tsx`.
@@ -40,7 +41,7 @@ Core implementation and gate hardening are complete. Remaining blocker is extern
 - Gate 2a (stability): Completed
 - Gate 2b (preset system): Completed
 - Gate 3 (13.3 Dashboard Density & Control): Completed
-- Gate 4 (13.4 QA + Observability + Release): In progress (external secret validation pending for authenticated blocker E2E on `main`)
+- Gate 4 (13.4 QA + Observability + Release): Completed (blocker E2E and CI quality gates green on `main`)
 
 ## Validation Snapshot (2026-02-28)
 - `npm run type-check` ✅

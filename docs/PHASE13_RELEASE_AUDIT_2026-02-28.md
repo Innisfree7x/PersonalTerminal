@@ -1,6 +1,6 @@
 # PHASE 13 Release Audit (2026-02-28)
 
-Status: NO-GO (release gate blocked by external secret validation)
+Status: Historical snapshot with 2026-03-01 stabilization addendum
 
 ## Scope Audited
 - Focus stability and controls (`/focus`)
@@ -42,18 +42,47 @@ Status: NO-GO (release gate blocked by external secret validation)
   - `22530729678` (`feat(phase13): wire focus/lucian telemetry...`)
   - `22530565008` (`fix(lucian): deterministic transitions...`)
 
-## Remaining External Prerequisite
-- Authenticated blocker E2E in CI is currently dependent on valid secrets.
-- Workflow now intentionally fails on `main` when blocker E2E secrets are missing/invalid.
-- Required secrets:
-  - `E2E_BLOCKER_EMAIL` (fallback: `E2E_EMAIL`)
-  - `E2E_BLOCKER_PASSWORD` (fallback: `E2E_PASSWORD`)
-  - `NEXT_PUBLIC_SUPABASE_URL`
-  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-  - `SUPABASE_SERVICE_ROLE_KEY`
+## Historical External Prerequisite (resolved later)
+- This audit captured a moment where blocker E2E was blocked primarily by secret validation.
+- On 2026-03-01, secret-gate issues were hardened and moved forward.
+- New blocker category after that point: functional E2E failures inside the blocker suite itself.
 
-## Release Decision
+## Release Decision (at 2026-02-28)
 - Code quality gate: PASS
 - Unit/integration gate: PASS
 - Blocker E2E release gate: FAIL (external prerequisite not yet satisfied)
 - Final decision: NO-GO until authenticated blocker E2E executes successfully on `main` with valid secrets
+
+---
+
+## Addendum — 2026-03-01 Stabilization Outcome
+
+### What actually failed in production readiness
+1. Blocker E2E fragility in `/today` task-create flow (selector/visibility race conditions).
+2. Deploy compile failure from missing committed file:
+   - `Module not found: Can't resolve '@/lib/ops/degradation'`
+3. Build integrity was not previously enforced in CI quality job.
+
+### Remediations shipped
+- Blocker E2E hardening + deterministic checks:
+  - `tests/e2e/blocker/task-create.blocker.spec.mjs`
+  - `tests/e2e/blocker/login-today.blocker.spec.mjs`
+  - `tests/e2e/blocker/today-load.blocker.spec.mjs`
+  - `tests/e2e/blocker/focus-flow.blocker.spec.mjs`
+- Stable UI test anchors added:
+  - `app/(dashboard)/today/page.tsx`
+  - `components/features/focus/FocusScreen.tsx`
+  - `components/features/dashboard/FocusTasks.tsx`
+- Missing module committed:
+  - `lib/ops/degradation.ts`
+- Build hardening:
+  - removed runtime dependency on Google font fetch in `app/layout.tsx`
+  - CI now includes mandatory `npm run build`
+
+### Evidence (main branch CI)
+- `22544782430` ✅ (`fix(build): include missing ops degradation module`)
+- `22544675875` ✅ (`fix(build): remove runtime fetch dependency on Google Fonts`)
+- `22544440054` ✅ (`test(e2e): harden blocker selectors...`)
+
+### Updated release posture
+- Phase-13 related release blockers from this incident chain: **RESOLVED**
