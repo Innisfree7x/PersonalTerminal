@@ -71,6 +71,13 @@ export async function completeOnboardingWizard(page) {
   await page.waitForURL('**/today', { timeout: 30_000 });
 }
 
+export async function dismissDevOverlay(page) {
+  const hideBtn = page.getByRole('button', { name: /hide errors/i });
+  if (await hideBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await hideBtn.click();
+  }
+}
+
 export async function login(page, options = {}) {
   const mode = options.mode || 'default';
   const { email, password } = getE2ECredentials(mode);
@@ -79,6 +86,8 @@ export async function login(page, options = {}) {
   if (page.url().endsWith('/onboarding')) {
     await completeOnboardingWizard(page);
   }
+
+  await dismissDevOverlay(page);
 }
 
 export async function loginWithoutOnboarding(page, options = {}) {

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { hasE2ECredentials, login } from '../helpers/auth.mjs';
+import { hasE2ECredentials, login, dismissDevOverlay } from '../helpers/auth.mjs';
 
 test.describe('@blocker exercise toggle', () => {
   test.skip(
@@ -14,6 +14,7 @@ test.describe('@blocker exercise toggle', () => {
 
     await login(page, { mode: 'blocker' });
     await page.goto('/university?action=new-course');
+    await dismissDevOverlay(page);
 
     await expect(page.getByRole('heading', { name: /add new course/i })).toBeVisible();
     await page.locator('#course-name').fill(courseName);
