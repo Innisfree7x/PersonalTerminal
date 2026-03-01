@@ -16,8 +16,8 @@ test.describe('@blocker exercise toggle', () => {
     await page.goto('/university');
     await dismissDevOverlay(page);
 
-    // Wait for initial data loads to finish before interacting
-    await page.waitForLoadState('networkidle');
+    // Wait for the page to be interactive (networkidle is unreliable with React Query background fetches).
+    await page.getByTestId('add-course-button').waitFor({ state: 'visible', timeout: 30_000 });
 
     await page.getByTestId('add-course-button').click({ timeout: 30_000 });
     const dialog = page.getByRole('dialog', { name: /add new course/i });

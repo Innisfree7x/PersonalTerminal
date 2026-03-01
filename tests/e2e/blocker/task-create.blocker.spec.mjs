@@ -70,7 +70,7 @@ test.describe('@blocker task creation', () => {
     };
 
     await expect.poll(hasCreatedTask, { timeout: 20_000 }).toBe(true);
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload();
     await expect.poll(hasCreatedTask, { timeout: 20_000 }).toBe(true);
   });
 });
