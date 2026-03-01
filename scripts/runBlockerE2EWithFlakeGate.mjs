@@ -19,6 +19,7 @@ function collectTestsFromSuites(suites, collected = []) {
           for (const test of spec.tests) {
             collected.push({
               title: spec.title || test.title || 'unknown-test',
+              file: spec.file || suite.file || 'unknown-file',
               results: Array.isArray(test.results) ? test.results : [],
               status: typeof test.status === 'string' ? test.status : 'unknown',
             });
@@ -29,6 +30,48 @@ function collectTestsFromSuites(suites, collected = []) {
     collectTestsFromSuites(suite.suites, collected);
   }
   return collected;
+}
+
+function finalStatusForTest(test) {
+  const statuses = test.results.map((result) => result.status).filter(Boolean);
+  return statuses.length > 0 ? statuses[statuses.length - 1] : test.status || 'unknown';
+}
+
+function extractResultError(result) {
+  if (!result || typeof result !== 'object') return '';
+  if (result.error && typeof result.error.message === 'string') {
+    return result.error.message;
+  }
+  if (Array.isArray(result.errors) && result.errors.length > 0) {
+    const first = result.errors.find((entry) => entry && typeof entry.message === 'string');
+    if (first?.message) return first.message;
+  }
+  return '';
+}
+
+function printFailedTestDetails(tests) {
+  const failedTests = tests.filter((test) => {
+    const finalStatus = finalStatusForTest(test);
+    return !['passed', 'skipped'].includes(finalStatus);
+  });
+
+  if (failedTests.length === 0) return;
+
+  console.error(`[flake-gate] failed_tests=${failedTests.length}`);
+  for (const test of failedTests.slice(0, 10)) {
+    const finalStatus = finalStatusForTest(test);
+    const terminalResult = [...test.results]
+      .reverse()
+      .find((result) => ['failed', 'timedOut', 'interrupted'].includes(result.status))
+      || test.results[test.results.length - 1];
+    const rawMessage = extractResultError(terminalResult);
+    const firstLine = rawMessage
+      ? rawMessage.split('\n').map((line) => line.trim()).find(Boolean) || rawMessage
+      : 'No error message in Playwright JSON report.';
+    console.error(
+      `[flake-gate] failed_test="${test.title}" file="${test.file}" status="${finalStatus}" error="${firstLine}"`
+    );
+  }
 }
 
 function summarizeFlakeMetrics(reportJson) {
@@ -113,6 +156,7 @@ function main() {
   }
 
   const summary = summarizeFlakeMetrics(reportJson);
+  const tests = collectTestsFromSuites(reportJson.suites);
   const flakePct = (summary.flakeRate * 100).toFixed(2);
   const thresholdPct = (threshold * 100).toFixed(2);
   const infraErrors = Array.isArray(reportJson.errors) ? reportJson.errors : [];
@@ -137,6 +181,7 @@ function main() {
   }
 
   if (run.status !== 0) {
+    printFailedTestDetails(tests);
     if (!process.env.CI && summary.total === 0 && summary.failed === 0) {
       console.log('[flake-gate] Playwright returned non-zero with zero executed tests (local mode).');
       process.exit(0);
