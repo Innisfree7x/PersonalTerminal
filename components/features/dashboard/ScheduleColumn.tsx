@@ -133,7 +133,9 @@ export default function ScheduleColumn({
     return () => clearInterval(timer);
   }, []);
 
-  const activeTime = currentTime ?? localTime ?? new Date();
+  const activeTime = useMemo(() => {
+    return currentTime ?? localTime ?? new Date();
+  }, [currentTime, localTime]);
 
   const groupedEvents = useMemo(() => groupEventsByTime(events), [events]);
 
