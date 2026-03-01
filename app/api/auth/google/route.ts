@@ -1,19 +1,20 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { serverEnv } from '@/lib/env';
 import { requireApiAuth } from '@/lib/api/auth';
 
 const OAUTH_STATE_COOKIE = 'google_oauth_state';
+const OAUTH_REDIRECT_URI_COOKIE = 'google_oauth_redirect_uri';
 
 /**
  * GET /api/auth/google - Redirect to Google OAuth consent screen
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
-  // Env vars are already validated by lib/env.ts
-  // No need for manual checks!
-  const { GOOGLE_CLIENT_ID: clientId, GOOGLE_REDIRECT_URI: redirectUri } = serverEnv;
+  // Build redirect URI from the current origin to avoid stale/mismatched env values.
+  const { GOOGLE_CLIENT_ID: clientId } = serverEnv;
+  const redirectUri = new URL('/api/auth/google/callback', request.url).toString();
 
   if (!clientId || !redirectUri) {
     return NextResponse.json(
@@ -39,6 +40,13 @@ export async function GET() {
 
   const response = NextResponse.redirect(authUrl.toString());
   response.cookies.set(OAUTH_STATE_COOKIE, state, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 60 * 10, // 10 minutes
+    path: '/',
+  });
+  response.cookies.set(OAUTH_REDIRECT_URI_COOKIE, redirectUri, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',

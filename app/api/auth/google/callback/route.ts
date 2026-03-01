@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireApiAuth } from '@/lib/api/auth';
 
 const OAUTH_STATE_COOKIE = 'google_oauth_state';
+const OAUTH_REDIRECT_URI_COOKIE = 'google_oauth_redirect_uri';
 
 /**
  * GET /api/auth/google/callback - Handle Google OAuth callback
@@ -41,7 +42,10 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const { GOOGLE_CLIENT_ID: clientId, GOOGLE_CLIENT_SECRET: clientSecret, GOOGLE_REDIRECT_URI: redirectUri } = await import('@/lib/env').then(m => m.serverEnv);
+  const { GOOGLE_CLIENT_ID: clientId, GOOGLE_CLIENT_SECRET: clientSecret } = await import('@/lib/env').then(m => m.serverEnv);
+  const redirectUri =
+    request.cookies.get(OAUTH_REDIRECT_URI_COOKIE)?.value ||
+    new URL('/api/auth/google/callback', request.url).toString();
 
   if (!clientId || !clientSecret || !redirectUri) {
     return NextResponse.redirect(
@@ -88,6 +92,7 @@ export async function GET(request: NextRequest) {
     // Store tokens in httpOnly cookies
     const response = NextResponse.redirect(new URL('/today?success=connected', request.url));
     response.cookies.delete(OAUTH_STATE_COOKIE);
+    response.cookies.delete(OAUTH_REDIRECT_URI_COOKIE);
     
     // Set access token cookie (httpOnly, secure in production)
     response.cookies.set('google_access_token', access_token, {
@@ -125,6 +130,7 @@ export async function GET(request: NextRequest) {
       new URL('/today?error=oauth_callback_error', request.url)
     );
     response.cookies.delete(OAUTH_STATE_COOKIE);
+    response.cookies.delete(OAUTH_REDIRECT_URI_COOKIE);
     return response;
   }
 }
