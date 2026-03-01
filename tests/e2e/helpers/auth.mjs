@@ -72,10 +72,9 @@ export async function completeOnboardingWizard(page) {
 }
 
 export async function dismissDevOverlay(page) {
-  const hideBtn = page.getByRole('button', { name: /hide errors/i });
-  if (await hideBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await hideBtn.click();
-  }
+  await page.evaluate(() => {
+    document.querySelectorAll('nextjs-portal').forEach((el) => el.remove());
+  }).catch(() => {});
 }
 
 export async function login(page, options = {}) {
