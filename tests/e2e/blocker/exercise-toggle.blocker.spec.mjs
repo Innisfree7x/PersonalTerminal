@@ -16,19 +16,30 @@ test.describe('@blocker exercise toggle', () => {
     await page.goto('/university');
     await dismissDevOverlay(page);
 
-    // Wait for initial data loads to finish so React won't re-render and reset the form
+    // Wait for initial data loads to finish before interacting
     await page.waitForLoadState('networkidle');
 
     await page.getByTestId('add-course-button').click({ timeout: 30_000 });
     await expect(page.getByRole('heading', { name: /add new course/i })).toBeVisible({ timeout: 10_000 });
 
-    // Small stabilization wait for the modal animation and useEffect reset to complete
-    await page.waitForTimeout(500);
+    // Fill form with retry — React re-renders can reset uncontrolled form values
+    async function fillAndVerify(selector, value, retries = 3) {
+      for (let i = 0; i < retries; i++) {
+        await page.locator(selector).fill(value);
+        await page.waitForTimeout(300);
+        const actual = await page.locator(selector).inputValue();
+        if (actual === value) return;
+      }
+      throw new Error(`Failed to set ${selector} to "${value}"`);
+    }
 
-    await page.locator('#course-name').fill(courseName);
-    await page.locator('#course-ects').fill('6');
-    await page.locator('#course-num-exercises').fill('3');
-    await page.locator('#course-semester').fill('WS 2025/26');
+    // Wait for modal animation + initial useEffect reset to settle
+    await page.waitForTimeout(1000);
+
+    await fillAndVerify('#course-name', courseName);
+    await fillAndVerify('#course-ects', '6');
+    await fillAndVerify('#course-num-exercises', '3');
+    await fillAndVerify('#course-semester', 'WS 2025/26');
 
     await page.getByTestId('course-modal-submit').click({ force: true });
     await expect(page.getByRole('heading', { name: courseName })).toBeVisible({ timeout: 30_000 });
