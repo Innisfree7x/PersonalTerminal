@@ -7,7 +7,6 @@ import { LayoutGroup, motion } from 'framer-motion';
 import { usePathname, useRouter } from 'next/navigation';
 import type { CourseWithExercises, CreateCourseInput } from '@/lib/schemas/course.schema';
 import {
-  createCourseAction,
   deleteCourseAction,
   fetchCoursesAction,
   updateCourseAction
@@ -45,6 +44,22 @@ async function updateCourse({
   await updateCourseAction(id, data);
 }
 
+async function createCourseViaApi(data: CreateCourseInput): Promise<CourseWithExercises> {
+  const response = await fetch('/api/courses', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    const message = payload?.message || 'Kurs konnte nicht erstellt werden.';
+    throw new Error(message);
+  }
+
+  return response.json() as Promise<CourseWithExercises>;
+}
+
 async function deleteCourse(id: string): Promise<void> {
   await deleteCourseAction(id);
 }
@@ -65,7 +80,7 @@ export default function UniversityPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: createCourseAction,
+    mutationFn: createCourseViaApi,
     onMutate: async (newCourseInput) => {
       await queryClient.cancelQueries({ queryKey: ['courses'] });
       const previousCourses = queryClient.getQueryData<CourseWithExercises[]>(['courses']) || [];

@@ -59,6 +59,24 @@ async function fetchDailyTasks(date: string): Promise<DailyTask[]> {
   return response.json();
 }
 
+async function createDailyTaskViaApi(
+  taskInput: Parameters<typeof createDailyTaskAction>[0]
+): Promise<DailyTask> {
+  const response = await fetch('/api/daily-tasks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(taskInput),
+  });
+
+  if (!response.ok) {
+    const errorPayload = await response.json().catch(() => null);
+    const message = errorPayload?.message || 'Failed to create task';
+    throw new Error(message);
+  }
+
+  return response.json() as Promise<DailyTask>;
+}
+
 export default function FocusTasks() {
   const queryClient = useQueryClient();
   const { play } = useAppSound();
@@ -91,7 +109,7 @@ export default function FocusTasks() {
   });
 
   const createMutation = useMutation({
-    mutationFn: createDailyTaskAction,
+    mutationFn: createDailyTaskViaApi,
     onMutate: async (taskInput) => {
       await queryClient.cancelQueries({ queryKey: ['daily-tasks', today] });
       const previousDailyTasks =
@@ -121,6 +139,9 @@ export default function FocusTasks() {
         if (!context?.tempId) return [createdTask as DailyTask, ...current];
         return current.map((task) => (task.id === context.tempId ? (createdTask as DailyTask) : task));
       });
+      setNewTaskTitle('');
+      setNewTaskTime('');
+      setShowAddInput(false);
       queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
     },
@@ -128,6 +149,7 @@ export default function FocusTasks() {
       if (context?.previousDailyTasks) {
         queryClient.setQueryData(['daily-tasks', today], context.previousDailyTasks);
       }
+      toast.error('Task konnte nicht erstellt werden. Bitte erneut versuchen.');
     },
   });
 
@@ -177,9 +199,6 @@ export default function FocusTasks() {
       date: today,
       ...(newTaskTime.trim() ? { timeEstimate: newTaskTime.trim() } : {}),
     });
-    setNewTaskTitle('');
-    setNewTaskTime('');
-    setShowAddInput(false);
   };
 
   // Build unified task list

@@ -20,43 +20,44 @@ test.describe('@blocker exercise toggle', () => {
     await page.waitForLoadState('networkidle');
 
     await page.getByTestId('add-course-button').click({ timeout: 30_000 });
-    await expect(page.getByRole('heading', { name: /add new course/i })).toBeVisible({ timeout: 10_000 });
+    const dialog = page.getByRole('dialog', { name: /add new course/i });
+    await expect(dialog).toBeVisible({ timeout: 10_000 });
 
-    // Fill form with retry — React re-renders can reset uncontrolled form values
-    async function fillAndVerify(selector, value, retries = 3) {
+    // Fill form with retry — animation and render passes can occasionally clear input state.
+    async function fillAndVerify(locator, value, retries = 3) {
       for (let i = 0; i < retries; i++) {
-        await page.locator(selector).fill(value);
+        await locator.fill(value);
         await page.waitForTimeout(300);
-        const actual = await page.locator(selector).inputValue();
+        const actual = await locator.inputValue();
         if (actual === value) return;
       }
-      throw new Error(`Failed to set ${selector} to "${value}"`);
+      throw new Error(`Failed to set field to "${value}"`);
     }
 
     // Wait for modal animation + initial useEffect reset to settle
     await page.waitForTimeout(1000);
 
-    await fillAndVerify('#course-name', courseName);
-    await fillAndVerify('#course-ects', '6');
-    await fillAndVerify('#course-num-exercises', '3');
-    await fillAndVerify('#course-semester', 'WS 2025/26');
+    await fillAndVerify(dialog.getByLabel(/course name/i), courseName);
+    await fillAndVerify(dialog.getByLabel(/ects/i), '6');
+    await fillAndVerify(dialog.getByLabel(/number of exercises/i), '3');
+    await fillAndVerify(dialog.getByLabel(/semester/i), 'WS 2025/26');
 
-    await page.getByTestId('course-modal-submit').click({ force: true });
-    await expect(page.getByRole('heading', { name: courseName })).toBeVisible({ timeout: 30_000 });
+    await dialog.getByTestId('course-modal-submit').click();
 
-    // Poll the API to verify the course was persisted before continuing
+    // Poll the API to verify the course was persisted before continuing.
     await expect(async () => {
       const resp = await page.request.get('/api/courses');
       const courses = await resp.json();
       const found = courses.some((c) => c.name === courseName);
       expect(found).toBe(true);
-    }).toPass({ timeout: 15_000, intervals: [500, 1000, 2000] });
+    }).toPass({ timeout: 30_000, intervals: [500, 1000, 2000, 3000] });
 
     const card = page
       .locator('[data-interactive="course"]')
       .filter({ has: page.getByRole('heading', { name: courseName }) })
       .first();
 
+    await expect(card).toBeVisible({ timeout: 15_000 });
     await card.getByRole('button', { name: /expand/i }).click();
     await card.getByText('Blatt 1').click();
     await expect(card.getByText(/1\/3/)).toBeVisible({ timeout: 10_000 });

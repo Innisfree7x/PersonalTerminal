@@ -61,7 +61,6 @@ export default function CourseModal({
 
   const handleFormSubmit = (data: CreateCourseInput) => {
     onSubmit(data);
-    reset();
   };
 
   const handleClose = () => {
@@ -92,6 +91,9 @@ export default function CourseModal({
         >
           <motion.div
             {...(layoutId ? { layoutId } : {})}
+            role="dialog"
+            aria-modal="true"
+            aria-label={isEdit ? 'Edit Course' : 'Add New Course'}
             className="bg-gray-900 dark:bg-gray-800 rounded-xl border border-gray-700 dark:border-gray-700 p-6 max-w-2xl w-full mx-4"
             initial={{ scale: 0.95, opacity: 0, y: 12 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
