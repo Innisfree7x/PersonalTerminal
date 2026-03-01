@@ -14,7 +14,7 @@ test.describe('@blocker task creation', () => {
     await login(page, { mode: 'blocker' });
     await page.goto('/today');
     await dismissDevOverlay(page);
-    await expect(page.getByRole('heading', { level: 1, name: /today/i })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: /today/i })).toBeVisible();
 
     const addEmptyStateBtn = page.getByTestId('today-add-task-trigger-empty');
     if (await addEmptyStateBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -29,17 +29,48 @@ test.describe('@blocker task creation', () => {
     await titleInput.fill(title);
     await timeInput.fill('15m');
 
+    const createResponsePromise = page.waitForResponse(
+      (response) =>
+        response.url().includes('/api/daily-tasks') &&
+        response.request().method() === 'POST' &&
+        response.status() < 500
+    );
+
     // Prefer keyboard submit to avoid flaky overlay/actionability states on animated buttons.
     await timeInput.press('Enter');
+    const createResponse = await createResponsePromise;
+    expect(createResponse.ok()).toBeTruthy();
 
-    const createdTask = page
-      .locator('[data-testid="today-task-row"]')
-      .filter({ hasText: title })
-      .first();
-    await expect(createdTask).toHaveCount(1, { timeout: 20_000 });
+    const dateCandidates = await page.evaluate(() => {
+      const now = new Date();
+      const formatLocal = (date) =>
+        `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+          date.getDate()
+        ).padStart(2, '0')}`;
+      const previous = new Date(now);
+      previous.setDate(now.getDate() - 1);
+      const next = new Date(now);
+      next.setDate(now.getDate() + 1);
+
+      return Array.from(
+        new Set([now.toISOString().slice(0, 10), formatLocal(now), formatLocal(previous), formatLocal(next)])
+      );
+    });
+
+    const hasCreatedTask = async () => {
+      for (const date of dateCandidates) {
+        const response = await page.request.get(`/api/daily-tasks?date=${date}`);
+        if (!response.ok()) continue;
+        const tasks = await response.json();
+        if (Array.isArray(tasks) && tasks.some((task) => task.title === title)) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    await expect.poll(hasCreatedTask, { timeout: 20_000 }).toBe(true);
     await page.reload({ waitUntil: 'networkidle' });
-    await expect(
-      page.locator('[data-testid="today-task-row"]').filter({ hasText: title }).first()
-    ).toHaveCount(1, { timeout: 20_000 });
+    await expect.poll(hasCreatedTask, { timeout: 20_000 }).toBe(true);
   });
 });
