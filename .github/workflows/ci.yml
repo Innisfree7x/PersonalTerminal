@@ -124,10 +124,8 @@ jobs:
             INVALID_KEYS="${INVALID_KEYS} SUPABASE_SERVICE_ROLE_KEY"
           fi
 
-          # CI fallback: if anon key is missing or malformed, reuse service key for ephemeral E2E environment.
-          if [ -z "${SUPABASE_ANON_KEY}" ] || ! is_likely_supabase_key "${SUPABASE_ANON_KEY}"; then
-            echo "::warning::NEXT_PUBLIC_SUPABASE_ANON_KEY missing/invalid; using SUPABASE_SERVICE_ROLE_KEY for CI E2E fallback."
-            SUPABASE_ANON_KEY="${SUPABASE_SERVICE_KEY}"
+          if ! is_likely_supabase_key "${SUPABASE_ANON_KEY}"; then
+            INVALID_KEYS="${INVALID_KEYS} NEXT_PUBLIC_SUPABASE_ANON_KEY"
           fi
 
           echo "E2E_BLOCKER_EMAIL=${BLOCKER_EMAIL}" >> "$GITHUB_ENV"
@@ -148,6 +146,9 @@ jobs:
           if [ -z "${SUPABASE_URL}" ]; then
             MISSING_KEYS="${MISSING_KEYS} NEXT_PUBLIC_SUPABASE_URL"
           fi
+          if [ -z "${SUPABASE_ANON_KEY}" ]; then
+            MISSING_KEYS="${MISSING_KEYS} NEXT_PUBLIC_SUPABASE_ANON_KEY"
+          fi
           if [ -z "${SUPABASE_SERVICE_KEY}" ]; then
             MISSING_KEYS="${MISSING_KEYS} SUPABASE_SERVICE_ROLE_KEY"
           fi
@@ -164,6 +165,9 @@ jobs:
             fi
             if [ -n "${INVALID_KEYS}" ]; then
               echo "Invalid format:${INVALID_KEYS}"
+              if echo "${INVALID_KEYS}" | grep -q 'NEXT_PUBLIC_SUPABASE_ANON_KEY'; then
+                echo "Hint: Set NEXT_PUBLIC_SUPABASE_ANON_KEY to the project's anon/publishable key from Supabase Dashboard -> Settings -> API Keys."
+              fi
             fi
 
             if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
