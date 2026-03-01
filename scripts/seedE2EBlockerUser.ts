@@ -34,24 +34,50 @@ function requireEnv(name: string): string {
 }
 
 function normalizeSupabaseUrl(rawUrl: string): string {
-  const normalized = rawUrl.trim().replace(/\/+$/, '');
-  if (!/^https:\/\/[^/]+$/.test(normalized)) {
+  const sanitized = rawUrl.trim().replace(/^['"]|['"]$/g, '');
+  let parsed: URL;
+  try {
+    parsed = new URL(sanitized);
+  } catch {
     throw new Error(
       `Invalid NEXT_PUBLIC_SUPABASE_URL format: "${rawUrl}". Expected format: https://<project-ref>.supabase.co`
     );
   }
-  if (/supabase\.com\/dashboard/i.test(normalized)) {
+
+  if (parsed.protocol !== 'https:') {
+    throw new Error(
+      `Invalid NEXT_PUBLIC_SUPABASE_URL protocol: "${rawUrl}". HTTPS is required.`
+    );
+  }
+
+  if (/supabase\.com$/i.test(parsed.hostname)) {
     throw new Error(
       `NEXT_PUBLIC_SUPABASE_URL points to Supabase dashboard URL: "${rawUrl}". Use project API URL instead.`
     );
   }
-  return normalized;
+
+  if (!/supabase\.co$/i.test(parsed.hostname)) {
+    throw new Error(
+      `Invalid NEXT_PUBLIC_SUPABASE_URL host: "${rawUrl}". Expected a *.supabase.co project URL.`
+    );
+  }
+
+  return `${parsed.protocol}//${parsed.host}`;
 }
 
-function assertLikelySupabaseJwt(label: string, value: string): void {
-  if (!/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(value)) {
+function assertLikelySupabaseKey(
+  label: string,
+  value: string,
+  options?: { allowPublishable?: boolean; allowSecret?: boolean }
+): void {
+  const trimmed = value.trim().replace(/^['"]|['"]$/g, '');
+  const isJwt = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(trimmed);
+  const isPublishable = options?.allowPublishable === true && /^sb_publishable_[A-Za-z0-9_-]+$/.test(trimmed);
+  const isSecret = options?.allowSecret === true && /^sb_secret_[A-Za-z0-9_-]+$/.test(trimmed);
+
+  if (!isJwt && !isPublishable && !isSecret) {
     throw new Error(
-      `${label} does not look like a valid Supabase JWT. Verify you copied the full key value.`
+      `${label} does not look like a valid Supabase key. Verify you copied the full key value.`
     );
   }
 }
@@ -122,14 +148,14 @@ async function main(): Promise<void> {
   loadEnvFromLocalFiles();
 
   const supabaseUrl = normalizeSupabaseUrl(requireEnv('NEXT_PUBLIC_SUPABASE_URL'));
-  const serviceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
+  const serviceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY').replace(/^['"]|['"]$/g, '');
   const blockerEmail = requireEnv('E2E_BLOCKER_EMAIL');
   const blockerPassword = requireEnv('E2E_BLOCKER_PASSWORD');
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim().replace(/^['"]|['"]$/g, '');
 
-  assertLikelySupabaseJwt('SUPABASE_SERVICE_ROLE_KEY', serviceRoleKey);
+  assertLikelySupabaseKey('SUPABASE_SERVICE_ROLE_KEY', serviceRoleKey, { allowSecret: true });
   if (anonKey) {
-    assertLikelySupabaseJwt('NEXT_PUBLIC_SUPABASE_ANON_KEY', anonKey);
+    assertLikelySupabaseKey('NEXT_PUBLIC_SUPABASE_ANON_KEY', anonKey, { allowPublishable: true });
   }
 
   const admin = createClient(supabaseUrl, serviceRoleKey, {
