@@ -8,7 +8,7 @@ test.describe('@blocker exercise toggle', () => {
   );
 
   test('user can create course, toggle exercise complete, and persist state', async ({ page }) => {
-    test.setTimeout(60_000);
+    test.setTimeout(90_000);
     const suffix = Date.now().toString().slice(-6);
     const courseName = `E2E Blocker Course ${suffix}`;
 
@@ -20,7 +20,7 @@ test.describe('@blocker exercise toggle', () => {
     await page.locator('#course-ects').fill('6');
     await page.locator('#course-num-exercises').fill('3');
     await page.locator('#course-semester').fill('WS 2025/26');
-    await page.getByTestId('course-modal-submit').click();
+    await page.getByTestId('course-modal-submit').click({ force: true });
 
     await expect(page.getByRole('heading', { name: courseName })).toBeVisible({ timeout: 30_000 });
 

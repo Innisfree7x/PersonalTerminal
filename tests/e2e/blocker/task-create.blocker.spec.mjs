@@ -15,7 +15,7 @@ test.describe('@blocker task creation', () => {
     await page.goto('/today');
     await expect(page.getByRole('heading', { level: 1, name: /today/i })).toBeVisible();
 
-    await page.getByRole('button', { name: /add task/i }).click();
+    await page.getByRole('button', { name: /^add task$/i }).first().click();
     await expect(page.getByPlaceholder(/task title/i)).toBeVisible();
 
     await page.getByPlaceholder(/task title/i).fill(title);
