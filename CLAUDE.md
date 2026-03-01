@@ -3,6 +3,24 @@
 ## Project Overview
 **INNIS** is a personal productivity system built with Next.js 14 (App Router), TypeScript, Supabase, and TanStack React Query. It combines university tracking, goals, career pipeline management, daily tasks, focus sessions, and Google Calendar integration.
 
+## Quality Standards — Non-Negotiable
+
+Diese Regeln gelten immer. Keine Ausnahmen.
+
+### Visual Work
+- **Kein Blind-Merge bei UI-Änderungen.** Vor jedem Commit mit visuellen Änderungen: selbst im Browser prüfen oder Screenshot anfordern.
+- **Ein Widget nach dem anderen.** Nie mehrere Komponenten gleichzeitig umbauen und dann blind committen. Reihenfolge: bauen → prüfen → committen → nächstes.
+- **Kein UI-Agent ohne Review-Gate.** Wenn ein Agent visuelle Arbeit macht, wird das Ergebnis vor dem Merge explizit gesehen und abgenickt — nie automatisch durchgemerged.
+- **Schlechtes Ergebnis = Rollback, kein Patch.** Wenn etwas schlecht aussieht, wird es reverted und neu gemacht — nicht mit weiteren Patches kaschiert.
+- **Design Docs sind kein Ersatz für Augenkontrolle.** Ein guter Plan garantiert kein gutes Ergebnis. Immer selbst schauen.
+
+### Allgemein
+- **A-Game immer.** Kein "das geht so durch". Wenn etwas nicht gut genug ist, sagen und neu machen — nicht shippen.
+- **Planqualität ≠ Ausführungsqualität.** Beide müssen stimmen. Plan approven heißt nicht Ergebnis approven.
+- **Fehler direkt eingestehen.** Kein Kleinreden. Wenn etwas falsch gelaufen ist: klar benennen, Ursache verstehen, besser machen.
+
+---
+
 ## Canonical Context (must-read)
 - Active planning + execution source: `docs/PHASE13.md`
 - Context priority map: `docs/CONTEXT_CANON.md`
