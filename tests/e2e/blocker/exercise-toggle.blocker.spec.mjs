@@ -13,10 +13,12 @@ test.describe('@blocker exercise toggle', () => {
     const courseName = `E2E Blocker Course ${suffix}`;
 
     await login(page, { mode: 'blocker' });
-    await page.goto('/university?action=new-course');
+    await page.goto('/university');
     await dismissDevOverlay(page);
 
-    await expect(page.getByRole('heading', { name: /add new course/i })).toBeVisible();
+    await page.getByTestId('add-course-button').click({ timeout: 30_000 });
+    await expect(page.getByRole('heading', { name: /add new course/i })).toBeVisible({ timeout: 10_000 });
+
     await page.locator('#course-name').fill(courseName);
     await page.locator('#course-ects').fill('6');
     await page.locator('#course-num-exercises').fill('3');

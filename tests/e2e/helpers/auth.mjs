@@ -72,9 +72,7 @@ export async function completeOnboardingWizard(page) {
 }
 
 export async function dismissDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll('nextjs-portal').forEach((el) => el.remove());
-  }).catch(() => {});
+  await page.addStyleTag({ content: 'nextjs-portal { display: none !important; }' }).catch(() => {});
 }
 
 export async function login(page, options = {}) {
