@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { differenceInDays, startOfDay } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -51,10 +51,12 @@ export default function CourseModal({
     defaultValues: DEFAULT_COURSE_FORM_VALUES,
   });
 
+  const prevIsOpenRef = useRef(false);
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !prevIsOpenRef.current) {
       reset(initialData ?? DEFAULT_COURSE_FORM_VALUES);
     }
+    prevIsOpenRef.current = isOpen;
   }, [isOpen, initialData, reset]);
 
   const handleFormSubmit = (data: CreateCourseInput) => {

@@ -27,15 +27,11 @@ test.describe('@blocker task creation', () => {
     await page.getByPlaceholder(/task title/i).fill(title);
     await page.getByPlaceholder(/time \(e\.g\./i).fill('15m');
 
-    // Click Add and wait for the server action POST to complete
-    const serverActionDone = page.waitForResponse(
-      (resp) => resp.request().method() === 'POST' && resp.status() < 400,
-      { timeout: 15_000 }
-    );
     await page.getByRole('button', { name: /^add$/i }).click();
-    await serverActionDone;
-
     await expect(page.getByText(title)).toBeVisible({ timeout: 15_000 });
+
+    // Wait for the server action to persist the task before reloading
+    await page.waitForLoadState('networkidle');
 
     await page.reload();
     await expect(page.getByText(title)).toBeVisible({ timeout: 15_000 });

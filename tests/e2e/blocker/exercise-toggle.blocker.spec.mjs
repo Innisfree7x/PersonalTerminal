@@ -30,15 +30,11 @@ test.describe('@blocker exercise toggle', () => {
     await page.locator('#course-num-exercises').fill('3');
     await page.locator('#course-semester').fill('WS 2025/26');
 
-    // Click submit and wait for the server action to complete
-    const serverActionDone = page.waitForResponse(
-      (resp) => resp.request().method() === 'POST' && resp.status() < 400,
-      { timeout: 15_000 }
-    );
     await page.getByTestId('course-modal-submit').click({ force: true });
-    await serverActionDone;
-
     await expect(page.getByRole('heading', { name: courseName })).toBeVisible({ timeout: 30_000 });
+
+    // Wait for the course creation server action to persist
+    await page.waitForLoadState('networkidle');
 
     const card = page
       .locator('[data-interactive="course"]')
@@ -46,16 +42,11 @@ test.describe('@blocker exercise toggle', () => {
       .first();
 
     await card.getByRole('button', { name: /expand/i }).click();
-
-    // Toggle exercise and wait for the server action to persist
-    const toggleActionDone = page.waitForResponse(
-      (resp) => resp.request().method() === 'POST' && resp.status() < 400,
-      { timeout: 15_000 }
-    );
     await card.getByText('Blatt 1').click();
-    await toggleActionDone;
-
     await expect(card.getByText(/1\/3/)).toBeVisible({ timeout: 10_000 });
+
+    // Wait for the exercise toggle server action to persist
+    await page.waitForLoadState('networkidle');
 
     await page.reload();
     const cardAfterReload = page
