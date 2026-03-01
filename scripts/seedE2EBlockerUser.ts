@@ -40,45 +40,11 @@ function normalizeSupabaseUrl(rawUrl: string): string {
     parsed = new URL(sanitized);
   } catch {
     throw new Error(
-      `Invalid NEXT_PUBLIC_SUPABASE_URL format: "${rawUrl}". Expected format: https://<project-ref>.supabase.co`
-    );
-  }
-
-  if (parsed.protocol !== 'https:') {
-    throw new Error(
-      `Invalid NEXT_PUBLIC_SUPABASE_URL protocol: "${rawUrl}". HTTPS is required.`
-    );
-  }
-
-  if (/supabase\.com$/i.test(parsed.hostname)) {
-    throw new Error(
-      `NEXT_PUBLIC_SUPABASE_URL points to Supabase dashboard URL: "${rawUrl}". Use project API URL instead.`
-    );
-  }
-
-  if (!/supabase\.co$/i.test(parsed.hostname)) {
-    throw new Error(
-      `Invalid NEXT_PUBLIC_SUPABASE_URL host: "${rawUrl}". Expected a *.supabase.co project URL.`
+      `Invalid NEXT_PUBLIC_SUPABASE_URL format: "${rawUrl}". Expected a valid URL.`
     );
   }
 
   return `${parsed.protocol}//${parsed.host}`;
-}
-
-function assertLikelySupabaseKey(
-  label: string,
-  value: string,
-  options?: { allowSecret?: boolean }
-): void {
-  const trimmed = value.trim().replace(/^['"]|['"]$/g, '');
-  const isJwt = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(trimmed);
-  const isSecret = options?.allowSecret === true && /^sb_secret_[A-Za-z0-9_-]+$/.test(trimmed);
-
-  if (!isJwt && !isSecret) {
-    throw new Error(
-      `${label} does not look like a valid Supabase key. Verify you copied the full key value.`
-    );
-  }
 }
 
 async function findUserByEmail(
@@ -147,11 +113,9 @@ async function main(): Promise<void> {
   loadEnvFromLocalFiles();
 
   const supabaseUrl = normalizeSupabaseUrl(requireEnv('NEXT_PUBLIC_SUPABASE_URL'));
-  const serviceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY').replace(/^['"]|['"]$/g, '');
+  const serviceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY').trim().replace(/^['"]|['"]$/g, '');
   const blockerEmail = requireEnv('E2E_BLOCKER_EMAIL');
   const blockerPassword = requireEnv('E2E_BLOCKER_PASSWORD');
-
-  assertLikelySupabaseKey('SUPABASE_SERVICE_ROLE_KEY', serviceRoleKey, { allowSecret: true });
 
   const admin = createClient(supabaseUrl, serviceRoleKey, {
     auth: {

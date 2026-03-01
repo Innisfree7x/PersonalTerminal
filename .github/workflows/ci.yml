@@ -87,104 +87,39 @@ jobs:
       - name: Gate E2E by secrets
         id: gate
         run: |
-          is_likely_supabase_key() {
-            local key="$1"
-            if echo "${key}" | grep -Eq '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'; then
-              return 0
-            fi
-            if echo "${key}" | grep -Eq '^sb_publishable_[A-Za-z0-9_-]+$'; then
-              return 0
-            fi
-            if echo "${key}" | grep -Eq '^sb_secret_[A-Za-z0-9_-]+$'; then
-              return 0
-            fi
-            return 1
-          }
-
           if [ "${{ steps.scope.outputs.run_scope }}" != "true" ]; then
             echo "run_e2e=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          BLOCKER_EMAIL="${E2E_BLOCKER_EMAIL}"
-          BLOCKER_PASSWORD="${E2E_BLOCKER_PASSWORD}"
-          SUPABASE_URL="$(printf '%s' "${NEXT_PUBLIC_SUPABASE_URL}" | tr -d '\r' | xargs)"
-          SUPABASE_URL="${SUPABASE_URL%/}"
-          SUPABASE_ANON_KEY="$(printf '%s' "${NEXT_PUBLIC_SUPABASE_ANON_KEY}" | tr -d '\r' | xargs)"
-          SUPABASE_SERVICE_KEY="$(printf '%s' "${SUPABASE_SERVICE_ROLE_KEY}" | tr -d '\r' | xargs)"
+          BLOCKER_EMAIL="${E2E_BLOCKER_EMAIL:-${E2E_EMAIL}}"
+          BLOCKER_PASSWORD="${E2E_BLOCKER_PASSWORD:-${E2E_PASSWORD}}"
 
-          if [ -z "${BLOCKER_EMAIL}" ]; then
-            BLOCKER_EMAIL="${E2E_EMAIL}"
-          fi
-          if [ -z "${BLOCKER_PASSWORD}" ]; then
-            BLOCKER_PASSWORD="${E2E_PASSWORD}"
-          fi
+          MISSING=""
+          [ -z "${BLOCKER_EMAIL}" ]                  && MISSING="${MISSING} E2E_BLOCKER_EMAIL"
+          [ -z "${BLOCKER_PASSWORD}" ]               && MISSING="${MISSING} E2E_BLOCKER_PASSWORD"
+          [ -z "${NEXT_PUBLIC_SUPABASE_URL}" ]        && MISSING="${MISSING} NEXT_PUBLIC_SUPABASE_URL"
+          [ -z "${NEXT_PUBLIC_SUPABASE_ANON_KEY}" ]   && MISSING="${MISSING} NEXT_PUBLIC_SUPABASE_ANON_KEY"
+          [ -z "${SUPABASE_SERVICE_ROLE_KEY}" ]        && MISSING="${MISSING} SUPABASE_SERVICE_ROLE_KEY"
 
-          if ! is_likely_supabase_key "${SUPABASE_SERVICE_KEY}"; then
-            INVALID_KEYS="${INVALID_KEYS} SUPABASE_SERVICE_ROLE_KEY"
-          fi
+          if [ -n "${MISSING}" ]; then
+            echo "run_e2e=false" >> "$GITHUB_OUTPUT"
+            echo "E2E secrets not configured:${MISSING}"
 
-          if ! is_likely_supabase_key "${SUPABASE_ANON_KEY}"; then
-            INVALID_KEYS="${INVALID_KEYS} NEXT_PUBLIC_SUPABASE_ANON_KEY"
+            if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+              echo "::error title=Blocker E2E Gate::Missing E2E secrets on main:${MISSING}"
+              exit 1
+            fi
+
+            echo "Skipping authenticated E2E on non-main branch."
+            exit 0
           fi
 
           echo "E2E_BLOCKER_EMAIL=${BLOCKER_EMAIL}" >> "$GITHUB_ENV"
           echo "E2E_BLOCKER_PASSWORD=${BLOCKER_PASSWORD}" >> "$GITHUB_ENV"
-          echo "NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}" >> "$GITHUB_ENV"
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}" >> "$GITHUB_ENV"
-          echo "SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_KEY}" >> "$GITHUB_ENV"
-          
-          MISSING_KEYS=""
-          INVALID_KEYS="${INVALID_KEYS:-}"
 
-          if [ -z "${BLOCKER_EMAIL}" ]; then
-            MISSING_KEYS="${MISSING_KEYS} E2E_BLOCKER_EMAIL/E2E_EMAIL"
-          fi
-          if [ -z "${BLOCKER_PASSWORD}" ]; then
-            MISSING_KEYS="${MISSING_KEYS} E2E_BLOCKER_PASSWORD/E2E_PASSWORD"
-          fi
-          if [ -z "${SUPABASE_URL}" ]; then
-            MISSING_KEYS="${MISSING_KEYS} NEXT_PUBLIC_SUPABASE_URL"
-          fi
-          if [ -z "${SUPABASE_ANON_KEY}" ]; then
-            MISSING_KEYS="${MISSING_KEYS} NEXT_PUBLIC_SUPABASE_ANON_KEY"
-          fi
-          if [ -z "${SUPABASE_SERVICE_KEY}" ]; then
-            MISSING_KEYS="${MISSING_KEYS} SUPABASE_SERVICE_ROLE_KEY"
-          fi
-
-          if [ -n "${SUPABASE_URL}" ] && ! echo "${SUPABASE_URL}" | grep -Eq '^https://[^[:space:]]+$'; then
-            INVALID_KEYS="${INVALID_KEYS} NEXT_PUBLIC_SUPABASE_URL"
-          fi
-
-          if [ -n "${MISSING_KEYS}" ] || [ -n "${INVALID_KEYS}" ]; then
-            echo "run_e2e=false" >> "$GITHUB_OUTPUT"
-            echo "Authenticated blocker E2E gating prerequisites not met."
-            if [ -n "${MISSING_KEYS}" ]; then
-              echo "Missing:${MISSING_KEYS}"
-            fi
-            if [ -n "${INVALID_KEYS}" ]; then
-              echo "Invalid format:${INVALID_KEYS}"
-              if echo "${INVALID_KEYS}" | grep -q 'NEXT_PUBLIC_SUPABASE_ANON_KEY'; then
-                echo "Hint: Set NEXT_PUBLIC_SUPABASE_ANON_KEY to the project's anon/publishable key from Supabase Dashboard -> Settings -> API Keys."
-              fi
-            fi
-
-            if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
-              echo "::error title=Blocker E2E Gate::Missing or invalid E2E/Supabase secrets on main."
-              if [ -n "${MISSING_KEYS}" ]; then
-                echo "::error::Missing:${MISSING_KEYS}"
-              fi
-              if [ -n "${INVALID_KEYS}" ]; then
-                echo "::error::Invalid format:${INVALID_KEYS}"
-              fi
-              exit 1
-            fi
-
-            echo "Skipping authenticated E2E run on non-main branch."
-          else
-            echo "run_e2e=true" >> "$GITHUB_OUTPUT"
-          fi
+          echo "All E2E secrets present."
+          echo "run_e2e=true" >> "$GITHUB_OUTPUT"
 
       - name: Setup Node
         if: steps.gate.outputs.run_e2e == 'true'
