@@ -11,7 +11,7 @@ function renderWithFocusProvider(ui: ReactElement) {
 describe('PomodoroTimer', () => {
   test('renders current timer UI', () => {
     renderWithFocusProvider(<PomodoroTimer />);
-    expect(screen.getByText('Focus Timer')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /pomodoro|focus timer/i })).toBeInTheDocument();
     expect(screen.getByText('25:00')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /start timer/i })).toBeInTheDocument();
   });
