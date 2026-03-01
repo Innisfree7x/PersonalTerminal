@@ -217,45 +217,33 @@ export default function TodayPage() {
         }}
       />
 
-      {/* Bento grid: mobile 1-col, iPad 8-col, desktop 12-col */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-8 md:gap-3 lg:grid-cols-12 lg:gap-4">
-        {/* FocusTasks: dominant primary area */}
+      {/* MAIN 3-COLUMN GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* LEFT - Tasks (with homework integration) */}
         <motion.div
-          initial={{ opacity: 0, x: -12 }}
+          initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.18 }}
-          className="order-1 md:col-span-5 lg:col-span-5 lg:row-span-2 lg:min-h-[420px] lg:max-h-[640px]"
+          transition={{ duration: 0.12 }}
+          className="space-y-6"
         >
           <ErrorBoundary fallbackTitle="Tasks Error">
             <FocusTasks />
+            <div className="mt-6">
+              <UpcomingDeadlines
+                goals={nextTasksData?.goals || []}
+                interviews={nextTasksData?.interviews || []}
+                exams={studyProgress}
+              />
+            </div>
           </ErrorBoundary>
         </motion.div>
 
-        {/* Right compact stack on iPad; top-right stack on desktop */}
+        {/* MIDDLE - Schedule */}
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.18 }}
-          className="order-2 md:col-span-3 lg:order-3 lg:col-span-3 space-y-3"
-        >
-          <div className="max-h-[240px] overflow-y-auto pr-1">
-            <ErrorBoundary fallbackTitle="Timer Error">
-              <PomodoroTimer />
-            </ErrorBoundary>
-          </div>
-          <div className="max-h-[220px] overflow-y-auto pr-1">
-            <ErrorBoundary fallbackTitle="Study Progress Error">
-              <StudyProgress courses={studyProgress} />
-            </ErrorBoundary>
-          </div>
-        </motion.div>
-
-        {/* Schedule: center column desktop, full width on iPad */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.18 }}
-          className="order-3 md:col-span-8 lg:order-2 lg:col-span-4 lg:row-span-2 lg:min-h-[420px] lg:max-h-[640px] overflow-y-auto pr-1"
+          transition={{ duration: 0.12 }}
+          className="space-y-6"
         >
           <ErrorBoundary fallbackTitle="Schedule Error">
             <ScheduleColumn
@@ -269,52 +257,29 @@ export default function TodayPage() {
               isDisconnecting={disconnectMutation.isPending}
             />
           </ErrorBoundary>
-        </motion.div>
 
-        {/* Bottom strip: deadlines */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.18 }}
-          className="order-4 md:col-span-4 lg:col-span-5 max-h-[220px] overflow-y-auto pr-1"
-        >
-          <ErrorBoundary fallbackTitle="Deadlines Error">
-            <UpcomingDeadlines
-              goals={nextTasksData?.goals || []}
-              interviews={nextTasksData?.interviews || []}
-              exams={studyProgress}
-            />
+          {/* Pomodoro below schedule */}
+          <ErrorBoundary fallbackTitle="Timer Error">
+            <PomodoroTimer />
           </ErrorBoundary>
         </motion.div>
 
-        {/* Week + QuickActions stacked on iPad */}
+        {/* RIGHT - Widgets */}
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.18 }}
-          className="order-5 md:col-span-4 lg:col-span-4 space-y-3"
-        >
-          <div className="max-h-[220px] overflow-y-auto pr-1">
-            <ErrorBoundary fallbackTitle="Week Overview Error">
-              <WeekOverview />
-            </ErrorBoundary>
-          </div>
-          <div className="lg:hidden max-h-[180px] overflow-hidden">
-            <ErrorBoundary fallbackTitle="Quick Actions Error">
-              <QuickActionsWidget />
-            </ErrorBoundary>
-          </div>
-        </motion.div>
-
-        {/* Desktop-only compact quick actions secondary zone */}
-        <motion.div
-          initial={{ opacity: 0, x: 12 }}
+          initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.18 }}
-          className="order-6 hidden lg:block lg:col-span-3 max-h-[180px] overflow-hidden"
+          transition={{ duration: 0.12 }}
+          className="space-y-6"
         >
-          <ErrorBoundary fallbackTitle="Quick Actions Error">
+          <ErrorBoundary fallbackTitle="Widgets Error">
+            {/* Quick Actions */}
             <QuickActionsWidget />
+
+            {/* Study Progress */}
+            <StudyProgress courses={studyProgress} />
+
+            {/* Week Overview */}
+            <WeekOverview />
           </ErrorBoundary>
         </motion.div>
       </div>

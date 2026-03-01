@@ -316,7 +316,6 @@ export default function FocusTasks() {
     onEnter: handleCheck,
     onSpace: handleCheck,
   });
-  const totalTasks = sortedTasks.length + completedTasks.length;
 
   useEffect(() => {
     const executePing = async (action: PingAction) => {
@@ -384,26 +383,21 @@ export default function FocusTasks() {
       data-item-title={task.title}
       data-list-nav-id={task.id}
       data-focused={focusedId === task.id ? 'true' : 'false'}
-      initial={{ opacity: 0, y: 6 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.98, x: -8 }}
-      transition={{ delay: index * 0.02, duration: 0.2 }}
-      layout
+      exit={{ opacity: 0, x: -20 }}
+      transition={{ delay: index * 0.03 }}
       className="group relative"
       onMouseEnter={() => setFocusedId(task.id)}
     >
+      {focusedId === task.id && (
+        <div className="absolute left-1 top-1/2 -translate-y-1/2 text-primary/80 text-xs font-mono">▶</div>
+      )}
       <div
-        className={`relative flex items-start gap-3 rounded-lg border px-3 py-2.5 transition-all ${
-          focusedId === task.id
-            ? 'border-red-400/60 bg-red-500/[0.08] ring-1 ring-red-400/30'
-            : 'border-border/80 bg-surface/70 hover:border-red-400/40'
+        className={`flex items-start gap-3 p-3 rounded-lg bg-surface border transition-all ${
+          focusedId === task.id ? 'border-primary/70 ring-1 ring-primary/30' : 'border-border hover:border-primary/50'
         }`}
       >
-        <div
-          className={`absolute left-0 top-2 bottom-2 w-[2px] rounded-full ${
-            task.urgency === 'urgent' ? 'bg-red-300/90' : 'bg-red-400/45'
-          }`}
-        />
         <Checkbox
           checked={hiddenIds.has(task.id)}
           onCheckedChange={() => handleCheck(task)}
@@ -449,87 +443,73 @@ export default function FocusTasks() {
   );
 
   return (
-    <div className="card-surface relative flex h-full min-h-[360px] lg:min-h-[420px] lg:max-h-[640px] flex-col overflow-hidden rounded-xl border border-red-400/20 bg-gradient-to-b from-red-500/[0.04] via-surface/60 to-surface/40 p-4 sm:p-5">
-      <div className="pointer-events-none absolute left-0 top-0 h-full w-[2px] bg-red-400/40" />
-
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div>
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-text-primary">
-            <BookOpen className="h-4 w-4 text-red-300" />
-            Focus Tasks
-          </h2>
-          <p className="mt-1 text-xs text-text-tertiary">Prioritized for today</p>
-        </div>
-        <div className="text-right">
-          <p className="text-4xl font-black tabular-nums leading-none text-red-300">
-            {sortedTasks.length}
-          </p>
-          <p className="mt-1 text-[11px] text-text-tertiary">
-            open {totalTasks > 0 ? `/ ${totalTasks}` : ''}
-          </p>
-        </div>
-      </div>
-
-      <div className="mb-3 flex items-center justify-between border-b border-border/70 pb-2">
-        <span className="text-xs text-text-tertiary">
-          {completedTasks.length} erledigt
-        </span>
-        {sortedTasks.length > 0 && (
+    <div className="card-surface p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+          <BookOpen className="w-5 h-5 text-primary" />
+          Today
+        </h2>
+        <div className="flex items-center gap-2">
+          {completedTasks.length > 0 && (
+            <span className="text-xs text-text-tertiary">
+              {completedTasks.length} done
+            </span>
+          )}
           <Badge variant="primary" size="sm">
             {sortedTasks.length}
           </Badge>
-        )}
+        </div>
       </div>
 
-      <div className="min-h-0 flex-1">
-        <AnimatePresence mode="popLayout">
-          {sortedTasks.length === 0 ? (
-            completedTasks.length === 0 ? (
-              <motion.div
-                key="empty-new"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="flex h-full flex-col items-center justify-center gap-3 py-8 text-center"
+      <AnimatePresence mode="popLayout">
+        {sortedTasks.length === 0 ? (
+          completedTasks.length === 0 ? (
+            // Truly empty — new user or no tasks added yet
+            <motion.div
+              key="empty-new"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center text-center py-10 gap-3"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Plus className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-text-primary mb-1">Noch keine Aufgaben heute</p>
+                <p className="text-xs text-text-tertiary leading-relaxed max-w-[220px]">
+                  Füge deine erste Aufgabe hinzu und starte produktiv in den Tag.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowAddInput(true)}
+                className="px-4 py-2 text-xs font-medium bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-red-400/25 bg-red-500/10">
-                  <Plus className="h-5 w-5 text-red-300" />
-                </div>
-                <div>
-                  <p className="mb-1 text-sm font-medium text-text-primary">Noch keine Aufgaben heute</p>
-                  <p className="max-w-[220px] text-xs leading-relaxed text-text-tertiary">
-                    Füge deine erste Aufgabe hinzu und starte produktiv in den Tag.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowAddInput(true)}
-                  className="rounded-lg bg-red-400/85 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-red-400"
-                >
-                  + Aufgabe hinzufügen
-                </button>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="empty-done"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="py-8 text-center"
-              >
-                <div className="mb-2 text-3xl">🎉</div>
-                <p className="text-sm text-text-tertiary">All caught up!</p>
-              </motion.div>
-            )
+                + Aufgabe hinzufügen
+              </button>
+            </motion.div>
           ) : (
-            <div className="h-full space-y-2 overflow-y-auto pr-1">
-              {sortedTasks.map((task, index) => renderTaskRow(task, index))}
-            </div>
-          )}
-        </AnimatePresence>
-      </div>
+            // All tasks completed
+            <motion.div
+              key="empty-done"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-center py-8"
+            >
+              <div className="text-3xl mb-2">🎉</div>
+              <p className="text-sm text-text-tertiary">All caught up!</p>
+            </motion.div>
+          )
+        ) : (
+          <div className="space-y-2">
+            {sortedTasks.map((task, index) => renderTaskRow(task, index))}
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Add Task */}
-      <div className="mt-3 border-t border-border/70 pt-3">
+      <div className="mt-4 pt-4 border-t border-border">
         <AnimatePresence mode="wait">
           {showAddInput ? (
             <motion.div
@@ -564,7 +544,7 @@ export default function FocusTasks() {
               <div className="flex gap-2">
                 <button
                   onClick={handleAddTask}
-                  className="flex-1 rounded-lg bg-red-400/85 px-3 py-2 text-sm text-white transition-colors hover:bg-red-400"
+                  className="flex-1 px-3 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
                 >
                   Add
                 </button>

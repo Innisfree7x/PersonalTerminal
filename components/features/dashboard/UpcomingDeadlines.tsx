@@ -88,33 +88,28 @@ export default function UpcomingDeadlines({ goals, interviews, exams }: Upcoming
 
   const getColor = (type: Deadline['type']) => {
     switch (type) {
-      case 'exam': return 'text-amber-300';
-      case 'goal': return 'text-red-300';
-      case 'interview': return 'text-sky-300';
+      case 'exam': return 'text-university-accent';
+      case 'goal': return 'text-goals-accent';
+      case 'interview': return 'text-career-accent';
     }
   };
 
   const getBgColor = (type: Deadline['type']) => {
     switch (type) {
-      case 'exam': return 'bg-amber-400/15';
-      case 'goal': return 'bg-red-400/15';
-      case 'interview': return 'bg-sky-400/15';
+      case 'exam': return 'bg-university-accent/10';
+      case 'goal': return 'bg-goals-accent/10';
+      case 'interview': return 'bg-career-accent/10';
     }
   };
 
   return (
-    <div className="flex h-full flex-col rounded-xl bg-surface/35 p-4 backdrop-blur-sm">
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 text-orange-300" />
-          <h3 className="text-sm font-semibold text-text-primary">Upcoming</h3>
-        </div>
-        <p className="text-4xl font-black tabular-nums leading-none text-orange-300">
-          {deadlines.length}
-        </p>
+    <div className="card-surface rounded-xl p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <AlertCircle className="w-5 h-5 text-warning" />
+        <h3 className="text-base font-semibold text-text-primary">Upcoming</h3>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+      <div className="space-y-2">
         {deadlines.slice(0, 6).map((deadline, index) => {
           const Icon = getIcon(deadline.type);
           const isUrgent = deadline.daysUntil <= 3;
@@ -122,13 +117,13 @@ export default function UpcomingDeadlines({ goals, interviews, exams }: Upcoming
           return (
             <motion.div
               key={deadline.id}
-              initial={{ opacity: 0, x: 8 }}
+              initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.04, duration: 0.2 }}
-              className={`flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors ${
+              transition={{ delay: index * 0.05 }}
+              className={`flex items-center gap-3 p-2.5 rounded-lg border transition-all ${
                 isUrgent
-                  ? 'bg-red-500/[0.08]'
-                  : 'bg-surface/55'
+                  ? 'border-error/30 bg-error/5'
+                  : 'border-border bg-surface-hover/50'
               }`}
             >
               <div className={`p-1.5 rounded-md ${getBgColor(deadline.type)}`}>
@@ -150,7 +145,7 @@ export default function UpcomingDeadlines({ goals, interviews, exams }: Upcoming
                     {deadline.daysUntil === 0 ? 'Today' : `${deadline.daysUntil}d`}
                   </Badge>
                 ) : (
-                  <span className="text-xs font-mono text-text-tertiary/90">
+                  <span className="text-xs font-mono text-text-tertiary">
                     {format(deadline.date, 'MMM d')}
                   </span>
                 )}

@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { FileText, Target, GraduationCap, Briefcase } from 'lucide-react';
+import { Plus, FileText, Target, GraduationCap, Briefcase, Calendar } from 'lucide-react';
 import { Skeleton } from '@/components/ui';
 import { memo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 interface QuickAction {
   /** Icon component to display */
   icon: React.ElementType;
-  /** Accessible label text */
+  /** Button label text */
   label: string;
   /** Text color class */
   color: string;
@@ -49,10 +49,14 @@ const QuickActionsWidget = memo(function QuickActionsWidget({ isLoading = false 
   // Loading state - conditional RENDERING after all hooks!
   if (isLoading) {
     return (
-      <div className="rounded-xl bg-surface/25 p-3 backdrop-blur-sm">
-        <div className="grid grid-cols-4 gap-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-10 rounded-lg" />
+      <div className="card-surface rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Plus className="w-5 h-5 text-primary" />
+          <h3 className="text-base font-semibold text-text-primary">Quick Actions</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-lg" />
           ))}
         </div>
       </div>
@@ -63,52 +67,64 @@ const QuickActionsWidget = memo(function QuickActionsWidget({ isLoading = false 
     {
       icon: FileText,
       label: 'Add Task',
-      color: 'text-red-300',
-      bgColor: 'bg-red-500/10 hover:bg-red-500/20',
+      color: 'text-primary',
+      bgColor: 'bg-primary/10 hover:bg-primary/20',
       onClick: () => handleAction('/today'), // Navigate to Today page
     },
     {
       icon: Target,
       label: 'New Goal',
-      color: 'text-orange-300',
-      bgColor: 'bg-orange-500/10 hover:bg-orange-500/20',
+      color: 'text-goals-accent',
+      bgColor: 'bg-goals-accent/10 hover:bg-goals-accent/20',
       onClick: () => handleAction('/goals'), // Navigate to Goals page
     },
     {
       icon: Briefcase,
       label: 'Job App',
-      color: 'text-sky-300',
-      bgColor: 'bg-sky-500/10 hover:bg-sky-500/20',
+      color: 'text-career-accent',
+      bgColor: 'bg-career-accent/10 hover:bg-career-accent/20',
       onClick: () => handleAction('/career'), // Navigate to Career page
     },
     {
       icon: GraduationCap,
       label: 'Course',
-      color: 'text-amber-300',
-      bgColor: 'bg-amber-500/10 hover:bg-amber-500/20',
+      color: 'text-university-accent',
+      bgColor: 'bg-university-accent/10 hover:bg-university-accent/20',
       onClick: () => handleAction('/university'), // Navigate to University page
+    },
+    {
+      icon: Calendar,
+      label: 'Event',
+      color: 'text-calendar-accent',
+      bgColor: 'bg-calendar-accent/10 hover:bg-calendar-accent/20',
+      onClick: () => handleAction('/calendar'), // Navigate to Calendar page
     },
   ];
 
   return (
-    <div className="rounded-xl bg-surface/25 p-3 backdrop-blur-sm">
-      <div className="grid grid-cols-4 gap-2">
+    <div className="card-surface rounded-xl p-4">
+      <div className="flex items-center gap-2 mb-4">
+        <Plus className="w-5 h-5 text-primary" />
+        <h3 className="text-base font-semibold text-text-primary">Quick Actions</h3>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
         {actions.map((action, index) => {
           const Icon = action.icon;
           return (
             <motion.button
               key={index}
               onClick={action.onClick}
-              className={`flex h-10 items-center justify-center rounded-lg ${action.bgColor} transition-colors`}
-              whileHover={{ scale: 1.03, y: -1 }}
+              className={`flex flex-col items-center gap-2 p-3 rounded-lg border border-border ${action.bgColor} transition-all`}
+              whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.04, duration: 0.16 }}
-              aria-label={action.label}
-              title={action.label}
+              transition={{ delay: index * 0.05 }}
+              aria-label={`${action.label} - Opens dialog to create new ${action.label.toLowerCase()}`}
             >
-              <Icon className={`h-4 w-4 ${action.color}`} />
+              <Icon className={`w-5 h-5 ${action.color}`} />
+              <span className="text-xs font-medium text-text-secondary">{action.label}</span>
             </motion.button>
           );
         })}

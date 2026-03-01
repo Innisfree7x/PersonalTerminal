@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Play, Pause, RotateCcw, Coffee } from 'lucide-react';
 import { memo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Skeleton } from '@/components/ui';
+import { SkeletonCircle, Skeleton } from '@/components/ui';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import { trackAppEvent } from '@/lib/analytics/client';
 
@@ -89,23 +89,24 @@ const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: Pomodor
 
   if (isLoading) {
     return (
-      <div className="card-surface rounded-xl border border-orange-400/20 bg-orange-500/[0.04] p-4">
-        <div className="mb-4 flex items-center justify-between">
+      <div className="card-surface rounded-xl p-4">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Coffee className="h-4 w-4 text-orange-300" />
-            <h3 className="text-sm font-semibold text-text-primary">Focus Timer</h3>
+            <Coffee className="w-5 h-5 text-warning" />
+            <h3 className="text-base font-semibold text-text-primary">Pomodoro</h3>
           </div>
           <Skeleton className="h-6 w-16 rounded-md" />
         </div>
-        <div className="mb-3">
-          <Skeleton className="h-10 w-36 rounded-md" />
+        <div className="flex flex-col items-center gap-4 mb-4">
+          <SkeletonCircle size={128} />
         </div>
-        <div className="mb-4">
-          <Skeleton className="h-2 w-full rounded-full" />
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <Skeleton className="w-12 h-12 rounded-full" />
+          <Skeleton className="w-12 h-12 rounded-full" />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center gap-1 pb-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-7 flex-1 rounded-md" />
+            <Skeleton key={i} className="w-8 h-8 rounded-full" />
           ))}
         </div>
       </div>
@@ -113,13 +114,13 @@ const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: Pomodor
   }
 
   return (
-    <div className="card-surface rounded-xl border border-orange-400/20 bg-gradient-to-b from-orange-500/[0.05] via-surface/60 to-surface/40 p-3 sm:p-4">
-      <div className="mb-2 flex items-center justify-between">
+    <div className="card-surface rounded-xl p-4">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Coffee className="h-4 w-4 text-orange-300" />
-          <h3 className="text-sm font-semibold text-text-primary">Focus Timer</h3>
+          <Coffee className="w-5 h-5 text-warning" />
+          <h3 className="text-base font-semibold text-text-primary">Pomodoro</h3>
         </div>
-        <span className="rounded-md border border-orange-400/20 bg-orange-500/[0.08] px-2 py-0.5 text-[11px] text-orange-200">
+        <span className="text-xs px-2 py-1 rounded-md bg-surface-hover text-text-secondary">
           {isBreak ? '☕ Break' : '🍅 Focus'}
         </span>
       </div>
@@ -127,14 +128,14 @@ const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: Pomodor
       {/* Duration selector — only shown when idle */}
       {isIdle && (
         <div className="mb-3 space-y-2">
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex items-center justify-center gap-1.5">
             {DURATIONS.map((d) => (
               <button
                 key={d}
                 onClick={() => setSelectedDuration(d)}
-                className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
                   selectedDuration === d
-                    ? 'bg-orange-400/90 text-white'
+                    ? 'bg-primary text-white'
                     : 'bg-surface-hover text-text-secondary hover:text-text-primary'
                 }`}
               >
@@ -142,7 +143,8 @@ const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: Pomodor
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-[11px] text-text-tertiary">Eigene Zeit</span>
             <input
               type="number"
               min={5}
@@ -154,12 +156,12 @@ const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: Pomodor
                 if (e.key === 'Enter') applyCustomDuration();
               }}
               placeholder="Min"
-              className="w-16 rounded-md border border-border bg-surface-hover px-2 py-1 text-[11px] text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-orange-300/40"
+              className="w-20 rounded-md border border-border bg-surface-hover px-2 py-1 text-xs text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/35"
             />
             <button
               onClick={applyCustomDuration}
               disabled={!getValidCustomDuration()}
-              className="rounded-md border border-orange-400/25 bg-orange-500/10 px-2 py-1 text-[11px] font-medium text-orange-200 transition-colors hover:bg-orange-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-md border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Übernehmen
             </button>
@@ -167,87 +169,118 @@ const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: Pomodor
         </div>
       )}
 
+      {/* Timer display */}
       <div
-        className="mb-3"
+        className="relative mb-6"
         role="timer"
         aria-label={`${isBreak ? 'Break' : 'Focus'} timer: ${formatTime(displayTime)} remaining`}
         aria-live="polite"
       >
-        <p className="text-4xl font-black tabular-nums leading-none text-orange-300">
-          {formatTime(displayTime)}
-        </p>
-        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-hover">
-          <motion.div
-            className={isBreak ? 'h-full rounded-full bg-emerald-400/80' : 'h-full rounded-full bg-orange-400/85'}
-            initial={false}
-            animate={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
-            transition={{ duration: 0.2, ease: 'linear' }}
+        <svg className="w-full h-32" viewBox="0 0 100 100" aria-hidden="true">
+          <circle
+            cx="50"
+            cy="50"
+            r="45"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            className="text-surface-hover"
           />
+          <motion.circle
+            cx="50"
+            cy="50"
+            r="45"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            className={isBreak ? 'text-success' : 'text-primary'}
+            style={{
+              strokeDasharray: `${2 * Math.PI * 45}`,
+              strokeDashoffset: `${2 * Math.PI * 45 * (1 - progress / 100)}`,
+              transform: 'rotate(-90deg)',
+              transformOrigin: '50% 50%',
+            }}
+            initial={false}
+            animate={{
+              strokeDashoffset: `${2 * Math.PI * 45 * (1 - progress / 100)}`,
+            }}
+            transition={{ duration: 0.3 }}
+          />
+        </svg>
+
+        <div className="absolute inset-0 flex items-center justify-center">
+          <motion.span
+            className="text-3xl font-bold text-text-primary font-mono"
+            key={displayTime}
+            initial={{ scale: 1.1 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.2 }}
+          >
+            {formatTime(displayTime)}
+          </motion.span>
         </div>
       </div>
 
       {/* Controls */}
-      <div className="mb-3 flex items-center gap-2">
+      <div className="flex items-center justify-center gap-2 mb-4">
         <motion.button
           onClick={handlePlayPause}
-          className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
-            isRunning
-              ? 'bg-orange-500/20 text-orange-200 hover:bg-orange-500/30'
-              : 'bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30'
-          }`}
-          whileHover={{ scale: 1.02 }}
+          className={`p-3 rounded-full ${
+            isRunning ? 'bg-warning/20 text-warning' : 'bg-success/20 text-success'
+          } hover:scale-110 transition-all`}
+          whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           aria-label={isRunning ? 'Pause timer' : 'Start timer'}
         >
-          <span className="flex items-center gap-1">
-            {isRunning ? <Pause className="h-4 w-4" /> : <Play className="ml-0.5 h-4 w-4" />}
-            {isRunning ? 'Pause' : 'Start'}
-          </span>
+          {isRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
         </motion.button>
 
         <motion.button
           onClick={stopTimer}
-          className="rounded-lg bg-surface-hover px-2.5 py-2 text-text-secondary transition-colors hover:bg-error/20 hover:text-error disabled:pointer-events-none disabled:opacity-30"
-          whileHover={{ scale: 1.02 }}
+          className="p-3 rounded-full bg-surface-hover text-text-secondary hover:bg-error/20 hover:text-error transition-all disabled:opacity-30 disabled:pointer-events-none"
+          whileHover={{ scale: 1.1, rotate: 180 }}
           whileTap={{ scale: 0.95 }}
           aria-label="Stop and reset timer"
           disabled={status === 'idle'}
         >
-          <RotateCcw className="h-4 w-4" />
-        </motion.button>
-
-        <motion.button
-          onClick={handleOpenFocusMode}
-          className="ml-auto rounded-lg border border-orange-400/25 bg-orange-500/10 px-2.5 py-2 text-[11px] font-medium text-orange-200 transition-colors hover:bg-orange-500/20"
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
-        >
-          {status === 'idle' ? 'Focus Mode' : 'Open /focus'}
+          <RotateCcw className="w-5 h-5" />
         </motion.button>
       </div>
 
+      <motion.button
+        onClick={handleOpenFocusMode}
+        className="mb-4 w-full rounded-lg border border-primary/25 bg-primary/10 px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+      >
+        {status === 'idle' ? 'Start in Focus Mode' : 'Open Focus Mode'}
+      </motion.button>
+
       {/* Completed pomodoros */}
-      <div className="flex items-center gap-1 pb-1">
+      <div className="flex items-center justify-center gap-1 pb-2">
         {Array.from({ length: 4 }).map((_, index) => (
           <motion.div
             key={index}
-            className={`h-2.5 flex-1 rounded-full ${
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-lg ${
               index < completedPomodoros
-                ? 'bg-orange-400/80'
-                : 'bg-surface-hover'
+                ? 'bg-primary/20 border-2 border-primary'
+                : 'bg-surface-hover border-2 border-border'
             }`}
             initial={false}
             animate={
               index === completedPomodoros - 1
-                ? { scaleY: [1, 1.2, 1] }
+                ? { scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }
                 : {}
             }
-            transition={{ duration: 0.25 }}
-          />
+            transition={{ duration: 0.5 }}
+          >
+            {index < completedPomodoros ? '🍅' : ''}
+          </motion.div>
         ))}
       </div>
-      <p className="text-[11px] text-text-tertiary">
-        {completedPomodoros}/4 sessions completed
+      <p className="text-xs text-center text-text-tertiary">
+        {completedPomodoros}/4 sessions · sessions are saved automatically
       </p>
     </div>
   );
