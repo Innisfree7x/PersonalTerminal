@@ -1,12 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from 'next/font/google';
 import "./globals.css";
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-});
 import QueryProvider from "@/components/providers/QueryProvider";
 import CommandPaletteProvider from "@/components/shared/CommandPaletteProvider";
 import { FocusTimerProvider } from "@/components/providers/FocusTimerProvider";
@@ -56,7 +49,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className="font-sans antialiased">
         <AuthProvider>
           <ThemeProvider>
             <SoundProvider>
