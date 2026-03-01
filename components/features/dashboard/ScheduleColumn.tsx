@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarEvent } from '@/lib/data/mockEvents';
+import type { CalendarEvent } from '@/lib/types/calendar';
 import EventCard from '@/components/features/calendar/EventCard';
 import { format, startOfDay, endOfDay } from 'date-fns';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -123,16 +123,17 @@ export default function ScheduleColumn({
   isRefreshing,
   isDisconnecting,
 }: ScheduleColumnProps) {
-  const [localTime, setLocalTime] = useState(() => new Date());
+  const [localTime, setLocalTime] = useState<Date | null>(null);
 
   useEffect(() => {
+    setLocalTime(new Date());
     const timer = setInterval(() => {
       setLocalTime(new Date());
     }, 30000);
     return () => clearInterval(timer);
   }, []);
 
-  const activeTime = currentTime ?? localTime;
+  const activeTime = currentTime ?? localTime ?? new Date();
 
   const groupedEvents = useMemo(() => groupEventsByTime(events), [events]);
 
@@ -293,14 +294,13 @@ export default function ScheduleColumn({
                       className="relative -ml-[9px]"
                     >
                       {/* Timeline dot */}
-                      <div className={`absolute -left-[7px] top-3 w-4 h-4 rounded-full border-2 ${
-                        isCurrent 
-                          ? 'bg-primary border-primary shadow-glow' 
-                          : isNext 
-                          ? 'bg-warning border-warning' 
-                          : 'bg-surface border-border'
-                      }`} />
-                      
+                      <div className={`absolute -left-[7px] top-3 w-4 h-4 rounded-full border-2 ${isCurrent
+                          ? 'bg-primary border-primary shadow-glow'
+                          : isNext
+                            ? 'bg-warning border-warning'
+                            : 'bg-surface border-border'
+                        }`} />
+
                       <div className="pl-6">
                         {isNext && (
                           <Badge variant="warning" size="sm" className="mb-2">
@@ -324,13 +324,13 @@ export default function ScheduleColumn({
                   >
                     {/* Timeline dot */}
                     <div className="absolute -left-[7px] top-3 w-4 h-4 rounded-full border-2 border-dashed border-border bg-transparent" />
-                    
+
                     <div className="pl-6">
                       <div className="p-3 bg-surface-hover/50 border border-dashed border-border rounded-lg">
                         <div className="flex items-center gap-2 mb-1">
                           <Zap className="w-3 h-3 text-success" />
                           <div className="text-xs font-medium text-text-secondary font-mono">
-                            {format(slot.startTime, 'HH:mm')} - {format(slot.endTime, 'HH:mm')} 
+                            {format(slot.startTime, 'HH:mm')} - {format(slot.endTime, 'HH:mm')}
                             <span className="text-text-tertiary ml-1">({formatDuration(slot.duration)})</span>
                           </div>
                         </div>

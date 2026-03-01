@@ -21,9 +21,10 @@ const routeTitles: Record<string, string> = {
 };
 
 function HeaderClock() {
-  const [currentTime, setCurrentTime] = useState<Date>(() => new Date());
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
 
   useEffect(() => {
+    setCurrentTime(new Date());
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
@@ -34,11 +35,11 @@ function HeaderClock() {
     <div className="hidden md:flex items-center gap-3 px-4 py-1.5 rounded-lg bg-surface/50 border border-border relative overflow-hidden">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/28 to-transparent" />
       <div className="flex flex-col">
-        <span className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
-          {format(currentTime, 'EEEE, MMMM d')}
+        <span className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary" suppressHydrationWarning>
+          {currentTime ? format(currentTime, 'EEEE, MMMM d') : '\u00A0'}
         </span>
-        <span className="text-base font-bold text-text-primary font-mono tabular-nums tracking-tight leading-tight">
-          {format(currentTime, 'HH:mm:ss')}
+        <span className="text-base font-bold text-text-primary font-mono tabular-nums tracking-tight leading-tight" suppressHydrationWarning>
+          {currentTime ? format(currentTime, 'HH:mm:ss') : '--:--:--'}
         </span>
       </div>
     </div>
