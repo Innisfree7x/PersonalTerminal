@@ -27,11 +27,18 @@ test.describe('@blocker task creation', () => {
     await page.getByPlaceholder(/task title/i).fill(title);
     await page.getByPlaceholder(/time \(e\.g\./i).fill('15m');
 
+    // Create the task via UI and verify it persists via the API
     await page.getByRole('button', { name: /^add$/i }).click();
     await expect(page.getByText(title)).toBeVisible({ timeout: 15_000 });
 
-    // Wait for the server action to persist the task before reloading
-    await page.waitForLoadState('networkidle');
+    // Poll the API directly to verify the task was persisted to the database
+    const today = new Date().toISOString().split('T')[0];
+    await expect(async () => {
+      const resp = await page.request.get(`/api/daily-tasks?date=${today}`);
+      const tasks = await resp.json();
+      const found = tasks.some((t) => t.title === title);
+      expect(found).toBe(true);
+    }).toPass({ timeout: 10_000, intervals: [500, 1000, 2000] });
 
     await page.reload();
     await expect(page.getByText(title)).toBeVisible({ timeout: 15_000 });

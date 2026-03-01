@@ -44,8 +44,13 @@ test.describe('@blocker exercise toggle', () => {
     await page.getByTestId('course-modal-submit').click({ force: true });
     await expect(page.getByRole('heading', { name: courseName })).toBeVisible({ timeout: 30_000 });
 
-    // Wait for the course creation server action to persist
-    await page.waitForLoadState('networkidle');
+    // Poll the API to verify the course was persisted before continuing
+    await expect(async () => {
+      const resp = await page.request.get('/api/courses');
+      const courses = await resp.json();
+      const found = courses.some((c) => c.name === courseName);
+      expect(found).toBe(true);
+    }).toPass({ timeout: 15_000, intervals: [500, 1000, 2000] });
 
     const card = page
       .locator('[data-interactive="course"]')
@@ -56,8 +61,14 @@ test.describe('@blocker exercise toggle', () => {
     await card.getByText('Blatt 1').click();
     await expect(card.getByText(/1\/3/)).toBeVisible({ timeout: 10_000 });
 
-    // Wait for the exercise toggle server action to persist
-    await page.waitForLoadState('networkidle');
+    // Poll exercise completion state via API before reloading
+    await expect(async () => {
+      const resp = await page.request.get('/api/courses');
+      const courses = await resp.json();
+      const course = courses.find((c) => c.name === courseName);
+      const completed = course?.exercises?.filter((e) => e.completed).length;
+      expect(completed).toBe(1);
+    }).toPass({ timeout: 15_000, intervals: [500, 1000, 2000] });
 
     await page.reload();
     const cardAfterReload = page
