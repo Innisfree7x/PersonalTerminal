@@ -12,9 +12,11 @@ export async function GET(request: NextRequest) {
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
-  // Build redirect URI from the current origin to avoid stale/mismatched env values.
-  const { GOOGLE_CLIENT_ID: clientId } = serverEnv;
-  const redirectUri = new URL('/api/auth/google/callback', request.url).toString();
+  // Prefer explicit env redirect URI (canonical prod config), fallback to current origin.
+  const { GOOGLE_CLIENT_ID: clientId, GOOGLE_REDIRECT_URI: configuredRedirectUri } = serverEnv;
+  const redirectUri =
+    configuredRedirectUri?.trim() ||
+    new URL('/api/auth/google/callback', request.url).toString();
 
   if (!clientId || !redirectUri) {
     return NextResponse.json(

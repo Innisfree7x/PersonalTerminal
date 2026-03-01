@@ -42,9 +42,14 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const { GOOGLE_CLIENT_ID: clientId, GOOGLE_CLIENT_SECRET: clientSecret } = await import('@/lib/env').then(m => m.serverEnv);
+  const {
+    GOOGLE_CLIENT_ID: clientId,
+    GOOGLE_CLIENT_SECRET: clientSecret,
+    GOOGLE_REDIRECT_URI: configuredRedirectUri,
+  } = await import('@/lib/env').then(m => m.serverEnv);
   const redirectUri =
     request.cookies.get(OAUTH_REDIRECT_URI_COOKIE)?.value ||
+    configuredRedirectUri?.trim() ||
     new URL('/api/auth/google/callback', request.url).toString();
 
   if (!clientId || !clientSecret || !redirectUri) {
