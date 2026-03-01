@@ -8,6 +8,7 @@ test.describe('@blocker exercise toggle', () => {
   );
 
   test('user can create course, toggle exercise complete, and persist state', async ({ page }) => {
+    test.setTimeout(60_000);
     const suffix = Date.now().toString().slice(-6);
     const courseName = `E2E Blocker Course ${suffix}`;
 

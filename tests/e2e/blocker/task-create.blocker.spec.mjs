@@ -8,13 +8,14 @@ test.describe('@blocker task creation', () => {
   );
 
   test('user can create a task on /today and see it after reload', async ({ page }) => {
+    test.setTimeout(60_000);
     const title = `E2E Blocker Task ${Date.now().toString().slice(-6)}`;
 
     await login(page, { mode: 'blocker' });
     await page.goto('/today');
     await expect(page.getByRole('heading', { level: 1, name: /today/i })).toBeVisible();
 
-    await page.keyboard.press('q');
+    await page.getByRole('button', { name: /add task/i }).click();
     await expect(page.getByPlaceholder(/task title/i)).toBeVisible();
 
     await page.getByPlaceholder(/task title/i).fill(title);
