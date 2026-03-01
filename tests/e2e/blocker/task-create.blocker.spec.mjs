@@ -32,8 +32,14 @@ test.describe('@blocker task creation', () => {
     // Prefer keyboard submit to avoid flaky overlay/actionability states on animated buttons.
     await timeInput.press('Enter');
 
-    await expect(page.getByText(title)).toBeVisible({ timeout: 20_000 });
+    const createdTask = page
+      .locator('[data-testid="today-task-row"]')
+      .filter({ hasText: title })
+      .first();
+    await expect(createdTask).toHaveCount(1, { timeout: 20_000 });
     await page.reload({ waitUntil: 'networkidle' });
-    await expect(page.getByText(title)).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.locator('[data-testid="today-task-row"]').filter({ hasText: title }).first()
+    ).toHaveCount(1, { timeout: 20_000 });
   });
 });

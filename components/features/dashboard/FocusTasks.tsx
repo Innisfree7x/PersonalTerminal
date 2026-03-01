@@ -397,6 +397,7 @@ export default function FocusTasks() {
   const renderTaskRow = (task: TaskItem, index: number) => (
     <motion.div
       key={task.id}
+      data-testid="today-task-row"
       data-interactive="task"
       data-item-id={task.id}
       data-item-title={task.title}
