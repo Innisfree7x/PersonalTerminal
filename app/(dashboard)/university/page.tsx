@@ -262,10 +262,9 @@ export default function UniversityPage() {
     setIsModalOpen(true);
   });
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <>
+  const renderContent = () => {
+    if (isLoading) {
+      return (
         <div className="space-y-6">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-surface rounded w-1/4" />
@@ -277,39 +276,19 @@ export default function UniversityPage() {
             </div>
           </div>
         </div>
-        <CourseModal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          onSubmit={handleSubmitCourse}
-          isEdit={false}
-          isSaving={createMutation.isPending}
-          error={null}
-        />
-      </>
-    );
-  }
+      );
+    }
 
-  // Error state
-  if (error) {
-    return (
-      <>
+    if (error) {
+      return (
         <div className="rounded-lg border border-error/30 bg-error/10 px-6 py-4 text-error">
           Error loading courses: {error instanceof Error ? error.message : 'Unknown error'}
         </div>
-        <CourseModal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          onSubmit={handleSubmitCourse}
-          isEdit={false}
-          isSaving={createMutation.isPending}
-          error={null}
-        />
-      </>
-    );
-  }
+      );
+    }
 
-  return (
-    <div className="space-y-6">
+    return (
+      <div className="space-y-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -497,29 +476,35 @@ export default function UniversityPage() {
           </div>
         )}
 
-        {/* Course Modal */}
-        <CourseModal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          onSubmit={handleSubmitCourse}
-          {...(editingCourse ? { layoutId: `course-card-${editingCourse.id}` } : {})}
-          layoutCourse={editingCourse}
-          initialData={
-            editingCourse
-              ? {
-                name: editingCourse.name,
-                ects: editingCourse.ects,
-                numExercises: editingCourse.numExercises,
-                examDate: editingCourse.examDate,
-                semester: editingCourse.semester,
-              }
-              : undefined
-          }
-          isEdit={!!editingCourse}
-          isSaving={createMutation.isPending || updateMutation.isPending}
-          error={null}
-        />
       </LayoutGroup>
     </div>
+    );
+  };
+
+  return (
+    <>
+      {renderContent()}
+      <CourseModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSubmit={handleSubmitCourse}
+        {...(editingCourse ? { layoutId: `course-card-${editingCourse.id}` } : {})}
+        layoutCourse={editingCourse}
+        initialData={
+          editingCourse
+            ? {
+              name: editingCourse.name,
+              ects: editingCourse.ects,
+              numExercises: editingCourse.numExercises,
+              examDate: editingCourse.examDate,
+              semester: editingCourse.semester,
+            }
+            : undefined
+        }
+        isEdit={!!editingCourse}
+        isSaving={createMutation.isPending || updateMutation.isPending}
+        error={null}
+      />
+    </>
   );
 }

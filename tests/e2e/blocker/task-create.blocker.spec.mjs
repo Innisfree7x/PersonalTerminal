@@ -16,7 +16,12 @@ test.describe('@blocker task creation', () => {
     await dismissDevOverlay(page);
     await expect(page.getByRole('heading', { level: 1, name: /today/i })).toBeVisible();
 
-    await page.getByRole('button', { name: /^add task$/i }).first().click();
+    const addBtn = page.getByRole('button', { name: /aufgabe hinzufügen/i });
+    if (await addBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await addBtn.click();
+    } else {
+      await page.getByRole('button', { name: /^add task$/i }).first().click();
+    }
     await expect(page.getByPlaceholder(/task title/i)).toBeVisible({ timeout: 10_000 });
 
     await page.getByPlaceholder(/task title/i).fill(title);
