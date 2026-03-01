@@ -4,12 +4,13 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { AlertTriangle, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Flame, Server, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { MonitoringHealthSnapshot } from '@/lib/monitoring';
 import {
   applyMonitoringIncidentAction,
   fetchMonitoringHealthAction,
+  fetchOpsReliabilityAction,
   type MonitoringIncidentAction,
 } from '@/app/actions/monitoring';
 
@@ -58,6 +59,13 @@ export default function OpsHealthClient() {
     onError: () => {
       toast.error('Failed to apply incident action');
     },
+  });
+
+  const { data: reliability } = useQuery({
+    queryKey: ['monitoring', 'reliability'],
+    queryFn: () => fetchOpsReliabilityAction(),
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: false,
   });
 
   const handleRefresh = () => {
@@ -284,6 +292,103 @@ export default function OpsHealthClient() {
                     </div>
                   </motion.div>
                 ))}
+              </div>
+            )}
+          </div>
+
+          <div className="card-surface rounded-xl p-4 space-y-3">
+            <div className="text-sm font-semibold text-text-primary flex items-center gap-2">
+              <Flame className="w-4 h-4 text-warning" />
+              Burn Rate Status (Multi-Window)
+            </div>
+            {reliability ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      reliability.burnRateStatus === 'critical'
+                        ? 'bg-error/15 text-error border border-error/30'
+                        : reliability.burnRateStatus === 'warning'
+                          ? 'bg-warning/15 text-warning border border-warning/30'
+                          : 'bg-success/15 text-success border border-success/30'
+                    }`}
+                  >
+                    {reliability.burnRateStatus.toUpperCase()}
+                  </span>
+                  {reliability.criticalFlows.length > 0 && (
+                    <span className="text-xs text-error">
+                      Critical: {reliability.criticalFlows.join(', ')}
+                    </span>
+                  )}
+                  {reliability.warningFlows.length > 0 && (
+                    <span className="text-xs text-warning">
+                      Warning: {reliability.warningFlows.join(', ')}
+                    </span>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  {['1h', '6h', '24h'].map((windowLabel) => {
+                    const windowEvals = reliability.evaluations.filter((e) => e.window === windowLabel);
+                    return (
+                      <div key={windowLabel} className="rounded-lg border border-border bg-surface/60 px-3 py-2">
+                        <div className="text-xs font-semibold text-text-primary mb-1">{windowLabel} Window</div>
+                        {windowEvals.map((e) => {
+                          const burnColor =
+                            e.severity === 'critical' ? 'text-error' :
+                            e.severity === 'warning' ? 'text-warning' : 'text-text-tertiary';
+                          return (
+                            <div key={e.flow} className="flex items-center justify-between text-[11px] py-0.5">
+                              <span className="text-text-secondary">{FLOW_LABELS[e.flow] || e.flow}</span>
+                              <span className={burnColor}>
+                                {e.burnRate !== null ? `${e.burnRate.toFixed(2)}x` : 'n/a'}
+                                {e.severity && ` ● ${e.severity}`}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              <div className="text-sm text-text-tertiary">Loading burn rate data...</div>
+            )}
+          </div>
+
+          <div className="card-surface rounded-xl p-4 space-y-3">
+            <div className="text-sm font-semibold text-text-primary flex items-center gap-2">
+              <Server className="w-4 h-4 text-primary" />
+              Dependency Health (Circuit Breakers)
+            </div>
+            {reliability && reliability.dependencies.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                {reliability.dependencies.map((dep) => {
+                  const stateColor =
+                    dep.state === 'open' ? 'text-error' :
+                    dep.state === 'half_open' ? 'text-warning' : 'text-success';
+                  const stateBg =
+                    dep.state === 'open' ? 'bg-error/15 border-error/30' :
+                    dep.state === 'half_open' ? 'bg-warning/15 border-warning/30' : 'bg-success/15 border-success/30';
+                  return (
+                    <div key={dep.name} className="rounded-lg border border-border bg-surface/60 px-3 py-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-text-primary">{dep.name}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${stateBg} ${stateColor}`}>
+                          {dep.state.replace('_', ' ').toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-[11px] text-text-tertiary">
+                        Failures: {dep.failureCount}
+                        {dep.lastFailureAt && ` • Last: ${new Date(dep.lastFailureAt).toLocaleTimeString()}`}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-sm text-text-tertiary">
+                {reliability ? 'No dependencies tracked yet.' : 'Loading...'}
               </div>
             )}
           </div>

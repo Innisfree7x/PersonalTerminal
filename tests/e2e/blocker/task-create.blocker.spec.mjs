@@ -12,7 +12,7 @@ test.describe('@blocker task creation', () => {
 
     await login(page, { mode: 'blocker' });
     await page.goto('/today');
-    await expect(page.getByRole('heading', { name: /today/i })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: /today/i })).toBeVisible();
 
     await page.keyboard.press('q');
     await expect(page.getByPlaceholder(/task title/i)).toBeVisible();

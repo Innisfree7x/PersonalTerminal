@@ -265,26 +265,46 @@ export default function UniversityPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-surface rounded w-1/4" />
-          <div className="h-20 bg-surface rounded" />
-          <div className="space-y-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-32 bg-surface rounded-lg" />
-            ))}
+      <>
+        <div className="space-y-6">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-surface rounded w-1/4" />
+            <div className="h-20 bg-surface rounded" />
+            <div className="space-y-4">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-32 bg-surface rounded-lg" />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+        <CourseModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onSubmit={handleSubmitCourse}
+          isEdit={false}
+          isSaving={createMutation.isPending}
+          error={null}
+        />
+      </>
     );
   }
 
   // Error state
   if (error) {
     return (
-      <div className="rounded-lg border border-error/30 bg-error/10 px-6 py-4 text-error">
-        Error loading courses: {error instanceof Error ? error.message : 'Unknown error'}
-      </div>
+      <>
+        <div className="rounded-lg border border-error/30 bg-error/10 px-6 py-4 text-error">
+          Error loading courses: {error instanceof Error ? error.message : 'Unknown error'}
+        </div>
+        <CourseModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onSubmit={handleSubmitCourse}
+          isEdit={false}
+          isSaving={createMutation.isPending}
+          error={null}
+        />
+      </>
     );
   }
 
