@@ -10,18 +10,19 @@ test.describe('@blocker focus flow', () => {
   test('user can toggle Lucian and start a custom focus session on /focus', async ({ page }) => {
     await login(page, { mode: 'blocker' });
     await page.goto('/focus');
+    await expect(page.getByTestId('focus-screen-root')).toBeVisible({ timeout: 15_000 });
 
-    const lucianToggle = page.getByRole('button', { name: /lucian/i });
+    const lucianToggle = page.getByTestId('focus-lucian-toggle');
     await expect(lucianToggle).toBeVisible();
 
     const toggleLabelBefore = await lucianToggle.innerText();
     await lucianToggle.click();
     await expect(lucianToggle).not.toHaveText(toggleLabelBefore);
 
-    await page.getByPlaceholder('Min').fill('17');
-    await page.getByRole('button', { name: /start custom/i }).click();
+    await page.getByTestId('focus-custom-minutes-input').fill('17');
+    await page.getByTestId('focus-start-custom-button').click();
 
     await expect(page.getByRole('button', { name: /stop/i })).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByText(/1[67]:[0-5][0-9]/)).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId('focus-timer-readout')).toHaveText(/1[67]:[0-5][0-9]/, { timeout: 10_000 });
   });
 });

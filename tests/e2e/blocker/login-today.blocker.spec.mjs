@@ -10,6 +10,6 @@ test.describe('@blocker login', () => {
   test('user can login and reach /today', async ({ page }) => {
     await login(page, { mode: 'blocker' });
     await expect(page).toHaveURL(/\/today$/);
-    await expect(page.getByRole('heading', { level: 1, name: /today/i })).toBeVisible();
+    await expect(page.getByTestId('today-page-root')).toBeVisible();
   });
 });

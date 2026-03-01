@@ -21,7 +21,7 @@ test.describe('@blocker today load', () => {
 
     const startedAt = Date.now();
     await page.goto('/today', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { level: 1, name: /today/i })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('today-page-root')).toBeVisible({ timeout: 15_000 });
 
     const domContentLoadedMs = await page.evaluate(() => {
       const [entry] = performance.getEntriesByType('navigation');

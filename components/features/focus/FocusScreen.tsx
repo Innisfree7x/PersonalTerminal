@@ -112,7 +112,7 @@ export default function FocusScreen() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#05080f] text-[#FAF0E6]">
+    <div className="relative min-h-screen overflow-hidden bg-[#05080f] text-[#FAF0E6]" data-testid="focus-screen-root">
       <motion.div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.16),transparent_35%),radial-gradient(circle_at_78%_24%,rgba(234,179,8,0.18),transparent_38%),radial-gradient(circle_at_52%_86%,rgba(245,158,11,0.12),transparent_34%)]"
         style={{ willChange: 'transform' }}
@@ -171,6 +171,7 @@ export default function FocusScreen() {
             <button
               type="button"
               onClick={handleLucianToggle}
+              data-testid="focus-lucian-toggle"
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] transition-colors ${
                 championSettings.enabled
                   ? 'border-cyan-300/25 bg-cyan-300/10 text-cyan-200 hover:bg-cyan-300/20'
@@ -234,6 +235,7 @@ export default function FocusScreen() {
                     step={5}
                     value={customMinutes}
                     onChange={(e) => setCustomMinutes(e.target.value)}
+                    data-testid="focus-custom-minutes-input"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') startCustomSession();
                     }}
@@ -243,6 +245,7 @@ export default function FocusScreen() {
                   <button
                     onClick={startCustomSession}
                     disabled={!getValidCustomDuration()}
+                    data-testid="focus-start-custom-button"
                     className="rounded-lg border border-cyan-300/25 bg-cyan-300/10 px-3 py-1.5 text-sm font-medium text-cyan-100 transition-colors hover:bg-cyan-300/20 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Start Custom
@@ -293,7 +296,10 @@ export default function FocusScreen() {
 
           <div className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3.5 text-right shadow-[0_8px_35px_rgba(0,0,0,0.45)] backdrop-blur-lg sm:ml-auto sm:w-auto sm:min-w-[190px]">
             <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-500">{timerLabel} Timer</p>
-            <p className={`mt-1 font-mono text-2xl font-semibold ${isBreak ? 'text-amber-200' : 'text-cyan-100'}`}>
+            <p
+              data-testid="focus-timer-readout"
+              className={`mt-1 font-mono text-2xl font-semibold ${isBreak ? 'text-amber-200' : 'text-cyan-100'}`}
+            >
               {isIdle ? '--:--' : formatTime(timeLeft)}
             </p>
             <div className="mt-1 inline-flex items-center gap-1 text-[11px] text-zinc-400">

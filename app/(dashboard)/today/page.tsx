@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarEvent } from '@/lib/data/mockEvents';
+import type { CalendarEvent } from '@/lib/types/calendar';
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -154,7 +154,7 @@ export default function TodayPage() {
   }, [stats?.nextExam?.daysUntilExam]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="today-page-root">
       {/* First-visit welcome orientation */}
       <AnimatePresence>
         {showWelcome && (

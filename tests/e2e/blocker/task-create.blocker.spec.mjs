@@ -14,7 +14,7 @@ test.describe('@blocker task creation', () => {
     await login(page, { mode: 'blocker' });
     await page.goto('/today');
     await dismissDevOverlay(page);
-    await expect(page.getByRole('heading', { level: 2, name: /today/i })).toBeVisible();
+    await expect(page.getByTestId('today-page-root')).toBeVisible();
 
     const addEmptyStateBtn = page.getByTestId('today-add-task-trigger-empty');
     if (await addEmptyStateBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -70,7 +70,7 @@ test.describe('@blocker task creation', () => {
     };
 
     await expect.poll(hasCreatedTask, { timeout: 20_000 }).toBe(true);
-    await page.reload();
+    await page.reload({ waitUntil: 'domcontentloaded' });
     await expect.poll(hasCreatedTask, { timeout: 20_000 }).toBe(true);
   });
 });
