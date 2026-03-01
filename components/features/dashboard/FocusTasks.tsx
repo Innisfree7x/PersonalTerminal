@@ -502,6 +502,7 @@ export default function FocusTasks() {
               </div>
               <button
                 onClick={() => setShowAddInput(true)}
+                data-testid="today-add-task-trigger-empty"
                 className="px-4 py-2 text-xs font-medium bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
               >
                 + Aufgabe hinzufügen
@@ -563,6 +564,7 @@ export default function FocusTasks() {
               <div className="flex gap-2">
                 <button
                   onClick={handleAddTask}
+                  data-testid="today-add-task-submit"
                   className="flex-1 px-3 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
                 >
                   Add
@@ -581,6 +583,7 @@ export default function FocusTasks() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowAddInput(true)}
+              data-testid="today-add-task-trigger"
               className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm bg-surface-hover text-text-secondary rounded-lg hover:bg-border hover:text-text-primary transition-colors"
             >
               <Plus className="w-4 h-4" />
