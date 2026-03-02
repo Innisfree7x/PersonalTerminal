@@ -347,16 +347,55 @@ export default function TrajectoryPage() {
       offsetMonths.add(i);
     }
 
-    return Array.from(offsetMonths)
+    const rawTicks = Array.from(offsetMonths)
       .sort((a, b) => a - b)
       .map((months) => {
         const tickDate = addMonths(timelineStart, months);
         return {
+          monthOffset: months,
           offsetPercent: clampPercent((months / safeHorizon) * 100),
           label: format(tickDate, "MMM ''yy"),
         };
       });
+
+    const minGapPercent = 7;
+    const filtered: typeof rawTicks = [];
+
+    for (let i = 0; i < rawTicks.length; i += 1) {
+      const tick = rawTicks[i];
+      if (!tick) continue;
+
+      const isFirst = i === 0;
+      const isLast = i === rawTicks.length - 1;
+      if (isFirst || isLast) {
+        filtered.push(tick);
+        continue;
+      }
+
+      const prev = filtered[filtered.length - 1];
+      const next = rawTicks[i + 1];
+
+      if (!prev || !next) continue;
+
+      const gapFromPrev = tick.offsetPercent - prev.offsetPercent;
+      const gapToNext = next.offsetPercent - tick.offsetPercent;
+
+      if (gapFromPrev >= minGapPercent && gapToNext >= minGapPercent) {
+        filtered.push(tick);
+      }
+    }
+
+    return filtered;
   }, [timelineHorizonMonths, timelineStart]);
+
+  const monthGridLines = useMemo(() => {
+    const safeHorizon = Math.max(1, timelineHorizonMonths);
+    return Array.from({ length: safeHorizon + 1 }, (_, monthOffset) => ({
+      monthOffset,
+      offsetPercent: clampPercent((monthOffset / safeHorizon) * 100),
+      isMajor: monthOffset % 3 === 0 || monthOffset === 0 || monthOffset === safeHorizon,
+    }));
+  }, [timelineHorizonMonths]);
 
   const riskByGoal = useMemo(() => {
     const map = new Map<string, RiskStatus>();
@@ -696,22 +735,32 @@ export default function TrajectoryPage() {
             </div>
 
             <div className="overflow-x-auto">
-              <div className="min-w-[920px] space-y-3">
-                <div className="relative h-10 rounded-lg border border-border bg-background/60">
+              <div className="min-w-[1080px] space-y-3">
+                <div className="relative h-14 rounded-lg border border-border bg-gradient-to-b from-background/70 to-background/40">
+                  {monthGridLines.map((line) => (
+                    <div
+                      key={`ruler-line-${line.monthOffset}`}
+                      className={cn(
+                        'absolute inset-y-0 w-px',
+                        line.isMajor ? 'bg-border/70' : 'bg-border/20'
+                      )}
+                      style={{ left: `${line.offsetPercent}%` }}
+                    />
+                  ))}
+
                   {monthTicks.map((tick, index) => (
                     <div
-                      key={`${tick.label}-${tick.offsetPercent}`}
+                      key={`${tick.monthOffset}-${tick.label}-${tick.offsetPercent}`}
                       className="absolute inset-y-0"
                       style={{ left: `${tick.offsetPercent}%` }}
                     >
-                      <div className="h-full w-px bg-border/70" />
                       <span
                         className={cn(
-                          'absolute top-1.5 whitespace-nowrap text-[10px] uppercase tracking-[0.12em] text-text-tertiary',
+                          'absolute top-2 whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.12em] text-text-secondary',
                           index === 0
-                            ? 'left-0 translate-x-0 pl-2'
+                            ? 'left-0 translate-x-0 pl-3'
                             : index === monthTicks.length - 1
-                              ? 'right-0 translate-x-0 pr-2'
+                              ? 'right-0 translate-x-0 pr-3'
                               : '-translate-x-1/2'
                         )}
                       >
@@ -722,6 +771,15 @@ export default function TrajectoryPage() {
                 </div>
 
                 <div className="relative h-[230px] rounded-xl border border-border/80 bg-background/45 px-3 py-3">
+                  {monthGridLines
+                    .filter((line) => line.isMajor)
+                    .map((line) => (
+                      <div
+                        key={`body-line-${line.monthOffset}`}
+                        className="absolute inset-y-3 w-px bg-border/20"
+                        style={{ left: `${line.offsetPercent}%` }}
+                      />
+                    ))}
                   <div className="absolute inset-x-3 top-[72px] h-px bg-border/60" />
                   <div className="absolute inset-x-3 top-[128px] h-px bg-border/60" />
                   <div className="absolute inset-x-3 top-[184px] h-px bg-border/60" />
