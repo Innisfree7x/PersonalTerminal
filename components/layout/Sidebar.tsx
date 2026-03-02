@@ -13,6 +13,7 @@ import {
   Briefcase,
   BarChart3,
   Timer,
+  Route,
   ShieldCheck,
   ChevronLeft,
   Settings,
@@ -33,6 +34,7 @@ const baseNavigation = [
   { name: 'University', href: '/university', icon: GraduationCap, shortcut: '4' },
   { name: 'Career', href: '/career', icon: Briefcase, shortcut: '5' },
   { name: 'Analytics', href: '/analytics', icon: BarChart3, shortcut: '6' },
+  { name: 'Trajectory', href: '/trajectory', icon: Route, shortcut: '7' },
   { name: 'Focus', href: '/focus', icon: Timer, shortcut: 'F' },
 ];
 
@@ -47,7 +49,7 @@ export default function Sidebar() {
   const navigation = useMemo(
     () =>
       isAdmin
-        ? [...baseNavigation, { name: 'Ops Health', href: '/analytics/ops', icon: ShieldCheck, shortcut: '7' }]
+        ? [...baseNavigation, { name: 'Ops Health', href: '/analytics/ops', icon: ShieldCheck, shortcut: '8' }]
         : baseNavigation,
     [isAdmin]
   );
@@ -124,6 +126,15 @@ export default function Sidebar() {
         prefetchIfStale(['daily-tasks', today], 30 * 1000, async () => {
           const response = await fetch(`/api/daily-tasks?date=${today}`);
           if (!response.ok) throw new Error('Failed to fetch tasks');
+          return response.json();
+        });
+        return;
+      }
+
+      if (href === '/trajectory') {
+        prefetchIfStale(['trajectory', 'overview'], 20 * 1000, async () => {
+          const response = await fetch('/api/trajectory/overview');
+          if (!response.ok) throw new Error('Failed to fetch trajectory overview');
           return response.json();
         });
       }

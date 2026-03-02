@@ -1,9 +1,16 @@
 # Trajectory Tab V1 — Design Contract
 
-Status: Proposed (implementation-ready)
+Status: Implemented (core + UI)
 Date: 2026-03-02
 Owner: Core (orchestration)
 Parent: `docs/PHASE12_MASTERPLAN.md`
+
+Implementation Notes (2026-03-02):
+
+1. UI route shipped at `app/(dashboard)/trajectory/page.tsx`.
+2. Sidebar navigation + prefetch wired in `components/layout/Sidebar.tsx`.
+3. Header title mapping includes `/trajectory` in `components/layout/Header.tsx`.
+4. Required API surface for settings/overview/plan/goals/windows/blocks/tasks is live under `app/api/trajectory/*`.
 
 ## 1) Goal
 

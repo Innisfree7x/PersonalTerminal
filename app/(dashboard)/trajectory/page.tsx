@@ -1,0 +1,1092 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { addMonths, differenceInCalendarDays, format, parseISO, startOfDay } from 'date-fns';
+import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
+import {
+  AlertTriangle,
+  ArrowRight,
+  CalendarClock,
+  CalendarRange,
+  CheckCircle2,
+  Clock3,
+  Flame,
+  Gauge,
+  Save,
+  Sparkles,
+  Trash2,
+  Wand2,
+} from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { Input, Textarea } from '@/components/ui/Input';
+import { Badge } from '@/components/ui/Badge';
+import { cn } from '@/lib/utils';
+
+type GoalCategory = 'thesis' | 'gmat' | 'master_app' | 'internship' | 'other';
+type GoalStatus = 'active' | 'done' | 'archived';
+type WindowType = 'internship' | 'master_cycle' | 'exam_period' | 'other';
+type WindowConfidence = 'low' | 'medium' | 'high';
+type BlockStatus = 'planned' | 'in_progress' | 'done' | 'skipped';
+type RiskStatus = 'on_track' | 'tight' | 'at_risk';
+
+interface TrajectorySettings {
+  id: string;
+  hoursPerWeek: number;
+  horizonMonths: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface TrajectoryGoal {
+  id: string;
+  title: string;
+  category: GoalCategory;
+  dueDate: string;
+  effortHours: number;
+  bufferWeeks: number;
+  priority: number;
+  status: GoalStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface TrajectoryWindow {
+  id: string;
+  title: string;
+  windowType: WindowType;
+  startDate: string;
+  endDate: string;
+  confidence: WindowConfidence;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface TrajectoryBlock {
+  id: string;
+  goalId: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  weeklyHours: number;
+  status: BlockStatus;
+  source: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface GeneratedTrajectoryBlock {
+  goalId: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  weeklyHours: number;
+  requiredWeeks: number;
+  plannedBlockHours: number;
+  overlapRatio: number;
+  status: RiskStatus;
+  reasons: string[];
+}
+
+interface TrajectoryAlert {
+  severity: 'warning' | 'critical';
+  code: 'TIGHT_CAPACITY' | 'TIMELINE_COLLISION' | 'LATE_START';
+  message: string;
+  goalId: string;
+}
+
+interface TrajectoryComputed {
+  effectiveCapacityHoursPerWeek: number;
+  generatedBlocks: GeneratedTrajectoryBlock[];
+  alerts: TrajectoryAlert[];
+  summary: {
+    total: number;
+    onTrack: number;
+    tight: number;
+    atRisk: number;
+  };
+}
+
+interface TrajectoryOverviewResponse {
+  settings: TrajectorySettings;
+  goals: TrajectoryGoal[];
+  windows: TrajectoryWindow[];
+  blocks: TrajectoryBlock[];
+  computed: TrajectoryComputed;
+}
+
+interface TrajectoryPlanResponse {
+  settings: TrajectorySettings;
+  simulation: {
+    used: boolean;
+    effectiveCapacityHoursPerWeek: number;
+  };
+  computed: TrajectoryComputed;
+}
+
+interface GoalFormState {
+  title: string;
+  category: GoalCategory;
+  dueDate: string;
+  effortHours: number;
+  bufferWeeks: number;
+  priority: number;
+  status: GoalStatus;
+}
+
+interface WindowFormState {
+  title: string;
+  windowType: WindowType;
+  startDate: string;
+  endDate: string;
+  confidence: WindowConfidence;
+  notes: string;
+}
+
+const goalCategoryOptions: Array<{ value: GoalCategory; label: string }> = [
+  { value: 'thesis', label: 'Bachelor Thesis' },
+  { value: 'gmat', label: 'GMAT' },
+  { value: 'master_app', label: 'Master Application' },
+  { value: 'internship', label: 'Internship' },
+  { value: 'other', label: 'Other' },
+];
+
+const windowTypeOptions: Array<{ value: WindowType; label: string }> = [
+  { value: 'internship', label: 'Internship Cycle' },
+  { value: 'master_cycle', label: 'Master Application Cycle' },
+  { value: 'exam_period', label: 'Exam Period' },
+  { value: 'other', label: 'Other Window' },
+];
+
+const EMPTY_GOALS: TrajectoryGoal[] = [];
+const EMPTY_WINDOWS: TrajectoryWindow[] = [];
+const EMPTY_BLOCKS: TrajectoryBlock[] = [];
+const EMPTY_GENERATED_BLOCKS: GeneratedTrajectoryBlock[] = [];
+const EMPTY_ALERTS: TrajectoryAlert[] = [];
+
+function toDateInputValue(date: Date): string {
+  return date.toISOString().split('T')[0] ?? '';
+}
+
+async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(path, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(init?.headers || {}),
+    },
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    const message =
+      payload?.error?.message ||
+      payload?.message ||
+      `Request failed (${response.status})`;
+    throw new Error(message);
+  }
+
+  return response.json() as Promise<T>;
+}
+
+function formatShortDate(dateString: string): string {
+  return format(parseISO(dateString), 'dd MMM yyyy');
+}
+
+function clampPercent(value: number): number {
+  return Math.min(100, Math.max(0, value));
+}
+
+export default function TrajectoryPage() {
+  const queryClient = useQueryClient();
+
+  const [simulationHours, setSimulationHours] = useState<number | null>(null);
+  const [horizonMonthsDraft, setHorizonMonthsDraft] = useState<number | null>(null);
+  const [selectedGoalId, setSelectedGoalId] = useState<string>('');
+  const [taskCount, setTaskCount] = useState<number>(6);
+
+  const [goalForm, setGoalForm] = useState<GoalFormState>({
+    title: '',
+    category: 'thesis',
+    dueDate: toDateInputValue(addMonths(new Date(), 6)),
+    effortHours: 120,
+    bufferWeeks: 2,
+    priority: 3,
+    status: 'active',
+  });
+
+  const [windowForm, setWindowForm] = useState<WindowFormState>({
+    title: '',
+    windowType: 'internship',
+    startDate: toDateInputValue(addMonths(new Date(), 2)),
+    endDate: toDateInputValue(addMonths(new Date(), 4)),
+    confidence: 'medium',
+    notes: '',
+  });
+
+  const {
+    data: overview,
+    isLoading: isOverviewLoading,
+    isFetching: isOverviewFetching,
+    error: overviewError,
+  } = useQuery({
+    queryKey: ['trajectory', 'overview'],
+    queryFn: () => apiRequest<TrajectoryOverviewResponse>('/api/trajectory/overview'),
+    staleTime: 20 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    if (!overview) return;
+    setSimulationHours((current) => current ?? overview.settings.hoursPerWeek);
+    setHorizonMonthsDraft((current) => current ?? overview.settings.horizonMonths);
+  }, [overview]);
+
+  const {
+    data: planData,
+    isFetching: isPlanFetching,
+    refetch: refetchPlan,
+  } = useQuery({
+    queryKey: ['trajectory', 'plan', simulationHours],
+    queryFn: () =>
+      apiRequest<TrajectoryPlanResponse>('/api/trajectory/plan', {
+        method: 'POST',
+        body: JSON.stringify({ simulationHoursPerWeek: simulationHours }),
+      }),
+    enabled: simulationHours !== null,
+    staleTime: 20 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const computed = planData?.computed ?? overview?.computed;
+  const goals = useMemo(() => overview?.goals ?? EMPTY_GOALS, [overview?.goals]);
+  const windows = useMemo(() => overview?.windows ?? EMPTY_WINDOWS, [overview?.windows]);
+  const committedBlocks = useMemo(() => overview?.blocks ?? EMPTY_BLOCKS, [overview?.blocks]);
+  const generatedBlocks = useMemo(
+    () => computed?.generatedBlocks ?? EMPTY_GENERATED_BLOCKS,
+    [computed?.generatedBlocks]
+  );
+  const alerts = useMemo(() => computed?.alerts ?? EMPTY_ALERTS, [computed?.alerts]);
+
+  useEffect(() => {
+    if (generatedBlocks.length === 0) {
+      setSelectedGoalId('');
+      return;
+    }
+
+    setSelectedGoalId((current) => {
+      if (current && generatedBlocks.some((block) => block.goalId === current)) return current;
+      return generatedBlocks[0]?.goalId ?? '';
+    });
+  }, [generatedBlocks]);
+
+  const selectedBlock = useMemo(
+    () => generatedBlocks.find((block) => block.goalId === selectedGoalId) ?? null,
+    [generatedBlocks, selectedGoalId]
+  );
+
+  const isSimulationDirty =
+    overview &&
+    simulationHours !== null &&
+    simulationHours !== overview.settings.hoursPerWeek;
+  const isHorizonDirty =
+    overview &&
+    horizonMonthsDraft !== null &&
+    horizonMonthsDraft !== overview.settings.horizonMonths;
+
+  const effectiveCapacity = planData?.simulation.effectiveCapacityHoursPerWeek ?? overview?.settings.hoursPerWeek ?? 8;
+  const timelineStart = useMemo(() => startOfDay(new Date()), []);
+  const timelineHorizonMonths = horizonMonthsDraft ?? overview?.settings.horizonMonths ?? 24;
+  const timelineEnd = useMemo(
+    () => addMonths(timelineStart, timelineHorizonMonths),
+    [timelineStart, timelineHorizonMonths]
+  );
+
+  const totalTimelineDays = Math.max(1, differenceInCalendarDays(timelineEnd, timelineStart));
+
+  const toPercent = (dateString: string): number => {
+    const distance = differenceInCalendarDays(parseISO(dateString), timelineStart);
+    return clampPercent((distance / totalTimelineDays) * 100);
+  };
+
+  const span = (startDate: string, endDate: string): { left: number; width: number } => {
+    const left = toPercent(startDate);
+    const right = toPercent(endDate);
+    return { left, width: Math.max(1, right - left) };
+  };
+
+  const monthTicks = useMemo(() => {
+    const step = timelineHorizonMonths > 12 ? 3 : 2;
+    const entries: Array<{ offsetPercent: number; label: string }> = [];
+    for (let i = 0; i <= timelineHorizonMonths; i += step) {
+      const tickDate = addMonths(timelineStart, i);
+      entries.push({
+        offsetPercent: clampPercent((i / timelineHorizonMonths) * 100),
+        label: format(tickDate, "MMM ''yy"),
+      });
+    }
+    return entries;
+  }, [timelineHorizonMonths, timelineStart]);
+
+  const riskByGoal = useMemo(() => {
+    const map = new Map<string, RiskStatus>();
+    for (const block of generatedBlocks) map.set(block.goalId, block.status);
+    return map;
+  }, [generatedBlocks]);
+
+  const committedBlockKey = useMemo(() => {
+    const keys = new Set<string>();
+    for (const block of committedBlocks) {
+      keys.add(`${block.goalId}|${block.startDate}|${block.endDate}`);
+    }
+    return keys;
+  }, [committedBlocks]);
+
+  const upsertGoalMutation = useMutation({
+    mutationFn: (payload: GoalFormState) =>
+      apiRequest<TrajectoryGoal>('/api/trajectory/goals', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      toast.success('Milestone added.');
+      setGoalForm((current) => ({
+        ...current,
+        title: '',
+      }));
+      queryClient.invalidateQueries({ queryKey: ['trajectory', 'overview'] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const deleteGoalMutation = useMutation({
+    mutationFn: (goalId: string) =>
+      apiRequest<{ success: boolean }>(`/api/trajectory/goals/${goalId}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      toast.success('Milestone removed.');
+      queryClient.invalidateQueries({ queryKey: ['trajectory', 'overview'] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const createWindowMutation = useMutation({
+    mutationFn: (payload: WindowFormState) =>
+      apiRequest<TrajectoryWindow>('/api/trajectory/windows', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      toast.success('Timeline window added.');
+      setWindowForm((current) => ({
+        ...current,
+        title: '',
+        notes: '',
+      }));
+      queryClient.invalidateQueries({ queryKey: ['trajectory', 'overview'] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const deleteWindowMutation = useMutation({
+    mutationFn: (windowId: string) =>
+      apiRequest<{ success: boolean }>(`/api/trajectory/windows/${windowId}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      toast.success('Timeline window removed.');
+      queryClient.invalidateQueries({ queryKey: ['trajectory', 'overview'] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const saveBaselineMutation = useMutation({
+    mutationFn: () =>
+      apiRequest<TrajectorySettings>('/api/trajectory/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          hoursPerWeek: simulationHours,
+          horizonMonths: horizonMonthsDraft,
+        }),
+      }),
+    onSuccess: () => {
+      toast.success('Baseline saved.');
+      queryClient.invalidateQueries({ queryKey: ['trajectory', 'overview'] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const commitBlocksMutation = useMutation({
+    mutationFn: () =>
+      apiRequest<{ blocks: TrajectoryBlock[] }>('/api/trajectory/blocks/commit', {
+        method: 'POST',
+        body: JSON.stringify({
+          blocks: generatedBlocks.map((block) => ({
+            goalId: block.goalId,
+            title: block.title,
+            startDate: block.startDate,
+            endDate: block.endDate,
+            weeklyHours: block.weeklyHours,
+            status: 'planned' as BlockStatus,
+          })),
+        }),
+      }),
+    onSuccess: () => {
+      toast.success('Plan committed.');
+      queryClient.invalidateQueries({ queryKey: ['trajectory', 'overview'] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const createTaskPackageMutation = useMutation({
+    mutationFn: () => {
+      if (!selectedBlock) throw new Error('Please pick a generated block first.');
+      return apiRequest<{ skippedExisting: boolean; tasks: Array<{ id: string }> }>('/api/trajectory/tasks/package', {
+        method: 'POST',
+        body: JSON.stringify({
+          goalId: selectedBlock.goalId,
+          startDate: selectedBlock.startDate,
+          endDate: selectedBlock.endDate,
+          taskCount,
+        }),
+      });
+    },
+    onSuccess: (result) => {
+      if (result.skippedExisting) {
+        toast.success('Task package already existed and was reused.');
+      } else {
+        toast.success(`Created ${result.tasks.length} trajectory tasks.`);
+      }
+      queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['trajectory', 'overview'] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  if (isOverviewLoading && !overview) {
+    return (
+      <div className="space-y-4 animate-pulse">
+        <div className="h-28 rounded-2xl bg-surface border border-border" />
+        <div className="h-[360px] rounded-2xl bg-surface border border-border" />
+        <div className="h-40 rounded-2xl bg-surface border border-border" />
+      </div>
+    );
+  }
+
+  if (overviewError || !overview || !computed) {
+    return (
+      <div className="rounded-2xl border border-error/30 bg-error/10 p-6">
+        <p className="text-error font-semibold mb-1">Trajectory data could not be loaded.</p>
+        <p className="text-sm text-text-secondary">
+          {overviewError instanceof Error ? overviewError.message : 'Unknown error'}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/[0.08] via-background to-background p-5"
+      >
+        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+        <div className="relative z-10">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-[11px] uppercase tracking-[0.16em] text-primary">
+                <Sparkles className="h-3.5 w-3.5" />
+                Trajectory Planner
+              </div>
+              <h1 className="text-2xl md:text-3xl font-bold text-text-primary">Strategic Career Timeline</h1>
+              <p className="mt-1 text-sm text-text-secondary">
+                Backward-plan thesis, GMAT, master applications and internship windows with deterministic risk logic.
+              </p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-xl border border-border bg-surface/80 px-3 py-2">
+                <div className="text-[10px] uppercase tracking-wider text-text-tertiary">Horizon</div>
+                <div className="mt-1 text-lg font-semibold text-text-primary">{timelineHorizonMonths}m</div>
+              </div>
+              <div className="rounded-xl border border-border bg-surface/80 px-3 py-2">
+                <div className="text-[10px] uppercase tracking-wider text-text-tertiary">Baseline</div>
+                <div className="mt-1 text-lg font-semibold text-text-primary">{overview.settings.hoursPerWeek}h/w</div>
+              </div>
+              <div className="rounded-xl border border-border bg-surface/80 px-3 py-2">
+                <div className="text-[10px] uppercase tracking-wider text-text-tertiary">Simulated</div>
+                <div className="mt-1 text-lg font-semibold text-primary">{effectiveCapacity}h/w</div>
+              </div>
+              <div className="rounded-xl border border-border bg-surface/80 px-3 py-2">
+                <div className="text-[10px] uppercase tracking-wider text-text-tertiary">Risk</div>
+                <div className="mt-1 text-lg font-semibold text-error">{computed.summary.atRisk}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_220px_220px_auto] lg:items-end">
+            <div className="rounded-xl border border-border bg-surface/80 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-xs uppercase tracking-wider text-text-tertiary">Simulation Capacity</span>
+                <span className="text-xs font-semibold text-primary">{simulationHours ?? overview.settings.hoursPerWeek}h/week</span>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={60}
+                value={simulationHours ?? overview.settings.hoursPerWeek}
+                onChange={(event) => setSimulationHours(Number(event.target.value))}
+                className="w-full accent-[rgb(var(--primary))]"
+              />
+            </div>
+
+            <Input
+              label="Horizon (months)"
+              type="number"
+              min={6}
+              max={36}
+              inputSize="sm"
+              value={horizonMonthsDraft ?? overview.settings.horizonMonths}
+              onChange={(event) =>
+                setHorizonMonthsDraft(Math.min(36, Math.max(6, Number(event.target.value || overview.settings.horizonMonths))))
+              }
+              fullWidth
+            />
+
+            <div className="rounded-xl border border-border bg-surface/80 p-3">
+              <div className="text-[11px] uppercase tracking-wider text-text-tertiary">Plan State</div>
+              <div className="mt-1 flex items-center gap-2 text-sm font-medium text-text-primary">
+                {isPlanFetching ? (
+                  <>
+                    <Clock3 className="h-4 w-4 text-primary animate-pulse" />
+                    Recomputing
+                  </>
+                ) : isSimulationDirty || isHorizonDirty ? (
+                  <>
+                    <Flame className="h-4 w-4 text-warning" />
+                    Draft changed
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    Synced
+                  </>
+                )}
+              </div>
+            </div>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => saveBaselineMutation.mutate()}
+              loading={saveBaselineMutation.isPending}
+              leftIcon={<Save className="h-4 w-4" />}
+              disabled={!isSimulationDirty && !isHorizonDirty}
+            >
+              Save as baseline
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+
+      <div className="grid gap-6 xl:grid-cols-[1.45fr_1fr]">
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-6"
+        >
+          <div className="rounded-2xl border border-border bg-surface/35 p-4">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+                  <CalendarRange className="h-5 w-5 text-primary" />
+                  Timeline Lanes
+                </h2>
+                <p className="text-xs text-text-tertiary">Goals, generated prep blocks and opportunity windows across {timelineHorizonMonths} months.</p>
+              </div>
+              <Badge variant="info" size="sm">
+                {generatedBlocks.length} blocks
+              </Badge>
+            </div>
+
+            <div className="overflow-x-auto">
+              <div className="min-w-[860px] space-y-4">
+                <div className="relative h-10 rounded-lg border border-border bg-background/60">
+                  {monthTicks.map((tick) => (
+                    <div key={`${tick.label}-${tick.offsetPercent}`} className="absolute inset-y-0" style={{ left: `${tick.offsetPercent}%` }}>
+                      <div className="h-full w-px bg-border/70" />
+                      <span className="absolute top-1.5 -translate-x-1/2 text-[10px] uppercase tracking-[0.12em] text-text-tertiary">
+                        {tick.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-3 rounded-xl border border-border/80 bg-background/35 p-3">
+                  <p className="text-xs uppercase tracking-wider text-text-tertiary">Goals lane</p>
+                  <div className="relative h-16 rounded-lg border border-border bg-background/60">
+                    {goals.map((goal) => {
+                      const risk = riskByGoal.get(goal.id) ?? 'on_track';
+                      const left = toPercent(goal.dueDate);
+                      return (
+                        <div key={goal.id} className="absolute top-1.5" style={{ left: `${left}%` }}>
+                          <div
+                            className={cn(
+                              'h-10 w-[2px] rounded-full',
+                              risk === 'at_risk' ? 'bg-error' : risk === 'tight' ? 'bg-warning' : 'bg-success'
+                            )}
+                          />
+                          <div className="mt-1 -translate-x-1/2 whitespace-nowrap text-[10px] font-medium text-text-secondary">
+                            {goal.title}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="space-y-3 rounded-xl border border-border/80 bg-background/35 p-3">
+                  <p className="text-xs uppercase tracking-wider text-text-tertiary">Prep blocks lane</p>
+                  <div className="relative h-16 rounded-lg border border-border bg-background/60">
+                    {generatedBlocks.map((block) => {
+                      const key = `${block.goalId}|${block.startDate}|${block.endDate}`;
+                      const frame = span(block.startDate, block.endDate);
+                      const isCommitted = committedBlockKey.has(key);
+                      return (
+                        <div
+                          key={key}
+                          className={cn(
+                            'absolute top-4 h-8 rounded-md border px-2 text-[11px] font-semibold leading-8 text-white/90',
+                            block.status === 'at_risk'
+                              ? 'border-error/50 bg-error/25'
+                              : block.status === 'tight'
+                                ? 'border-warning/50 bg-warning/25'
+                                : 'border-success/50 bg-success/20'
+                          )}
+                          style={{ left: `${frame.left}%`, width: `${frame.width}%` }}
+                          title={`${block.title} · ${formatShortDate(block.startDate)} to ${formatShortDate(block.endDate)}`}
+                        >
+                          <span className="truncate block">
+                            {block.title}
+                            {isCommitted ? ' · committed' : ''}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="space-y-3 rounded-xl border border-border/80 bg-background/35 p-3">
+                  <p className="text-xs uppercase tracking-wider text-text-tertiary">Opportunity windows lane</p>
+                  <div className="relative h-16 rounded-lg border border-border bg-background/60">
+                    {windows.map((window) => {
+                      const frame = span(window.startDate, window.endDate);
+                      return (
+                        <div
+                          key={window.id}
+                          className="absolute top-4 h-8 rounded-md border border-info/40 bg-info/20 px-2 text-[11px] font-semibold leading-8 text-info"
+                          style={{ left: `${frame.left}%`, width: `${frame.width}%` }}
+                          title={`${window.title} · ${formatShortDate(window.startDate)} to ${formatShortDate(window.endDate)}`}
+                        >
+                          <span className="truncate block">{window.title}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="rounded-2xl border border-border bg-surface/35 p-4">
+              <h3 className="text-sm font-semibold text-text-primary mb-3">Add Milestone</h3>
+              <div className="space-y-3">
+                <Input
+                  label="Title"
+                  value={goalForm.title}
+                  onChange={(event) => setGoalForm((current) => ({ ...current, title: event.target.value }))}
+                  placeholder="Bachelor thesis submission"
+                  inputSize="sm"
+                  fullWidth
+                />
+
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="text-xs text-text-secondary">
+                    Category
+                    <select
+                      value={goalForm.category}
+                      onChange={(event) => setGoalForm((current) => ({ ...current, category: event.target.value as GoalCategory }))}
+                      className="mt-1 h-9 w-full rounded-md border border-border bg-surface px-2 text-sm text-text-primary focus:border-primary focus:outline-none"
+                    >
+                      {goalCategoryOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <Input
+                    label="Due date"
+                    type="date"
+                    value={goalForm.dueDate}
+                    onChange={(event) => setGoalForm((current) => ({ ...current, dueDate: event.target.value }))}
+                    inputSize="sm"
+                    fullWidth
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <Input
+                    label="Effort (h)"
+                    type="number"
+                    min={1}
+                    max={2000}
+                    value={goalForm.effortHours}
+                    onChange={(event) => setGoalForm((current) => ({ ...current, effortHours: Number(event.target.value || 1) }))}
+                    inputSize="sm"
+                    fullWidth
+                  />
+                  <Input
+                    label="Buffer (weeks)"
+                    type="number"
+                    min={0}
+                    max={16}
+                    value={goalForm.bufferWeeks}
+                    onChange={(event) => setGoalForm((current) => ({ ...current, bufferWeeks: Number(event.target.value || 0) }))}
+                    inputSize="sm"
+                    fullWidth
+                  />
+                  <Input
+                    label="Priority (1-5)"
+                    type="number"
+                    min={1}
+                    max={5}
+                    value={goalForm.priority}
+                    onChange={(event) => setGoalForm((current) => ({ ...current, priority: Number(event.target.value || 3) }))}
+                    inputSize="sm"
+                    fullWidth
+                  />
+                </div>
+
+                <Button
+                  size="sm"
+                  variant="primary"
+                  fullWidth
+                  loading={upsertGoalMutation.isPending}
+                  disabled={goalForm.title.trim().length === 0}
+                  leftIcon={<Sparkles className="h-4 w-4" />}
+                  onClick={() => upsertGoalMutation.mutate(goalForm)}
+                >
+                  Create milestone
+                </Button>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-surface/35 p-4">
+              <h3 className="text-sm font-semibold text-text-primary mb-3">Add Opportunity Window</h3>
+              <div className="space-y-3">
+                <Input
+                  label="Title"
+                  value={windowForm.title}
+                  onChange={(event) => setWindowForm((current) => ({ ...current, title: event.target.value }))}
+                  placeholder="Internship recruiting Q1"
+                  inputSize="sm"
+                  fullWidth
+                />
+
+                <label className="text-xs text-text-secondary block">
+                  Type
+                  <select
+                    value={windowForm.windowType}
+                    onChange={(event) => setWindowForm((current) => ({ ...current, windowType: event.target.value as WindowType }))}
+                    className="mt-1 h-9 w-full rounded-md border border-border bg-surface px-2 text-sm text-text-primary focus:border-primary focus:outline-none"
+                  >
+                    {windowTypeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Input
+                    label="Start"
+                    type="date"
+                    value={windowForm.startDate}
+                    onChange={(event) => setWindowForm((current) => ({ ...current, startDate: event.target.value }))}
+                    inputSize="sm"
+                    fullWidth
+                  />
+                  <Input
+                    label="End"
+                    type="date"
+                    value={windowForm.endDate}
+                    onChange={(event) => setWindowForm((current) => ({ ...current, endDate: event.target.value }))}
+                    inputSize="sm"
+                    fullWidth
+                  />
+                </div>
+
+                <label className="text-xs text-text-secondary block">
+                  Confidence
+                  <select
+                    value={windowForm.confidence}
+                    onChange={(event) => setWindowForm((current) => ({ ...current, confidence: event.target.value as WindowConfidence }))}
+                    className="mt-1 h-9 w-full rounded-md border border-border bg-surface px-2 text-sm text-text-primary focus:border-primary focus:outline-none"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </label>
+
+                <Textarea
+                  label="Notes"
+                  value={windowForm.notes}
+                  onChange={(event) => setWindowForm((current) => ({ ...current, notes: event.target.value }))}
+                  placeholder="Optional context"
+                  fullWidth
+                />
+
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  fullWidth
+                  loading={createWindowMutation.isPending}
+                  disabled={windowForm.title.trim().length === 0}
+                  leftIcon={<CalendarClock className="h-4 w-4" />}
+                  onClick={() => createWindowMutation.mutate(windowForm)}
+                >
+                  Create window
+                </Button>
+              </div>
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
+          <div className="rounded-2xl border border-border bg-surface/35 p-4">
+            <h2 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
+              <Gauge className="h-4 w-4 text-primary" />
+              Risk Console
+            </h2>
+
+            <div className="grid grid-cols-3 gap-2">
+              <div className="rounded-xl border border-success/30 bg-success/10 p-3">
+                <div className="text-[10px] uppercase tracking-wider text-success/80">On Track</div>
+                <div className="mt-1 text-2xl font-bold text-success">{computed.summary.onTrack}</div>
+              </div>
+              <div className="rounded-xl border border-warning/30 bg-warning/10 p-3">
+                <div className="text-[10px] uppercase tracking-wider text-warning/80">Tight</div>
+                <div className="mt-1 text-2xl font-bold text-warning">{computed.summary.tight}</div>
+              </div>
+              <div className="rounded-xl border border-error/30 bg-error/10 p-3">
+                <div className="text-[10px] uppercase tracking-wider text-error/80">At Risk</div>
+                <div className="mt-1 text-2xl font-bold text-error">{computed.summary.atRisk}</div>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              {alerts.length === 0 ? (
+                <div className="rounded-lg border border-success/30 bg-success/10 p-3 text-sm text-success">
+                  No active trajectory alerts.
+                </div>
+              ) : (
+                alerts.map((alert, index) => (
+                  <div
+                    key={`${alert.goalId}-${alert.code}-${index}`}
+                    className={cn(
+                      'rounded-lg border p-3 text-sm',
+                      alert.severity === 'critical'
+                        ? 'border-error/35 bg-error/10 text-error'
+                        : 'border-warning/35 bg-warning/10 text-warning'
+                    )}
+                  >
+                    <p className="font-semibold">{alert.code.replaceAll('_', ' ')}</p>
+                    <p className="mt-0.5 text-xs text-text-secondary">{alert.message}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-surface/35 p-4">
+            <h3 className="text-sm font-semibold text-text-primary mb-3">Milestones</h3>
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+              {goals.length === 0 ? (
+                <p className="text-sm text-text-tertiary">No milestones yet.</p>
+              ) : (
+                goals.map((goal) => {
+                  const risk = riskByGoal.get(goal.id);
+                  return (
+                    <div key={goal.id} className="rounded-lg border border-border bg-background/50 px-3 py-2">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-text-primary">{goal.title}</p>
+                          <p className="text-[11px] text-text-tertiary">
+                            Due {formatShortDate(goal.dueDate)} · {goal.effortHours}h · buffer {goal.bufferWeeks}w
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {risk && (
+                            <Badge
+                              size="sm"
+                              variant={risk === 'at_risk' ? 'error' : risk === 'tight' ? 'warning' : 'success'}
+                            >
+                              {risk.replace('_', ' ')}
+                            </Badge>
+                          )}
+                          <button
+                            onClick={() => deleteGoalMutation.mutate(goal.id)}
+                            className="rounded-md p-1.5 text-text-tertiary hover:bg-error/10 hover:text-error"
+                            aria-label={`Delete ${goal.title}`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-surface/35 p-4">
+            <h3 className="text-sm font-semibold text-text-primary mb-3">Opportunity Windows</h3>
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+              {windows.length === 0 ? (
+                <p className="text-sm text-text-tertiary">No windows yet.</p>
+              ) : (
+                windows.map((window) => (
+                  <div key={window.id} className="rounded-lg border border-border bg-background/50 px-3 py-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-text-primary">{window.title}</p>
+                        <p className="text-[11px] text-text-tertiary">
+                          {formatShortDate(window.startDate)} → {formatShortDate(window.endDate)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge size="sm" variant="info">
+                          {window.confidence}
+                        </Badge>
+                        <button
+                          onClick={() => deleteWindowMutation.mutate(window.id)}
+                          className="rounded-md p-1.5 text-text-tertiary hover:bg-error/10 hover:text-error"
+                          aria-label={`Delete ${window.title}`}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </motion.section>
+      </div>
+
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-2xl border border-primary/20 bg-gradient-to-r from-surface/80 via-surface/60 to-surface/80 p-4"
+      >
+        <div className="grid gap-4 lg:grid-cols-[1.2fr_auto_auto_auto] lg:items-end">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="text-xs text-text-secondary">
+              Task package source block
+              <select
+                value={selectedGoalId}
+                onChange={(event) => setSelectedGoalId(event.target.value)}
+                className="mt-1 h-10 w-full rounded-md border border-border bg-background px-2 text-sm text-text-primary focus:border-primary focus:outline-none"
+              >
+                {generatedBlocks.length === 0 ? (
+                  <option value="">No generated block available</option>
+                ) : (
+                  generatedBlocks.map((block) => (
+                    <option key={block.goalId} value={block.goalId}>
+                      {block.title} ({formatShortDate(block.startDate)} - {formatShortDate(block.endDate)})
+                    </option>
+                  ))
+                )}
+              </select>
+            </label>
+
+            <Input
+              label="Task count"
+              type="number"
+              min={1}
+              max={60}
+              value={taskCount}
+              onChange={(event) => setTaskCount(Math.max(1, Math.min(60, Number(event.target.value || 6))))}
+              inputSize="md"
+              fullWidth
+            />
+          </div>
+
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={() => {
+              void refetchPlan();
+              toast.success('Plan regenerated.');
+            }}
+            loading={isPlanFetching}
+            leftIcon={<Wand2 className="h-4 w-4" />}
+          >
+            Generate plan
+          </Button>
+
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => commitBlocksMutation.mutate()}
+            loading={commitBlocksMutation.isPending || isOverviewFetching}
+            disabled={generatedBlocks.length === 0}
+            leftIcon={<ArrowRight className="h-4 w-4" />}
+          >
+            Commit simulation
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={() => createTaskPackageMutation.mutate()}
+            loading={createTaskPackageMutation.isPending}
+            disabled={!selectedBlock}
+            leftIcon={computed.summary.atRisk > 0 ? <AlertTriangle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+          >
+            Create task package
+          </Button>
+        </div>
+      </motion.section>
+    </div>
+  );
+}
