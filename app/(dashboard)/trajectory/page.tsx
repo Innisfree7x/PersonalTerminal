@@ -338,64 +338,90 @@ export default function TrajectoryPage() {
     return { left, width: Math.max(1, right - left) };
   };
 
-  const monthTicks = useMemo(() => {
+  const monthGridLines = useMemo(() => {
     const safeHorizon = Math.max(1, timelineHorizonMonths);
-    const step = safeHorizon > 12 ? 3 : 2;
-    const offsetMonths = new Set<number>([0, safeHorizon]);
+    return Array.from({ length: safeHorizon + 1 }, (_, monthOffset) => {
+      const tickDate = addMonths(timelineStart, monthOffset);
+      const quarter = Math.floor(tickDate.getMonth() / 3) + 1;
+      const isQuarterBoundary = tickDate.getMonth() % 3 === 0;
 
-    for (let i = step; i < safeHorizon; i += step) {
-      offsetMonths.add(i);
-    }
+      return {
+        monthOffset,
+        offsetPercent: clampPercent((monthOffset / safeHorizon) * 100),
+        isMajor: isQuarterBoundary || monthOffset === 0 || monthOffset === safeHorizon,
+        quarterLabel: `Q${quarter} '${format(tickDate, 'yy')}`,
+        monthLabel: format(tickDate, "MMM ''yy"),
+      };
+    });
+  }, [timelineHorizonMonths, timelineStart]);
 
-    const rawTicks = Array.from(offsetMonths)
-      .sort((a, b) => a - b)
-      .map((months) => {
-        const tickDate = addMonths(timelineStart, months);
-        return {
-          monthOffset: months,
-          offsetPercent: clampPercent((months / safeHorizon) * 100),
-          label: format(tickDate, "MMM ''yy"),
-        };
-      });
+  const quarterTicks = useMemo(() => {
+    const raw = monthGridLines
+      .filter((line) => line.isMajor)
+      .map((line) => ({
+        monthOffset: line.monthOffset,
+        offsetPercent: line.offsetPercent,
+        label: line.quarterLabel,
+      }));
 
-    const minGapPercent = 7;
-    const filtered: typeof rawTicks = [];
+    const minGapPercent = 10;
+    const filtered: typeof raw = [];
 
-    for (let i = 0; i < rawTicks.length; i += 1) {
-      const tick = rawTicks[i];
+    for (let i = 0; i < raw.length; i += 1) {
+      const tick = raw[i];
       if (!tick) continue;
-
-      const isFirst = i === 0;
-      const isLast = i === rawTicks.length - 1;
-      if (isFirst || isLast) {
+      if (i === 0 || i === raw.length - 1) {
         filtered.push(tick);
         continue;
       }
-
       const prev = filtered[filtered.length - 1];
-      const next = rawTicks[i + 1];
-
+      const next = raw[i + 1];
       if (!prev || !next) continue;
-
-      const gapFromPrev = tick.offsetPercent - prev.offsetPercent;
-      const gapToNext = next.offsetPercent - tick.offsetPercent;
-
-      if (gapFromPrev >= minGapPercent && gapToNext >= minGapPercent) {
+      if (tick.offsetPercent - prev.offsetPercent >= minGapPercent && next.offsetPercent - tick.offsetPercent >= minGapPercent) {
         filtered.push(tick);
       }
     }
 
     return filtered;
-  }, [timelineHorizonMonths, timelineStart]);
+  }, [monthGridLines]);
 
-  const monthGridLines = useMemo(() => {
+  const monthLabelTicks = useMemo(() => {
     const safeHorizon = Math.max(1, timelineHorizonMonths);
-    return Array.from({ length: safeHorizon + 1 }, (_, monthOffset) => ({
-      monthOffset,
-      offsetPercent: clampPercent((monthOffset / safeHorizon) * 100),
-      isMajor: monthOffset % 3 === 0 || monthOffset === 0 || monthOffset === safeHorizon,
-    }));
-  }, [timelineHorizonMonths]);
+    const step = safeHorizon <= 12 ? 1 : safeHorizon <= 24 ? 2 : 3;
+
+    const raw = monthGridLines
+      .filter(
+        (line) =>
+          line.monthOffset === 0 ||
+          line.monthOffset === safeHorizon ||
+          line.monthOffset % step === 0
+      )
+      .map((line) => ({
+        monthOffset: line.monthOffset,
+        offsetPercent: line.offsetPercent,
+        label: line.monthLabel,
+      }));
+
+    const minGapPercent = 6;
+    const filtered: typeof raw = [];
+
+    for (let i = 0; i < raw.length; i += 1) {
+      const tick = raw[i];
+      if (!tick) continue;
+      if (i === 0 || i === raw.length - 1) {
+        filtered.push(tick);
+        continue;
+      }
+      const prev = filtered[filtered.length - 1];
+      const next = raw[i + 1];
+      if (!prev || !next) continue;
+      if (tick.offsetPercent - prev.offsetPercent >= minGapPercent && next.offsetPercent - tick.offsetPercent >= minGapPercent) {
+        filtered.push(tick);
+      }
+    }
+
+    return filtered;
+  }, [monthGridLines, timelineHorizonMonths]);
 
   const riskByGoal = useMemo(() => {
     const map = new Map<string, RiskStatus>();
@@ -736,7 +762,7 @@ export default function TrajectoryPage() {
 
             <div className="overflow-x-auto">
               <div className="min-w-[1080px] space-y-3">
-                <div className="relative h-14 rounded-lg border border-border bg-gradient-to-b from-background/70 to-background/40">
+                <div className="relative h-16 rounded-lg border border-border bg-gradient-to-b from-background/75 to-background/40">
                   {monthGridLines.map((line) => (
                     <div
                       key={`ruler-line-${line.monthOffset}`}
@@ -748,18 +774,39 @@ export default function TrajectoryPage() {
                     />
                   ))}
 
-                  {monthTicks.map((tick, index) => (
+                  {quarterTicks.map((tick, index) => (
                     <div
-                      key={`${tick.monthOffset}-${tick.label}-${tick.offsetPercent}`}
+                      key={`q-${tick.monthOffset}-${tick.label}-${tick.offsetPercent}`}
                       className="absolute inset-y-0"
                       style={{ left: `${tick.offsetPercent}%` }}
                     >
                       <span
                         className={cn(
-                          'absolute top-2 whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.12em] text-text-secondary',
+                          'absolute top-1 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.14em] text-primary/80',
                           index === 0
                             ? 'left-0 translate-x-0 pl-3'
-                            : index === monthTicks.length - 1
+                            : index === quarterTicks.length - 1
+                              ? 'right-0 translate-x-0 pr-3'
+                              : '-translate-x-1/2'
+                        )}
+                      >
+                        {tick.label}
+                      </span>
+                    </div>
+                  ))}
+
+                  {monthLabelTicks.map((tick, index) => (
+                    <div
+                      key={`m-${tick.monthOffset}-${tick.label}-${tick.offsetPercent}`}
+                      className="absolute inset-y-0"
+                      style={{ left: `${tick.offsetPercent}%` }}
+                    >
+                      <span
+                        className={cn(
+                          'absolute top-7 whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.08em] text-text-secondary',
+                          index === 0
+                            ? 'left-0 translate-x-0 pl-3'
+                            : index === monthLabelTicks.length - 1
                               ? 'right-0 translate-x-0 pr-3'
                               : '-translate-x-1/2'
                         )}
