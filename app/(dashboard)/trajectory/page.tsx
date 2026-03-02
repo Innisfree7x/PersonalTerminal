@@ -339,16 +339,23 @@ export default function TrajectoryPage() {
   };
 
   const monthTicks = useMemo(() => {
-    const step = timelineHorizonMonths > 12 ? 3 : 2;
-    const entries: Array<{ offsetPercent: number; label: string }> = [];
-    for (let i = 0; i <= timelineHorizonMonths; i += step) {
-      const tickDate = addMonths(timelineStart, i);
-      entries.push({
-        offsetPercent: clampPercent((i / timelineHorizonMonths) * 100),
-        label: format(tickDate, "MMM ''yy"),
-      });
+    const safeHorizon = Math.max(1, timelineHorizonMonths);
+    const step = safeHorizon > 12 ? 3 : 2;
+    const offsetMonths = new Set<number>([0, safeHorizon]);
+
+    for (let i = step; i < safeHorizon; i += step) {
+      offsetMonths.add(i);
     }
-    return entries;
+
+    return Array.from(offsetMonths)
+      .sort((a, b) => a - b)
+      .map((months) => {
+        const tickDate = addMonths(timelineStart, months);
+        return {
+          offsetPercent: clampPercent((months / safeHorizon) * 100),
+          label: format(tickDate, "MMM ''yy"),
+        };
+      });
   }, [timelineHorizonMonths, timelineStart]);
 
   const riskByGoal = useMemo(() => {
@@ -694,11 +701,11 @@ export default function TrajectoryPage() {
                       <div className="h-full w-px bg-border/70" />
                       <span
                         className={cn(
-                          'absolute top-1.5 text-[10px] uppercase tracking-[0.12em] text-text-tertiary',
+                          'absolute top-1.5 whitespace-nowrap text-[10px] uppercase tracking-[0.12em] text-text-tertiary',
                           index === 0
-                            ? 'left-0 translate-x-0 pl-1'
+                            ? 'left-0 translate-x-0 pl-2'
                             : index === monthTicks.length - 1
-                              ? 'right-0 translate-x-0 pr-1'
+                              ? 'right-0 translate-x-0 pr-2'
                               : '-translate-x-1/2'
                         )}
                       >
