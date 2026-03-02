@@ -372,10 +372,6 @@ export default function TrajectoryPage() {
     () => buildTimelineRuler(timelineStart, timelineHorizonMonths),
     [timelineStart, timelineHorizonMonths]
   );
-  const timelineMinWidth = useMemo(
-    () => Math.max(1080, timelineHorizonMonths * 54),
-    [timelineHorizonMonths]
-  );
 
   const riskByGoal = useMemo(() => {
     const map = new Map<string, RiskStatus>();
@@ -760,8 +756,8 @@ export default function TrajectoryPage() {
               </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <div className="space-y-3" style={{ minWidth: `${timelineMinWidth}px` }}>
+            <div className="overflow-hidden">
+              <div className="w-full space-y-3">
                 <div className="relative h-16 rounded-lg border border-border bg-gradient-to-b from-background/75 to-background/40">
                   {quarterSegments.map((segment, index) => (
                     <div
