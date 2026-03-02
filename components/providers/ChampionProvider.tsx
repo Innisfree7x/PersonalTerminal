@@ -111,6 +111,7 @@ const ABILITY_CAST_ANIMATION: Record<AbilityKey, ChampionAnimation> = CHAMPION_V
 const ABILITY_ANIMATION_LOCK_MS: Record<AbilityKey, number> = CHAMPION_VFX_CONFIG.castAnimationLockMs;
 const REACTION_ANIMATION_DURATION_MS = CHAMPION_VFX_CONFIG.reactionAnimationDurationMs;
 const MOVE_COMMAND_COLOR = '#22C55E';
+const INITIAL_POSITION: Position = { x: 120, y: 120 };
 
 const DEFAULT_SETTINGS: ChampionSettings = {
   enabled: true,
@@ -1030,8 +1031,8 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<ChampionSettings>(DEFAULT_SETTINGS);
   const [stats, setStats] = useState<ChampionStats>(() => levelFromXp(0));
   const [mode, setMode] = useState<ChampionMode>('passive');
-  const [position, setPosition] = useState<Position>(() => nearestViewportPosition());
-  const [targetPosition, setTargetPosition] = useState<Position>(() => nearestViewportPosition());
+  const [position, setPosition] = useState<Position>(INITIAL_POSITION);
+  const [targetPosition, setTargetPosition] = useState<Position>(INITIAL_POSITION);
   const [isMoving, setIsMoving] = useState(false);
   const [direction, setDirection] = useState<'left' | 'right'>('right');
   const [animation, setAnimation] = useState<ChampionAnimation>('idle');
@@ -1052,7 +1053,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
   });
 
   const pointerRef = useRef<Position>({ x: 0, y: 0 });
-  const positionRef = useRef<Position>(nearestViewportPosition());
+  const positionRef = useRef<Position>(INITIAL_POSITION);
   const randomWalkTimeoutRef = useRef<number | null>(null);
   const moveRafRef = useRef<number | null>(null);
   const taskStreakRef = useRef(0);
@@ -1457,6 +1458,11 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       } catch {
         // ignore
       }
+    } else {
+      const viewportPos = clampToViewport(nearestViewportPosition(), championSize);
+      positionRef.current = viewportPos;
+      setPosition(viewportPos);
+      setTargetPosition(viewportPos);
     }
   }, [championSize]);
 

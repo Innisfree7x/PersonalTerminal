@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ArrowLeft, Eye, EyeOff, Pause, Play, SkipForward, Square, Sparkles, Timer } from 'lucide-react';
@@ -51,6 +51,17 @@ export default function FocusScreen() {
     skipBreak,
   } = useFocusTimer();
   const { settings: championSettings, updateSettings: updateChampionSettings } = useChampion();
+  // Capture the enabled state on mount so we can restore it when leaving focus.
+  const championEnabledOnMount = useRef(championSettings.enabled);
+
+  // Restore champion visibility when the user navigates away from the focus screen.
+  useEffect(() => {
+    const initialEnabled = championEnabledOnMount.current;
+    return () => {
+      updateChampionSettings({ enabled: initialEnabled });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Math.random() * FOCUS_QUOTES.length));
   const [customMinutes, setCustomMinutes] = useState('');
