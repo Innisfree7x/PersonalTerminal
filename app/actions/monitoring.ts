@@ -13,6 +13,8 @@ import {
 } from '@/lib/monitoring';
 import { createAdminAuditLog, fetchRecentAdminAuditLogs } from '@/lib/monitoring/audit';
 import { fetchOpsFlowSloSnapshot } from '@/lib/ops/flowMetrics';
+import { evaluateBurnRates, summarizeBurnRateStatus, type BurnRateEvaluation } from '@/lib/ops/burnRateAlerts';
+import { getDependencyHealthStatus, type CircuitState } from '@/lib/ops/degradation';
 
 export type MonitoringIncidentAction = 'acknowledge' | 'resolve' | 'dismiss' | 'clear_all';
 
@@ -107,4 +109,39 @@ export async function applyMonitoringIncidentAction(input: {
   });
 
   return { ok: true, affected };
+}
+
+export interface OpsReliabilitySnapshot {
+  burnRateStatus: 'healthy' | 'warning' | 'critical';
+  criticalFlows: string[];
+  warningFlows: string[];
+  evaluations: BurnRateEvaluation[];
+  dependencies: Array<{
+    name: string;
+    state: CircuitState;
+    failureCount: number;
+    lastFailureAt: string | null;
+    lastSuccessAt: string | null;
+  }>;
+  generatedAt: string;
+}
+
+export async function fetchOpsReliabilityAction(): Promise<OpsReliabilitySnapshot> {
+  await assertAdmin();
+
+  const [burnReport, dependencyHealth] = await Promise.all([
+    evaluateBurnRates(),
+    Promise.resolve(getDependencyHealthStatus()),
+  ]);
+
+  const burnStatus = summarizeBurnRateStatus(burnReport.evaluations);
+
+  return {
+    burnRateStatus: burnStatus.status,
+    criticalFlows: burnStatus.criticalFlows,
+    warningFlows: burnStatus.warningFlows,
+    evaluations: burnReport.evaluations,
+    dependencies: dependencyHealth,
+    generatedAt: new Date().toISOString(),
+  };
 }
