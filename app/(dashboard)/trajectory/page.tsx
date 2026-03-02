@@ -130,8 +130,12 @@ interface GoalFormState {
   title: string;
   category: GoalCategory;
   dueDate: string;
+  effortUnit: 'hours' | 'months';
   effortHours: number;
+  effortMonths: number;
+  bufferUnit: 'weeks' | 'months';
   bufferWeeks: number;
+  bufferMonths: number;
   priority: number;
   status: GoalStatus;
 }
@@ -199,11 +203,24 @@ function clampPercent(value: number): number {
   return Math.min(100, Math.max(0, value));
 }
 
+function monthsToHours(months: number, weeklyCapacityHours: number): number {
+  const normalizedMonths = Math.max(0.25, months);
+  const normalizedWeekly = Math.max(1, weeklyCapacityHours);
+  // Approximation: 1 month = 4.345 weeks
+  return Math.max(1, Math.round(normalizedMonths * 4.345 * normalizedWeekly));
+}
+
+function monthsToWeeks(months: number): number {
+  const normalizedMonths = Math.max(0.25, months);
+  return Math.max(0, Math.round(normalizedMonths * 4.345));
+}
+
 export default function TrajectoryPage() {
   const queryClient = useQueryClient();
 
   const [simulationHours, setSimulationHours] = useState<number | null>(null);
   const [horizonMonthsDraft, setHorizonMonthsDraft] = useState<number | null>(null);
+  const [planningUnit, setPlanningUnit] = useState<'weeks' | 'months'>('months');
   const [selectedGoalId, setSelectedGoalId] = useState<string>('');
   const [taskCount, setTaskCount] = useState<number>(6);
 
@@ -211,8 +228,12 @@ export default function TrajectoryPage() {
     title: '',
     category: 'thesis',
     dueDate: toDateInputValue(addMonths(new Date(), 6)),
+    effortUnit: 'months',
     effortHours: 120,
+    effortMonths: 3,
+    bufferUnit: 'months',
     bufferWeeks: 2,
+    bufferMonths: 0.5,
     priority: 3,
     status: 'active',
   });
@@ -480,6 +501,20 @@ export default function TrajectoryPage() {
     },
   });
 
+  const milestoneEffortHours = useMemo(() => {
+    if (goalForm.effortUnit === 'months') {
+      return monthsToHours(goalForm.effortMonths, effectiveCapacity);
+    }
+    return Math.max(1, Math.round(goalForm.effortHours));
+  }, [effectiveCapacity, goalForm.effortHours, goalForm.effortMonths, goalForm.effortUnit]);
+
+  const milestoneBufferWeeks = useMemo(() => {
+    if (goalForm.bufferUnit === 'months') {
+      return monthsToWeeks(goalForm.bufferMonths);
+    }
+    return Math.max(0, Math.round(goalForm.bufferWeeks));
+  }, [goalForm.bufferMonths, goalForm.bufferUnit, goalForm.bufferWeeks]);
+
   if (isOverviewLoading && !overview) {
     return (
       <div className="space-y-4 animate-pulse">
@@ -593,6 +628,26 @@ export default function TrajectoryPage() {
               </div>
             </div>
 
+            <label className="text-xs text-text-secondary">
+              Planning Unit
+              <select
+                value={planningUnit}
+                onChange={(event) => {
+                  const unit = event.target.value as 'weeks' | 'months';
+                  setPlanningUnit(unit);
+                  setGoalForm((current) => ({
+                    ...current,
+                    effortUnit: unit === 'months' ? 'months' : 'hours',
+                    bufferUnit: unit,
+                  }));
+                }}
+                className="mt-1 h-10 w-full rounded-md border border-border bg-surface px-2 text-sm text-text-primary focus:border-primary focus:outline-none"
+              >
+                <option value="months">Months</option>
+                <option value="weeks">Weeks</option>
+              </select>
+            </label>
+
             <Button
               variant="secondary"
               size="sm"
@@ -630,10 +685,23 @@ export default function TrajectoryPage() {
             <div className="overflow-x-auto">
               <div className="min-w-[860px] space-y-4">
                 <div className="relative h-10 rounded-lg border border-border bg-background/60">
-                  {monthTicks.map((tick) => (
-                    <div key={`${tick.label}-${tick.offsetPercent}`} className="absolute inset-y-0" style={{ left: `${tick.offsetPercent}%` }}>
+                  {monthTicks.map((tick, index) => (
+                    <div
+                      key={`${tick.label}-${tick.offsetPercent}`}
+                      className="absolute inset-y-0"
+                      style={{ left: `${tick.offsetPercent}%` }}
+                    >
                       <div className="h-full w-px bg-border/70" />
-                      <span className="absolute top-1.5 -translate-x-1/2 text-[10px] uppercase tracking-[0.12em] text-text-tertiary">
+                      <span
+                        className={cn(
+                          'absolute top-1.5 text-[10px] uppercase tracking-[0.12em] text-text-tertiary',
+                          index === 0
+                            ? 'left-0 translate-x-0 pl-1'
+                            : index === monthTicks.length - 1
+                              ? 'right-0 translate-x-0 pr-1'
+                              : '-translate-x-1/2'
+                        )}
+                      >
                         {tick.label}
                       </span>
                     </div>
@@ -755,27 +823,91 @@ export default function TrajectoryPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
-                  <Input
-                    label="Effort (h)"
-                    type="number"
-                    min={1}
-                    max={2000}
-                    value={goalForm.effortHours}
-                    onChange={(event) => setGoalForm((current) => ({ ...current, effortHours: Number(event.target.value || 1) }))}
-                    inputSize="sm"
-                    fullWidth
-                  />
-                  <Input
-                    label="Buffer (weeks)"
-                    type="number"
-                    min={0}
-                    max={16}
-                    value={goalForm.bufferWeeks}
-                    onChange={(event) => setGoalForm((current) => ({ ...current, bufferWeeks: Number(event.target.value || 0) }))}
-                    inputSize="sm"
-                    fullWidth
-                  />
+                <div className="grid grid-cols-4 gap-3">
+                  <label className="text-xs text-text-secondary">
+                    Effort unit
+                    <select
+                      value={goalForm.effortUnit}
+                      onChange={(event) =>
+                        setGoalForm((current) => ({
+                          ...current,
+                          effortUnit: event.target.value as 'hours' | 'months',
+                        }))
+                      }
+                      className="mt-1 h-9 w-full rounded-md border border-border bg-surface px-2 text-sm text-text-primary focus:border-primary focus:outline-none"
+                    >
+                      <option value="hours">Hours</option>
+                      <option value="months">Months</option>
+                    </select>
+                  </label>
+
+                  {goalForm.effortUnit === 'hours' ? (
+                    <Input
+                      label="Effort (h)"
+                      type="number"
+                      min={1}
+                      max={2000}
+                      value={goalForm.effortHours}
+                      onChange={(event) => setGoalForm((current) => ({ ...current, effortHours: Number(event.target.value || 1) }))}
+                      inputSize="sm"
+                      fullWidth
+                    />
+                  ) : (
+                    <Input
+                      label="Effort (months)"
+                      type="number"
+                      min={0.25}
+                      max={36}
+                      step={0.25}
+                      value={goalForm.effortMonths}
+                      onChange={(event) => setGoalForm((current) => ({ ...current, effortMonths: Number(event.target.value || 0.25) }))}
+                      inputSize="sm"
+                      fullWidth
+                    />
+                  )}
+
+                  <label className="text-xs text-text-secondary">
+                    Buffer unit
+                    <select
+                      value={goalForm.bufferUnit}
+                      onChange={(event) =>
+                        setGoalForm((current) => ({
+                          ...current,
+                          bufferUnit: event.target.value as 'weeks' | 'months',
+                        }))
+                      }
+                      className="mt-1 h-9 w-full rounded-md border border-border bg-surface px-2 text-sm text-text-primary focus:border-primary focus:outline-none"
+                    >
+                      <option value="weeks">Weeks</option>
+                      <option value="months">Months</option>
+                    </select>
+                  </label>
+
+                  {goalForm.bufferUnit === 'weeks' ? (
+                    <Input
+                      label="Buffer (weeks)"
+                      type="number"
+                      min={0}
+                      max={16}
+                      value={goalForm.bufferWeeks}
+                      onChange={(event) => setGoalForm((current) => ({ ...current, bufferWeeks: Number(event.target.value || 0) }))}
+                      inputSize="sm"
+                      fullWidth
+                    />
+                  ) : (
+                    <Input
+                      label="Buffer (months)"
+                      type="number"
+                      min={0.25}
+                      max={12}
+                      step={0.25}
+                      value={goalForm.bufferMonths}
+                      onChange={(event) => setGoalForm((current) => ({ ...current, bufferMonths: Number(event.target.value || 0.25) }))}
+                      inputSize="sm"
+                      fullWidth
+                    />
+                  )}
+
                   <Input
                     label="Priority (1-5)"
                     type="number"
@@ -788,6 +920,20 @@ export default function TrajectoryPage() {
                   />
                 </div>
 
+                {goalForm.effortUnit === 'months' ? (
+                  <div className="rounded-lg border border-primary/25 bg-primary/10 px-3 py-2 text-xs text-text-secondary">
+                    {goalForm.effortMonths} months at {effectiveCapacity}h/week ≈{' '}
+                    <span className="font-semibold text-primary">{milestoneEffortHours}h</span> planning effort.
+                  </div>
+                ) : null}
+
+                {goalForm.bufferUnit === 'months' ? (
+                  <div className="rounded-lg border border-info/25 bg-info/10 px-3 py-2 text-xs text-text-secondary">
+                    {goalForm.bufferMonths} months buffer ≈{' '}
+                    <span className="font-semibold text-info">{milestoneBufferWeeks} weeks</span>.
+                  </div>
+                ) : null}
+
                 <Button
                   size="sm"
                   variant="primary"
@@ -795,7 +941,13 @@ export default function TrajectoryPage() {
                   loading={upsertGoalMutation.isPending}
                   disabled={goalForm.title.trim().length === 0}
                   leftIcon={<Sparkles className="h-4 w-4" />}
-                  onClick={() => upsertGoalMutation.mutate(goalForm)}
+                  onClick={() =>
+                    upsertGoalMutation.mutate({
+                      ...goalForm,
+                      effortHours: milestoneEffortHours,
+                      bufferWeeks: milestoneBufferWeeks,
+                    })
+                  }
                 >
                   Create milestone
                 </Button>
