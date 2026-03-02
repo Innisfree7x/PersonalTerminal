@@ -22,6 +22,7 @@ Wenn zwei Dokumente widersprüchlich sind, gilt immer diese Prioritätsliste.
 
 ## Aktive Dokumente
 - `docs/PHASE14_RELIABILITY_OPS.md` (aktive Reliability-Umsetzung inkl. Audit-Status)
+- `docs/TRAJECTORY_AGENT_HANDBOOK.md` (verbindlicher Guardrail- und Test-Handoff fuer `/trajectory`)
 - `docs/PHASE13.md` (Gate-Referenz fuer Focus/Lucian/Density)
 - `docs/PHASE13_RELEASE_AUDIT_2026-02-28.md` (Release-/Gate-Kontext)
 - `docs/AGENT_CHANGE_REVIEW_2026-03-01.md` (aktueller Core-Review inkl. CI-Evidenz)

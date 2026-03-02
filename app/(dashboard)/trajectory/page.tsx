@@ -14,6 +14,8 @@ import {
   Clock3,
   Flame,
   Gauge,
+  Eye,
+  EyeOff,
   Save,
   Sparkles,
   Trash2,
@@ -22,6 +24,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
+import { buildTimelineRuler } from '@/lib/trajectory/timeline';
 import { cn } from '@/lib/utils';
 
 type GoalCategory = 'thesis' | 'gmat' | 'master_app' | 'internship' | 'other';
@@ -164,6 +167,13 @@ const windowTypeOptions: Array<{ value: WindowType; label: string }> = [
   { value: 'other', label: 'Other Window' },
 ];
 
+function quarterGlowClasses(quarter: 1 | 2 | 3 | 4): string {
+  if (quarter === 1) return 'from-emerald-400/45 to-emerald-300/15 shadow-[0_0_10px_rgba(52,211,153,0.28)]';
+  if (quarter === 2) return 'from-sky-400/45 to-sky-300/15 shadow-[0_0_10px_rgba(56,189,248,0.26)]';
+  if (quarter === 3) return 'from-amber-400/50 to-amber-300/15 shadow-[0_0_10px_rgba(251,191,36,0.26)]';
+  return 'from-violet-400/45 to-violet-300/15 shadow-[0_0_10px_rgba(167,139,250,0.26)]';
+}
+
 const EMPTY_GOALS: TrajectoryGoal[] = [];
 const EMPTY_WINDOWS: TrajectoryWindow[] = [];
 const EMPTY_BLOCKS: TrajectoryBlock[] = [];
@@ -221,6 +231,9 @@ export default function TrajectoryPage() {
   const [simulationHours, setSimulationHours] = useState<number | null>(null);
   const [horizonMonthsDraft, setHorizonMonthsDraft] = useState<number | null>(null);
   const [planningUnit, setPlanningUnit] = useState<'weeks' | 'months'>('months');
+  const [showMilestones, setShowMilestones] = useState(true);
+  const [showPrepBlocks, setShowPrepBlocks] = useState(true);
+  const [showWindows, setShowWindows] = useState(true);
   const [selectedGoalId, setSelectedGoalId] = useState<string>('');
   const [taskCount, setTaskCount] = useState<number>(6);
 
@@ -327,6 +340,23 @@ export default function TrajectoryPage() {
 
   const totalTimelineDays = Math.max(1, differenceInCalendarDays(timelineEnd, timelineStart));
 
+  const timelineRangeLabel = useMemo(
+    () => `${format(timelineStart, 'MM.yy')} -> ${format(timelineEnd, 'MM.yy')}`,
+    [timelineEnd, timelineStart]
+  );
+
+  const nextMilestoneLabel = useMemo(() => {
+    const now = new Date();
+    const upcoming = goals
+      .filter((goal) => goal.status === 'active')
+      .map((goal) => ({ goal, due: parseISO(goal.dueDate) }))
+      .filter((entry) => entry.due >= now)
+      .sort((a, b) => a.due.getTime() - b.due.getTime())[0];
+
+    if (!upcoming) return 'No upcoming milestone';
+    return `${upcoming.goal.title} · ${format(upcoming.due, 'dd MMM yyyy')}`;
+  }, [goals]);
+
   const toPercent = (dateString: string): number => {
     const distance = differenceInCalendarDays(parseISO(dateString), timelineStart);
     return clampPercent((distance / totalTimelineDays) * 100);
@@ -338,90 +368,14 @@ export default function TrajectoryPage() {
     return { left, width: Math.max(1, right - left) };
   };
 
-  const monthGridLines = useMemo(() => {
-    const safeHorizon = Math.max(1, timelineHorizonMonths);
-    return Array.from({ length: safeHorizon + 1 }, (_, monthOffset) => {
-      const tickDate = addMonths(timelineStart, monthOffset);
-      const quarter = Math.floor(tickDate.getMonth() / 3) + 1;
-      const isQuarterBoundary = tickDate.getMonth() % 3 === 0;
-
-      return {
-        monthOffset,
-        offsetPercent: clampPercent((monthOffset / safeHorizon) * 100),
-        isMajor: isQuarterBoundary || monthOffset === 0 || monthOffset === safeHorizon,
-        quarterLabel: `Q${quarter} '${format(tickDate, 'yy')}`,
-        monthLabel: format(tickDate, "MMM ''yy"),
-      };
-    });
-  }, [timelineHorizonMonths, timelineStart]);
-
-  const quarterTicks = useMemo(() => {
-    const raw = monthGridLines
-      .filter((line) => line.isMajor)
-      .map((line) => ({
-        monthOffset: line.monthOffset,
-        offsetPercent: line.offsetPercent,
-        label: line.quarterLabel,
-      }));
-
-    const minGapPercent = 10;
-    const filtered: typeof raw = [];
-
-    for (let i = 0; i < raw.length; i += 1) {
-      const tick = raw[i];
-      if (!tick) continue;
-      if (i === 0 || i === raw.length - 1) {
-        filtered.push(tick);
-        continue;
-      }
-      const prev = filtered[filtered.length - 1];
-      const next = raw[i + 1];
-      if (!prev || !next) continue;
-      if (tick.offsetPercent - prev.offsetPercent >= minGapPercent && next.offsetPercent - tick.offsetPercent >= minGapPercent) {
-        filtered.push(tick);
-      }
-    }
-
-    return filtered;
-  }, [monthGridLines]);
-
-  const monthLabelTicks = useMemo(() => {
-    const safeHorizon = Math.max(1, timelineHorizonMonths);
-    const step = safeHorizon <= 12 ? 1 : safeHorizon <= 24 ? 2 : 3;
-
-    const raw = monthGridLines
-      .filter(
-        (line) =>
-          line.monthOffset === 0 ||
-          line.monthOffset === safeHorizon ||
-          line.monthOffset % step === 0
-      )
-      .map((line) => ({
-        monthOffset: line.monthOffset,
-        offsetPercent: line.offsetPercent,
-        label: line.monthLabel,
-      }));
-
-    const minGapPercent = 6;
-    const filtered: typeof raw = [];
-
-    for (let i = 0; i < raw.length; i += 1) {
-      const tick = raw[i];
-      if (!tick) continue;
-      if (i === 0 || i === raw.length - 1) {
-        filtered.push(tick);
-        continue;
-      }
-      const prev = filtered[filtered.length - 1];
-      const next = raw[i + 1];
-      if (!prev || !next) continue;
-      if (tick.offsetPercent - prev.offsetPercent >= minGapPercent && next.offsetPercent - tick.offsetPercent >= minGapPercent) {
-        filtered.push(tick);
-      }
-    }
-
-    return filtered;
-  }, [monthGridLines, timelineHorizonMonths]);
+  const { monthGridLines, quarterSegments, monthLabelTicks } = useMemo(
+    () => buildTimelineRuler(timelineStart, timelineHorizonMonths),
+    [timelineStart, timelineHorizonMonths]
+  );
+  const timelineMinWidth = useMemo(
+    () => Math.max(1080, timelineHorizonMonths * 54),
+    [timelineHorizonMonths]
+  );
 
   const riskByGoal = useMemo(() => {
     const map = new Map<string, RiskStatus>();
@@ -748,6 +702,14 @@ export default function TrajectoryPage() {
                   Timeline Lanes
                 </h2>
                 <p className="text-xs text-text-tertiary">Goals, generated prep blocks and opportunity windows across {timelineHorizonMonths} months.</p>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+                  <span className="rounded-full border border-border bg-background/40 px-2 py-0.5 text-text-secondary">
+                    Range: {timelineRangeLabel}
+                  </span>
+                  <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-primary/90">
+                    Next: {nextMilestoneLabel}
+                  </span>
+                </div>
               </div>
               <Badge variant="info" size="sm">
                 {generatedBlocks.length} blocks
@@ -755,14 +717,66 @@ export default function TrajectoryPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2 mb-3">
-              <Badge variant="success" size="sm">Milestones</Badge>
-              <Badge variant="warning" size="sm">Prep Blocks</Badge>
-              <Badge variant="info" size="sm">Opportunity Windows</Badge>
+              <button
+                type="button"
+                onClick={() => setShowMilestones((current) => !current)}
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-medium transition-colors',
+                  showMilestones
+                    ? 'border-success/40 bg-success/15 text-success'
+                    : 'border-border bg-background/40 text-text-tertiary'
+                )}
+              >
+                {showMilestones ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                Milestones
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowPrepBlocks((current) => !current)}
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-medium transition-colors',
+                  showPrepBlocks
+                    ? 'border-warning/40 bg-warning/15 text-warning'
+                    : 'border-border bg-background/40 text-text-tertiary'
+                )}
+              >
+                {showPrepBlocks ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                Prep Blocks
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowWindows((current) => !current)}
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-medium transition-colors',
+                  showWindows
+                    ? 'border-info/40 bg-info/15 text-info'
+                    : 'border-border bg-background/40 text-text-tertiary'
+                )}
+              >
+                {showWindows ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                Opportunity Windows
+              </button>
             </div>
 
             <div className="overflow-x-auto">
-              <div className="min-w-[1080px] space-y-3">
+              <div className="space-y-3" style={{ minWidth: `${timelineMinWidth}px` }}>
                 <div className="relative h-16 rounded-lg border border-border bg-gradient-to-b from-background/75 to-background/40">
+                  {quarterSegments.map((segment, index) => (
+                    <div
+                      key={`q-segment-${index}-${segment.startPercent}`}
+                      className={cn(
+                        'absolute top-0.5 h-[2px] rounded-full bg-gradient-to-r',
+                        quarterGlowClasses(segment.quarter)
+                      )}
+                      style={{
+                        left: `calc(${segment.startPercent}% + 6px)`,
+                        width: `calc(${Math.max(0, segment.endPercent - segment.startPercent)}% - 12px)`,
+                      }}
+                    />
+                  ))}
+
                   {monthGridLines.map((line) => (
                     <div
                       key={`ruler-line-${line.monthOffset}`}
@@ -774,23 +788,17 @@ export default function TrajectoryPage() {
                     />
                   ))}
 
-                  {quarterTicks.map((tick, index) => (
+                  {quarterSegments.map((segment, index) => (
                     <div
-                      key={`q-${tick.monthOffset}-${tick.label}-${tick.offsetPercent}`}
-                      className="absolute inset-y-0"
-                      style={{ left: `${tick.offsetPercent}%` }}
+                      key={`q-label-${index}-${segment.startPercent}`}
+                      className="absolute top-1 h-5"
+                      style={{
+                        left: `${segment.startPercent}%`,
+                        width: `${Math.max(0, segment.endPercent - segment.startPercent)}%`,
+                      }}
                     >
-                      <span
-                        className={cn(
-                          'absolute top-1 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.14em] text-primary/80',
-                          index === 0
-                            ? 'left-0 translate-x-0 pl-3'
-                            : index === quarterTicks.length - 1
-                              ? 'right-0 translate-x-0 pr-3'
-                              : '-translate-x-1/2'
-                        )}
-                      >
-                        {tick.label}
+                      <span className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.14em] text-primary/85">
+                        {segment.label}
                       </span>
                     </div>
                   ))}
@@ -818,6 +826,11 @@ export default function TrajectoryPage() {
                 </div>
 
                 <div className="relative h-[230px] rounded-xl border border-border/80 bg-background/45 px-3 py-3">
+                  <div className="absolute inset-y-3 left-[0.7%] w-[2px] rounded-full bg-primary/70 shadow-[0_0_14px_rgba(251,191,36,0.4)]" />
+                  <span className="absolute left-[0.2%] top-2 rounded-full border border-primary/35 bg-primary/10 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] text-primary">
+                    Now
+                  </span>
+
                   {monthGridLines
                     .filter((line) => line.isMajor)
                     .map((line) => (
@@ -831,7 +844,7 @@ export default function TrajectoryPage() {
                   <div className="absolute inset-x-3 top-[128px] h-px bg-border/60" />
                   <div className="absolute inset-x-3 top-[184px] h-px bg-border/60" />
 
-                  {windows.map((window, index) => {
+                  {showWindows ? windows.map((window, index) => {
                     const frame = span(window.startDate, window.endDate);
                     const topOffset = 146 + (index % 2) * 28;
                     return (
@@ -844,9 +857,9 @@ export default function TrajectoryPage() {
                         <span className="truncate block">{window.title}</span>
                       </div>
                     );
-                  })}
+                  }) : null}
 
-                  {generatedBlocks.map((block, index) => {
+                  {showPrepBlocks ? generatedBlocks.map((block, index) => {
                     const key = `${block.goalId}|${block.startDate}|${block.endDate}`;
                     const frame = span(block.startDate, block.endDate);
                     const isCommitted = committedBlockKey.has(key);
@@ -869,9 +882,9 @@ export default function TrajectoryPage() {
                         <span className="truncate block">{block.title}{isCommitted ? ' · committed' : ''}</span>
                       </div>
                     );
-                  })}
+                  }) : null}
 
-                  {goals.map((goal) => {
+                  {showMilestones ? goals.map((goal) => {
                     const risk = riskByGoal.get(goal.id) ?? 'on_track';
                     const left = toPercent(goal.dueDate);
 
@@ -888,7 +901,7 @@ export default function TrajectoryPage() {
                         </div>
                       </div>
                     );
-                  })}
+                  }) : null}
 
                   {goals.length === 0 && generatedBlocks.length === 0 && windows.length === 0 ? (
                     <div className="absolute inset-0 flex items-center justify-center text-sm text-text-tertiary">

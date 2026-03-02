@@ -11,6 +11,8 @@ Implementation Notes (2026-03-02):
 2. Sidebar navigation + prefetch wired in `components/layout/Sidebar.tsx`.
 3. Header title mapping includes `/trajectory` in `components/layout/Header.tsx`.
 4. Required API surface for settings/overview/plan/goals/windows/blocks/tasks is live under `app/api/trajectory/*`.
+5. Timeline ruler math extracted to `lib/trajectory/timeline.ts` to keep month/quarter spacing deterministic and testable.
+6. Regression coverage for timeline readability lives in `tests/unit/trajectory-timeline.test.ts`.
 
 ## 1) Goal
 
