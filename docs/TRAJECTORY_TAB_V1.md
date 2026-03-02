@@ -31,6 +31,7 @@ The tab must turn high-level goals into realistic time blocks and highlight time
    - "Block in Calendar" creates internal trajectory blocks and optional daily-task package.
 4. Planning horizon: `now -> +24 months`.
 5. Risk logic is deterministic and threshold-based.
+6. First-load behavior: if no settings row exists, API auto-initializes defaults (`hours_per_week=8`, `horizon_months=24`) and returns 200.
 
 ## 4) User Stories
 
@@ -59,6 +60,7 @@ Out:
 2. Automatic scraping/import of internship windows.
 3. Push notifications.
 4. Full Google Calendar write/sync.
+5. Feature-flag dependency for personal-mode usage (tab can be shipped always-on).
 
 ## 6) IA / UI Structure
 
@@ -181,7 +183,7 @@ The thresholds are fixed in V1 and must not be silently changed in UI.
 1. Create N `daily_tasks` entries across block range using deterministic spacing.
 2. Naming format:
    - `[Trajectory] <Goal title> - Step <k>/<n>`
-3. Add metadata in `description` with `trajectory_goal_id` and block date range.
+3. Store traceability metadata via `source='goal'` and `source_id=<trajectory_goal_id>`.
 
 "Block in Calendar" in V1:
 
@@ -191,18 +193,24 @@ The thresholds are fixed in V1 and must not be silently changed in UI.
 
 ## 10) API Surface (V1)
 
-1. `GET /api/trajectory/overview`
+1. `GET /api/trajectory/settings`
+2. `PATCH /api/trajectory/settings`
+3. `GET /api/trajectory/overview`
    - returns settings, goals, windows, blocks, computed alerts, risk summary
-2. `POST /api/trajectory/goals`
-3. `PATCH /api/trajectory/goals/[id]`
-4. `POST /api/trajectory/windows`
-5. `PATCH /api/trajectory/windows/[id]`
-6. `POST /api/trajectory/plan`
+4. `GET /api/trajectory/goals`
+5. `POST /api/trajectory/goals`
+6. `PATCH /api/trajectory/goals/[id]`
+7. `DELETE /api/trajectory/goals/[id]`
+8. `GET /api/trajectory/windows`
+9. `POST /api/trajectory/windows`
+10. `PATCH /api/trajectory/windows/[id]`
+11. `DELETE /api/trajectory/windows/[id]`
+12. `POST /api/trajectory/plan`
    - input: optional simulation capacity
    - output: generated plan + computed alerts (no persistence side effects)
-7. `POST /api/trajectory/blocks/commit`
+13. `POST /api/trajectory/blocks/commit`
    - persists generated blocks
-8. `POST /api/trajectory/tasks/package`
+14. `POST /api/trajectory/tasks/package`
    - converts a block into daily tasks
 
 ## 11) Events / Telemetry
@@ -244,10 +252,11 @@ E2E:
 
 ## 13) Rollout Strategy
 
-1. Feature flag: `trajectory_tab_v1` (default off in production).
-2. Internal dogfood first.
-3. Enable for beta users.
-4. Full rollout after one stable week (no P0/P1 regressions).
+1. Personal-mode default: tab can ship always-on without feature flag.
+2. Optional flag (`trajectory_tab_v1`) is only needed for staged rollout scenarios.
+3. Internal dogfood first.
+4. Enable for beta users.
+5. Full rollout after one stable week (no P0/P1 regressions).
 
 ## 14) Agent Split
 

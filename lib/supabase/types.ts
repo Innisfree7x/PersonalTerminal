@@ -309,6 +309,163 @@ export interface Database {
         };
         Relationships: [];
       };
+      trajectory_settings: {
+        Row: {
+          id: string;
+          user_id: string;
+          hours_per_week: number;
+          horizon_months: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          hours_per_week: number;
+          horizon_months?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          hours_per_week?: number;
+          horizon_months?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      trajectory_goals: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          category: 'thesis' | 'gmat' | 'master_app' | 'internship' | 'other';
+          due_date: string;
+          effort_hours: number;
+          buffer_weeks: number;
+          priority: number;
+          status: 'active' | 'done' | 'archived';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          category: 'thesis' | 'gmat' | 'master_app' | 'internship' | 'other';
+          due_date: string;
+          effort_hours: number;
+          buffer_weeks?: number;
+          priority?: number;
+          status?: 'active' | 'done' | 'archived';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          category?: 'thesis' | 'gmat' | 'master_app' | 'internship' | 'other';
+          due_date?: string;
+          effort_hours?: number;
+          buffer_weeks?: number;
+          priority?: number;
+          status?: 'active' | 'done' | 'archived';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      trajectory_windows: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          window_type: 'internship' | 'master_cycle' | 'exam_period' | 'other';
+          start_date: string;
+          end_date: string;
+          confidence: 'low' | 'medium' | 'high';
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          window_type: 'internship' | 'master_cycle' | 'exam_period' | 'other';
+          start_date: string;
+          end_date: string;
+          confidence?: 'low' | 'medium' | 'high';
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          window_type?: 'internship' | 'master_cycle' | 'exam_period' | 'other';
+          start_date?: string;
+          end_date?: string;
+          confidence?: 'low' | 'medium' | 'high';
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      trajectory_blocks: {
+        Row: {
+          id: string;
+          user_id: string;
+          goal_id: string;
+          title: string;
+          start_date: string;
+          end_date: string;
+          weekly_hours: number;
+          status: 'planned' | 'in_progress' | 'done' | 'skipped';
+          source: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          goal_id: string;
+          title: string;
+          start_date: string;
+          end_date: string;
+          weekly_hours: number;
+          status?: 'planned' | 'in_progress' | 'done' | 'skipped';
+          source?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          goal_id?: string;
+          title?: string;
+          start_date?: string;
+          end_date?: string;
+          weekly_hours?: number;
+          status?: 'planned' | 'in_progress' | 'done' | 'skipped';
+          source?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'trajectory_blocks_goal_id_fkey';
+            columns: ['goal_id'];
+            referencedRelation: 'trajectory_goals';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
       ops_flow_metrics: {
         Row: {
           id: string;
