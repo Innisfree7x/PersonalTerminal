@@ -61,6 +61,7 @@ Die folgenden Dokumente sind abgeschlossen oder durch neuere Planung ersetzt:
 
 ## Proposal-Dokumente (nur nach expliziter Freigabe aktiv)
 - `docs/PHASE15_INNOVATION_CANDIDATES.md`
+- `docs/TRAJECTORY_TAB_V1.md`
 
 ## Regeln für Codex/Claude
 - "Active" Entscheidungen nur aus den aktiven Dokumenten ableiten.
