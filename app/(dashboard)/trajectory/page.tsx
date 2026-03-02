@@ -689,8 +689,14 @@ export default function TrajectoryPage() {
               </Badge>
             </div>
 
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <Badge variant="success" size="sm">Milestones</Badge>
+              <Badge variant="warning" size="sm">Prep Blocks</Badge>
+              <Badge variant="info" size="sm">Opportunity Windows</Badge>
+            </div>
+
             <div className="overflow-x-auto">
-              <div className="min-w-[860px] space-y-4">
+              <div className="min-w-[920px] space-y-3">
                 <div className="relative h-10 rounded-lg border border-border bg-background/60">
                   {monthTicks.map((tick, index) => (
                     <div
@@ -715,77 +721,75 @@ export default function TrajectoryPage() {
                   ))}
                 </div>
 
-                <div className="space-y-3 rounded-xl border border-border/80 bg-background/35 p-3">
-                  <p className="text-xs uppercase tracking-wider text-text-tertiary">Goals lane</p>
-                  <div className="relative h-16 rounded-lg border border-border bg-background/60">
-                    {goals.map((goal) => {
-                      const risk = riskByGoal.get(goal.id) ?? 'on_track';
-                      const left = toPercent(goal.dueDate);
-                      return (
-                        <div key={goal.id} className="absolute top-1.5" style={{ left: `${left}%` }}>
-                          <div
-                            className={cn(
-                              'h-10 w-[2px] rounded-full',
-                              risk === 'at_risk' ? 'bg-error' : risk === 'tight' ? 'bg-warning' : 'bg-success'
-                            )}
-                          />
-                          <div className="mt-1 -translate-x-1/2 whitespace-nowrap text-[10px] font-medium text-text-secondary">
-                            {goal.title}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                <div className="relative h-[230px] rounded-xl border border-border/80 bg-background/45 px-3 py-3">
+                  <div className="absolute inset-x-3 top-[72px] h-px bg-border/60" />
+                  <div className="absolute inset-x-3 top-[128px] h-px bg-border/60" />
+                  <div className="absolute inset-x-3 top-[184px] h-px bg-border/60" />
 
-                <div className="space-y-3 rounded-xl border border-border/80 bg-background/35 p-3">
-                  <p className="text-xs uppercase tracking-wider text-text-tertiary">Prep blocks lane</p>
-                  <div className="relative h-16 rounded-lg border border-border bg-background/60">
-                    {generatedBlocks.map((block) => {
-                      const key = `${block.goalId}|${block.startDate}|${block.endDate}`;
-                      const frame = span(block.startDate, block.endDate);
-                      const isCommitted = committedBlockKey.has(key);
-                      return (
+                  {windows.map((window, index) => {
+                    const frame = span(window.startDate, window.endDate);
+                    const topOffset = 146 + (index % 2) * 28;
+                    return (
+                      <div
+                        key={window.id}
+                        className="absolute h-7 rounded-md border border-info/45 bg-info/20 px-2 text-[11px] font-semibold leading-7 text-info"
+                        style={{ left: `${frame.left}%`, width: `${frame.width}%`, top: `${topOffset}px` }}
+                        title={`${window.title} · ${formatShortDate(window.startDate)} to ${formatShortDate(window.endDate)}`}
+                      >
+                        <span className="truncate block">{window.title}</span>
+                      </div>
+                    );
+                  })}
+
+                  {generatedBlocks.map((block, index) => {
+                    const key = `${block.goalId}|${block.startDate}|${block.endDate}`;
+                    const frame = span(block.startDate, block.endDate);
+                    const isCommitted = committedBlockKey.has(key);
+                    const topOffset = 90 + (index % 2) * 28;
+
+                    return (
+                      <div
+                        key={key}
+                        className={cn(
+                          'absolute h-7 rounded-md border px-2 text-[11px] font-semibold leading-7 text-white/90',
+                          block.status === 'at_risk'
+                            ? 'border-error/50 bg-error/25'
+                            : block.status === 'tight'
+                              ? 'border-warning/50 bg-warning/25'
+                              : 'border-success/50 bg-success/20'
+                        )}
+                        style={{ left: `${frame.left}%`, width: `${frame.width}%`, top: `${topOffset}px` }}
+                        title={`${block.title} · ${formatShortDate(block.startDate)} to ${formatShortDate(block.endDate)}`}
+                      >
+                        <span className="truncate block">{block.title}{isCommitted ? ' · committed' : ''}</span>
+                      </div>
+                    );
+                  })}
+
+                  {goals.map((goal) => {
+                    const risk = riskByGoal.get(goal.id) ?? 'on_track';
+                    const left = toPercent(goal.dueDate);
+
+                    return (
+                      <div key={goal.id} className="absolute" style={{ left: `${left}%`, top: '26px' }}>
                         <div
-                          key={key}
                           className={cn(
-                            'absolute top-4 h-8 rounded-md border px-2 text-[11px] font-semibold leading-8 text-white/90',
-                            block.status === 'at_risk'
-                              ? 'border-error/50 bg-error/25'
-                              : block.status === 'tight'
-                                ? 'border-warning/50 bg-warning/25'
-                                : 'border-success/50 bg-success/20'
+                            'h-[138px] w-[2px] rounded-full',
+                            risk === 'at_risk' ? 'bg-error' : risk === 'tight' ? 'bg-warning' : 'bg-success'
                           )}
-                          style={{ left: `${frame.left}%`, width: `${frame.width}%` }}
-                          title={`${block.title} · ${formatShortDate(block.startDate)} to ${formatShortDate(block.endDate)}`}
-                        >
-                          <span className="truncate block">
-                            {block.title}
-                            {isCommitted ? ' · committed' : ''}
-                          </span>
+                        />
+                        <div className="mt-1 -translate-x-1/2 whitespace-nowrap text-[11px] font-semibold text-text-secondary">
+                          {goal.title}
                         </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                      </div>
+                    );
+                  })}
 
-                <div className="space-y-3 rounded-xl border border-border/80 bg-background/35 p-3">
-                  <p className="text-xs uppercase tracking-wider text-text-tertiary">Opportunity windows lane</p>
-                  <div className="relative h-16 rounded-lg border border-border bg-background/60">
-                    {windows.map((window) => {
-                      const frame = span(window.startDate, window.endDate);
-                      return (
-                        <div
-                          key={window.id}
-                          className="absolute top-4 h-8 rounded-md border border-info/40 bg-info/20 px-2 text-[11px] font-semibold leading-8 text-info"
-                          style={{ left: `${frame.left}%`, width: `${frame.width}%` }}
-                          title={`${window.title} · ${formatShortDate(window.startDate)} to ${formatShortDate(window.endDate)}`}
-                        >
-                          <span className="truncate block">{window.title}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  {goals.length === 0 && generatedBlocks.length === 0 && windows.length === 0 ? (
+                    <div className="absolute inset-0 flex items-center justify-center text-sm text-text-tertiary">
+                      Add milestones and windows to build your timeline.
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -830,36 +834,14 @@ export default function TrajectoryPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-4 gap-3">
-                  <label className="text-xs text-text-secondary">
-                    Effort unit
-                    <select
-                      value={goalForm.effortUnit}
-                      onChange={(event) =>
-                        setGoalForm((current) => ({
-                          ...current,
-                          effortUnit: event.target.value as 'hours' | 'months',
-                        }))
-                      }
-                      className="mt-1 h-9 w-full rounded-md border border-border bg-surface px-2 text-sm text-text-primary focus:border-primary focus:outline-none"
-                    >
-                      <option value="hours">Hours</option>
-                      <option value="months">Months</option>
-                    </select>
-                  </label>
+                <div className="rounded-lg border border-border/70 bg-background/40 px-3 py-2">
+                  <p className="text-[11px] uppercase tracking-[0.12em] text-text-tertiary">
+                    Planning mode: <span className="text-primary font-semibold">{planningUnit}</span>
+                  </p>
+                </div>
 
-                  {goalForm.effortUnit === 'hours' ? (
-                    <Input
-                      label="Effort (h)"
-                      type="number"
-                      min={1}
-                      max={2000}
-                      value={goalForm.effortHours}
-                      onChange={(event) => setGoalForm((current) => ({ ...current, effortHours: Number(event.target.value || 1) }))}
-                      inputSize="sm"
-                      fullWidth
-                    />
-                  ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {planningUnit === 'months' ? (
                     <Input
                       label="Effort (months)"
                       type="number"
@@ -867,41 +849,36 @@ export default function TrajectoryPage() {
                       max={36}
                       step={0.25}
                       value={goalForm.effortMonths}
-                      onChange={(event) => setGoalForm((current) => ({ ...current, effortMonths: Number(event.target.value || 0.25) }))}
+                      onChange={(event) =>
+                        setGoalForm((current) => ({
+                          ...current,
+                          effortMonths: Number(event.target.value || 0.25),
+                          effortUnit: 'months',
+                        }))
+                      }
+                      inputSize="sm"
+                      fullWidth
+                    />
+                  ) : (
+                    <Input
+                      label="Effort (hours)"
+                      type="number"
+                      min={1}
+                      max={2000}
+                      value={goalForm.effortHours}
+                      onChange={(event) =>
+                        setGoalForm((current) => ({
+                          ...current,
+                          effortHours: Number(event.target.value || 1),
+                          effortUnit: 'hours',
+                        }))
+                      }
                       inputSize="sm"
                       fullWidth
                     />
                   )}
 
-                  <label className="text-xs text-text-secondary">
-                    Buffer unit
-                    <select
-                      value={goalForm.bufferUnit}
-                      onChange={(event) =>
-                        setGoalForm((current) => ({
-                          ...current,
-                          bufferUnit: event.target.value as 'weeks' | 'months',
-                        }))
-                      }
-                      className="mt-1 h-9 w-full rounded-md border border-border bg-surface px-2 text-sm text-text-primary focus:border-primary focus:outline-none"
-                    >
-                      <option value="weeks">Weeks</option>
-                      <option value="months">Months</option>
-                    </select>
-                  </label>
-
-                  {goalForm.bufferUnit === 'weeks' ? (
-                    <Input
-                      label="Buffer (weeks)"
-                      type="number"
-                      min={0}
-                      max={16}
-                      value={goalForm.bufferWeeks}
-                      onChange={(event) => setGoalForm((current) => ({ ...current, bufferWeeks: Number(event.target.value || 0) }))}
-                      inputSize="sm"
-                      fullWidth
-                    />
-                  ) : (
+                  {planningUnit === 'months' ? (
                     <Input
                       label="Buffer (months)"
                       type="number"
@@ -909,7 +886,30 @@ export default function TrajectoryPage() {
                       max={12}
                       step={0.25}
                       value={goalForm.bufferMonths}
-                      onChange={(event) => setGoalForm((current) => ({ ...current, bufferMonths: Number(event.target.value || 0.25) }))}
+                      onChange={(event) =>
+                        setGoalForm((current) => ({
+                          ...current,
+                          bufferMonths: Number(event.target.value || 0.25),
+                          bufferUnit: 'months',
+                        }))
+                      }
+                      inputSize="sm"
+                      fullWidth
+                    />
+                  ) : (
+                    <Input
+                      label="Buffer (weeks)"
+                      type="number"
+                      min={0}
+                      max={16}
+                      value={goalForm.bufferWeeks}
+                      onChange={(event) =>
+                        setGoalForm((current) => ({
+                          ...current,
+                          bufferWeeks: Number(event.target.value || 0),
+                          bufferUnit: 'weeks',
+                        }))
+                      }
                       inputSize="sm"
                       fullWidth
                     />
@@ -927,19 +927,18 @@ export default function TrajectoryPage() {
                   />
                 </div>
 
-                {goalForm.effortUnit === 'months' ? (
+                {planningUnit === 'months' ? (
                   <div className="rounded-lg border border-primary/25 bg-primary/10 px-3 py-2 text-xs text-text-secondary">
-                    {goalForm.effortMonths} months at {effectiveCapacity}h/week ≈{' '}
-                    <span className="font-semibold text-primary">{milestoneEffortHours}h</span> planning effort.
-                  </div>
-                ) : null}
-
-                {goalForm.bufferUnit === 'months' ? (
-                  <div className="rounded-lg border border-info/25 bg-info/10 px-3 py-2 text-xs text-text-secondary">
-                    {goalForm.bufferMonths} months buffer ≈{' '}
+                    Auto-convert: {goalForm.effortMonths} months →{' '}
+                    <span className="font-semibold text-primary">{milestoneEffortHours}h</span> at {effectiveCapacity}h/week ·
+                    buffer {goalForm.bufferMonths} months →{' '}
                     <span className="font-semibold text-info">{milestoneBufferWeeks} weeks</span>.
                   </div>
-                ) : null}
+                ) : (
+                  <div className="rounded-lg border border-border/70 bg-background/35 px-3 py-2 text-xs text-text-secondary">
+                    Direct mode: effort and buffer are stored exactly as entered.
+                  </div>
+                )}
 
                 <Button
                   size="sm"
