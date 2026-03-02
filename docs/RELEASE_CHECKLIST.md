@@ -1,9 +1,21 @@
 # Release Checklist (INNIS)
 
-Last updated: 2026-03-01
+Last updated: 2026-03-02
 
 Use this checklist before promoting a build to production.
 Execution steps live in `docs/GO_LIVE_RUNBOOK.md`.
+
+## 0. Repository Guardrails (must exist)
+
+- [ ] Branch protection active on `main` (no direct push; PR merge only).
+- [ ] Required status checks configured:
+  - [ ] `Quality Checks`
+  - [ ] `E2E Blocker Suite (Authenticated, Serial)`
+- [ ] `CODEOWNERS` requires Core review for:
+  - [ ] `.github/workflows/**`
+  - [ ] `app/api/**`
+  - [ ] `lib/ops/**`
+  - [ ] `docs/RELEASE_CHECKLIST.md`
 
 ## Fast Track (Solo)
 
@@ -31,6 +43,11 @@ Execution steps live in `docs/GO_LIVE_RUNBOOK.md`.
 - [ ] `npm run build` passes (compile/import integrity).
 - [ ] Blocker E2E suite is green in CI (`npm run test:e2e:blocker:ci`, flake < 2%).
 - [ ] No failing required checks on the release commit.
+- [ ] Required checks on `main` are enforced as branch protection contexts:
+  - [ ] `Quality Checks`
+  - [ ] `E2E Blocker Suite (Authenticated, Serial)`
+- [ ] No direct push to `main` (PR-only merge path enforced in branch protection).
+- [ ] Merge commit SHA equals deployed commit SHA for the release.
 
 ## 2.1 Never-Again Guardrails (added 2026-03-01)
 
@@ -39,6 +56,14 @@ Execution steps live in `docs/GO_LIVE_RUNBOOK.md`.
 - [ ] Before push: verify no critical new files remain untracked (`git status --short`), especially files referenced by new imports.
 - [ ] Vercel must be verified on the **latest** commit SHA, not older failed deploy rows.
 - [ ] If deploy fails: capture first compile error and map to commit/file before making more UI changes.
+
+## 2.2 Incident Discipline (must follow on red CI/deploy)
+
+- [ ] Incident freeze applied (no unrelated UI/feature commits while pipeline is red).
+- [ ] Root cause captured with run id, first failing file, and failing step.
+- [ ] Minimal fix commit applied (no bundled refactors).
+- [ ] Verification evidence linked (local checks + green CI run id).
+- [ ] Incident handoff filled in `docs/AGENT_WORKFLOW.md` template.
 
 ## 3. Data Safety + Isolation
 
@@ -97,6 +122,17 @@ Execution steps live in `docs/GO_LIVE_RUNBOOK.md`.
 - [ ] Previous stable SHA documented.
 - [ ] Rollback redeploy path known.
 - [ ] Owner for incident communication assigned.
+
+## 9. CI/Deploy Incident Rule
+
+- [ ] Every red CI/deploy run has an incident ticket created immediately from `.github/ISSUE_TEMPLATE/ci-deploy-incident.yml`.
+- [ ] Ticket contains all mandatory fields:
+  - [ ] Root-Cause Classification (`Build`/`Type`/`Lint`/`Test`/`Env`/`E2E`)
+  - [ ] Repro step
+  - [ ] First blocking trace (`file:line`)
+  - [ ] Root cause (1 sentence)
+  - [ ] Fix commit SHA
+  - [ ] Prevention (1 sentence)
 
 ## Release Metadata (fill each release)
 

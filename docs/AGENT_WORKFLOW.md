@@ -1,6 +1,6 @@
 # 3-Agent Workflow (Codex Trio)
 
-Stand: 2026-02-25  
+Stand: 2026-03-02  
 Status: Active
 
 ## Ziel
@@ -98,6 +98,40 @@ Vor Release:
 - keine offenen `TODO` fuer security/data-loss
 - docs updated (`phase`, `runbook`, `context`)
 
+## Integration Governance (verbindlich)
+Diese Regeln gelten immer, auch unter Zeitdruck:
+
+1. Kein Direkt-Push auf `main` fuer Feature-Arbeit.
+2. `main` Merge nur wenn beide Checks gruen sind:
+   - `Quality Checks`
+   - `E2E Blocker Suite (Authenticated, Serial)`
+3. CI/Workflow/Secrets/Build-Integrity gehoeren zum Core-Agent Scope:
+   - `.github/workflows/**`
+   - `app/api/**`
+   - `lib/ops/**`
+   - `docs/RELEASE_CHECKLIST.md`
+4. Wenn CI oder Deploy rot ist: Incident-Freeze fuer UI/Feature-Arbeit bis Root Cause geschlossen ist.
+5. Bei Incident wird strikt in dieser Reihenfolge gearbeitet:
+   - Diagnose
+   - minimaler Fix
+   - Verifikation (lokal + CI)
+   - erst danach weitere Aenderungen
+
+## Incident Handoff Template (Pflicht bei roten Runs)
+Jeder rote CI/Deploy-Fall bekommt sofort ein kompaktes Incident-Handoff:
+
+```md
+Incident: [kurzer Titel]
+Timestamp (UTC): [yyyy-mm-dd hh:mm]
+Run/Deploy: [github run id / vercel deployment id]
+Scope: [betroffener flow oder route]
+Root cause: [1-2 saetze, technisch konkret]
+Fix commit: [sha]
+Verification: [welche checks wieder gruen sind]
+Prevention: [eine dauerhafte guardrail]
+Owner: [core/ui/qa]
+```
+
 ## Prompt-Templates pro Agent
 Nutzt kurze, harte briefs:
 
@@ -147,4 +181,3 @@ Wenn Konflikt auftritt:
 - `docs/PHASE12_EXECUTION_BLUEPRINT.md`
 - `docs/RELEASE_CHECKLIST.md`
 - `docs/GO_LIVE_RUNBOOK.md`
-

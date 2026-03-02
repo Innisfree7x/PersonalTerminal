@@ -1,6 +1,6 @@
 # Context Canon (Single Source of Truth)
 
-Stand: 2026-03-01 (post-stabilization refresh)  
+Stand: 2026-03-02 (post-stabilization + governance refresh)  
 Status: Active
 
 ## Zweck
@@ -68,5 +68,8 @@ Die folgenden Dokumente sind abgeschlossen oder durch neuere Planung ersetzt:
 - Bei Unklarheit in aktueller Ausfuehrung: `PHASE14_RELIABILITY_OPS.md` hat Vorrang.
 - Bei strategischen KPI-/Roadmap-Fragen: `PHASE12_MASTERPLAN.md` hat Vorrang.
 - Build-/Deploy-Integrität immer in CI erzwingen; Vercel darf nicht Erstentdecker von Compile-Fehlern sein.
+- Integration Governance aus `docs/AGENT_WORKFLOW.md` ist verbindlich (main-schutz, core ownership, incident freeze).
+- `main` nur via PR-merge mit branch protection; required checks: `Quality Checks` und `E2E Blocker Suite (Authenticated, Serial)`.
+- Jede rote CI/deploy bekommt sofort ein Incident-Ticket aus `.github/ISSUE_TEMPLATE/ci-deploy-incident.yml` (Root cause, Fix SHA, Prevention je Feld Pflicht).
 - Nach jedem größeren Planwechsel muss diese Datei aktualisiert werden.
 - KI-Kontextdateien (`CLAUDE.md`, `llms*.txt`) duerfen keine aktive Anweisung enthalten, die diesem Canon widerspricht.
