@@ -38,7 +38,12 @@ export interface SoundContextType {
   setEnabled: (v: boolean) => void;
   setMasterVolume: (v: number) => void;
   setNotificationSound: (v: NotificationSound) => void;
-  play: (event: SoundEvent) => void;
+  play: (
+    event: SoundEvent,
+    options?: {
+      notificationSound?: NotificationSound;
+    }
+  ) => void;
 }
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────
@@ -279,7 +284,12 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const play = useCallback(
-    (event: SoundEvent) => {
+    (
+      event: SoundEvent,
+      options?: {
+        notificationSound?: NotificationSound;
+      }
+    ) => {
       if (!mounted) return;
       if (!settings.enabled) return;
       if (typeof window === 'undefined') return;
@@ -321,7 +331,10 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
       function runSynth() {
         if (!ctx) return;
         const baseGain = EVENT_GAIN[event] * settings.masterVolume;
-        const sampleSrc = getSampleSrcForEvent(event, settings.notificationSound);
+        const sampleSrc = getSampleSrcForEvent(
+          event,
+          options?.notificationSound ?? settings.notificationSound
+        );
         if (sampleSrc) {
           let audio = sampleAudioRef.current[sampleSrc] ?? null;
           if (!audio) {

@@ -410,25 +410,31 @@ export default function SettingsPage() {
                             <div className="flex flex-wrap gap-2">
                                 <button
                                     type="button"
-                                    onClick={() => { setNotificationSound('teams-default'); play('pop'); }}
+                                    onClick={() => {
+                                        setNotificationSound('teams-default');
+                                        play('pop', { notificationSound: 'teams-default' });
+                                    }}
                                     className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
                                         soundSettings.notificationSound === 'teams-default'
                                             ? 'border-primary/60 bg-primary/15 text-primary'
                                             : 'border-border bg-surface-hover text-text-secondary hover:border-primary/35'
                                     }`}
                                 >
-                                    Teams Default
+                                    Teams Default (new)
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => { setNotificationSound('classic'); play('pop'); }}
+                                    onClick={() => {
+                                        setNotificationSound('classic');
+                                        play('pop', { notificationSound: 'classic' });
+                                    }}
                                     className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
                                         soundSettings.notificationSound === 'classic'
                                             ? 'border-primary/60 bg-primary/15 text-primary'
                                             : 'border-border bg-surface-hover text-text-secondary hover:border-primary/35'
                                     }`}
                                 >
-                                    Classic Synth
+                                    Classic Synth (legacy)
                                 </button>
                             </div>
                             <p className="text-[11px] text-text-tertiary">
