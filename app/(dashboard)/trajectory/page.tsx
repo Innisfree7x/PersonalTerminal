@@ -344,6 +344,14 @@ export default function TrajectoryPage() {
     () => `${format(timelineStart, 'MM.yy')} -> ${format(timelineEnd, 'MM.yy')}`,
     [timelineEnd, timelineStart]
   );
+  const timelineRangeStart = useMemo(
+    () => format(timelineStart, 'MM.yy'),
+    [timelineStart]
+  );
+  const timelineRangeEnd = useMemo(
+    () => format(timelineEnd, 'MM.yy'),
+    [timelineEnd]
+  );
 
   const nextMilestoneLabel = useMemo(() => {
     const now = new Date();
@@ -684,7 +692,7 @@ export default function TrajectoryPage() {
         </div>
       </motion.div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.45fr_1fr]">
+      <div className="grid gap-6 xl:grid-cols-[1.72fr_0.82fr] 2xl:grid-cols-[1.8fr_0.75fr]">
         <motion.section
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -758,7 +766,8 @@ export default function TrajectoryPage() {
 
             <div className="overflow-hidden">
               <div className="w-full space-y-3">
-                <div className="relative h-16 rounded-lg border border-border bg-gradient-to-b from-background/75 to-background/40">
+                <div className="relative h-16 rounded-lg border border-border bg-gradient-to-b from-background/80 to-background/45 px-3">
+                  <div className="absolute inset-x-3 top-0.5 h-[2px] rounded-full bg-gradient-to-r from-primary/30 via-primary/15 to-transparent" />
                   {quarterSegments.map((segment, index) => (
                     <div
                       key={`q-segment-${index}-${segment.startPercent}`}
@@ -777,8 +786,8 @@ export default function TrajectoryPage() {
                     <div
                       key={`ruler-line-${line.monthOffset}`}
                       className={cn(
-                        'absolute inset-y-0 w-px',
-                        line.isMajor ? 'bg-border/70' : 'bg-border/20'
+                        'absolute top-6 w-px',
+                        line.isMajor ? 'h-7 bg-border/70' : 'h-4 bg-border/30'
                       )}
                       style={{ left: `${line.offsetPercent}%` }}
                     />
@@ -799,29 +808,25 @@ export default function TrajectoryPage() {
                     </div>
                   ))}
 
-                  {monthLabelTicks.map((tick, index) => (
+                  {monthLabelTicks.map((tick) => (
                     <div
-                      key={`m-${tick.monthOffset}-${tick.label}-${tick.offsetPercent}`}
+                      key={`m-dot-${tick.monthOffset}-${tick.offsetPercent}`}
                       className="absolute inset-y-0"
                       style={{ left: `${tick.offsetPercent}%` }}
                     >
-                      <span
-                        className={cn(
-                          'absolute top-7 whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.08em] text-text-secondary',
-                          index === 0
-                            ? 'left-0 translate-x-0 pl-3'
-                            : index === monthLabelTicks.length - 1
-                              ? 'right-0 translate-x-0 pr-3'
-                              : '-translate-x-1/2'
-                        )}
-                      >
-                        {tick.label}
-                      </span>
+                      <span className="absolute bottom-1 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-border/70" />
                     </div>
                   ))}
+
+                  <span className="absolute bottom-1 left-3 font-mono text-[10px] tracking-[0.08em] text-text-tertiary">
+                    {timelineRangeStart}
+                  </span>
+                  <span className="absolute bottom-1 right-3 font-mono text-[10px] tracking-[0.08em] text-text-tertiary">
+                    {timelineRangeEnd}
+                  </span>
                 </div>
 
-                <div className="relative h-[230px] rounded-xl border border-border/80 bg-background/45 px-3 py-3">
+                <div className="relative h-[280px] rounded-xl border border-border/80 bg-background/45 px-3 py-3">
                   <div className="absolute inset-y-3 left-[0.7%] w-[2px] rounded-full bg-primary/70 shadow-[0_0_14px_rgba(251,191,36,0.4)]" />
                   <span className="absolute left-[0.2%] top-2 rounded-full border border-primary/35 bg-primary/10 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] text-primary">
                     Now
@@ -836,13 +841,13 @@ export default function TrajectoryPage() {
                         style={{ left: `${line.offsetPercent}%` }}
                       />
                     ))}
-                  <div className="absolute inset-x-3 top-[72px] h-px bg-border/60" />
-                  <div className="absolute inset-x-3 top-[128px] h-px bg-border/60" />
-                  <div className="absolute inset-x-3 top-[184px] h-px bg-border/60" />
+                  <div className="absolute inset-x-3 top-[88px] h-px bg-border/55" />
+                  <div className="absolute inset-x-3 top-[158px] h-px bg-border/55" />
+                  <div className="absolute inset-x-3 top-[228px] h-px bg-border/55" />
 
                   {showWindows ? windows.map((window, index) => {
                     const frame = span(window.startDate, window.endDate);
-                    const topOffset = 146 + (index % 2) * 28;
+                    const topOffset = 188 + (index % 2) * 34;
                     return (
                       <div
                         key={window.id}
@@ -859,7 +864,7 @@ export default function TrajectoryPage() {
                     const key = `${block.goalId}|${block.startDate}|${block.endDate}`;
                     const frame = span(block.startDate, block.endDate);
                     const isCommitted = committedBlockKey.has(key);
-                    const topOffset = 90 + (index % 2) * 28;
+                    const topOffset = 116 + (index % 2) * 34;
 
                     return (
                       <div
@@ -885,10 +890,10 @@ export default function TrajectoryPage() {
                     const left = toPercent(goal.dueDate);
 
                     return (
-                      <div key={goal.id} className="absolute" style={{ left: `${left}%`, top: '26px' }}>
+                      <div key={goal.id} className="absolute" style={{ left: `${left}%`, top: '30px' }}>
                         <div
                           className={cn(
-                            'h-[138px] w-[2px] rounded-full',
+                            'h-[170px] w-[2px] rounded-full',
                             risk === 'at_risk' ? 'bg-error' : risk === 'tight' ? 'bg-warning' : 'bg-success'
                           )}
                         />
@@ -1160,32 +1165,32 @@ export default function TrajectoryPage() {
         <motion.section
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-4"
+          className="space-y-3"
         >
-          <div className="rounded-2xl border border-border bg-surface/35 p-4">
-            <h2 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
+          <div className="rounded-2xl border border-border bg-surface/35 p-3">
+            <h2 className="mb-2.5 flex items-center gap-2 text-sm font-semibold text-text-primary">
               <Gauge className="h-4 w-4 text-primary" />
               Risk Console
             </h2>
 
             <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-xl border border-success/30 bg-success/10 p-3">
+              <div className="rounded-xl border border-success/30 bg-success/10 px-2.5 py-2">
                 <div className="text-[10px] uppercase tracking-wider text-success/80">On Track</div>
-                <div className="mt-1 text-2xl font-bold text-success">{computed.summary.onTrack}</div>
+                <div className="mt-1 text-xl font-bold text-success">{computed.summary.onTrack}</div>
               </div>
-              <div className="rounded-xl border border-warning/30 bg-warning/10 p-3">
+              <div className="rounded-xl border border-warning/30 bg-warning/10 px-2.5 py-2">
                 <div className="text-[10px] uppercase tracking-wider text-warning/80">Tight</div>
-                <div className="mt-1 text-2xl font-bold text-warning">{computed.summary.tight}</div>
+                <div className="mt-1 text-xl font-bold text-warning">{computed.summary.tight}</div>
               </div>
-              <div className="rounded-xl border border-error/30 bg-error/10 p-3">
+              <div className="rounded-xl border border-error/30 bg-error/10 px-2.5 py-2">
                 <div className="text-[10px] uppercase tracking-wider text-error/80">At Risk</div>
-                <div className="mt-1 text-2xl font-bold text-error">{computed.summary.atRisk}</div>
+                <div className="mt-1 text-xl font-bold text-error">{computed.summary.atRisk}</div>
               </div>
             </div>
 
-            <div className="mt-4 space-y-2">
+            <div className="mt-3 space-y-2">
               {alerts.length === 0 ? (
-                <div className="rounded-lg border border-success/30 bg-success/10 p-3 text-sm text-success">
+                <div className="rounded-lg border border-success/30 bg-success/10 px-3 py-2 text-sm text-success">
                   No active trajectory alerts.
                 </div>
               ) : (
@@ -1207,16 +1212,16 @@ export default function TrajectoryPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-surface/35 p-4">
-            <h3 className="text-sm font-semibold text-text-primary mb-3">Milestones</h3>
-            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+          <div className="rounded-2xl border border-border bg-surface/35 p-3">
+            <h3 className="mb-2 text-sm font-semibold text-text-primary">Milestones</h3>
+            <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
               {goals.length === 0 ? (
                 <p className="text-sm text-text-tertiary">No milestones yet.</p>
               ) : (
                 goals.map((goal) => {
                   const risk = riskByGoal.get(goal.id);
                   return (
-                    <div key={goal.id} className="rounded-lg border border-border bg-background/50 px-3 py-2">
+                  <div key={goal.id} className="rounded-lg border border-border bg-background/50 px-3 py-2">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-sm font-semibold text-text-primary">{goal.title}</p>
@@ -1249,9 +1254,9 @@ export default function TrajectoryPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-surface/35 p-4">
-            <h3 className="text-sm font-semibold text-text-primary mb-3">Opportunity Windows</h3>
-            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+          <div className="rounded-2xl border border-border bg-surface/35 p-3">
+            <h3 className="mb-2 text-sm font-semibold text-text-primary">Opportunity Windows</h3>
+            <div className="max-h-56 space-y-2 overflow-y-auto pr-1">
               {windows.length === 0 ? (
                 <p className="text-sm text-text-tertiary">No windows yet.</p>
               ) : (
