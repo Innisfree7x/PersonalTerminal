@@ -15,6 +15,7 @@ import {
   Square,
   Sparkles,
   Timer,
+  type LucideIcon,
 } from 'lucide-react';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import { useChampion } from '@/components/providers/ChampionProvider';
@@ -35,7 +36,8 @@ const FOCUS_QUOTES: Quote[] = [
 ];
 
 const DURATION_PRESETS = [25, 50, 90];
-const FOCUS_VISUAL_PREFS_STORAGE_KEY = 'prism:focus-screen:visual-prefs:v1';
+const FOCUS_VISUAL_PREFS_STORAGE_KEY = 'innis:focus-screen:visual-prefs:v1';
+const LEGACY_FOCUS_VISUAL_PREFS_STORAGE_KEY = 'prism:focus-screen:visual-prefs:v1';
 
 type FocusThemePreset = {
   id: string;
@@ -168,6 +170,51 @@ const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
 const DEFAULT_FOCUS_THEME = FOCUS_THEME_PRESETS[0]!;
 const DEFAULT_FOCUS_OVERLAY = FOCUS_OVERLAY_PRESETS[0]!;
 
+type VisualPresetPickerProps = {
+  label: string;
+  icon: LucideIcon;
+  selectedId: string;
+  onSelect: (id: string) => void;
+  options: Array<{ id: string; label: string }>;
+};
+
+function VisualPresetPicker({
+  label,
+  icon: Icon,
+  selectedId,
+  onSelect,
+  options,
+}: VisualPresetPickerProps) {
+  return (
+    <div className="rounded-2xl border border-white/12 bg-black/28 p-2.5 backdrop-blur-md">
+      <p className="mb-1.5 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-zinc-500">
+        <Icon className="h-3.5 w-3.5 text-zinc-400" />
+        {label}
+      </p>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((option) => {
+          const selected = option.id === selectedId;
+          return (
+            <button
+              key={option.id}
+              type="button"
+              onClick={() => onSelect(option.id)}
+              aria-pressed={selected}
+              className={`rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                selected
+                  ? 'border-cyan-300/35 bg-cyan-400/12 text-cyan-100 shadow-[0_0_0_1px_rgba(56,189,248,0.16)]'
+                  : 'border-white/12 bg-white/[0.02] text-zinc-300 hover:border-white/25 hover:bg-white/[0.06]'
+              }`}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function formatTime(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
   const remaining = seconds % 60;
@@ -252,7 +299,9 @@ export default function FocusScreen() {
     if (typeof window === 'undefined') return;
 
     try {
-      const raw = localStorage.getItem(FOCUS_VISUAL_PREFS_STORAGE_KEY);
+      const primaryRaw = localStorage.getItem(FOCUS_VISUAL_PREFS_STORAGE_KEY);
+      const legacyRaw = localStorage.getItem(LEGACY_FOCUS_VISUAL_PREFS_STORAGE_KEY);
+      const raw = primaryRaw ?? legacyRaw;
       if (!raw) return;
 
       const parsed = JSON.parse(raw) as {
@@ -272,6 +321,11 @@ export default function FocusScreen() {
         FOCUS_OVERLAY_PRESETS.some((preset) => preset.id === parsed.overlayPresetId)
       ) {
         setOverlayPresetId(parsed.overlayPresetId);
+      }
+
+      if (!primaryRaw && legacyRaw) {
+        localStorage.setItem(FOCUS_VISUAL_PREFS_STORAGE_KEY, raw);
+        localStorage.removeItem(LEGACY_FOCUS_VISUAL_PREFS_STORAGE_KEY);
       }
     } catch (error) {
       console.warn('[focus-screen] Failed to read visual preferences.', error);
@@ -408,36 +462,20 @@ export default function FocusScreen() {
         </div>
 
         <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
-          <label className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/25 px-3 py-1.5 text-[11px] text-zinc-300">
-            <Palette className="h-3.5 w-3.5 text-zinc-400" />
-            Theme
-            <select
-              value={themePresetId}
-              onChange={(event) => setThemePresetId(event.target.value)}
-              className="rounded-full border border-white/10 bg-black/35 px-2 py-1 text-[11px] text-zinc-200 outline-none focus:border-cyan-300/45"
-            >
-              {FOCUS_THEME_PRESETS.map((preset) => (
-                <option key={preset.id} value={preset.id} className="bg-[#0b1018]">
-                  {preset.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/25 px-3 py-1.5 text-[11px] text-zinc-300">
-            <Layers3 className="h-3.5 w-3.5 text-zinc-400" />
-            Overlay
-            <select
-              value={overlayPresetId}
-              onChange={(event) => setOverlayPresetId(event.target.value)}
-              className="rounded-full border border-white/10 bg-black/35 px-2 py-1 text-[11px] text-zinc-200 outline-none focus:border-cyan-300/45"
-            >
-              {FOCUS_OVERLAY_PRESETS.map((preset) => (
-                <option key={preset.id} value={preset.id} className="bg-[#0b1018]">
-                  {preset.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <VisualPresetPicker
+            label="Theme"
+            icon={Palette}
+            selectedId={themePresetId}
+            onSelect={setThemePresetId}
+            options={FOCUS_THEME_PRESETS}
+          />
+          <VisualPresetPicker
+            label="Overlay"
+            icon={Layers3}
+            selectedId={overlayPresetId}
+            onSelect={setOverlayPresetId}
+            options={FOCUS_OVERLAY_PRESETS}
+          />
         </div>
 
         <div className="mx-auto mt-10 flex w-full max-w-4xl flex-1 items-center justify-center sm:mt-12">

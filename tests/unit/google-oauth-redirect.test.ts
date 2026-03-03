@@ -43,4 +43,27 @@ describe('google oauth redirect resolution', () => {
     expect(result.redirectUri).toBe('https://preview.innis.ai/api/auth/google/callback');
     expect(result.source).toBe('request_origin');
   });
+
+  it('uses cookie redirect uri when configured and site values are unavailable', () => {
+    const result = resolveGoogleOAuthRedirectUri({
+      requestUrl: 'https://preview.innis.ai/api/auth/google',
+      cookieRedirectUri: 'https://cookie.innis.ai/anything-here',
+    });
+
+    expect(result.redirectUri).toBe('https://cookie.innis.ai/api/auth/google/callback');
+    expect(result.source).toBe('cookie');
+  });
+
+  it('falls back to localhost when all candidates are invalid', () => {
+    const result = resolveGoogleOAuthRedirectUri({
+      requestUrl: 'not-a-url',
+      configuredRedirectUri: 'https://supabase.com/dashboard/project/abc',
+      siteUrl: 'javascript:alert(1)',
+      cookieRedirectUri: 'ftp://invalid.example.com/path',
+    });
+
+    expect(result.redirectUri).toBe('http://localhost:3000/api/auth/google/callback');
+    expect(result.source).toBe('fallback');
+    expect(result.normalized).toBe(true);
+  });
 });

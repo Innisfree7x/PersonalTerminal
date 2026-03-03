@@ -112,6 +112,9 @@ Recent regressions and UX gaps show three issues:
 ## Implementation Status
 - OAuth canonical redirect resolver: ✅
 - Focus theme/overlay selector with persistence: ✅
+- Focus selector UI upgraded to custom preset buttons (native select removed): ✅
+- Storage key migrated from legacy `prism:*` to `innis:*` with backward-read compatibility: ✅
 - Quote + author centering refinement: ✅
 - Search stability regression check: ✅
+- OAuth resolver tests expanded (configured/site/cookie/request/fallback): ✅
 - Local quality gates (`type-check`, `lint`, targeted vitest, build): ✅
