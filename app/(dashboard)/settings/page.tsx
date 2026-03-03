@@ -420,7 +420,7 @@ export default function SettingsPage() {
                                             : 'border-border bg-surface-hover text-text-secondary hover:border-primary/35'
                                     }`}
                                 >
-                                    Teams Default (new)
+                                    Teams Kit
                                 </button>
                                 <button
                                     type="button"
@@ -434,25 +434,37 @@ export default function SettingsPage() {
                                             : 'border-border bg-surface-hover text-text-secondary hover:border-primary/35'
                                     }`}
                                 >
-                                    Classic Synth (legacy)
+                                    Classic Synth
                                 </button>
                             </div>
                             <p className="text-[11px] text-text-tertiary">
-                                Teams sound is sourced from the linked community pack and intended for personal use.
+                                Teams kit covers notification, swoosh and click. Sourced from the linked community pack for personal use.
                             </p>
                         </div>
                         <div className="flex flex-wrap gap-3">
                             {([
-                                { event: 'pop' as const, label: 'Notification', description: soundSettings.notificationSound === 'teams-default' ? 'Teams Default' : 'Classic synth' },
-                                { event: 'swoosh' as const, label: 'Swoosh', description: 'Send / move' },
-                                { event: 'click' as const, label: 'Click', description: 'Toggle / select' },
+                                {
+                                    event: 'pop' as const,
+                                    label: 'Notification',
+                                    description: soundSettings.notificationSound === 'teams-default' ? 'Teams kit' : 'Classic synth',
+                                },
+                                {
+                                    event: 'swoosh' as const,
+                                    label: 'Swoosh',
+                                    description: soundSettings.notificationSound === 'teams-default' ? 'Teams move cue' : 'Send / move',
+                                },
+                                {
+                                    event: 'click' as const,
+                                    label: 'Click',
+                                    description: soundSettings.notificationSound === 'teams-default' ? 'Teams UI tick' : 'Toggle / select',
+                                },
                             ] as const).map(({ event, label, description }) => (
                                 <motion.button
                                     key={event}
                                     onClick={() =>
                                         play(event, {
                                             force: true,
-                                            ...(event === 'pop'
+                                            ...(event === 'pop' || event === 'swoosh' || event === 'click'
                                                 ? { notificationSound: soundSettings.notificationSound }
                                                 : {}),
                                         })

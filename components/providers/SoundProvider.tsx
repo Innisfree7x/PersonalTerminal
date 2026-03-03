@@ -217,13 +217,24 @@ const SYNTHS: Record<SoundEvent, (ctx: AudioContext, gain: number) => void> = {
   'champ-focus': synthClick,
 };
 
-function getSampleSrcForEvent(
+export function resolveSampleSrcForEvent(
   event: SoundEvent,
   notificationSound: NotificationSound
 ): string | null {
-  if (event === 'pop' && notificationSound === 'teams-default') {
+  if (notificationSound !== 'teams-default') {
+    return null;
+  }
+
+  if (event === 'pop') {
     return '/sounds/teams-default.mp3';
   }
+  if (event === 'swoosh') {
+    return '/sounds/teams-swoosh.mp3';
+  }
+  if (event === 'click') {
+    return '/sounds/teams-click.mp3';
+  }
+
   return null;
 }
 
@@ -335,7 +346,7 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
       function runSynth() {
         if (!ctx) return;
         const baseGain = EVENT_GAIN[event] * settings.masterVolume;
-        const sampleSrc = getSampleSrcForEvent(
+        const sampleSrc = resolveSampleSrcForEvent(
           event,
           options?.notificationSound ?? settings.notificationSound
         );
