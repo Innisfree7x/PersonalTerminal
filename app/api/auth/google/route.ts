@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { serverEnv } from '@/lib/env';
 import { requireApiAuth } from '@/lib/api/auth';
+import { resolveGoogleOAuthRedirectUri } from '@/lib/google/oauth';
 
 const OAUTH_STATE_COOKIE = 'google_oauth_state';
 const OAUTH_REDIRECT_URI_COOKIE = 'google_oauth_redirect_uri';
@@ -12,17 +13,30 @@ export async function GET(request: NextRequest) {
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
-  // Prefer explicit env redirect URI (canonical prod config), fallback to current origin.
-  const { GOOGLE_CLIENT_ID: clientId, GOOGLE_REDIRECT_URI: configuredRedirectUri } = serverEnv;
-  const redirectUri =
-    configuredRedirectUri?.trim() ||
-    new URL('/api/auth/google/callback', request.url).toString();
+  const {
+    GOOGLE_CLIENT_ID: clientId,
+    GOOGLE_REDIRECT_URI: configuredRedirectUri,
+    NEXT_PUBLIC_SITE_URL: siteUrl,
+  } = serverEnv;
+  const redirectResolution = resolveGoogleOAuthRedirectUri({
+    requestUrl: request.url,
+    configuredRedirectUri,
+    siteUrl,
+  });
+  const redirectUri = redirectResolution.redirectUri;
 
   if (!clientId || !redirectUri) {
     return NextResponse.json(
       { message: 'Google OAuth credentials not configured' },
       { status: 500 }
     );
+  }
+
+  if (redirectResolution.normalized && redirectResolution.source === 'configured') {
+    console.warn('[google-oauth] Normalized GOOGLE_REDIRECT_URI to canonical callback path.', {
+      source: redirectResolution.source,
+      redirectUri,
+    });
   }
 
   const scope = 'https://www.googleapis.com/auth/calendar.readonly';

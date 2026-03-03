@@ -1,6 +1,6 @@
 # Context Canon (Single Source of Truth)
 
-Stand: 2026-03-02 (post-stabilization + governance refresh)  
+Stand: 2026-03-03 (post Phase-16 focus/oauth/search improvements)  
 Status: Active
 
 ## Zweck
@@ -9,19 +9,23 @@ Wenn zwei Dokumente widersprüchlich sind, gilt immer diese Prioritätsliste.
 
 ## Prioritätsreihenfolge (verbindlich)
 1. `docs/PHASE14_RELIABILITY_OPS.md` (aktueller Reliability-Ausfuehrungsstand inkl. Blocker)
-2. `docs/PHASE13.md` (abgeschlossene Gate-Struktur als Referenz)
-3. `docs/PHASE13_RELEASE_AUDIT_2026-02-28.md` (Release-Gate Historie + QA-Kontext)
-4. `docs/PHASE12_MASTERPLAN.md` (strategischer Parent)
-5. `docs/PHASE12_EXECUTION_BLUEPRINT.md` (Execution-Baseline Tracks 3/4/5/6)
-6. `docs/PHASE11_TRACK6_IMPLEMENTATION.md` (Reliability-Basis)
-7. `docs/RELEASE_CHECKLIST.md`
-8. `.github/workflows/ci.yml` (enforced quality gates incl. production build)
-9. `docs/GO_LIVE_RUNBOOK.md`
-10. `CLAUDE.md` + `llms.txt` / `llms-full.txt` (nur als Assistenz-Kontext)
-11. Historische Phase-Dokumente (nur Referenz, nicht normativ)
+2. `docs/PHASE16_FOCUS_OAUTH_SEARCH_IMPROVEMENTS.md` (aktueller Scope + AC fuer Focus/OAuth/Search)
+3. `docs/PHASE16_AUDIT_2026-03-03.md` (Verifikation, Risiken, Handoff)
+4. `docs/PHASE13.md` (abgeschlossene Gate-Struktur als Referenz)
+5. `docs/PHASE13_RELEASE_AUDIT_2026-02-28.md` (Release-Gate Historie + QA-Kontext)
+6. `docs/PHASE12_MASTERPLAN.md` (strategischer Parent)
+7. `docs/PHASE12_EXECUTION_BLUEPRINT.md` (Execution-Baseline Tracks 3/4/5/6)
+8. `docs/PHASE11_TRACK6_IMPLEMENTATION.md` (Reliability-Basis)
+9. `docs/RELEASE_CHECKLIST.md`
+10. `.github/workflows/ci.yml` (enforced quality gates incl. production build)
+11. `docs/GO_LIVE_RUNBOOK.md`
+12. `CLAUDE.md` + `llms.txt` / `llms-full.txt` (nur als Assistenz-Kontext)
+13. Historische Phase-Dokumente (nur Referenz, nicht normativ)
 
 ## Aktive Dokumente
 - `docs/PHASE14_RELIABILITY_OPS.md` (aktive Reliability-Umsetzung inkl. Audit-Status)
+- `docs/PHASE16_FOCUS_OAUTH_SEARCH_IMPROVEMENTS.md` (aktuelle Umsetzung Focus/OAuth/Search)
+- `docs/PHASE16_AUDIT_2026-03-03.md` (Phase-16 Verifikation + Handoff)
 - `docs/TRAJECTORY_AGENT_HANDBOOK.md` (verbindlicher Guardrail- und Test-Handoff fuer `/trajectory`)
 - `docs/PHASE13.md` (Gate-Referenz fuer Focus/Lucian/Density)
 - `docs/PHASE13_RELEASE_AUDIT_2026-02-28.md` (Release-/Gate-Kontext)

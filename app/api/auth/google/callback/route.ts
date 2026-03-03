@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireApiAuth } from '@/lib/api/auth';
+import { isProduction, serverEnv } from '@/lib/env';
+import { resolveGoogleOAuthRedirectUri } from '@/lib/google/oauth';
 
 const OAUTH_STATE_COOKIE = 'google_oauth_state';
 const OAUTH_REDIRECT_URI_COOKIE = 'google_oauth_redirect_uri';
@@ -46,16 +48,27 @@ export async function GET(request: NextRequest) {
     GOOGLE_CLIENT_ID: clientId,
     GOOGLE_CLIENT_SECRET: clientSecret,
     GOOGLE_REDIRECT_URI: configuredRedirectUri,
-  } = await import('@/lib/env').then(m => m.serverEnv);
-  const redirectUri =
-    request.cookies.get(OAUTH_REDIRECT_URI_COOKIE)?.value ||
-    configuredRedirectUri?.trim() ||
-    new URL('/api/auth/google/callback', request.url).toString();
+    NEXT_PUBLIC_SITE_URL: siteUrl,
+  } = serverEnv;
+  const redirectResolution = resolveGoogleOAuthRedirectUri({
+    requestUrl: request.url,
+    cookieRedirectUri: request.cookies.get(OAUTH_REDIRECT_URI_COOKIE)?.value,
+    configuredRedirectUri,
+    siteUrl,
+  });
+  const redirectUri = redirectResolution.redirectUri;
 
   if (!clientId || !clientSecret || !redirectUri) {
     return NextResponse.redirect(
       new URL('/today?error=oauth_not_configured', request.url)
     );
+  }
+
+  if (redirectResolution.normalized) {
+    console.warn('[google-oauth] Normalized redirect URI during callback exchange.', {
+      source: redirectResolution.source,
+      redirectUri,
+    });
   }
 
   try {
@@ -112,7 +125,7 @@ export async function GET(request: NextRequest) {
     if (refresh_token) {
       response.cookies.set('google_refresh_token', refresh_token, {
         httpOnly: true,
-        secure: (await import('@/lib/env').then(m => m.isProduction)),
+        secure: isProduction,
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 365, // 1 year
         path: '/',

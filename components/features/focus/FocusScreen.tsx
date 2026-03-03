@@ -3,7 +3,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ArrowLeft, Eye, EyeOff, Pause, Play, SkipForward, Square, Sparkles, Timer } from 'lucide-react';
+import {
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  Layers3,
+  Palette,
+  Pause,
+  Play,
+  SkipForward,
+  Square,
+  Sparkles,
+  Timer,
+} from 'lucide-react';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import { useChampion } from '@/components/providers/ChampionProvider';
 import { trackAppEvent } from '@/lib/analytics/client';
@@ -23,6 +35,138 @@ const FOCUS_QUOTES: Quote[] = [
 ];
 
 const DURATION_PRESETS = [25, 50, 90];
+const FOCUS_VISUAL_PREFS_STORAGE_KEY = 'prism:focus-screen:visual-prefs:v1';
+
+type FocusThemePreset = {
+  id: string;
+  label: string;
+  baseColor: string;
+  radialGradient: string;
+  conicGradient: string;
+  orbOne: string;
+  orbTwo: string;
+  orbThree: string;
+  quoteSurface: string;
+};
+
+type FocusOverlayPreset = {
+  id: string;
+  label: string;
+  texture: string;
+  textureOpacity: number;
+  grain: string;
+  grainOpacity: number;
+  vignette: string;
+  vignetteOpacity: number;
+};
+
+const FOCUS_THEME_PRESETS: FocusThemePreset[] = [
+  {
+    id: 'obsidian',
+    label: 'Obsidian',
+    baseColor: '#05080f',
+    radialGradient:
+      'radial-gradient(circle at 20% 20%, rgba(56,189,248,0.17), transparent 35%), radial-gradient(circle at 78% 24%, rgba(234,179,8,0.18), transparent 38%), radial-gradient(circle at 52% 86%, rgba(245,158,11,0.12), transparent 34%)',
+    conicGradient:
+      'conic-gradient(from 190deg at 50% 45%, rgba(56,189,248,0.08), transparent 24%, rgba(245,158,11,0.08), transparent 60%, rgba(99,102,241,0.06), transparent 100%)',
+    orbOne: 'radial-gradient(circle, rgba(56,189,248,0.14), rgba(56,189,248,0))',
+    orbTwo: 'radial-gradient(circle, rgba(250,204,21,0.13), rgba(250,204,21,0))',
+    orbThree: 'radial-gradient(circle, rgba(99,102,241,0.13), rgba(99,102,241,0))',
+    quoteSurface: 'linear-gradient(180deg, rgba(9,14,24,0.44), rgba(6,10,17,0.26))',
+  },
+  {
+    id: 'titanium',
+    label: 'Titanium',
+    baseColor: '#060913',
+    radialGradient:
+      'radial-gradient(circle at 16% 18%, rgba(125,211,252,0.15), transparent 34%), radial-gradient(circle at 83% 20%, rgba(148,163,184,0.2), transparent 36%), radial-gradient(circle at 52% 82%, rgba(71,85,105,0.17), transparent 33%)',
+    conicGradient:
+      'conic-gradient(from 200deg at 52% 46%, rgba(59,130,246,0.08), transparent 26%, rgba(100,116,139,0.1), transparent 62%, rgba(14,165,233,0.06), transparent 100%)',
+    orbOne: 'radial-gradient(circle, rgba(14,165,233,0.14), rgba(14,165,233,0))',
+    orbTwo: 'radial-gradient(circle, rgba(148,163,184,0.15), rgba(148,163,184,0))',
+    orbThree: 'radial-gradient(circle, rgba(59,130,246,0.12), rgba(59,130,246,0))',
+    quoteSurface: 'linear-gradient(180deg, rgba(11,17,30,0.48), rgba(8,12,23,0.28))',
+  },
+  {
+    id: 'bronze',
+    label: 'Bronze',
+    baseColor: '#09060a',
+    radialGradient:
+      'radial-gradient(circle at 20% 18%, rgba(251,191,36,0.16), transparent 35%), radial-gradient(circle at 80% 22%, rgba(249,115,22,0.18), transparent 38%), radial-gradient(circle at 54% 84%, rgba(234,88,12,0.13), transparent 35%)',
+    conicGradient:
+      'conic-gradient(from 188deg at 50% 45%, rgba(251,191,36,0.08), transparent 24%, rgba(249,115,22,0.08), transparent 60%, rgba(168,85,247,0.06), transparent 100%)',
+    orbOne: 'radial-gradient(circle, rgba(251,191,36,0.13), rgba(251,191,36,0))',
+    orbTwo: 'radial-gradient(circle, rgba(249,115,22,0.13), rgba(249,115,22,0))',
+    orbThree: 'radial-gradient(circle, rgba(168,85,247,0.11), rgba(168,85,247,0))',
+    quoteSurface: 'linear-gradient(180deg, rgba(26,16,8,0.46), rgba(17,10,7,0.28))',
+  },
+  {
+    id: 'aurora',
+    label: 'Aurora',
+    baseColor: '#050810',
+    radialGradient:
+      'radial-gradient(circle at 21% 21%, rgba(34,211,238,0.16), transparent 34%), radial-gradient(circle at 80% 20%, rgba(96,165,250,0.15), transparent 36%), radial-gradient(circle at 50% 84%, rgba(52,211,153,0.15), transparent 33%)',
+    conicGradient:
+      'conic-gradient(from 192deg at 50% 45%, rgba(34,211,238,0.07), transparent 25%, rgba(96,165,250,0.09), transparent 58%, rgba(52,211,153,0.08), transparent 100%)',
+    orbOne: 'radial-gradient(circle, rgba(34,211,238,0.14), rgba(34,211,238,0))',
+    orbTwo: 'radial-gradient(circle, rgba(96,165,250,0.13), rgba(96,165,250,0))',
+    orbThree: 'radial-gradient(circle, rgba(52,211,153,0.12), rgba(52,211,153,0))',
+    quoteSurface: 'linear-gradient(180deg, rgba(7,17,31,0.46), rgba(5,12,20,0.26))',
+  },
+];
+
+const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
+  {
+    id: 'silk',
+    label: 'Silk',
+    texture:
+      'linear-gradient(118deg, rgba(255,255,255,0.028) 0%, transparent 35%, rgba(255,255,255,0.018) 64%, transparent 100%)',
+    textureOpacity: 0.34,
+    grain: 'radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)',
+    grainOpacity: 0.22,
+    vignette:
+      'radial-gradient(circle at 50% 45%, rgba(0,0,0,0) 22%, rgba(2,4,10,0.42) 100%)',
+    vignetteOpacity: 0.9,
+  },
+  {
+    id: 'grid',
+    label: 'Grid',
+    texture:
+      'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
+    textureOpacity: 0.16,
+    grain: 'radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px)',
+    grainOpacity: 0.2,
+    vignette:
+      'radial-gradient(circle at 50% 45%, rgba(0,0,0,0) 18%, rgba(2,4,10,0.46) 100%)',
+    vignetteOpacity: 0.92,
+  },
+  {
+    id: 'velvet',
+    label: 'Velvet',
+    texture:
+      'linear-gradient(0deg, rgba(255,255,255,0.014) 0%, transparent 40%, rgba(255,255,255,0.012) 100%)',
+    textureOpacity: 0.24,
+    grain: 'radial-gradient(circle, rgba(255,255,255,0.028) 1px, transparent 1px)',
+    grainOpacity: 0.18,
+    vignette:
+      'radial-gradient(circle at 50% 42%, rgba(0,0,0,0) 16%, rgba(2,4,10,0.5) 100%)',
+    vignetteOpacity: 0.95,
+  },
+  {
+    id: 'clean',
+    label: 'Clean',
+    texture: 'none',
+    textureOpacity: 0,
+    grain: 'none',
+    grainOpacity: 0,
+    vignette:
+      'radial-gradient(circle at 50% 45%, rgba(0,0,0,0) 26%, rgba(2,4,10,0.36) 100%)',
+    vignetteOpacity: 0.78,
+  },
+];
+
+const DEFAULT_FOCUS_THEME = FOCUS_THEME_PRESETS[0]!;
+const DEFAULT_FOCUS_OVERLAY = FOCUS_OVERLAY_PRESETS[0]!;
 
 function formatTime(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
@@ -65,7 +209,19 @@ export default function FocusScreen() {
 
   const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Math.random() * FOCUS_QUOTES.length));
   const [customMinutes, setCustomMinutes] = useState('');
+  const [themePresetId, setThemePresetId] = useState(DEFAULT_FOCUS_THEME.id);
+  const [overlayPresetId, setOverlayPresetId] = useState(DEFAULT_FOCUS_OVERLAY.id);
   const currentQuote = FOCUS_QUOTES[quoteIndex] ?? FOCUS_QUOTES[0];
+  const activeTheme = useMemo(
+    () => FOCUS_THEME_PRESETS.find((preset) => preset.id === themePresetId) ?? DEFAULT_FOCUS_THEME,
+    [themePresetId]
+  );
+  const activeOverlay = useMemo(
+    () =>
+      FOCUS_OVERLAY_PRESETS.find((preset) => preset.id === overlayPresetId) ??
+      DEFAULT_FOCUS_OVERLAY,
+    [overlayPresetId]
+  );
 
   const isIdle = status === 'idle';
   const isFocusRun = status === 'running';
@@ -91,6 +247,45 @@ export default function FocusScreen() {
     }, 300_000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const raw = localStorage.getItem(FOCUS_VISUAL_PREFS_STORAGE_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as {
+        themePresetId?: string;
+        overlayPresetId?: string;
+      };
+
+      if (
+        parsed.themePresetId &&
+        FOCUS_THEME_PRESETS.some((preset) => preset.id === parsed.themePresetId)
+      ) {
+        setThemePresetId(parsed.themePresetId);
+      }
+
+      if (
+        parsed.overlayPresetId &&
+        FOCUS_OVERLAY_PRESETS.some((preset) => preset.id === parsed.overlayPresetId)
+      ) {
+        setOverlayPresetId(parsed.overlayPresetId);
+      }
+    } catch (error) {
+      console.warn('[focus-screen] Failed to read visual preferences.', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    localStorage.setItem(
+      FOCUS_VISUAL_PREFS_STORAGE_KEY,
+      JSON.stringify({ themePresetId, overlayPresetId })
+    );
+  }, [themePresetId, overlayPresetId]);
 
   const getValidCustomDuration = () => {
     const parsed = Number(customMinutes);
@@ -123,50 +318,63 @@ export default function FocusScreen() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#05080f] text-[#FAF0E6]" data-testid="focus-screen-root">
+    <div
+      className="relative min-h-screen overflow-hidden text-[#FAF0E6]"
+      data-testid="focus-screen-root"
+      style={{ backgroundColor: activeTheme.baseColor }}
+    >
       <motion.div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.16),transparent_35%),radial-gradient(circle_at_78%_24%,rgba(234,179,8,0.18),transparent_38%),radial-gradient(circle_at_52%_86%,rgba(245,158,11,0.12),transparent_34%)]"
-        style={{ willChange: 'transform' }}
+        className="pointer-events-none absolute inset-0"
+        style={{ willChange: 'transform', backgroundImage: activeTheme.radialGradient }}
+        key={`focus-theme-radial-${activeTheme.id}`}
+        initial={{ opacity: 0.82 }}
         animate={prefersReducedMotion ? false : { scale: [1, 1.006, 1], opacity: [0.9, 0.94, 0.9] }}
         transition={{ duration: 220, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
-        className="pointer-events-none absolute inset-[-12%] bg-[conic-gradient(from_190deg_at_50%_45%,rgba(56,189,248,0.08),transparent_24%,rgba(245,158,11,0.08),transparent_60%,rgba(99,102,241,0.06),transparent_100%)] blur-3xl"
-        style={{ willChange: 'opacity' }}
+        className="pointer-events-none absolute inset-[-12%] blur-3xl"
+        style={{ willChange: 'opacity', backgroundImage: activeTheme.conicGradient }}
+        key={`focus-theme-conic-${activeTheme.id}`}
         animate={prefersReducedMotion ? false : { opacity: [0.2, 0.24, 0.2] }}
         transition={{ duration: 150, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
-        className="pointer-events-none absolute inset-0 opacity-20"
+        className="pointer-events-none absolute inset-0"
         style={{
-          backgroundImage: 'linear-gradient(115deg, rgba(255,255,255,0.022) 0%, transparent 36%, rgba(255,255,255,0.015) 63%, transparent 100%)',
-          backgroundSize: '220% 220%',
+          backgroundImage: activeOverlay.texture,
+          backgroundSize: activeOverlay.id === 'grid' ? '42px 42px' : '220% 220%',
+          opacity: activeOverlay.textureOpacity,
         }}
       />
       <motion.div
-        className="pointer-events-none absolute -left-24 -top-24 h-[42vw] w-[42vw] rounded-full bg-cyan-300/10 blur-[130px]"
-        style={{ willChange: 'transform' }}
+        className="pointer-events-none absolute -left-24 -top-24 h-[42vw] w-[42vw] rounded-full blur-[130px]"
+        style={{ willChange: 'transform', background: activeTheme.orbOne }}
         animate={prefersReducedMotion ? false : { x: [0, 12, 0], y: [0, 8, 0] }}
         transition={{ duration: 108, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
-        className="pointer-events-none absolute -right-20 top-10 h-[38vw] w-[38vw] rounded-full bg-amber-300/10 blur-[130px]"
-        style={{ willChange: 'transform' }}
+        className="pointer-events-none absolute -right-20 top-10 h-[38vw] w-[38vw] rounded-full blur-[130px]"
+        style={{ willChange: 'transform', background: activeTheme.orbTwo }}
         animate={prefersReducedMotion ? false : { x: [0, -10, 0], y: [0, -6, 0] }}
         transition={{ duration: 122, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
-        className="pointer-events-none absolute left-[20%] top-[58%] h-[34vw] w-[34vw] rounded-full bg-indigo-300/10 blur-[140px]"
-        style={{ willChange: 'transform' }}
+        className="pointer-events-none absolute left-[20%] top-[58%] h-[34vw] w-[34vw] rounded-full blur-[140px]"
+        style={{ willChange: 'transform', background: activeTheme.orbThree }}
         animate={prefersReducedMotion ? false : { x: [0, -6, 0], y: [0, 5, 0] }}
         transition={{ duration: 132, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
-        className="pointer-events-none absolute inset-0 opacity-30"
+        className="pointer-events-none absolute inset-0"
         style={{
-          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px)',
+          backgroundImage: activeOverlay.grain,
           backgroundSize: '30px 30px',
+          opacity: activeOverlay.grainOpacity,
         }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{ backgroundImage: activeOverlay.vignette, opacity: activeOverlay.vignetteOpacity }}
       />
 
       <div className="relative flex min-h-screen flex-col px-4 py-5 sm:px-8 sm:py-7">
@@ -199,8 +407,47 @@ export default function FocusScreen() {
           </div>
         </div>
 
+        <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+          <label className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/25 px-3 py-1.5 text-[11px] text-zinc-300">
+            <Palette className="h-3.5 w-3.5 text-zinc-400" />
+            Theme
+            <select
+              value={themePresetId}
+              onChange={(event) => setThemePresetId(event.target.value)}
+              className="rounded-full border border-white/10 bg-black/35 px-2 py-1 text-[11px] text-zinc-200 outline-none focus:border-cyan-300/45"
+            >
+              {FOCUS_THEME_PRESETS.map((preset) => (
+                <option key={preset.id} value={preset.id} className="bg-[#0b1018]">
+                  {preset.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/25 px-3 py-1.5 text-[11px] text-zinc-300">
+            <Layers3 className="h-3.5 w-3.5 text-zinc-400" />
+            Overlay
+            <select
+              value={overlayPresetId}
+              onChange={(event) => setOverlayPresetId(event.target.value)}
+              className="rounded-full border border-white/10 bg-black/35 px-2 py-1 text-[11px] text-zinc-200 outline-none focus:border-cyan-300/45"
+            >
+              {FOCUS_OVERLAY_PRESETS.map((preset) => (
+                <option key={preset.id} value={preset.id} className="bg-[#0b1018]">
+                  {preset.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
         <div className="mx-auto mt-10 flex w-full max-w-4xl flex-1 items-center justify-center sm:mt-12">
-          <div className="w-full rounded-3xl border border-white/12 bg-[linear-gradient(180deg,rgba(9,14,24,0.52),rgba(6,10,17,0.32))] px-6 py-9 shadow-[0_12px_70px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:px-10 sm:py-12 lg:px-12">
+          <div
+            className="w-full rounded-3xl border px-6 py-9 shadow-[0_12px_70px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:px-10 sm:py-12 lg:px-12"
+            style={{
+              borderColor: 'rgba(148,163,184,0.20)',
+              backgroundImage: activeTheme.quoteSurface,
+            }}
+          >
             <AnimatePresence mode="wait">
               <motion.blockquote
                 key={quoteIndex}
@@ -208,12 +455,12 @@ export default function FocusScreen() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -18 }}
                 transition={{ duration: 0.35 }}
-                className="min-h-[7.5rem] text-center sm:min-h-[9.25rem] lg:min-h-[10rem]"
+                className="flex min-h-[10rem] flex-col items-center justify-center text-center sm:min-h-[11.75rem] lg:min-h-[12.5rem]"
               >
-                <p className="text-balance text-xl font-semibold leading-[1.28] text-[#FAF0E6] sm:text-3xl lg:text-4xl">
+                <p className="max-w-[44rem] text-balance text-xl font-semibold leading-[1.28] text-[#FAF0E6] sm:text-3xl lg:text-4xl">
                   &ldquo;{currentQuote?.text}&rdquo;
                 </p>
-                <p className="mt-4 text-[11px] uppercase tracking-[0.2em] text-zinc-400 sm:text-xs">
+                <p className="mt-5 text-[11px] uppercase tracking-[0.2em] text-zinc-400 sm:text-xs">
                   {currentQuote?.source}
                 </p>
               </motion.blockquote>
