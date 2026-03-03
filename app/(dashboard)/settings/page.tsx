@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { useTheme, type Theme, type AccentColor } from '@/components/providers/ThemeProvider';
@@ -69,7 +70,13 @@ const championVfxPresetDescriptions = {
 export default function SettingsPage() {
     const { user, signOut, refreshUser } = useAuth();
     const { theme, setTheme, accentColor, setAccentColor } = useTheme();
-    const { play, settings: soundSettings, setEnabled: setSoundEnabled, setMasterVolume } = useAppSound();
+    const {
+        play,
+        settings: soundSettings,
+        setEnabled: setSoundEnabled,
+        setMasterVolume,
+        setNotificationSound,
+    } = useAppSound();
     const { summonerSpells, setSummonerSpell } = usePowerHotkeys();
     const { settings: championSettings, updateSettings: updateChampionSettings, stats: championStats } = useChampion();
     const [displayName, setDisplayName] = useState('');
@@ -362,19 +369,11 @@ export default function SettingsPage() {
                             <p className="text-sm font-medium text-text-primary">Interaction Sounds</p>
                             <p className="text-xs text-text-tertiary mt-0.5">Subtle audio feedback for UI actions</p>
                         </div>
-                        <button
-                            onClick={() => setSoundEnabled(!soundSettings.enabled)}
-                            className={`relative w-12 h-6 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                                soundSettings.enabled ? 'bg-primary' : 'bg-surface-hover'
-                            }`}
-                            aria-label={soundSettings.enabled ? 'Disable sounds' : 'Enable sounds'}
-                        >
-                            <span
-                                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                                    soundSettings.enabled ? 'translate-x-6' : 'translate-x-0'
-                                }`}
-                            />
-                        </button>
+                        <ToggleSwitch
+                            enabled={soundSettings.enabled}
+                            onChange={(v) => setSoundEnabled(v)}
+                            ariaLabel={soundSettings.enabled ? 'Disable sounds' : 'Enable sounds'}
+                        />
                     </div>
 
                     {/* Volume slider */}
@@ -406,9 +405,39 @@ export default function SettingsPage() {
                     {/* Preview buttons */}
                     <div className={`space-y-2 pt-4 border-t border-border transition-opacity ${soundSettings.enabled ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
                         <p className="text-xs font-medium text-text-tertiary uppercase tracking-wider mb-3">Preview</p>
+                        <div className="space-y-2 mb-3">
+                            <p className="text-xs font-medium text-text-tertiary uppercase tracking-wider">Notification Tone</p>
+                            <div className="flex flex-wrap gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => { setNotificationSound('teams-default'); play('pop'); }}
+                                    className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
+                                        soundSettings.notificationSound === 'teams-default'
+                                            ? 'border-primary/60 bg-primary/15 text-primary'
+                                            : 'border-border bg-surface-hover text-text-secondary hover:border-primary/35'
+                                    }`}
+                                >
+                                    Teams Default
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { setNotificationSound('classic'); play('pop'); }}
+                                    className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
+                                        soundSettings.notificationSound === 'classic'
+                                            ? 'border-primary/60 bg-primary/15 text-primary'
+                                            : 'border-border bg-surface-hover text-text-secondary hover:border-primary/35'
+                                    }`}
+                                >
+                                    Classic Synth
+                                </button>
+                            </div>
+                            <p className="text-[11px] text-text-tertiary">
+                                Teams sound is sourced from the linked community pack and intended for personal use.
+                            </p>
+                        </div>
                         <div className="flex flex-wrap gap-3">
                             {([
-                                { event: 'pop' as const, label: 'Pop', description: 'Task complete' },
+                                { event: 'pop' as const, label: 'Notification', description: soundSettings.notificationSound === 'teams-default' ? 'Teams Default' : 'Classic synth' },
                                 { event: 'swoosh' as const, label: 'Swoosh', description: 'Send / move' },
                                 { event: 'click' as const, label: 'Click', description: 'Toggle / select' },
                             ] as const).map(({ event, label, description }) => (
@@ -448,19 +477,11 @@ export default function SettingsPage() {
                                 Kontextuelle Hinweise von deinem Execution Companion
                             </p>
                         </div>
-                        <button
-                            onClick={toggleLucianMuted}
-                            className={`relative w-12 h-6 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                                !lucianMuted ? 'bg-primary' : 'bg-surface-hover'
-                            }`}
-                            aria-label={lucianMuted ? 'Lucian aktivieren' : 'Lucian deaktivieren'}
-                        >
-                            <span
-                                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                                    !lucianMuted ? 'translate-x-6' : 'translate-x-0'
-                                }`}
-                            />
-                        </button>
+                        <ToggleSwitch
+                            enabled={!lucianMuted}
+                            onChange={() => toggleLucianMuted()}
+                            ariaLabel={lucianMuted ? 'Lucian aktivieren' : 'Lucian deaktivieren'}
+                        />
                     </div>
                 </div>
             </section>
@@ -585,9 +606,6 @@ export default function SettingsPage() {
                         <Sparkles className="w-5 h-5" />
                         Terminal Champion
                     </h2>
-                    <span className="settings-chip">
-                        Phase 6
-                    </span>
                 </div>
 
                 <div className="p-6 bg-surface border border-border rounded-xl space-y-6">
@@ -596,19 +614,11 @@ export default function SettingsPage() {
                             <p className="text-sm font-medium text-text-primary">Champion enabled</p>
                             <p className="text-xs text-text-tertiary mt-0.5">Desktop pet overlay with LoL controls</p>
                         </div>
-                        <button
-                            onClick={() => updateChampionSettings({ enabled: !championSettings.enabled })}
-                            className={`relative w-12 h-6 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                                championSettings.enabled ? 'bg-primary' : 'bg-surface-hover'
-                            }`}
-                            aria-label={championSettings.enabled ? 'Disable champion' : 'Enable champion'}
-                        >
-                            <span
-                                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                                    championSettings.enabled ? 'translate-x-6' : 'translate-x-0'
-                                }`}
-                            />
-                        </button>
+                        <ToggleSwitch
+                            enabled={championSettings.enabled}
+                            onChange={(v) => updateChampionSettings({ enabled: v })}
+                            ariaLabel={championSettings.enabled ? 'Disable champion' : 'Enable champion'}
+                        />
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2">
@@ -750,19 +760,11 @@ export default function SettingsPage() {
                                 </p>
                             </div>
                         </div>
-                        <button
-                            onClick={() => void toggleEmailNotifications()}
-                            className={`relative w-12 h-6 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary shrink-0 ml-4 ${
-                                emailNotifications ? 'bg-primary' : 'bg-surface-hover'
-                            }`}
-                            aria-label={emailNotifications ? 'E-Mail-Benachrichtigungen deaktivieren' : 'E-Mail-Benachrichtigungen aktivieren'}
-                        >
-                            <span
-                                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                                    emailNotifications ? 'translate-x-6' : 'translate-x-0'
-                                }`}
-                            />
-                        </button>
+                        <ToggleSwitch
+                            enabled={emailNotifications}
+                            onChange={() => void toggleEmailNotifications()}
+                            ariaLabel={emailNotifications ? 'E-Mail-Benachrichtigungen deaktivieren' : 'E-Mail-Benachrichtigungen aktivieren'}
+                        />
                     </div>
 
                     <div className="border-t border-border pt-4">

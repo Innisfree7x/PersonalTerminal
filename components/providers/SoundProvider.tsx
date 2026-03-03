@@ -25,21 +25,29 @@ export type SoundEvent =
   | 'champ-level-up'
   | 'champ-focus';
 
+export type NotificationSound = 'classic' | 'teams-default';
+
 export interface SoundSettings {
   enabled: boolean;
   masterVolume: number; // 0..1
+  notificationSound: NotificationSound;
 }
 
 export interface SoundContextType {
   settings: SoundSettings;
   setEnabled: (v: boolean) => void;
   setMasterVolume: (v: number) => void;
+  setNotificationSound: (v: NotificationSound) => void;
   play: (event: SoundEvent) => void;
 }
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────
 
-const DEFAULTS: SoundSettings = { enabled: true, masterVolume: 0.45 };
+const DEFAULTS: SoundSettings = {
+  enabled: true,
+  masterVolume: 0.45,
+  notificationSound: 'teams-default',
+};
 const STORAGE_KEY = 'prism-sound-settings';
 
 // Per-event base gain (relative to masterVolume)
@@ -203,6 +211,16 @@ const SYNTHS: Record<SoundEvent, (ctx: AudioContext, gain: number) => void> = {
   'champ-focus': synthClick,
 };
 
+function getSampleSrcForEvent(
+  event: SoundEvent,
+  notificationSound: NotificationSound
+): string | null {
+  if (event === 'pop' && notificationSound === 'teams-default') {
+    return '/sounds/teams-default.mp3';
+  }
+  return null;
+}
+
 // ─── Context ──────────────────────────────────────────────────────────────────
 
 export const SoundContext = createContext<SoundContextType | undefined>(undefined);
@@ -215,6 +233,7 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
 
   // Lazily created AudioContext (avoids autoplay policy issues until first interaction)
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const sampleAudioRef = useRef<Partial<Record<string, HTMLAudioElement>>>({});
 
   // Per-event last-played timestamps for anti-spam
   const lastPlayedRef = useRef<Partial<Record<SoundEvent, number>>>({});
@@ -229,6 +248,9 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
           ...prev,
           ...(typeof parsed.enabled === 'boolean' ? { enabled: parsed.enabled } : {}),
           ...(typeof parsed.masterVolume === 'number' ? { masterVolume: Math.max(0, Math.min(1, parsed.masterVolume)) } : {}),
+          ...(parsed.notificationSound === 'classic' || parsed.notificationSound === 'teams-default'
+            ? { notificationSound: parsed.notificationSound }
+            : {}),
         }));
       }
     } catch {
@@ -250,6 +272,10 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
 
   const setMasterVolume = useCallback((v: number) => {
     setSettings((s) => ({ ...s, masterVolume: Math.max(0, Math.min(1, v)) }));
+  }, []);
+
+  const setNotificationSound = useCallback((v: NotificationSound) => {
+    setSettings((s) => ({ ...s, notificationSound: v }));
   }, []);
 
   const play = useCallback(
@@ -295,16 +321,36 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
       function runSynth() {
         if (!ctx) return;
         const baseGain = EVENT_GAIN[event] * settings.masterVolume;
+        const sampleSrc = getSampleSrcForEvent(event, settings.notificationSound);
+        if (sampleSrc) {
+          let audio = sampleAudioRef.current[sampleSrc] ?? null;
+          if (!audio) {
+            audio = new Audio(sampleSrc);
+            audio.preload = 'auto';
+            sampleAudioRef.current[sampleSrc] = audio;
+          }
+          audio.currentTime = 0;
+          audio.volume = Math.max(0, Math.min(1, baseGain));
+          void audio.play().catch(() => {
+            // Fallback to synth when media playback is blocked by browser policy.
+            const gain = jitter(baseGain, baseGain * 0.05);
+            SYNTHS[event](ctx, gain);
+          });
+          return;
+        }
+
         // Tiny volume jitter ±5%
         const gain = jitter(baseGain, baseGain * 0.05);
         SYNTHS[event](ctx, gain);
       }
     },
-    [mounted, settings.enabled, settings.masterVolume]
+    [mounted, settings.enabled, settings.masterVolume, settings.notificationSound]
   );
 
   return (
-    <SoundContext.Provider value={{ settings, setEnabled, setMasterVolume, play }}>
+    <SoundContext.Provider
+      value={{ settings, setEnabled, setMasterVolume, setNotificationSound, play }}
+    >
       {children}
     </SoundContext.Provider>
   );
