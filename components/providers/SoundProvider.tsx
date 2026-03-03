@@ -42,6 +42,7 @@ export interface SoundContextType {
     event: SoundEvent,
     options?: {
       notificationSound?: NotificationSound;
+      force?: boolean;
     }
   ) => void;
 }
@@ -288,6 +289,7 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
       event: SoundEvent,
       options?: {
         notificationSound?: NotificationSound;
+        force?: boolean;
       }
     ) => {
       if (!mounted) return;
@@ -301,9 +303,11 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
 
       // Anti-spam cooldown
       const now = Date.now();
-      const last = lastPlayedRef.current[event] ?? 0;
-      if (now - last < COOLDOWN[event]) return;
-      lastPlayedRef.current[event] = now;
+      if (!options?.force) {
+        const last = lastPlayedRef.current[event] ?? 0;
+        if (now - last < COOLDOWN[event]) return;
+        lastPlayedRef.current[event] = now;
+      }
 
       // Lazy AudioContext creation
       if (!audioCtxRef.current) {

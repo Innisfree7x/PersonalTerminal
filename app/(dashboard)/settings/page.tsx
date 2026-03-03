@@ -412,7 +412,7 @@ export default function SettingsPage() {
                                     type="button"
                                     onClick={() => {
                                         setNotificationSound('teams-default');
-                                        play('pop', { notificationSound: 'teams-default' });
+                                        play('pop', { notificationSound: 'teams-default', force: true });
                                     }}
                                     className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
                                         soundSettings.notificationSound === 'teams-default'
@@ -426,7 +426,7 @@ export default function SettingsPage() {
                                     type="button"
                                     onClick={() => {
                                         setNotificationSound('classic');
-                                        play('pop', { notificationSound: 'classic' });
+                                        play('pop', { notificationSound: 'classic', force: true });
                                     }}
                                     className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
                                         soundSettings.notificationSound === 'classic'
@@ -449,7 +449,14 @@ export default function SettingsPage() {
                             ] as const).map(({ event, label, description }) => (
                                 <motion.button
                                     key={event}
-                                    onClick={() => play(event)}
+                                    onClick={() =>
+                                        play(event, {
+                                            force: true,
+                                            ...(event === 'pop'
+                                                ? { notificationSound: soundSettings.notificationSound }
+                                                : {}),
+                                        })
+                                    }
                                     className="flex flex-col items-center gap-1 px-4 py-3 rounded-lg border border-border hover:border-primary/50 bg-surface-hover hover:bg-primary/5 transition-all text-left"
                                     whileHover={{ scale: 1.03 }}
                                     whileTap={{ scale: 0.97 }}
