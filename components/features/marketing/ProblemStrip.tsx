@@ -3,12 +3,12 @@
 import { motion } from 'framer-motion';
 
 const pains = [
-  { emoji: '📅', text: 'Notion für Kurse' },
-  { emoji: '✅', text: 'Todoist für Tasks' },
+  { emoji: '📝', text: 'One App für Thesis-Plan' },
+  { emoji: '🎯', text: 'Eine andere für GMAT' },
   { emoji: '💼', text: 'Excel für Bewerbungen' },
-  { emoji: '⏱️', text: 'Forest für den Timer' },
-  { emoji: '📊', text: 'Google Sheets für Ziele' },
-  { emoji: '🗓️', text: 'Google Calendar' },
+  { emoji: '⏱️', text: 'Extra Timer-Tool' },
+  { emoji: '📅', text: 'Kalender + Tasks getrennt' },
+  { emoji: '📊', text: 'Risiko nur im Kopf' },
   { emoji: '🧠', text: '…und trotzdem Chaos' },
 ];
 
@@ -31,10 +31,10 @@ export function ProblemStrip() {
           className="mx-auto max-w-2xl text-center mb-10"
         >
           <p className="text-[1.35rem] md:text-2xl font-semibold text-[#FAF0E6] leading-snug tracking-tight">
-            Prüfungsangst. Bewerbungsdeadlines. Übungsblätter.
+            Thesis. GMAT. Praktikum. Master-Bewerbungen.
             <br />
             <span className="text-zinc-500">
-              Alles gleichzeitig — und kein einziges System, das das hält.
+              Alles parallel — und meist auf fünf getrennten Tools verteilt.
             </span>
           </p>
         </motion.div>
@@ -76,8 +76,8 @@ export function ProblemStrip() {
         >
           <div className="h-8 w-px bg-gradient-to-b from-white/20 to-transparent" />
           <p className="text-center text-2xl font-semibold tracking-tight text-[#FAF0E6] md:text-3xl">
-            Ein System.{' '}
-            <span className="text-zinc-500">Kein Chaos mehr.</span>
+            Eine Timeline.{' '}
+            <span className="text-zinc-500">Ein Daily-Flow.</span>
           </p>
         </motion.div>
       </div>

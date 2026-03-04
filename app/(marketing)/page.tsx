@@ -14,14 +14,14 @@ import { FeatureMarquee } from '@/components/features/marketing/FeatureMarquee';
 export const metadata: Metadata = {
   title: 'Start',
   description:
-    'Kurse, Aufgaben, Ziele und Karriere in einem persönlichen Dashboard. Kostenlos für Studenten.',
+    'Trajectory Planner, Today Execution und Focus System in einem persönlichen Studenten-OS.',
   alternates: {
     canonical: '/',
   },
   openGraph: {
     title: 'INNIS — Das Dashboard fürs Studium',
     description:
-      'Kurse, Aufgaben, Ziele und Karriere in einem persönlichen Dashboard. Kostenlos für Studenten.',
+      'Strategischer Karriere-Zeitplan + tägliche Execution in einem System für Studenten.',
     url: '/',
   },
 };

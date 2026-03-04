@@ -1,15 +1,15 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Calendar, BookOpen, Target, Briefcase, Timer, BarChart2, Zap } from 'lucide-react';
+import { Route, CalendarDays, Command, Timer, Sparkles, ShieldCheck, Zap } from 'lucide-react';
 
 const features = [
   {
-    id: 'focus',
-    icon: Calendar,
-    title: 'Tagesplanung + Fokus',
+    id: 'trajectory',
+    icon: Route,
+    title: 'Trajectory Planner',
     description:
-      'Kein Morgen mehr, an dem du nicht weißt womit du anfängst. Aufgaben, Kalender und Timer auf einem Blick — damit du sofort weißt was jetzt dran ist.',
+      'Plane Thesis, GMAT, Master-Bewerbungen und Praktika rückwärts von echten Deadlines. Mit klarer Risiko-Logik statt Bauchgefühl.',
     accent: 'text-red-300',
     bg: 'bg-red-500/10',
     border: 'border-red-500/20',
@@ -17,11 +17,11 @@ const features = [
     layout: 'lg:col-span-2 lg:row-span-2',
   },
   {
-    id: 'goals',
-    icon: Target,
-    title: 'Ziele',
+    id: 'today',
+    icon: CalendarDays,
+    title: 'Today Command Center',
     description:
-      'Ziele die du aufschreibst, erreichst du. Mit Deadline, Priorität und wöchentlichem Fortschritt — nicht nur ein frommer Wunsch.',
+      'Tasks, Kalender und Focus in einem Daily-Flow. Strategischer Morning-Briefing-Banner verbindet Langfrist-Plan mit deinem heutigen Move.',
     accent: 'text-emerald-300',
     bg: 'bg-emerald-500/10',
     border: 'border-emerald-500/20',
@@ -29,11 +29,11 @@ const features = [
     layout: 'lg:col-span-1',
   },
   {
-    id: 'university',
-    icon: BookOpen,
-    title: 'Universität',
+    id: 'command',
+    icon: Command,
+    title: 'Command Rail',
     description:
-      'Kein Übungsblatt mehr vergessen. Kein Prüfungsdatum mehr suchen. Klausurcountdown und Abgaben auf einen Blick.',
+      'Tippen statt klicken: Tasks, Goals und Navigation per Intent-Parser. Mit deterministischer Preview bevor etwas ausgeführt wird.',
     accent: 'text-violet-300',
     bg: 'bg-violet-500/10',
     border: 'border-violet-500/20',
@@ -41,11 +41,11 @@ const features = [
     layout: 'lg:col-span-1',
   },
   {
-    id: 'career',
-    icon: Briefcase,
-    title: 'Karriere',
+    id: 'focus',
+    icon: Timer,
+    title: 'Focus Mode + Sound',
     description:
-      'Bewerbungen die du nicht verlierst. Kanban von Applied bis Offer, mit CV-Upload und automatischen Deadlines.',
+      'Vollbild-Fokus mit Themes, Overlays und Custom Session-Längen. Notification-Kit inklusive Teams-Style Tone für klares Feedback.',
     accent: 'text-orange-300',
     bg: 'bg-orange-500/10',
     border: 'border-orange-500/20',
@@ -53,11 +53,11 @@ const features = [
     layout: 'lg:col-span-1',
   },
   {
-    id: 'timer',
-    icon: Timer,
-    title: 'Fokus-Timer',
+    id: 'lucian',
+    icon: Sparkles,
+    title: 'Lucian Companion',
     description:
-      'Läuft auf jeder Seite mit. Du weißt immer wie lang du schon sitzt — und wann eine Pause fällig ist.',
+      'Kontextbasierte Impulse, Speech-Bubbles und Spell-VFX. Lucian bleibt optional, aber macht Fokus-Sessions messbar lebendiger.',
     accent: 'text-yellow-300',
     bg: 'bg-yellow-500/10',
     border: 'border-yellow-500/20',
@@ -65,11 +65,11 @@ const features = [
     layout: 'lg:col-span-1',
   },
   {
-    id: 'analytics',
-    icon: BarChart2,
-    title: 'Analytics',
+    id: 'reliability',
+    icon: ShieldCheck,
+    title: 'Reliability Layer',
     description:
-      'Siehst du wie viel du wirklich lernst — oder wie viel du denkst dass du lernst? INNIS zeigt dir den Unterschied.',
+      'SLO-Metriken, Cron Health und blocker E2E-Gates sichern Releases ab. Damit Features nicht nur gut aussehen, sondern stabil laufen.',
     accent: 'text-sky-300',
     bg: 'bg-sky-500/10',
     border: 'border-sky-500/20',
@@ -94,11 +94,13 @@ export function FeatureSection() {
         >
           <p className="premium-kicker">Alle Module</p>
           <h2 className="premium-heading mb-4 text-3xl font-semibold text-[#FAF0E6] md:text-5xl">
-            Sechs Module. Ein System.
+            Sechs Engine-Blöcke.
+            <br />
+            Eine klare Student Journey.
           </h2>
           <p className="premium-subtext mx-auto max-w-xl">
-            INNIS wurde für Studenten gebaut, die nicht zehn Apps jonglieren wollen —
-            sondern ein System, das wirklich funktioniert.
+            Von strategischer Timeline bis täglicher Execution:
+            alles ist verbunden, nichts ist isoliert.
           </p>
         </motion.div>
 
@@ -122,145 +124,142 @@ export function FeatureSection() {
               <h3 className="mb-2 text-lg font-semibold text-[#FAF0E6]">{feature.title}</h3>
               <p className="text-sm leading-relaxed text-zinc-400">{feature.description}</p>
 
-              {feature.id === 'focus' ? (
+              {feature.id === 'trajectory' ? (
                 <div className="mt-6 grid grid-cols-2 gap-4">
-                  {/* Left: Task list */}
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-600">Aufgaben heute</p>
+                  <div className="space-y-3">
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-600">Milestones</p>
                     {[
-                      { label: 'Übungsblatt 8 einreichen', done: true },
-                      { label: 'Kap. 5 Klausurvorbereitung', done: true },
-                      { label: 'Bewerbung Praktikum', done: false },
-                      { label: 'LA II Zusammenfassung', done: false },
-                    ].map((task) => (
-                      <div key={task.label} className="flex items-center gap-2">
-                        <div className={`h-3 w-3 flex-shrink-0 rounded-full border ${task.done ? 'border-red-500 bg-red-500/30' : 'border-white/20'}`} />
-                        <span className={`text-[11px] leading-tight ${task.done ? 'text-zinc-600 line-through' : 'text-zinc-300'}`}>
-                          {task.label}
-                        </span>
+                      { label: 'GMAT', date: '01.03.2027', state: 'on track', color: 'text-emerald-300' },
+                      { label: 'Master Apps', date: '15.11.2026', state: 'tight', color: 'text-amber-300' },
+                      { label: 'Praktikum Q3', date: '01.09.2026', state: 'window', color: 'text-blue-300' },
+                    ].map((item) => (
+                      <div key={item.label} className="rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-medium text-zinc-200">{item.label}</span>
+                          <span className={`text-[10px] ${item.color}`}>{item.state}</span>
+                        </div>
+                        <p className="mt-0.5 text-[10px] text-zinc-500">{item.date}</p>
                       </div>
                     ))}
-                    {/* Progress bar */}
-                    <div className="pt-2">
-                      <div className="h-1 rounded-full bg-white/5">
+                  </div>
+                  <div className="space-y-3">
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-600">Risk console</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        ['ON', '3', 'text-emerald-300 border-emerald-500/30 bg-emerald-500/10'],
+                        ['TIGHT', '1', 'text-amber-300 border-amber-500/30 bg-amber-500/10'],
+                        ['RISK', '0', 'text-red-300 border-red-500/30 bg-red-500/10'],
+                      ].map(([label, value, styles]) => (
+                        <div key={label} className={`rounded-md border px-2 py-1.5 ${styles}`}>
+                          <p className="text-[9px] leading-none">{label}</p>
+                          <p className="mt-1 text-sm font-semibold leading-none">{value}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3">
+                      <p className="text-[10px] text-zinc-600">Simulation</p>
+                      <div className="mt-2 h-1 rounded-full bg-white/10">
                         <motion.div
                           className="h-1 rounded-full bg-red-500/80"
                           initial={{ width: 0 }}
-                          whileInView={{ width: '72%' }}
+                          whileInView={{ width: '62%' }}
                           viewport={{ once: true }}
-                          transition={{ duration: 0.9, delay: 0.3 }}
+                          transition={{ duration: 1, delay: 0.2 }}
                         />
                       </div>
-                      <div className="mt-1.5 flex items-center justify-between text-[10px]">
-                        <span className="text-zinc-600">Heute erledigt</span>
-                        <span className="font-semibold text-[#FAF0E6]">9 / 12</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right: Timer + stats */}
-                  <div className="flex flex-col gap-3">
-                    <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-600">Fokus-Timer</p>
-                    <div className="flex flex-col items-center justify-center rounded-xl border border-white/10 bg-white/[0.02] py-4">
-                      <p className="font-mono text-2xl font-semibold tracking-widest text-[#FAF0E6]">23:14</p>
-                      <p className="mt-1 text-[9px] uppercase tracking-widest text-zinc-600">Session 2 · läuft</p>
-                      <div className="mt-2 h-1 w-16 rounded-full bg-white/5">
-                        <motion.div
-                          className="h-1 rounded-full bg-red-500/60"
-                          initial={{ width: 0 }}
-                          whileInView={{ width: '58%' }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 1.2, delay: 0.5 }}
-                        />
-                      </div>
-                    </div>
-                    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3">
-                      <p className="text-[10px] text-zinc-600">Fokuszeit heute</p>
-                      <p className="text-lg font-bold text-[#FAF0E6]">2h 40m</p>
+                      <p className="mt-1.5 text-[10px] text-zinc-400">18h/week → Prep start 09.11.2026</p>
                     </div>
                   </div>
                 </div>
               ) : null}
 
-              {feature.id === 'goals' ? (
-                <div className="mt-5 space-y-2">
+              {feature.id === 'today' ? (
+                <div className="mt-5 space-y-2.5">
+                  <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1.5 text-[10px] text-emerald-200">
+                    Morning briefing: GMAT · 287d left · on track
+                  </div>
                   {[
-                    { label: 'Fitness', pct: 80, color: 'bg-emerald-500/80' },
-                    { label: 'Lernen', pct: 95, color: 'bg-emerald-400/80' },
-                    { label: 'Karriere', pct: 52, color: 'bg-emerald-600/70' },
-                  ].map((goal) => (
-                    <div key={goal.label} className="flex items-center gap-2">
-                      <span className="w-14 shrink-0 text-[10px] text-zinc-500">{goal.label}</span>
-                      <div className="h-1 flex-1 rounded-full bg-white/5">
-                        <motion.div
-                          className={`h-1 rounded-full ${goal.color}`}
-                          initial={{ width: 0 }}
-                          whileInView={{ width: `${goal.pct}%` }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 0.8, delay: 0.2 }}
-                        />
-                      </div>
-                      <span className="w-8 shrink-0 text-right text-[10px] text-zinc-500">{goal.pct}%</span>
+                    { label: 'VWL 2 - Blatt 4', meta: 'Exam in 9d' },
+                    { label: 'OR 1/2 - Blatt 2', meta: 'Exam in 15d' },
+                  ].map((task) => (
+                    <div key={task.label} className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-2">
+                      <span className="text-[11px] text-zinc-300">{task.label}</span>
+                      <span className="text-[10px] text-zinc-500">{task.meta}</span>
                     </div>
                   ))}
                 </div>
               ) : null}
 
-              {feature.id === 'university' ? (
-                <div className="mt-5 space-y-3">
-                  <div className="inline-flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
-                    <span className="text-[10px] font-medium text-red-300">Klausur in 12 Tagen</span>
+              {feature.id === 'command' ? (
+                <div className="mt-5 space-y-2.5">
+                  <div className="rounded-md border border-violet-500/30 bg-violet-500/10 px-3 py-2">
+                    <p className="font-mono text-[11px] text-violet-200">&gt; create task &quot;GMAT Verbal&quot; tomorrow</p>
                   </div>
-                  <div>
-                    <div className="mb-1.5 flex flex-wrap gap-1">
-                      {Array.from({ length: 12 }).map((_, i) => (
-                        <div
-                          key={i}
-                          className={`h-2 w-2 rounded-sm ${i < 7 ? 'bg-violet-500/70' : 'bg-white/10'}`}
-                        />
+                  <div className="rounded-lg border border-violet-500/20 bg-violet-500/[0.07] px-3 py-2.5">
+                    <p className="text-[10px] uppercase tracking-wide text-violet-300">Intent preview</p>
+                    <p className="mt-1 text-[11px] text-zinc-300">Task „GMAT Verbal“ · due morgen</p>
+                    <div className="mt-2 inline-flex rounded-md border border-violet-500/40 bg-violet-500/20 px-2 py-0.5 text-[10px] text-violet-200">
+                      Enter to confirm
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              {feature.id === 'focus' ? (
+                <div className="mt-5 grid grid-cols-2 gap-2.5">
+                  <div className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
+                    <p className="text-[10px] uppercase tracking-wide text-zinc-600">Themes</p>
+                    <div className="mt-2 flex gap-1.5">
+                      {['bg-slate-300/80', 'bg-sky-400/80', 'bg-yellow-400/80', 'bg-red-400/80'].map((dot) => (
+                        <span key={dot} className={`h-3 w-3 rounded-full ${dot}`} />
                       ))}
                     </div>
-                    <span className="text-[10px] text-zinc-500">7 / 12 Übungen</span>
+                  </div>
+                  <div className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
+                    <p className="text-[10px] uppercase tracking-wide text-zinc-600">Tone</p>
+                    <p className="mt-2 text-[11px] text-zinc-300">Teams default · click · swoosh</p>
+                  </div>
+                  <div className="col-span-2 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2.5">
+                    <p className="font-mono text-lg font-semibold tracking-widest text-[#FAF0E6]">25:00</p>
+                    <p className="mt-0.5 text-[10px] text-zinc-500">Custom duration + fullscreen focus</p>
                   </div>
                 </div>
               ) : null}
 
-              {feature.id === 'career' ? (
-                <div className="mt-5 grid grid-cols-2 gap-2 text-xs">
-                  <span className="rounded-md border border-white/10 bg-white/[0.02] px-2 py-1 text-zinc-300">Applied 12</span>
-                  <span className="rounded-md border border-white/10 bg-white/[0.02] px-2 py-1 text-zinc-300">Interview 4</span>
-                  <span className="rounded-md border border-white/10 bg-white/[0.02] px-2 py-1 text-zinc-300">Offer 2</span>
-                  <span className="rounded-md border border-white/10 bg-white/[0.02] px-2 py-1 text-zinc-300">Winrate 28%</span>
+              {feature.id === 'lucian' ? (
+                <div className="mt-5 rounded-xl border border-yellow-500/25 bg-yellow-500/10 p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-full border border-yellow-500/40 bg-black/50" />
+                    <div className="flex-1">
+                      <p className="text-[11px] font-medium text-yellow-200">Lucian · speech bubble</p>
+                      <p className="text-[10px] text-zinc-400">„Buffer sinkt. Starte jetzt 25 Minuten Fokus.“</p>
+                    </div>
+                  </div>
                 </div>
               ) : null}
 
-              {feature.id === 'timer' ? (
-                <div className="mt-5 flex flex-col items-center gap-1 rounded-xl border border-white/10 bg-white/[0.02] py-3">
-                  <p className="font-mono text-lg font-semibold tracking-widest text-[#FAF0E6]">25 : 00</p>
-                  <p className="text-[10px] font-medium uppercase tracking-widest text-zinc-600">Fokus · Session 3</p>
-                </div>
-              ) : null}
-
-              {feature.id === 'analytics' ? (
-                <div className="mt-5 flex h-12 items-end gap-1">
-                  {[55, 80, 40, 90, 65].map((h, i) => (
-                    <motion.div
-                      key={i}
-                      className="flex-1 rounded-t-sm bg-sky-500/60"
-                      initial={{ height: 0 }}
-                      whileInView={{ height: `${h}%` }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.5, delay: 0.1 + i * 0.07 }}
-                    />
-                  ))}
+              {feature.id === 'reliability' ? (
+                <div className="mt-5 space-y-2.5">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-md border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-2">
+                      <p className="text-[9px] uppercase tracking-wide text-emerald-300">Google Sync</p>
+                      <p className="mt-1 text-[11px] text-zinc-200">Connected · healthy</p>
+                    </div>
+                    <div className="rounded-md border border-sky-500/25 bg-sky-500/10 px-2.5 py-2">
+                      <p className="text-[9px] uppercase tracking-wide text-sky-300">Cron health</p>
+                      <p className="mt-1 text-[11px] text-zinc-200">ops-reliability every 5m</p>
+                    </div>
+                  </div>
+                  <div className="rounded-md border border-white/10 bg-white/[0.02] px-2.5 py-2">
+                    <p className="text-[10px] text-zinc-400">Release gates: type-check · lint · blocker e2e</p>
+                  </div>
                 </div>
               ) : null}
             </motion.div>
           ))}
         </div>
 
-        {/* Lucian Companion Callout */}
+        {/* Stack Callout */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -273,15 +272,14 @@ export function FeatureSection() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm font-semibold text-[#FAF0E6]">Lucian · Execution Companion</span>
+              <span className="text-sm font-semibold text-[#FAF0E6]">Strategy-to-Execution Stack</span>
               <span className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2 py-0.5 text-[10px] font-medium text-yellow-400">
-                Inklusive
+                Neu in V2
               </span>
             </div>
             <p className="text-sm leading-relaxed text-zinc-400">
-              Lucian ist dein kontextueller Begleiter im Dashboard — er gibt gezielte Impulse, wenn Fokus
-              oder Deadlines kritisch werden. Kein Chatbot, kein Spam: nur relevante Hinweise, wann es
-              darauf ankommt.
+              Onboarding erzeugt direkt einen realen Trajectory-Status. Danach führen Today, Command Rail und
+              Focus Screen diesen Plan täglich aus — abgesichert durch Release-Gates und Ops-Tracking.
             </p>
           </div>
         </motion.div>

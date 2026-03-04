@@ -1,16 +1,19 @@
 'use client';
 
 const items = [
+  'Trajectory Planner',
+  'Risk Console',
   'Today',
+  'Command Rail',
   'Fokus-Timer',
+  'Focus Screen Themes',
+  'Teams Notification Tone',
   'Kursmanagement',
-  'Ziele',
   'Bewerbungen',
   'Analytics',
   'Lucian',
-  'Prüfungen',
-  'Streak',
   'Kalender',
+  'Ops Reliability',
 ];
 
 function MarqueeItem({ label }: { label: string }) {

@@ -1,15 +1,15 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { UserPlus, LayoutDashboard, Zap, Check } from 'lucide-react';
+import { UserPlus, Gauge, Check, Command, Timer, Sparkles } from 'lucide-react';
 
 const steps = [
   {
     number: '01',
     icon: UserPlus,
-    title: 'Konto erstellen',
+    title: 'Konto + Ziel setzen',
     description:
-      'In unter 2 Minuten. Email, Passwort, fertig — kein Abo, keine Kreditkarte. Der Onboarding-Wizard führt dich durch alles.',
+      'In unter 2 Minuten: Email, Profil und dein erstes strategisches Ziel mit Deadline. Direkt im Onboarding, ohne Umwege.',
     accent: 'text-red-400',
     border: 'border-red-500/20',
     bg: 'bg-red-500/8',
@@ -21,7 +21,7 @@ const steps = [
           <div className="h-1.5 w-20 rounded-full bg-white/10" />
         </div>
         <div className="space-y-1.5">
-          {['Email', 'Passwort'].map((field) => (
+          {['Email', 'Ziel: GMAT 2027', 'Deadline: 01.03.2027'].map((field) => (
             <div key={field} className="flex items-center gap-2 rounded-md border border-white/8 bg-white/[0.02] px-2.5 py-1.5">
               <span className="text-[10px] text-zinc-600">{field}</span>
             </div>
@@ -35,10 +35,10 @@ const steps = [
   },
   {
     number: '02',
-    icon: LayoutDashboard,
-    title: 'Kurse & Ziele anlegen',
+    icon: Gauge,
+    title: 'Kapazität simulieren',
     description:
-      'Trag deine Kurse, Prüfungsdaten und Bewerbungen ein — einmal. INNIS weiß danach, was wichtig ist und wann es kritisch wird.',
+      'Stunden pro Woche einstellen und sofort sehen, ob dein Plan on track, tight oder at risk ist. Ohne Ratespiel.',
     accent: 'text-yellow-400',
     border: 'border-yellow-500/20',
     bg: 'bg-yellow-500/8',
@@ -46,9 +46,9 @@ const steps = [
     preview: (
       <div className="mt-5 space-y-1.5">
         {[
-          { label: 'Lineare Algebra II', type: 'Kurs', color: 'text-blue-400' },
-          { label: 'SWE Praktikum', type: 'Ziel', color: 'text-emerald-400' },
-          { label: 'Klausur 15. Feb', type: 'Deadline', color: 'text-red-400' },
+          { label: 'Simulation: 10h/Woche', type: 'tight', color: 'text-amber-400' },
+          { label: 'Simulation: 18h/Woche', type: 'on track', color: 'text-emerald-400' },
+          { label: 'Startblock: 09.11.2026', type: 'auto', color: 'text-blue-400' },
         ].map((item) => (
           <div key={item.label} className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-white/[0.02] px-2.5 py-1.5">
             <Check className="h-3 w-3 text-emerald-500/60 flex-shrink-0" />
@@ -61,22 +61,37 @@ const steps = [
   },
   {
     number: '03',
-    icon: Zap,
-    title: 'Fokussiert bleiben',
+    icon: Sparkles,
+    title: 'Daily ausführen',
     description:
-      'Lucian erinnert dich wenn eine Prüfung näher rückt. Der Fokus-Timer trackt deine Sessions. Analytics zeigen dir wo deine Zeit wirklich hingeht.',
+      'Command Rail, Focus Screen, Lucian und Analytics greifen ineinander. Strategie oben, Execution jeden Tag unten.',
     accent: 'text-violet-400',
     border: 'border-violet-500/20',
     bg: 'bg-violet-500/8',
     glow: 'from-violet-500/10',
     preview: (
-      <div className="mt-5 flex items-center gap-3 rounded-xl border border-violet-500/20 bg-violet-500/5 px-3 py-2.5">
-        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-violet-500/20">
-          <Zap className="h-3.5 w-3.5 text-violet-400" />
+      <div className="mt-5 space-y-2.5">
+        <div className="flex items-center gap-3 rounded-xl border border-violet-500/20 bg-violet-500/5 px-3 py-2.5">
+          <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-violet-500/20">
+            <Command className="h-3.5 w-3.5 text-violet-300" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-medium text-violet-300">Command Rail</p>
+            <p className="truncate text-[10px] text-zinc-500">create task &quot;GMAT Block&quot; tomorrow</p>
+          </div>
         </div>
-        <div className="min-w-0">
-          <p className="text-[10px] font-medium text-violet-300">Lucian</p>
-          <p className="truncate text-[10px] text-zinc-500">Klausur in 3 Tagen — Fokus-Session?</p>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-1.5">
+            <p className="text-[9px] uppercase tracking-wide text-zinc-600">Focus</p>
+            <p className="mt-1 flex items-center gap-1 text-[10px] text-zinc-300">
+              <Timer className="h-3 w-3 text-red-300" />
+              25m running
+            </p>
+          </div>
+          <div className="rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-1.5">
+            <p className="text-[9px] uppercase tracking-wide text-zinc-600">Lucian</p>
+            <p className="mt-1 truncate text-[10px] text-zinc-300">„Puffer wird knapp.“</p>
+          </div>
         </div>
       </div>
     ),
@@ -100,11 +115,11 @@ export function HowItWorksSection() {
           <h2 className="premium-heading mb-4 text-3xl font-semibold text-[#FAF0E6] md:text-5xl">
             Drei Schritte.{' '}
             <span className="bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-600 bg-clip-text text-transparent">
-              Ein System.
+              Strategisch + täglich.
             </span>
           </h2>
           <p className="premium-subtext mx-auto max-w-md">
-            Kein langer Onboarding-Prozess, kein Setup-Chaos. Du bist in 2 Minuten drin.
+            Erst Risiko-Klarheit, dann Execution. Genau in dieser Reihenfolge.
           </p>
         </motion.div>
 
