@@ -6,7 +6,7 @@
 - Activation analytics event alignment
 - Trajectory-first marketing/pricing messaging polish
 
-This audit reflects local integrated state after UI + QA agent deliveries and core integration hardening.
+This audit reflects the merged `main` state after UI + QA deliveries and final core hardening.
 
 ## Integrated Agent Deliveries
 
@@ -58,6 +58,12 @@ npx vitest run tests/unit/trajectory-morning-briefing.test.ts \
 ```
 Result: `3 passed, 10 tests passed`
 
+### Full unit suite
+```bash
+npm run test -- --run
+```
+Result: `36 files passed, 203 tests passed`
+
 ### Static quality gates
 ```bash
 npm run type-check
@@ -67,7 +73,13 @@ npm run build
 Result:
 - type-check ✅
 - lint ✅
-- build ✅ (known monitoring warnings only)
+- build ✅
+
+### Blocker E2E gate
+```bash
+npm run test:e2e:blocker
+```
+Result: command green, suite currently `skipped` (requires configured authenticated test env).
 
 ## Acceptance Criteria Status
 
@@ -80,18 +92,15 @@ Result:
 
 ## Known Risks (Non-Blocking)
 
-1. Monitoring bundling warning remains during build:
-   - `lib/monitoring/index.ts` dynamic dependency warning.
-   - Does not fail build, but should be cleaned in a dedicated monitoring hardening pass.
-2. Workspace has many unrelated dirty files from parallel tracks.
-   - Integration commits should stage only explicit files.
+1. Blocker E2E can report all tests as skipped when authenticated env prerequisites are not fully available in runtime.
+2. Workspace hygiene risk from local artifacts (`.tmp/`, Playwright outputs) remains if not cleaned before manual commits.
 
 ## GO / NO-GO
-- Current local integrated scope: **GO**
-- Push/deploy status: **Not pushed in this pass** (explicitly held pending user instruction)
+- Current integrated scope on `main`: **GO**
+- Push/deploy status: **Pushed**
+- Latest CI status for release commit (`ae30e67`): **success**
 
 ## Next Actions (Ordered)
-1. Final selective commit for core-added files in this pass.
-2. Run one authenticated smoke check on `/onboarding`, `/today`, `/trajectory` in local dev.
-3. Push once approved.
-4. Watch first CI + Vercel run and only then open next feature wave.
+1. Keep authenticated blocker E2E env permanently configured to avoid silent `skipped` runs.
+2. Add one smoke assertion around marketing hero/feature messaging to protect against drift.
+3. Continue with next feature wave only behind the same CI + release audit gate.

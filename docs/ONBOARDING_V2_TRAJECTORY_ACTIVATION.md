@@ -147,4 +147,6 @@ Do not merge if any of these are unresolved:
 - Legacy resume migration tests: done
 - Today morning briefing bridge (`/today` <- trajectory signal): done
 - Analytics event schema alignment for trajectory onboarding events: done
-- Remaining follow-up: monitoring warning cleanup (separate scope)
+- Monitoring optional Sentry import hardened (no dynamic dependency build warning): done
+- Marketing/Features pages aligned to trajectory-first product narrative: done
+- Remaining follow-up: ensure authenticated blocker E2E env always yields executed (non-skipped) runs

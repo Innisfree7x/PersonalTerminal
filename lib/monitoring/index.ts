@@ -54,9 +54,11 @@ function normalizePayload(payload: MonitoringPayload): Required<MonitoringPayloa
 }
 
 async function tryCaptureWithSentry(payload: Required<MonitoringPayload>): Promise<void> {
-  const moduleName = '@sentry/nextjs';
   try {
-    const sentryModule = (await import(moduleName)) as {
+    const dynamicImport = new Function('moduleName', 'return import(moduleName)') as (
+      moduleName: string
+    ) => Promise<unknown>;
+    const sentryModule = (await dynamicImport('@sentry/nextjs')) as {
       captureMessage?: (message: string, level?: string) => void;
       captureException?: (error: Error) => void;
       withScope?: (callback: (scope: { setTag: (key: string, value: string) => void; setContext: (name: string, value: Record<string, unknown>) => void }) => void) => void;
