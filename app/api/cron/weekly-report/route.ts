@@ -15,6 +15,7 @@ import { handleRouteError } from '@/lib/api/server-errors';
 import { buildWeeklyReportEmail } from '@/lib/email/templates';
 import { sendEmail } from '@/lib/email/resend';
 import { serverEnv } from '@/lib/env';
+import { withCronTracking } from '@/lib/ops/cronHealth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -154,50 +155,54 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   try {
-    const users = await listNotifiableUsers();
-    const baseUrl = resolveBaseUrl();
-    const now = new Date();
-    const reportWeekStart = subWeeks(startOfWeek(now, { weekStartsOn: 1 }), 1);
-    const reportWeekEnd = endOfWeek(reportWeekStart, { weekStartsOn: 1 });
-    const weekLabel = `${format(reportWeekStart, 'dd.MM')}–${format(reportWeekEnd, 'dd.MM.yyyy')}`;
+    const cronResult = await withCronTracking('weekly-report', async () => {
+      const users = await listNotifiableUsers();
+      const baseUrl = resolveBaseUrl();
+      const now = new Date();
+      const reportWeekStart = subWeeks(startOfWeek(now, { weekStartsOn: 1 }), 1);
+      const reportWeekEnd = endOfWeek(reportWeekStart, { weekStartsOn: 1 });
+      const weekLabel = `${format(reportWeekStart, 'dd.MM')}–${format(reportWeekEnd, 'dd.MM.yyyy')}`;
 
-    let processedUsers = 0;
-    let emailsSent = 0;
+      let processedUsers = 0;
+      let emailsSent = 0;
 
-    for (const user of users) {
-      const metrics = await computeWeeklyMetrics(user.id, now);
-      const template = buildWeeklyReportEmail({
-        fullName: user.fullName,
+      for (const user of users) {
+        const metrics = await computeWeeklyMetrics(user.id, now);
+        const template = buildWeeklyReportEmail({
+          fullName: user.fullName,
+          weekLabel,
+          focusMinutes: metrics.focusMinutes,
+          focusDeltaMinutes: metrics.focusDeltaMinutes,
+          sessionsCount: metrics.sessionsCount,
+          completedTasks: metrics.completedTasks,
+          openTasks: metrics.openTasks,
+          upcomingDeadlines: metrics.upcomingDeadlines,
+          dashboardUrl: `${baseUrl}/today`,
+          settingsUrl: `${baseUrl}/settings`,
+        });
+
+        const result = await sendEmail({
+          to: user.email,
+          subject: template.subject,
+          html: template.html,
+          text: template.text,
+        });
+
+        processedUsers += 1;
+        if (result.sent) emailsSent += 1;
+      }
+
+      return {
+        ok: true,
         weekLabel,
-        focusMinutes: metrics.focusMinutes,
-        focusDeltaMinutes: metrics.focusDeltaMinutes,
-        sessionsCount: metrics.sessionsCount,
-        completedTasks: metrics.completedTasks,
-        openTasks: metrics.openTasks,
-        upcomingDeadlines: metrics.upcomingDeadlines,
-        dashboardUrl: `${baseUrl}/today`,
-        settingsUrl: `${baseUrl}/settings`,
-      });
-
-      const result = await sendEmail({
-        to: user.email,
-        subject: template.subject,
-        html: template.html,
-        text: template.text,
-      });
-
-      processedUsers += 1;
-      if (result.sent) emailsSent += 1;
-    }
-
-    return NextResponse.json({
-      ok: true,
-      weekLabel,
-      usersScanned: users.length,
-      processedUsers,
-      emailsSent,
-      generatedAt: new Date().toISOString(),
+        usersScanned: users.length,
+        processedUsers,
+        emailsSent,
+        generatedAt: new Date().toISOString(),
+      };
     });
+
+    return NextResponse.json(cronResult);
   } catch (error) {
     return handleRouteError(error, 'Failed to run weekly report', 'Error running weekly-report cron');
   }

@@ -9,9 +9,14 @@ import { createUserGoal, deleteUserGoal, fetchUserGoals, updateUserGoal } from '
 export async function createGoalAction(data: CreateGoalInput): Promise<Goal> {
   const user = await requireAuth();
   const validated = createGoalSchema.parse(data);
-  const goal = await createUserGoal(goalRepository, user.id, validated);
-  revalidatePath('/goals');
-  return goal;
+  try {
+    const goal = await createUserGoal(goalRepository, user.id, validated);
+    revalidatePath('/goals');
+    return goal;
+  } catch (error) {
+    console.error('[createGoalAction]', error);
+    throw error;
+  }
 }
 
 export async function updateGoalAction(goalId: string, data: CreateGoalInput): Promise<Goal> {
@@ -20,15 +25,25 @@ export async function updateGoalAction(goalId: string, data: CreateGoalInput): P
   const validated = Object.fromEntries(
     Object.entries(parsed).filter(([, value]) => value !== undefined)
   ) as Partial<CreateGoalInput>;
-  const goal = await updateUserGoal(goalRepository, user.id, goalId, validated);
-  revalidatePath('/goals');
-  return goal;
+  try {
+    const goal = await updateUserGoal(goalRepository, user.id, goalId, validated);
+    revalidatePath('/goals');
+    return goal;
+  } catch (error) {
+    console.error('[updateGoalAction]', error);
+    throw error;
+  }
 }
 
 export async function deleteGoalAction(goalId: string): Promise<void> {
   const user = await requireAuth();
-  await deleteUserGoal(goalRepository, user.id, goalId);
-  revalidatePath('/goals');
+  try {
+    await deleteUserGoal(goalRepository, user.id, goalId);
+    revalidatePath('/goals');
+  } catch (error) {
+    console.error('[deleteGoalAction]', error);
+    throw error;
+  }
 }
 
 export async function fetchGoalsAction(): Promise<Goal[]> {

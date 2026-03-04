@@ -8,9 +8,17 @@ const createNoteSchema = z.object({
   content: z.string().min(1).max(1000),
 });
 
+/**
+ * Save a note for a given date.
+ *
+ * @todo Implement notes persistence (database table + repository).
+ * Currently validates input and authenticates the user but does NOT persist.
+ */
 export async function saveNoteAction(input: { date: string; content: string }): Promise<void> {
   await requireAuth();
   createNoteSchema.parse(input);
 
-  // Placeholder until notes persistence is implemented.
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('[saveNoteAction] Notes persistence is not yet implemented — call was validated but not saved.');
+  }
 }

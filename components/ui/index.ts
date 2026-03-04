@@ -25,3 +25,6 @@ export type { InputProps, TextareaProps, InputGroupProps } from './Input';
 
 // Skeleton
 export { Skeleton, SkeletonCard, SkeletonCircle, SkeletonText } from './Skeleton';
+
+// ToggleSwitch
+export { ToggleSwitch } from './ToggleSwitch';

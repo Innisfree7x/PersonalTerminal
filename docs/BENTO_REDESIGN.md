@@ -1,10 +1,33 @@
 # /today Bento Redesign — Design Contract
 
-Status: Active
+Status: Design reference (implementation paused / partially rolled back)
 Date: 2026-03-01
 Owner: Design Lead
 Consumers: UI Agent, QA Agent, Core
 Scope: /today page — Layout + Visual System
+
+---
+
+## Implementation Reality Check (2026-03-01)
+
+- Der große `/today` Bento-Rollout wurde nach User-Feedback zur UX-Dichte zurückgenommen (siehe Revert-Historie auf `main`).
+- Aktueller `/today` Screen nutzt wieder das 3-Spalten-Basislayout (Tasks / Schedule / Widgets), nicht das volle 12-col Bento aus diesem Vertrag.
+- Dieses Dokument bleibt **Design-Referenz** für einen späteren, kontrollierten Relaunch, aber ist aktuell **nicht** als "live implementiert" zu lesen.
+
+Bevor erneut implementiert wird:
+1. nur inkrementelle Bento-Schritte (kein Big-Bang-Layoutswap),
+2. pro Schritt visuelle QA auf 1366x768 + iPad,
+3. sofortiger Rollback-Pfad pro PR.
+
+### Rollback-Learnings (verbindlich vor nächstem Versuch)
+
+Die letzte Big-Bang-Variante wurde wegen UX-Dichte und Lesbarkeit zurückgenommen.
+Vor einem neuen Rollout gelten folgende Stop-Kriterien:
+
+- Kein Bereich darf horizontal oder vertikal nur wegen Struktur-Entscheidung scrollen (ausgenommen klar definierte Listenbereiche).
+- Primäre Widgets (`PomodoroTimer`, `StudyProgress`) dürfen keine überladenen Typo-Hierarchien oder unlesbare Hero-Zahlen erzeugen.
+- Lucian-/Focus-Kernfunktionen dürfen durch Layout-Refactor nicht verschwinden oder "secondary" werden.
+- Bei Regression in diesen Punkten: sofortiger Revert auf Basislayout.
 
 ---
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarEvent } from '@/lib/data/mockEvents';
+import type { CalendarEvent } from '@/lib/types/calendar';
 import { format, startOfWeek, addWeeks, subWeeks, isSameDay, getWeek } from 'date-fns';
 import { useMemo, useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -308,29 +308,26 @@ export default function CalendarPage() {
                 return (
                   <div
                     key={dayKey}
-                    className={`rounded-lg border-2 p-4 min-h-[200px] ${
-                      isToday
+                    className={`rounded-lg border-2 p-4 min-h-[200px] ${isToday
                         ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700'
                         : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
-                    }`}
+                      }`}
                   >
                     {/* Day Header */}
                     <div className="mb-3">
                       <div
-                        className={`text-xs font-medium uppercase mb-1 ${
-                          isToday
+                        className={`text-xs font-medium uppercase mb-1 ${isToday
                             ? 'text-blue-700 dark:text-blue-300'
                             : 'text-gray-500 dark:text-gray-400'
-                        }`}
+                          }`}
                       >
                         {dayNamesShort[index]}
                       </div>
                       <div
-                        className={`text-lg font-semibold ${
-                          isToday
+                        className={`text-lg font-semibold ${isToday
                             ? 'text-blue-900 dark:text-blue-100'
                             : 'text-gray-900 dark:text-gray-100'
-                        }`}
+                          }`}
                       >
                         {format(day, 'd')}
                       </div>

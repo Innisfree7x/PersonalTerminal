@@ -7,6 +7,7 @@ import { handleRouteError } from '@/lib/api/server-errors';
 import { buildDeadlineReminderEmail } from '@/lib/email/templates';
 import { sendEmail } from '@/lib/email/resend';
 import { serverEnv } from '@/lib/env';
+import { withCronTracking } from '@/lib/ops/cronHealth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -66,71 +67,75 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   try {
-    const admin = createAdminClient();
-    const users = await listNotifiableUsers();
-    const today = startOfDay(new Date());
-    const baseUrl = resolveBaseUrl();
+    const cronResult = await withCronTracking('deadline-reminders', async () => {
+      const admin = createAdminClient();
+      const users = await listNotifiableUsers();
+      const today = startOfDay(new Date());
+      const baseUrl = resolveBaseUrl();
 
-    let emailsSent = 0;
-    let remindersFound = 0;
-    let skippedUsers = 0;
+      let emailsSent = 0;
+      let remindersFound = 0;
+      let skippedUsers = 0;
 
-    for (const user of users) {
-      const { data: courses, error } = await admin
-        .from('courses')
-        .select('name, exam_date')
-        .eq('user_id', user.id)
-        .not('exam_date', 'is', null);
+      for (const user of users) {
+        const { data: courses, error } = await admin
+          .from('courses')
+          .select('name, exam_date')
+          .eq('user_id', user.id)
+          .not('exam_date', 'is', null);
 
-      if (error) {
-        throw new Error(`Failed to load courses for user ${user.id}: ${error.message}`);
-      }
+        if (error) {
+          throw new Error(`Failed to load courses for user ${user.id}: ${error.message}`);
+        }
 
-      const dueCourses = (courses || []).filter((course) => {
-        if (!course.exam_date) return false;
-        const daysUntil = differenceInCalendarDays(startOfDay(new Date(course.exam_date)), today);
-        return daysUntil === 14 || daysUntil === 7 || daysUntil === 3;
-      });
-
-      if (dueCourses.length === 0) {
-        skippedUsers += 1;
-        continue;
-      }
-
-      for (const course of dueCourses) {
-        if (!course.exam_date) continue;
-        const daysUntil = differenceInCalendarDays(startOfDay(new Date(course.exam_date)), today);
-        remindersFound += 1;
-        const template = buildDeadlineReminderEmail({
-          fullName: user.fullName,
-          courseName: course.name,
-          examDate: course.exam_date,
-          daysUntil,
-          dashboardUrl: `${baseUrl}/today`,
-          settingsUrl: `${baseUrl}/settings`,
+        const dueCourses = (courses || []).filter((course) => {
+          if (!course.exam_date) return false;
+          const daysUntil = differenceInCalendarDays(startOfDay(new Date(course.exam_date)), today);
+          return daysUntil === 14 || daysUntil === 7 || daysUntil === 3;
         });
 
-        const result = await sendEmail({
-          to: user.email,
-          subject: template.subject,
-          html: template.html,
-          text: template.text,
-        });
+        if (dueCourses.length === 0) {
+          skippedUsers += 1;
+          continue;
+        }
 
-        if (result.sent) {
-          emailsSent += 1;
+        for (const course of dueCourses) {
+          if (!course.exam_date) continue;
+          const daysUntil = differenceInCalendarDays(startOfDay(new Date(course.exam_date)), today);
+          remindersFound += 1;
+          const template = buildDeadlineReminderEmail({
+            fullName: user.fullName,
+            courseName: course.name,
+            examDate: course.exam_date,
+            daysUntil,
+            dashboardUrl: `${baseUrl}/today`,
+            settingsUrl: `${baseUrl}/settings`,
+          });
+
+          const result = await sendEmail({
+            to: user.email,
+            subject: template.subject,
+            html: template.html,
+            text: template.text,
+          });
+
+          if (result.sent) {
+            emailsSent += 1;
+          }
         }
       }
-    }
 
-    return NextResponse.json({
-      ok: true,
-      usersScanned: users.length,
-      remindersFound,
-      emailsSent,
-      skippedUsers,
-      generatedAt: new Date().toISOString(),
+      return {
+        ok: true,
+        usersScanned: users.length,
+        remindersFound,
+        emailsSent,
+        skippedUsers,
+        generatedAt: new Date().toISOString(),
+      };
     });
+
+    return NextResponse.json(cronResult);
   } catch (error) {
     return handleRouteError(error, 'Failed to run deadline reminders', 'Error running deadline-reminders cron');
   }

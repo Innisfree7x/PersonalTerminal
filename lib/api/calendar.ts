@@ -3,10 +3,11 @@
  * Handles connection status, fetching events, and disconnection
  */
 
-import { CalendarEvent } from '@/lib/data/mockEvents';
+import type { CalendarEvent } from '@/lib/types/calendar';
 import {
   checkGoogleCalendarConnectionAction,
   fetchTodayCalendarEventsAction,
+  type CalendarEventActionDTO,
 } from '@/app/actions/calendar';
 
 /**
@@ -43,9 +44,9 @@ export async function checkGoogleCalendarConnection(): Promise<boolean> {
  */
 export async function fetchTodayCalendarEvents(): Promise<CalendarEvent[]> {
   const data = await fetchTodayCalendarEventsAction();
-  
+
   // Transform API response to CalendarEvent with proper Date objects
-  return data.map((event: any) => ({
+  return data.map((event: CalendarEventActionDTO) => ({
     ...event,
     startTime: new Date(event.startTime),
     endTime: new Date(event.endTime),

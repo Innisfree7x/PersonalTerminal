@@ -1,13 +1,5 @@
-export type EventType = 'meeting' | 'task' | 'break';
-
-export interface CalendarEvent {
-  id: string;
-  title: string;
-  startTime: Date;
-  endTime: Date;
-  type: EventType;
-  description?: string;
-}
+export type { EventType, CalendarEvent } from '@/lib/types/calendar';
+import type { CalendarEvent } from '@/lib/types/calendar';
 
 // Helper to create today's date at specific time
 function todayAtTime(hours: number, minutes: number = 0): Date {

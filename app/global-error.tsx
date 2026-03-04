@@ -25,7 +25,7 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body className="bg-background text-text-primary p-8">
         <div className="max-w-xl mx-auto mt-24 rounded-xl border border-error/30 bg-surface p-8 space-y-4">
           <h2 className="text-2xl font-bold">Critical Application Error</h2>

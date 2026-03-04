@@ -1,0 +1,8 @@
+# Core ownership baseline
+* @Innisfree7x
+
+# Protected areas (Core review required)
+.github/workflows/* @Innisfree7x
+app/api/** @Innisfree7x
+lib/ops/** @Innisfree7x
+docs/RELEASE_CHECKLIST.md @Innisfree7x

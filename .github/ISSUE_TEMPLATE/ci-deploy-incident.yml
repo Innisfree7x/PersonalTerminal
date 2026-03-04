@@ -1,0 +1,69 @@
+name: CI/Deploy Incident
+description: Mandatory template for every red CI/deploy incident.
+title: "[Incident] <pipeline/job> red on <branch> (<date>)"
+labels:
+  - incident
+  - ci-red
+body:
+  - type: dropdown
+    id: classification
+    attributes:
+      label: Root-Cause Classification
+      description: Pick the primary failure class.
+      options:
+        - Build
+        - Type
+        - Lint
+        - Test
+        - Env
+        - E2E
+    validations:
+      required: true
+
+  - type: input
+    id: failing_trace
+    attributes:
+      label: First Blocking Trace (file:line)
+      description: First failing file/line from CI logs (e.g. app/api/foo/route.ts:42).
+      placeholder: path/to/file.ts:line
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Repro Step
+      description: Minimal command sequence to reproduce locally.
+      placeholder: |
+        1. npm ci
+        2. npm run build
+        3. observe error ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: root_cause
+    attributes:
+      label: Root Cause (1 sentence)
+      description: One concise sentence only.
+      placeholder: A missing route module was referenced during Next.js trace collection.
+    validations:
+      required: true
+
+  - type: input
+    id: fix_commit_sha
+    attributes:
+      label: Fix Commit SHA
+      description: Commit SHA that fixes this incident.
+      placeholder: abc1234...
+    validations:
+      required: true
+
+  - type: textarea
+    id: prevention
+    attributes:
+      label: Prevention (1 sentence)
+      description: One concise prevention action for recurrence control.
+      placeholder: Add a required CI guard that fails when route files are missing after refactors.
+    validations:
+      required: true

@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarEvent } from '@/lib/data/mockEvents';
+import type { CalendarEvent } from '@/lib/types/calendar';
 import { format } from 'date-fns';
 
 interface EventCardProps {
@@ -42,11 +42,10 @@ export default function EventCard({ event, isCurrent = false }: EventCardProps) 
 
   return (
     <div
-      className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border-2 p-4 transition-all hover:shadow-md ${
-        isCurrent
+      className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border-2 p-4 transition-all hover:shadow-md ${isCurrent
           ? 'border-blue-500 dark:border-blue-400 shadow-lg ring-2 ring-blue-200 dark:ring-blue-900/50'
           : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-      }`}
+        }`}
     >
       <div className="flex items-start gap-3">
         {/* Time Column */}
@@ -70,7 +69,7 @@ export default function EventCard({ event, isCurrent = false }: EventCardProps) 
               {event.title}
             </h3>
           </div>
-          
+
           <span className={`inline-block px-2 py-1 rounded-md text-xs font-medium ${config.bgColor} ${config.color}`}>
             {event.type}
           </span>

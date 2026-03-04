@@ -158,3 +158,52 @@ npm run test:e2e              # Full Playwright suite
 - TS strict mode is enforced; avoid passing explicit `undefined` where optional properties are omitted.
 - Pre-commit: Husky + lint-staged (`eslint --fix`, `prettier --write`).
 - Team communication convention: German conversation, English code/content.
+
+---
+
+## Architecture Principles (read before building anything new)
+
+### Layer Ownership — each layer has exactly one job
+```
+UI (components/, app/(dashboard)/*/page.tsx)
+  → knows how things look, not where data comes from
+
+API Routes (app/api/*/route.ts)
+  → knows how to validate requests and return responses, not how the DB is structured
+
+Logic / Engines (lib/trajectory/planner.ts, lib/application/*, lib/command/*)
+  → owns business rules and calculations, never imported by DB layer
+
+Data Layer (lib/supabase/*.ts)
+  → knows how to query the DB, nothing else
+```
+
+**Rule:** If you find business logic in a page component or a DB query in an API route — move it to the right layer first.
+
+### Single Source of Truth
+- Risk thresholds → only in `lib/trajectory/planner.ts`, never duplicated in UI
+- OAuth redirect logic → only in `lib/google/oauth.ts`
+- Auth helpers → only in `lib/api/auth.ts`
+- If logic exists in two places, one of them is wrong.
+
+### Feature Isolation — never let one feature block another
+- If feature B fetches data from `/api/trajectory/*` and is shown on `/today` — it must have its own loading/error state.
+- A slow or failing secondary feature must never block the core page from rendering.
+- Pattern: independent `useQuery` per widget, never await-chained at page level.
+
+### 5 Questions before implementing any new feature
+1. **Where does this data live?** DB (Supabase), client (localStorage), or URL (query params)?
+2. **Who can access this?** Does RLS cover it, or do we need `requireApiAuth()` + user_id filtering?
+3. **What breaks if this fails?** Is it isolated or does it block a core page?
+4. **What is the contract?** Define the TypeScript type before writing the function.
+5. **Where does the logic live?** Calculation → `lib/`, HTTP handling → `app/api/`, display → `components/`.
+
+### New Feature Planning Order
+1. Define the problem (1 sentence) + success criterion (measurable)
+2. Design the data model (DB schema) before any UI
+3. Define the API surface (endpoints + request/response types)
+4. Write the logic/engine in `lib/` (testable, no HTTP, no UI)
+5. Build the API routes (thin: validate → call lib → respond)
+6. Build the UI (last)
+7. Write tests: unit for logic, API for routes, E2E for critical path
+8. Write/update docs (design contract + agent handbook if complex)

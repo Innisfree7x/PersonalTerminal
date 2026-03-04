@@ -19,9 +19,14 @@ import {
 export async function createApplicationAction(data: CreateApplicationInput) {
   const user = await requireAuth();
   const validated = createApplicationSchema.parse(data);
-  const result = await createCareerApplication(careerRepository, user.id, validated);
-  revalidatePath('/career');
-  return result;
+  try {
+    const result = await createCareerApplication(careerRepository, user.id, validated);
+    revalidatePath('/career');
+    return result;
+  } catch (error) {
+    console.error('[createApplicationAction]', error);
+    throw error;
+  }
 }
 
 /**
@@ -30,9 +35,14 @@ export async function createApplicationAction(data: CreateApplicationInput) {
 export async function updateApplicationAction(id: string, data: CreateApplicationInput) {
   const user = await requireAuth();
   const validated = createApplicationSchema.parse(data);
-  const result = await updateCareerApplication(careerRepository, user.id, id, validated);
-  revalidatePath('/career');
-  return result;
+  try {
+    const result = await updateCareerApplication(careerRepository, user.id, id, validated);
+    revalidatePath('/career');
+    return result;
+  } catch (error) {
+    console.error('[updateApplicationAction]', error);
+    throw error;
+  }
 }
 
 /**
@@ -40,6 +50,11 @@ export async function updateApplicationAction(id: string, data: CreateApplicatio
  */
 export async function deleteApplicationAction(id: string) {
   const user = await requireAuth();
-  await deleteCareerApplication(careerRepository, user.id, id);
-  revalidatePath('/career');
+  try {
+    await deleteCareerApplication(careerRepository, user.id, id);
+    revalidatePath('/career');
+  } catch (error) {
+    console.error('[deleteApplicationAction]', error);
+    throw error;
+  }
 }
