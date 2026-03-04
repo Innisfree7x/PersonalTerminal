@@ -15,7 +15,7 @@
     },
     {
       "path": "/api/cron/ops-reliability",
-      "schedule": "*/5 * * * *"
+      "schedule": "30 8 * * *"
     }
   ]
 }
