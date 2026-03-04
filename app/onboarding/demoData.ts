@@ -28,3 +28,18 @@ export const DEMO_TASKS = [
   { title: 'Klausurvorbereitung Kapitel 5', timeEstimate: '1h' },
   { title: 'Bewerbung für Praktikum vorbereiten', timeEstimate: '45m' },
 ] as const;
+
+export const DEMO_TRAJECTORY_GOAL = {
+  title: 'GMAT 680+ vorbereiten',
+  category: 'gmat' as const,
+  dueDate: '2026-11-30',
+  effortHours: 180,
+  bufferWeeks: 4,
+  priority: 4,
+  status: 'active' as const,
+};
+
+export const DEMO_TRAJECTORY_SETTINGS = {
+  hoursPerWeek: 10,
+  horizonMonths: 18,
+} as const;

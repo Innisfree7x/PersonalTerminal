@@ -4,12 +4,12 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { ArrowRight, BookOpen, CheckCircle2, Circle, Timer, TrendingUp, Loader2, ChevronRight } from 'lucide-react';
-import { seedDemoData } from '@/app/onboarding/demoSeedService';
+import { seedDemoData, type DemoSeedResult } from '@/app/onboarding/demoSeedService';
 import toast from 'react-hot-toast';
 
 interface StepWelcomeProps {
   onNext: () => void;
-  onDemoSeeded: () => void;
+  onDemoSeeded: (result: DemoSeedResult) => void;
 }
 
 // Animated mini-dashboard preview
@@ -114,8 +114,8 @@ export function StepWelcome({ onNext, onDemoSeeded }: StepWelcomeProps) {
   const handleDemoSeed = async () => {
     setSeeding(true);
     try {
-      await seedDemoData();
-      onDemoSeeded();
+      const seedResult = await seedDemoData();
+      onDemoSeeded(seedResult);
     } catch {
       toast.error('Beispieldaten konnten nicht geladen werden. Versuche es erneut.');
     } finally {

@@ -4,6 +4,9 @@ export type OnboardingEvent =
   | 'onboarding_started'
   | 'onboarding_step_completed'
   | 'onboarding_completed'
+  | 'trajectory_goal_created'
+  | 'trajectory_capacity_set'
+  | 'trajectory_status_shown'
   | 'demo_seed_started'
   | 'demo_seed_removed'
   | 'first_task_created'
@@ -12,7 +15,15 @@ export type OnboardingEvent =
 export interface OnboardingEventProperties {
   onboarding_started: Record<string, never>;
   onboarding_step_completed: { step: number; skipped?: boolean };
-  onboarding_completed: { courses_count: number; task_created: boolean; demo_seeded: boolean };
+  onboarding_completed: {
+    trajectory_status: 'on_track' | 'tight' | 'at_risk';
+    trajectory_goal_id: string;
+    destination: '/trajectory' | '/today';
+    demo_seeded: boolean;
+  };
+  trajectory_goal_created: { category: 'thesis' | 'gmat' | 'master_app' | 'internship' | 'other'; priority: number };
+  trajectory_capacity_set: { hours_per_week: number; horizon_months: number };
+  trajectory_status_shown: { status: 'on_track' | 'tight' | 'at_risk' };
   demo_seed_started: Record<string, never>;
   demo_seed_removed: { ids_removed: number };
   first_task_created: { source: 'onboarding' };
