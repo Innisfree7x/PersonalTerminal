@@ -38,4 +38,33 @@ describe('analyticsEventSchema', () => {
 
     expect(parsed.success).toBe(true);
   });
+
+  it('accepts trajectory onboarding activation events', () => {
+    const goalCreated = analyticsEventSchema.safeParse({
+      name: 'trajectory_goal_created',
+      payload: {
+        category: 'gmat',
+        priority: 4,
+      },
+    });
+
+    const capacitySet = analyticsEventSchema.safeParse({
+      name: 'trajectory_capacity_set',
+      payload: {
+        hours_per_week: 10,
+        horizon_months: 24,
+      },
+    });
+
+    const statusShown = analyticsEventSchema.safeParse({
+      name: 'trajectory_status_shown',
+      payload: {
+        status: 'tight',
+      },
+    });
+
+    expect(goalCreated.success).toBe(true);
+    expect(capacitySet.success).toBe(true);
+    expect(statusShown.success).toBe(true);
+  });
 });

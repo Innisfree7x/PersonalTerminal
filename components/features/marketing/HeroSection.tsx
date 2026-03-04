@@ -32,7 +32,7 @@ export function HeroSection() {
               className="inline-flex items-center gap-2 rounded-full border border-yellow-500/25 bg-yellow-500/10 px-3.5 py-1.5"
             >
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-yellow-400" />
-              <span className="text-xs font-semibold tracking-wide text-yellow-300">Kostenlos für Studenten</span>
+              <span className="text-xs font-semibold tracking-wide text-yellow-300">Public Beta · Für ambitionierte Studenten</span>
             </motion.div>
 
             {/* Headline */}
@@ -42,11 +42,11 @@ export function HeroSection() {
               transition={{ delay: 0.15, duration: 0.6 }}
               className="font-sans text-[clamp(2.2rem,4.5vw,3.8rem)] font-semibold leading-[1.05] tracking-[-0.03em] text-[#FAF0E6]"
             >
-              Studieren ohne
+              Plane Bachelor,
               <br />
-              zu{' '}
+              GMAT und Praktikum{' '}
               <span className="bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-600 bg-clip-text text-transparent">
-                jonglieren.
+                in einer Timeline.
               </span>
             </motion.h1>
 
@@ -57,8 +57,8 @@ export function HeroSection() {
               transition={{ delay: 0.3 }}
               className="premium-subtext max-w-md text-[1rem] leading-relaxed"
             >
-              Kurse, Prüfungen, Bewerbungen und Ziele — ein einziges System,
-              das mitdenkt. Kein Tab-Switching, kein Vergessen, kein Stress.
+              INNIS zeigt dir sofort, ob dein Karriere-Plan realistisch ist:
+              Thesis, GMAT, Master-Apps und Praktika in einem strategischen Zeitplan.
             </motion.p>
 
             {/* CTAs */}
@@ -74,7 +74,7 @@ export function HeroSection() {
                 eventPayload={{ source: 'hero', variant: 'primary' }}
                 className="premium-cta-primary"
               >
-                Kostenlos starten
+                Zur Waitlist
                 <ArrowRight className="h-4 w-4" />
               </TrackedCtaLink>
               <TrackedCtaLink
@@ -94,9 +94,9 @@ export function HeroSection() {
               transition={{ delay: 0.5 }}
               className="flex flex-wrap gap-2"
             >
-              <span className="premium-chip">Keine Kreditkarte</span>
-              <span className="premium-chip">2 Min Setup</span>
-              <span className="premium-chip">Für Studenten gebaut</span>
+              <span className="premium-chip">Trajectory Planner</span>
+              <span className="premium-chip">2-Min Activation</span>
+              <span className="premium-chip">Waitlist geöffnet</span>
             </motion.div>
 
             {/* Stats */}
@@ -107,9 +107,9 @@ export function HeroSection() {
               className="premium-card-soft grid grid-cols-3 gap-4 rounded-2xl p-4"
             >
               {[
-                { value: 'Ø 4h', label: 'Fokus am Tag' },
-                { value: '7 Apps', label: 'ersetzt durch eine' },
-                { value: '100%', label: 'kostenlos' },
+                { value: '<3 Min', label: 'bis zum ersten Risk-Status' },
+                { value: '36M', label: 'strategischer Planungshorizont' },
+                { value: '1 System', label: 'statt Tool-Chaos' },
               ].map((stat, i) => (
                 <div key={i} className="relative">
                   {i > 0 && <div className="absolute -left-2 top-1 h-8 w-px bg-white/10" />}

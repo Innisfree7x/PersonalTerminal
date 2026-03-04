@@ -4,7 +4,7 @@ import { FAQSection } from '@/components/features/marketing/FAQSection';
 
 export const metadata = {
   title: 'Pricing — INNIS',
-  description: 'INNIS ist kostenlos für Studenten. Alle wesentlichen Features ohne Kreditkarte.',
+  description: 'Kostenlos starten, später auf Pro upgraden: Trajectory, Analytics und strategische Planung für Studenten.',
 };
 
 export default function PricingPage() {
@@ -16,12 +16,12 @@ export default function PricingPage() {
           Kein Abo-Chaos.
           <br />
           <span className="bg-gradient-to-r from-yellow-300 to-yellow-600 bg-clip-text text-transparent">
-            Einfach kostenlos.
+            Kostenlos starten.
           </span>
         </h1>
         <p className="premium-subtext">
-          INNIS ist kostenlos und bleibt es für alles Wesentliche.
-          Pro-Features kommen — ohne das Free-Tier einzuschränken.
+          Free deckt deinen täglichen Workflow ab.
+          Pro erweitert vor allem die strategische Trajectory-Planung.
         </p>
       </section>
       <PricingSection />

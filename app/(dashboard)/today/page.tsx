@@ -27,6 +27,7 @@ import {
 } from '@/app/actions/calendar';
 import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
+import { buildTrajectoryMorningBriefing, type TrajectoryBriefOverview } from '@/lib/dashboard/trajectoryBriefing';
 
 const WELCOME_KEY = 'innis_welcomed_v1';
 
@@ -118,6 +119,20 @@ export default function TodayPage() {
     refetchOnReconnect: false,
   });
 
+  const { data: trajectoryOverview } = useQuery<TrajectoryBriefOverview>({
+    queryKey: ['trajectory', 'overview', 'briefing'],
+    queryFn: async () => {
+      const response = await fetch('/api/trajectory/overview');
+      if (!response.ok) {
+        throw new Error('Failed to fetch trajectory overview');
+      }
+      return response.json();
+    },
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+
   // Disconnect mutation
   const disconnectMutation = useMutation({
     mutationFn: disconnectGoogleCalendarAction,
@@ -145,6 +160,7 @@ export default function TodayPage() {
 
   const stats = nextTasksData?.stats;
   const studyProgress = nextTasksData?.studyProgress || [];
+  const trajectoryBriefing = buildTrajectoryMorningBriefing(trajectoryOverview);
 
   useEffect(() => {
     const days = stats?.nextExam?.daysUntilExam;
@@ -193,6 +209,53 @@ export default function TodayPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.16 }}
+        className="relative overflow-hidden rounded-xl border border-border bg-surface/70 p-3.5"
+      >
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+        {trajectoryBriefing ? (
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-text-secondary">
+              <span className="font-semibold text-text-primary">Morning briefing:</span>{' '}
+              {trajectoryBriefing.title} · {trajectoryBriefing.daysUntil}d until deadline ·{' '}
+              <span
+                className={
+                  trajectoryBriefing.status === 'on_track'
+                    ? 'text-emerald-400'
+                    : trajectoryBriefing.status === 'tight'
+                      ? 'text-amber-300'
+                      : 'text-red-400'
+                }
+              >
+                {trajectoryBriefing.statusLabel}
+              </span>
+            </p>
+            <Link
+              href="/trajectory"
+              className="inline-flex items-center text-xs font-medium text-primary hover:text-primary-hover transition-colors"
+            >
+              Open trajectory →
+            </Link>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-text-secondary">
+              <span className="font-semibold text-text-primary">Morning briefing:</span>{' '}
+              No active trajectory milestone yet.
+            </p>
+            <Link
+              href="/trajectory"
+              className="inline-flex items-center text-xs font-medium text-primary hover:text-primary-hover transition-colors"
+            >
+              Set up trajectory →
+            </Link>
+          </div>
+        )}
+      </motion.div>
 
       <CommandBar
         tasksToday={stats?.tasksToday ?? 0}

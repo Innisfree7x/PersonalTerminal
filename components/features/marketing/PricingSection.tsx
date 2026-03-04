@@ -5,22 +5,22 @@ import { Check, Sparkles } from 'lucide-react';
 import { TrackedCtaLink } from './TrackedCtaLink';
 
 const FREE_FEATURES = [
-  'Unbegrenzte Aufgaben & Kurse',
-  'Ziel-Tracking mit Fortschritt',
-  'Bewerbungs-Kanban (Karriere)',
-  'Globaler Fokus-Timer & Session-Tracking',
+  'Today + Tasks + Fokus-Timer',
+  'University Tracking',
+  'Career Board',
+  '1 aktives Trajectory-Ziel (Status sichtbar)',
   'Google Calendar Integration',
-  'Analytics Dashboard',
-  'Onboarding-Wizard mit Demo-Daten',
+  'Onboarding mit Trajectory Activation',
 ];
 
 const PRO_FEATURES = [
   'Alles aus Free',
+  'Unbegrenzte Trajectory Milestones + Windows',
+  'Task Package Generation aus Trajectory',
   'Erweiterte Analytics & Exporte',
-  'Wöchentliche Fokus-Reports per Email',
-  'Prioritäts-Support',
-  'Früher Zugang zu neuen Features',
-  'Und mehr — wird noch bekannt gegeben',
+  'Premium Focus Themes',
+  'Wöchentliche Strategiereports',
+  'Priority Support + Fast Feature Access',
 ];
 
 export function PricingSection() {
@@ -38,10 +38,12 @@ export function PricingSection() {
         >
           <p className="premium-kicker">Preise</p>
           <h2 className="premium-heading mb-4 text-3xl font-semibold text-[#FAF0E6] md:text-5xl">
-            Einfach. Transparent.
+            Klarer Einstieg.
+            <br />
+            Klare Upgrades.
           </h2>
           <p className="premium-subtext mx-auto max-w-md">
-            INNIS ist kostenlos — und bleibt es für alles Wesentliche.
+            Starte kostenlos. Upgrade später, wenn du mehr Planungstiefe brauchst.
           </p>
         </motion.div>
 
@@ -62,7 +64,7 @@ export function PricingSection() {
                 <span className="text-zinc-500 text-sm">/ für immer</span>
               </div>
               <p className="text-sm text-zinc-500 mt-3 leading-relaxed">
-                Alles was du für ein strukturiertes Studium brauchst.
+                Alles, was du für den täglichen Studienbetrieb brauchst.
               </p>
             </div>
 
@@ -109,7 +111,7 @@ export function PricingSection() {
                 <span className="text-zinc-500 text-sm">/ verfügbar</span>
               </div>
               <p className="text-sm text-zinc-500 mt-3 leading-relaxed">
-                Für alle, die noch mehr aus ihrem Studium rausholen wollen.
+                Für tiefe Karriereplanung mit voller Trajectory-Power.
               </p>
             </div>
 
