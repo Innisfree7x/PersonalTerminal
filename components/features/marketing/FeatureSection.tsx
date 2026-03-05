@@ -171,11 +171,12 @@ export function FeatureSection() {
                     </div>
                   </div>
 
-                  <div className="col-span-2 space-y-2.5">
-                    <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-600">Timeline snapshot</p>
-                    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3">
-                      <div className="relative h-14 overflow-hidden rounded-lg border border-white/10 bg-black/30 px-2.5">
-                        <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                  <div className="col-span-2 space-y-2">
+                    <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-600">Timeline snapshot</p>
+                    <div className="rounded-xl bg-gradient-to-b from-white/[0.03] to-white/[0.015] p-2.5">
+                      <div className="relative h-12 overflow-hidden rounded-lg border border-white/10 bg-black/25 px-2">
+                        <div className="pointer-events-none absolute left-1/2 top-1/2 h-8 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-300/10 blur-xl" />
+                        <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
                         {[
                           { label: "Q3 '26", left: '8%' },
                           { label: "Q4 '26", left: '30%' },
@@ -184,28 +185,28 @@ export function FeatureSection() {
                           { label: "Q3 '27", left: '92%' },
                         ].map((tick) => (
                           <div key={tick.label} className="absolute top-0 h-full" style={{ left: tick.left }}>
-                            <div className="h-full w-px bg-white/12" />
-                            <span className="absolute top-1 -translate-x-1/2 whitespace-nowrap font-mono text-[9px] text-zinc-500">
+                            <div className="h-full w-px bg-white/10" />
+                            <span className="absolute top-1 -translate-x-1/2 whitespace-nowrap font-mono text-[9px] tracking-[0.08em] text-zinc-500/90">
                               {tick.label}
                             </span>
                           </div>
                         ))}
                         <motion.div
-                          className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-emerald-300/60 bg-emerald-300/30 shadow-[0_0_14px_rgba(110,231,183,0.35)]"
+                          className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border border-emerald-300/70 bg-emerald-300/35 shadow-[0_0_16px_rgba(110,231,183,0.42)]"
                           initial={{ left: '0%' }}
                           whileInView={{ left: '48%' }}
                           viewport={{ once: true }}
                           transition={{ duration: 1.1, delay: 0.15 }}
                         />
                       </div>
-                      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                        <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-300">
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                        <span className="inline-flex h-7 items-center rounded-full border border-emerald-500/30 bg-emerald-500/[0.12] px-2.5 text-[10px] font-medium text-emerald-300">
                           Start 09.11.2026
                         </span>
-                        <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-300">
+                        <span className="inline-flex h-7 items-center rounded-full border border-amber-500/30 bg-amber-500/[0.12] px-2.5 text-[10px] font-medium text-amber-300">
                           6 Prep Blocks
                         </span>
-                        <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] text-blue-300">
+                        <span className="inline-flex h-7 items-center rounded-full border border-blue-500/30 bg-blue-500/[0.12] px-2.5 text-[10px] font-medium text-blue-300">
                           1 Opportunity Window
                         </span>
                       </div>
