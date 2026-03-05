@@ -1,6 +1,6 @@
 # Context Canon (Single Source of Truth)
 
-Stand: 2026-03-03 (post Phase-16 focus/oauth/search improvements)  
+Stand: 2026-03-05 (post Phase-17 AI guardrails + eval gate)  
 Status: Active
 
 ## Zweck
@@ -8,21 +8,23 @@ Dieses Dokument definiert verbindlich, welche Quellen für aktuelle Entscheidung
 Wenn zwei Dokumente widersprüchlich sind, gilt immer diese Prioritätsliste.
 
 ## Prioritätsreihenfolge (verbindlich)
-1. `docs/PHASE14_RELIABILITY_OPS.md` (aktueller Reliability-Ausfuehrungsstand inkl. Blocker)
-2. `docs/PHASE16_FOCUS_OAUTH_SEARCH_IMPROVEMENTS.md` (aktueller Scope + AC fuer Focus/OAuth/Search)
-3. `docs/PHASE16_AUDIT_2026-03-03.md` (Verifikation, Risiken, Handoff)
-4. `docs/PHASE13.md` (abgeschlossene Gate-Struktur als Referenz)
-5. `docs/PHASE13_RELEASE_AUDIT_2026-02-28.md` (Release-Gate Historie + QA-Kontext)
-6. `docs/PHASE12_MASTERPLAN.md` (strategischer Parent)
-7. `docs/PHASE12_EXECUTION_BLUEPRINT.md` (Execution-Baseline Tracks 3/4/5/6)
-8. `docs/PHASE11_TRACK6_IMPLEMENTATION.md` (Reliability-Basis)
-9. `docs/RELEASE_CHECKLIST.md`
-10. `.github/workflows/ci.yml` (enforced quality gates incl. production build)
-11. `docs/GO_LIVE_RUNBOOK.md`
-12. `CLAUDE.md` + `llms.txt` / `llms-full.txt` (nur als Assistenz-Kontext)
-13. Historische Phase-Dokumente (nur Referenz, nicht normativ)
+1. `docs/PHASE17_AI_GUARDRAILS_EVALS.md` (AI-runtime guardrails + eval gate)
+2. `docs/PHASE14_RELIABILITY_OPS.md` (aktueller Reliability-Ausfuehrungsstand inkl. Blocker)
+3. `docs/PHASE16_FOCUS_OAUTH_SEARCH_IMPROVEMENTS.md` (aktueller Scope + AC fuer Focus/OAuth/Search)
+4. `docs/PHASE16_AUDIT_2026-03-03.md` (Verifikation, Risiken, Handoff)
+5. `docs/PHASE13.md` (abgeschlossene Gate-Struktur als Referenz)
+6. `docs/PHASE13_RELEASE_AUDIT_2026-02-28.md` (Release-Gate Historie + QA-Kontext)
+7. `docs/PHASE12_MASTERPLAN.md` (strategischer Parent)
+8. `docs/PHASE12_EXECUTION_BLUEPRINT.md` (Execution-Baseline Tracks 3/4/5/6)
+9. `docs/PHASE11_TRACK6_IMPLEMENTATION.md` (Reliability-Basis)
+10. `docs/RELEASE_CHECKLIST.md`
+11. `.github/workflows/ci.yml` (enforced quality gates incl. production build + eval suite)
+12. `docs/GO_LIVE_RUNBOOK.md`
+13. `CLAUDE.md` + `llms.txt` / `llms-full.txt` (nur als Assistenz-Kontext)
+14. Historische Phase-Dokumente (nur Referenz, nicht normativ)
 
 ## Aktive Dokumente
+- `docs/PHASE17_AI_GUARDRAILS_EVALS.md` (verbindliche Runtime-Contracts + Eval-Gate fuer AI-adjacent flows)
 - `docs/PHASE14_RELIABILITY_OPS.md` (aktive Reliability-Umsetzung inkl. Audit-Status)
 - `docs/PHASE16_FOCUS_OAUTH_SEARCH_IMPROVEMENTS.md` (aktuelle Umsetzung Focus/OAuth/Search)
 - `docs/PHASE16_AUDIT_2026-03-03.md` (Phase-16 Verifikation + Handoff)
@@ -74,6 +76,7 @@ Die folgenden Dokumente sind abgeschlossen oder durch neuere Planung ersetzt:
 - Bei Unklarheit in aktueller Ausfuehrung: `PHASE14_RELIABILITY_OPS.md` hat Vorrang.
 - Bei strategischen KPI-/Roadmap-Fragen: `PHASE12_MASTERPLAN.md` hat Vorrang.
 - Build-/Deploy-Integrität immer in CI erzwingen; Vercel darf nicht Erstentdecker von Compile-Fehlern sein.
+- AI-adjacent Flows muessen Runtime-Contracts + Eval-Coverage haben (siehe `PHASE17_AI_GUARDRAILS_EVALS.md`).
 - Integration Governance aus `docs/AGENT_WORKFLOW.md` ist verbindlich (main-schutz, core ownership, incident freeze).
 - `main` nur via PR-merge mit branch protection; required checks: `Quality Checks` und `E2E Blocker Suite (Authenticated, Serial)`.
 - Jede rote CI/deploy bekommt sofort ein Incident-Ticket aus `.github/ISSUE_TEMPLATE/ci-deploy-incident.yml` (Root cause, Fix SHA, Prevention je Feld Pflicht).

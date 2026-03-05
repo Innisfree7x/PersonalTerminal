@@ -1,6 +1,6 @@
 # Release Checklist (INNIS)
 
-Last updated: 2026-03-02
+Last updated: 2026-03-05
 
 Use this checklist before promoting a build to production.
 Execution steps live in `docs/GO_LIVE_RUNBOOK.md`.
@@ -40,6 +40,7 @@ Execution steps live in `docs/GO_LIVE_RUNBOOK.md`.
 - [ ] `npm run type-check` passes.
 - [ ] `npm run lint` passes.
 - [ ] `npx vitest run` passes.
+- [ ] `npm run test:evals` passes.
 - [ ] `npm run build` passes (compile/import integrity).
 - [ ] Blocker E2E suite is green in CI (`npm run test:e2e:blocker:ci`, flake < 2%).
 - [ ] No failing required checks on the release commit.
@@ -52,6 +53,7 @@ Execution steps live in `docs/GO_LIVE_RUNBOOK.md`.
 ## 2.1 Never-Again Guardrails (added 2026-03-01)
 
 - [ ] CI workflow includes a mandatory production build step (`npm run build`) in `Quality Checks`.
+- [ ] CI workflow includes mandatory AI eval step (`npm run test:evals`) in `Quality Checks`.
 - [ ] No unresolved imports in changed files (`Module not found` class is release blocker).
 - [ ] Before push: verify no critical new files remain untracked (`git status --short`), especially files referenced by new imports.
 - [ ] Vercel must be verified on the **latest** commit SHA, not older failed deploy rows.

@@ -26,6 +26,9 @@ export const ANALYTICS_EVENT_NAMES = [
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENT_NAMES)[number];
 
+const trajectoryStatusSchema = z.enum(['on_track', 'tight', 'at_risk']);
+const trajectoryCategorySchema = z.enum(['thesis', 'gmat', 'master_app', 'internship', 'other']);
+
 export const analyticsPayloadSchema = z
   .object({
     source: z.string().max(100).optional(),
@@ -44,9 +47,63 @@ export const analyticsPayloadSchema = z
   })
   .catchall(z.union([z.string(), z.number(), z.boolean(), z.null()]));
 
+const eventSpecificPayloadSchemas: Partial<Record<AnalyticsEventName, z.ZodTypeAny>> = {
+  onboarding_step_completed: z
+    .object({
+      step: z.number().int().min(1).max(20),
+      skipped: z.boolean().optional(),
+    })
+    .passthrough(),
+  onboarding_completed: z
+    .object({
+      trajectory_status: trajectoryStatusSchema.optional(),
+      trajectory_goal_id: z.string().trim().min(1).max(120).optional(),
+      destination: z.enum(['/trajectory', '/today']).optional(),
+      demo_seeded: z.boolean().optional(),
+      courses_count: z.number().int().min(0).max(50).optional(),
+      task_created: z.boolean().optional(),
+    })
+    .passthrough(),
+  trajectory_goal_created: z
+    .object({
+      category: trajectoryCategorySchema,
+      priority: z.number().int().min(1).max(5),
+    })
+    .passthrough(),
+  trajectory_capacity_set: z
+    .object({
+      hours_per_week: z.number().int().min(5).max(60),
+      horizon_months: z.number().int().min(6).max(36),
+    })
+    .passthrough(),
+  trajectory_status_shown: z
+    .object({
+      status: trajectoryStatusSchema,
+    })
+    .passthrough(),
+  demo_seed_removed: z
+    .object({
+      ids_removed: z.number().int().min(0).max(5000),
+    })
+    .passthrough(),
+};
+
 export const analyticsEventSchema = z.object({
   name: z.enum(ANALYTICS_EVENT_NAMES),
   payload: analyticsPayloadSchema.optional().default({}),
+}).superRefine((value, ctx) => {
+  const schema = eventSpecificPayloadSchemas[value.name];
+  if (!schema) return;
+
+  const parsed = schema.safeParse(value.payload ?? {});
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['payload', ...(issue?.path ?? [])],
+      message: issue?.message ?? `Invalid payload for event "${value.name}"`,
+    });
+  }
 });
 
 export type AnalyticsEventInput = z.infer<typeof analyticsEventSchema>;

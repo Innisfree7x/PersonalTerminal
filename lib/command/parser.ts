@@ -1,10 +1,9 @@
+import { commandIntentSchema, commandPreviewSchema, type CommandIntent } from '@/lib/ai/contracts';
+import { guardCommandInput } from '@/lib/ai/guardrails';
+
 // ── Types ──────────────────────────────────────────────────────────────────────
 
-export type ParsedIntent =
-  | { kind: 'create-task'; title: string; deadline: string | null; deadlineLabel: string | null }
-  | { kind: 'plan-focus'; durationMin: number }
-  | { kind: 'create-goal'; title: string }
-  | { kind: 'open-page'; page: string; path: string };
+export type ParsedIntent = CommandIntent;
 
 export interface ParseSuccess {
   ok: true;
@@ -19,6 +18,24 @@ export interface ParseError {
 }
 
 export type ParseResult = ParseSuccess | ParseError;
+
+function createSuccess(intent: ParsedIntent, preview: string): ParseSuccess | ParseError {
+  const intentCheck = commandIntentSchema.safeParse(intent);
+  if (!intentCheck.success) {
+    return { ok: false, error: 'Interner Intent-Fehler. Bitte Befehl erneut eingeben.' };
+  }
+
+  const previewCheck = commandPreviewSchema.safeParse(preview);
+  if (!previewCheck.success) {
+    return { ok: false, error: 'Interner Preview-Fehler. Bitte Befehl erneut eingeben.' };
+  }
+
+  return {
+    ok: true,
+    intent: intentCheck.data,
+    preview: previewCheck.data,
+  };
+}
 
 // ── Page registry ──────────────────────────────────────────────────────────────
 
@@ -160,8 +177,12 @@ function extractTitle(raw: string): { title: string; rest: string } {
  * Input may optionally start with `>` to force command mode.
  */
 export function parseCommand(raw: string): ParseResult | null {
-  const forced = raw.startsWith('>');
-  const input = forced ? raw.slice(1).trim() : raw.trim();
+  const guarded = guardCommandInput(raw);
+  if (!guarded.ok) return { ok: false, error: guarded.error ?? 'Ungültiger Befehl.' };
+
+  const normalized = guarded.value ?? '';
+  const forced = normalized.startsWith('>');
+  const input = forced ? normalized.slice(1).trim() : normalized.trim();
   const lower = input.toLowerCase();
 
   if (!forced && !isCommandLike(lower)) return null;
@@ -200,7 +221,7 @@ export function parseCommand(raw: string): ParseResult | null {
       ? `Task "${title}" · fällig ${deadlineLabel}`
       : `Task "${title}" erstellen`;
 
-    return { ok: true, intent: { kind: 'create-task', title, deadline, deadlineLabel }, preview };
+    return createSuccess({ kind: 'create-task', title, deadline, deadlineLabel }, preview);
   }
 
   // ── create goal ──────────────────────────────────────────────────────────────
@@ -215,11 +236,7 @@ export function parseCommand(raw: string): ParseResult | null {
     const title = rest.replace(/^[""\u201c]|[""\u201d]$/g, '').trim();
     if (!title) return { ok: false, error: 'Goal-Titel fehlt.' };
 
-    return {
-      ok: true,
-      intent: { kind: 'create-goal', title },
-      preview: `Goal "${title}" erstellen`,
-    };
+    return createSuccess({ kind: 'create-goal', title }, `Goal "${title}" erstellen`);
   }
 
   // ── plan focus ───────────────────────────────────────────────────────────────
@@ -237,11 +254,7 @@ export function parseCommand(raw: string): ParseResult | null {
       return { ok: false, error: 'Dauer muss zwischen 1 und 180 Minuten liegen.' };
     }
 
-    return {
-      ok: true,
-      intent: { kind: 'plan-focus', durationMin },
-      preview: `Focus-Session starten · ${durationMin} Minuten`,
-    };
+    return createSuccess({ kind: 'plan-focus', durationMin }, `Focus-Session starten · ${durationMin} Minuten`);
   }
 
   // ── open page ────────────────────────────────────────────────────────────────
@@ -261,11 +274,7 @@ export function parseCommand(raw: string): ParseResult | null {
       };
     }
 
-    return {
-      ok: true,
-      intent: { kind: 'open-page', page: page.label, path: page.path },
-      preview: `Öffne ${page.label}`,
-    };
+    return createSuccess({ kind: 'open-page', page: page.label, path: page.path }, `Öffne ${page.label}`);
   }
 
   // Input starts with ">" but no verb matched

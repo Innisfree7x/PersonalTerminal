@@ -8,6 +8,8 @@
     "build:analyze": "ANALYZE=true next build",
     "start": "next start",
     "test": "vitest",
+    "test:unit": "vitest run tests/unit",
+    "test:evals": "vitest run tests/evals",
     "test:watch": "vitest --watch",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",

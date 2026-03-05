@@ -73,4 +73,14 @@ describe('command parser', () => {
     expect(result).not.toBeNull();
     expect(result && result.ok).toBe(false);
   });
+
+  it('rejects oversized command input with explicit guardrail error', () => {
+    const longTitle = 'x'.repeat(400);
+    const result = parseCommand(`> erstelle task "${longTitle}"`);
+    expect(result).not.toBeNull();
+    expect(result && result.ok).toBe(false);
+    if (result && !result.ok) {
+      expect(result.error).toContain('max 280 Zeichen');
+    }
+  });
 });

@@ -67,4 +67,24 @@ describe('analyticsEventSchema', () => {
     expect(capacitySet.success).toBe(true);
     expect(statusShown.success).toBe(true);
   });
+
+  it('rejects invalid trajectory onboarding payload values', () => {
+    const invalidStatus = analyticsEventSchema.safeParse({
+      name: 'trajectory_status_shown',
+      payload: {
+        status: 'unknown',
+      },
+    });
+
+    const invalidGoalPriority = analyticsEventSchema.safeParse({
+      name: 'trajectory_goal_created',
+      payload: {
+        category: 'gmat',
+        priority: 0,
+      },
+    });
+
+    expect(invalidStatus.success).toBe(false);
+    expect(invalidGoalPriority.success).toBe(false);
+  });
 });

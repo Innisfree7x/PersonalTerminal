@@ -34,7 +34,10 @@ jobs:
         run: npm run lint
 
       - name: Unit tests
-        run: npx vitest run
+        run: npm run test:unit
+
+      - name: AI eval suite
+        run: npm run test:evals
 
       - name: Production build
         env:

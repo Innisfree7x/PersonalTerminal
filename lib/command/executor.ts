@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { createDailyTaskAction } from '@/app/actions/daily-tasks';
 import { createGoalAction } from '@/app/actions/goals';
+import { commandIntentSchema } from '@/lib/ai/contracts';
 import type { ParsedIntent } from '@/lib/command/parser';
 import { PRISM_INTENT_EXECUTE_EVENT } from '@/lib/hooks/useCommandActions';
 
@@ -75,7 +76,12 @@ export function useIntentExecutor(): void {
     const listener = (event: Event) => {
       const customEvent = event as CustomEvent<ParsedIntent>;
       if (!customEvent.detail) return;
-      void executeIntent(customEvent.detail);
+      const parsedIntent = commandIntentSchema.safeParse(customEvent.detail);
+      if (!parsedIntent.success) {
+        toast.error('Ungültiger Command-Intent empfangen.');
+        return;
+      }
+      void executeIntent(parsedIntent.data);
     };
 
     window.addEventListener(PRISM_INTENT_EXECUTE_EVENT, listener as EventListener);
