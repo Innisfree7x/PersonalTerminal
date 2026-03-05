@@ -170,6 +170,47 @@ export function FeatureSection() {
                       <p className="mt-1.5 text-[10px] text-zinc-400">18h/week → Prep start 09.11.2026</p>
                     </div>
                   </div>
+
+                  <div className="col-span-2 space-y-2.5">
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-600">Timeline snapshot</p>
+                    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3">
+                      <div className="relative h-14 overflow-hidden rounded-lg border border-white/10 bg-black/30 px-2.5">
+                        <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                        {[
+                          { label: "Q3 '26", left: '8%' },
+                          { label: "Q4 '26", left: '30%' },
+                          { label: "Q1 '27", left: '52%' },
+                          { label: "Q2 '27", left: '74%' },
+                          { label: "Q3 '27", left: '92%' },
+                        ].map((tick) => (
+                          <div key={tick.label} className="absolute top-0 h-full" style={{ left: tick.left }}>
+                            <div className="h-full w-px bg-white/12" />
+                            <span className="absolute top-1 -translate-x-1/2 whitespace-nowrap font-mono text-[9px] text-zinc-500">
+                              {tick.label}
+                            </span>
+                          </div>
+                        ))}
+                        <motion.div
+                          className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-emerald-300/60 bg-emerald-300/30 shadow-[0_0_14px_rgba(110,231,183,0.35)]"
+                          initial={{ left: '0%' }}
+                          whileInView={{ left: '48%' }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 1.1, delay: 0.15 }}
+                        />
+                      </div>
+                      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                        <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-300">
+                          Start 09.11.2026
+                        </span>
+                        <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-300">
+                          6 Prep Blocks
+                        </span>
+                        <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] text-blue-300">
+                          1 Opportunity Window
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ) : null}
 
