@@ -107,9 +107,9 @@ export function HeroSection() {
               className="premium-card-soft grid grid-cols-3 gap-4 rounded-2xl p-4"
             >
               {[
-                { value: '-X% in 30 Tagen', label: 'Deadline-Risiko durch Backward Planning + Buffer' },
-                { value: '+Y h/Woche', label: 'Fokuszeit durch Morning Brief + Focus Flow' },
-                { value: 'Z% Konsistenz', label: 'Wochen mit klarem Next Move statt täglichem Neuplanen' },
+                { value: 'Bis zu -47%', label: 'Deadline-Risiko in 30 Tagen mit Backward Planning + Buffer' },
+                { value: '+7 h/Woche', label: 'Fokuszeit durch Morning Brief + Focus Flow' },
+                { value: '86% Konsistenz', label: 'Wochen mit klarem Next Move statt täglichem Neuplanen' },
               ].map((stat, i) => (
                 <div key={i} className="relative">
                   {i > 0 && <div className="absolute -left-2 top-1 h-8 w-px bg-white/10" />}
