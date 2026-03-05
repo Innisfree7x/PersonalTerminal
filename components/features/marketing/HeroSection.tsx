@@ -107,14 +107,14 @@ export function HeroSection() {
               className="premium-card-soft grid grid-cols-3 gap-4 rounded-2xl p-4"
             >
               {[
-                { value: '<3 Min', label: 'bis zum ersten Risk-Status' },
-                { value: '36M', label: 'strategischer Planungshorizont' },
-                { value: '1 System', label: 'statt Tool-Chaos' },
+                { value: '-X% in 30 Tagen', label: 'Deadline-Risiko durch Backward Planning + Buffer' },
+                { value: '+Y h/Woche', label: 'Fokuszeit durch Morning Brief + Focus Flow' },
+                { value: 'Z% Konsistenz', label: 'Wochen mit klarem Next Move statt täglichem Neuplanen' },
               ].map((stat, i) => (
                 <div key={i} className="relative">
                   {i > 0 && <div className="absolute -left-2 top-1 h-8 w-px bg-white/10" />}
                   <div>
-                    <p className="text-xl font-bold leading-none text-[#FAF0E6]">{stat.value}</p>
+                    <p className="text-lg font-bold leading-none text-[#FAF0E6]">{stat.value}</p>
                     <p className="mt-1 text-[11px] uppercase tracking-wide text-zinc-500">{stat.label}</p>
                   </div>
                 </div>
