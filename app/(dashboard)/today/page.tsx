@@ -28,6 +28,7 @@ import {
 import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 import { buildTrajectoryMorningBriefing, type TrajectoryBriefOverview } from '@/lib/dashboard/trajectoryBriefing';
+import { trackAppEvent } from '@/lib/analytics/client';
 
 const WELCOME_KEY = 'innis_welcomed_v1';
 
@@ -161,6 +162,9 @@ export default function TodayPage() {
   const stats = nextTasksData?.stats;
   const studyProgress = nextTasksData?.studyProgress || [];
   const trajectoryBriefing = buildTrajectoryMorningBriefing(trajectoryOverview);
+  const trajectoryBriefingHref = trajectoryBriefing
+    ? `/trajectory?goalId=${encodeURIComponent(trajectoryBriefing.goalId)}&source=morning_briefing`
+    : '/trajectory?source=morning_briefing';
 
   useEffect(() => {
     const days = stats?.nextExam?.daysUntilExam;
@@ -233,12 +237,22 @@ export default function TodayPage() {
               >
                 {trajectoryBriefing.statusLabel}
               </span>
+              {' · '}
+              prep starts {trajectoryBriefing.startDateLabel}
             </p>
             <Link
-              href="/trajectory"
+              href={trajectoryBriefingHref}
+              onClick={() => {
+                void trackAppEvent('trajectory_briefing_opened', {
+                  source: 'today_morning_briefing',
+                  route: '/today',
+                  trajectory_goal_id: trajectoryBriefing.goalId,
+                  status: trajectoryBriefing.status,
+                });
+              }}
               className="inline-flex items-center text-xs font-medium text-primary hover:text-primary-hover transition-colors"
             >
-              Open trajectory →
+              Open linked trajectory →
             </Link>
           </div>
         ) : (
@@ -248,7 +262,13 @@ export default function TodayPage() {
               No active trajectory milestone yet.
             </p>
             <Link
-              href="/trajectory"
+              href={trajectoryBriefingHref}
+              onClick={() => {
+                void trackAppEvent('trajectory_briefing_opened', {
+                  source: 'today_morning_briefing',
+                  route: '/today',
+                });
+              }}
               className="inline-flex items-center text-xs font-medium text-primary hover:text-primary-hover transition-colors"
             >
               Set up trajectory →

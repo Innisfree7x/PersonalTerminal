@@ -17,6 +17,7 @@ import {
   Pause,
   Square,
   Zap,
+  Route,
   Palette,
   Settings,
   Moon,
@@ -185,6 +186,13 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       icon: Timer,
       action: () => router.push('/focus'),
       keywords: ['focus', 'deep work', 'zen', 'study mode', 'timer screen'],
+    },
+    {
+      id: 'nav-trajectory',
+      label: 'Trajectory',
+      icon: Route,
+      action: () => router.push('/trajectory'),
+      keywords: ['trajectory', 'timeline', 'career plan', 'milestone', 'roadmap'],
     },
     {
       id: 'nav-ops-health',

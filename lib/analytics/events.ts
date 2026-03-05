@@ -13,6 +13,7 @@ export const ANALYTICS_EVENT_NAMES = [
   'trajectory_goal_created',
   'trajectory_capacity_set',
   'trajectory_status_shown',
+  'trajectory_briefing_opened',
   'demo_seed_started',
   'demo_seed_removed',
   'first_task_created',
@@ -41,6 +42,8 @@ export const analyticsPayloadSchema = z
     ids_removed: z.number().int().min(0).max(5000).optional(),
     count: z.number().int().min(0).max(100).optional(),
     route: z.string().max(100).optional(),
+    trajectory_goal_id: z.string().trim().min(1).max(120).optional(),
+    status: trajectoryStatusSchema.optional(),
     duration_minutes: z.number().int().min(1).max(600).optional(),
     enabled: z.boolean().optional(),
     ability: z.enum(['q', 'w', 'e', 'r']).optional(),
@@ -79,6 +82,14 @@ const eventSpecificPayloadSchemas: Partial<Record<AnalyticsEventName, z.ZodTypeA
   trajectory_status_shown: z
     .object({
       status: trajectoryStatusSchema,
+    })
+    .passthrough(),
+  trajectory_briefing_opened: z
+    .object({
+      source: z.string().min(1).max(100),
+      route: z.string().max(100),
+      trajectory_goal_id: z.string().trim().min(1).max(120).optional(),
+      status: trajectoryStatusSchema.optional(),
     })
     .passthrough(),
   demo_seed_removed: z

@@ -12,6 +12,7 @@ describe('AI eval: command intent contract', () => {
       { input: 'erstelle goal "GMAT 680+"', expectedKind: 'create-goal' },
       { input: 'fokus 50', expectedKind: 'plan-focus' },
       { input: 'open goals', expectedKind: 'open-page' },
+      { input: 'open trajectory', expectedKind: 'open-page' },
     ];
 
     for (const scenario of matrix) {
@@ -39,4 +40,3 @@ describe('AI eval: command intent contract', () => {
     }
   });
 });
-

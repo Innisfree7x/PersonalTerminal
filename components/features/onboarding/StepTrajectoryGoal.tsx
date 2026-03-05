@@ -160,7 +160,7 @@ export function StepTrajectoryGoal({
 
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
-        throw new Error(payload?.error?.message || 'Trajectory goal konnte nicht erstellt werden.');
+        throw new Error(payload?.error?.message || 'Trajectory goal konnte nicht erstellt werden. Bitte erneut versuchen.');
       }
 
       const created = (await response.json()) as { id: string };
@@ -174,7 +174,7 @@ export function StepTrajectoryGoal({
         currentDraft
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Fehler beim Erstellen des Ziels.');
+      setError(err instanceof Error ? err.message : 'Fehler beim Erstellen des Ziels. Bitte erneut versuchen.');
     } finally {
       setSaving(false);
     }
@@ -209,14 +209,14 @@ export function StepTrajectoryGoal({
             onClick={handleContinueWithExisting}
             rightIcon={<ArrowRight className="h-4 w-4" />}
           >
-            Weiter
+            Continue to capacity plan
           </Button>
           <button
             type="button"
             onClick={() => setEditExisting(true)}
             className="flex items-center justify-center gap-1 py-1 text-sm text-text-tertiary transition-colors hover:text-text-secondary"
           >
-            Neues Ziel anlegen
+            Create different goal
             <ChevronRight className="h-3.5 w-3.5" />
           </button>
         </motion.div>
@@ -230,9 +230,9 @@ export function StepTrajectoryGoal({
         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
           <Flag className="h-5 w-5 text-primary" />
         </div>
-        <h2 className="mb-2 text-2xl font-bold text-text-primary">What is your next big goal?</h2>
+        <h2 className="mb-2 text-2xl font-bold text-text-primary">Define your next strategic milestone</h2>
         <p className="text-sm text-text-secondary">
-          Definiere ein klares Ziel mit Due Date, realistischem Aufwand und Sicherheits-Puffer.
+          Set one concrete goal with due date, realistic effort, and a safety buffer.
         </p>
       </motion.div>
 

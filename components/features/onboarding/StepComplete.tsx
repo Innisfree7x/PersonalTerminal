@@ -139,7 +139,7 @@ export function StepComplete({ completedData, onComplete }: StepCompleteProps) {
           </span>
         </h2>
         <p className="text-sm text-text-secondary">
-          Dein Trajectory-Setup ist abgeschlossen. Du kannst direkt loslegen.
+          Dein Trajectory-Setup ist abgeschlossen. Prüfe zuerst den Plan und geh dann in die tägliche Execution.
         </p>
       </motion.div>
 
@@ -212,7 +212,7 @@ export function StepComplete({ completedData, onComplete }: StepCompleteProps) {
           disabled={!trajectoryReady || savingTarget !== null}
           rightIcon={<Compass className="h-4 w-4" />}
         >
-          Open Trajectory
+          Open Trajectory (recommended)
         </Button>
 
         <Button

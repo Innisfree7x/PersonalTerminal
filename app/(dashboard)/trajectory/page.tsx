@@ -227,6 +227,7 @@ function monthsToWeeks(months: number): number {
 
 export default function TrajectoryPage() {
   const queryClient = useQueryClient();
+  const [deepLinkedGoalId, setDeepLinkedGoalId] = useState('');
 
   const [simulationHours, setSimulationHours] = useState<number | null>(null);
   const [horizonMonthsDraft, setHorizonMonthsDraft] = useState<number | null>(null);
@@ -259,6 +260,13 @@ export default function TrajectoryPage() {
     confidence: 'medium',
     notes: '',
   });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    const goalId = url.searchParams.get('goalId')?.trim() ?? '';
+    setDeepLinkedGoalId(goalId);
+  }, []);
 
   const {
     data: overview,
@@ -311,10 +319,13 @@ export default function TrajectoryPage() {
     }
 
     setSelectedGoalId((current) => {
+      if (deepLinkedGoalId && generatedBlocks.some((block) => block.goalId === deepLinkedGoalId)) {
+        return deepLinkedGoalId;
+      }
       if (current && generatedBlocks.some((block) => block.goalId === current)) return current;
       return generatedBlocks[0]?.goalId ?? '';
     });
-  }, [generatedBlocks]);
+  }, [generatedBlocks, deepLinkedGoalId]);
 
   const selectedBlock = useMemo(
     () => generatedBlocks.find((block) => block.goalId === selectedGoalId) ?? null,
@@ -864,20 +875,22 @@ export default function TrajectoryPage() {
                     const key = `${block.goalId}|${block.startDate}|${block.endDate}`;
                     const frame = span(block.startDate, block.endDate);
                     const isCommitted = committedBlockKey.has(key);
+                    const isSelected = block.goalId === selectedGoalId;
                     const topOffset = 116 + (index % 2) * 34;
 
                     return (
                       <div
                         key={key}
                         className={cn(
-                          'absolute h-7 rounded-md border px-2 text-[11px] font-semibold leading-7 text-white/90',
+                          'absolute h-7 rounded-md border px-2 text-[11px] font-semibold leading-7 text-white/90 transition-all',
                           block.status === 'at_risk'
                             ? 'border-error/50 bg-error/25'
                             : block.status === 'tight'
                               ? 'border-warning/50 bg-warning/25'
-                              : 'border-success/50 bg-success/20'
+                              : 'border-success/50 bg-success/20',
+                          isSelected && 'ring-1 ring-primary/55 shadow-[0_0_0_1px_rgba(250,240,230,0.25)]'
                         )}
-                        style={{ left: `${frame.left}%`, width: `${frame.width}%`, top: `${topOffset}px` }}
+                        style={{ left: `${frame.left}%`, width: `${frame.width}%`, top: `${topOffset}px`, zIndex: isSelected ? 20 : 10 }}
                         title={`${block.title} · ${formatShortDate(block.startDate)} to ${formatShortDate(block.endDate)}`}
                       >
                         <span className="truncate block">{block.title}{isCommitted ? ' · committed' : ''}</span>
@@ -887,17 +900,24 @@ export default function TrajectoryPage() {
 
                   {showMilestones ? goals.map((goal) => {
                     const risk = riskByGoal.get(goal.id) ?? 'on_track';
+                    const isSelected = goal.id === selectedGoalId;
                     const left = toPercent(goal.dueDate);
 
                     return (
                       <div key={goal.id} className="absolute" style={{ left: `${left}%`, top: '30px' }}>
                         <div
                           className={cn(
-                            'h-[170px] w-[2px] rounded-full',
+                            'h-[170px] rounded-full transition-all',
+                            isSelected ? 'w-[3px] shadow-[0_0_14px_rgba(250,240,230,0.35)]' : 'w-[2px]',
                             risk === 'at_risk' ? 'bg-error' : risk === 'tight' ? 'bg-warning' : 'bg-success'
                           )}
                         />
-                        <div className="mt-1 -translate-x-1/2 whitespace-nowrap text-[11px] font-semibold text-text-secondary">
+                        <div
+                          className={cn(
+                            'mt-1 -translate-x-1/2 whitespace-nowrap text-[11px] font-semibold',
+                            isSelected ? 'text-text-primary' : 'text-text-secondary'
+                          )}
+                        >
                           {goal.title}
                         </div>
                       </div>
@@ -1220,8 +1240,15 @@ export default function TrajectoryPage() {
               ) : (
                 goals.map((goal) => {
                   const risk = riskByGoal.get(goal.id);
+                  const isSelected = goal.id === selectedGoalId;
                   return (
-                  <div key={goal.id} className="rounded-lg border border-border bg-background/50 px-3 py-2">
+                  <div
+                    key={goal.id}
+                    className={cn(
+                      'rounded-lg border bg-background/50 px-3 py-2 transition-colors',
+                      isSelected ? 'border-primary/45 bg-primary/10' : 'border-border hover:border-primary/30'
+                    )}
+                  >
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-sm font-semibold text-text-primary">{goal.title}</p>
@@ -1230,6 +1257,18 @@ export default function TrajectoryPage() {
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedGoalId(goal.id)}
+                            className={cn(
+                              'rounded-md border px-1.5 py-1 text-[10px] font-medium transition-colors',
+                              isSelected
+                                ? 'border-primary/40 bg-primary/15 text-primary'
+                                : 'border-border text-text-tertiary hover:border-primary/30 hover:text-text-primary'
+                            )}
+                          >
+                            focus
+                          </button>
                           {risk && (
                             <Badge
                               size="sm"

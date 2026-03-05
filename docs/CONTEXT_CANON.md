@@ -1,6 +1,6 @@
 # Context Canon (Single Source of Truth)
 
-Stand: 2026-03-05 (post Phase-17 AI guardrails + eval gate)  
+Stand: 2026-03-05 (post Phase-17 Block-3 activation + trajectory bridge)  
 Status: Active
 
 ## Zweck
@@ -8,22 +8,24 @@ Dieses Dokument definiert verbindlich, welche Quellen für aktuelle Entscheidung
 Wenn zwei Dokumente widersprüchlich sind, gilt immer diese Prioritätsliste.
 
 ## Prioritätsreihenfolge (verbindlich)
-1. `docs/PHASE17_AI_GUARDRAILS_EVALS.md` (AI-runtime guardrails + eval gate)
-2. `docs/PHASE14_RELIABILITY_OPS.md` (aktueller Reliability-Ausfuehrungsstand inkl. Blocker)
-3. `docs/PHASE16_FOCUS_OAUTH_SEARCH_IMPROVEMENTS.md` (aktueller Scope + AC fuer Focus/OAuth/Search)
-4. `docs/PHASE16_AUDIT_2026-03-03.md` (Verifikation, Risiken, Handoff)
-5. `docs/PHASE13.md` (abgeschlossene Gate-Struktur als Referenz)
-6. `docs/PHASE13_RELEASE_AUDIT_2026-02-28.md` (Release-Gate Historie + QA-Kontext)
-7. `docs/PHASE12_MASTERPLAN.md` (strategischer Parent)
-8. `docs/PHASE12_EXECUTION_BLUEPRINT.md` (Execution-Baseline Tracks 3/4/5/6)
-9. `docs/PHASE11_TRACK6_IMPLEMENTATION.md` (Reliability-Basis)
-10. `docs/RELEASE_CHECKLIST.md`
-11. `.github/workflows/ci.yml` (enforced quality gates incl. production build + eval suite)
-12. `docs/GO_LIVE_RUNBOOK.md`
-13. `CLAUDE.md` + `llms.txt` / `llms-full.txt` (nur als Assistenz-Kontext)
-14. Historische Phase-Dokumente (nur Referenz, nicht normativ)
+1. `docs/PHASE17_BLOCK3_ACTIVATION_AND_BRIDGE.md` (Onboarding/Today/Trajectory Bridge + contract updates)
+2. `docs/PHASE17_AI_GUARDRAILS_EVALS.md` (AI-runtime guardrails + eval gate)
+3. `docs/PHASE14_RELIABILITY_OPS.md` (aktueller Reliability-Ausfuehrungsstand inkl. Blocker)
+4. `docs/PHASE16_FOCUS_OAUTH_SEARCH_IMPROVEMENTS.md` (aktueller Scope + AC fuer Focus/OAuth/Search)
+5. `docs/PHASE16_AUDIT_2026-03-03.md` (Verifikation, Risiken, Handoff)
+6. `docs/PHASE13.md` (abgeschlossene Gate-Struktur als Referenz)
+7. `docs/PHASE13_RELEASE_AUDIT_2026-02-28.md` (Release-Gate Historie + QA-Kontext)
+8. `docs/PHASE12_MASTERPLAN.md` (strategischer Parent)
+9. `docs/PHASE12_EXECUTION_BLUEPRINT.md` (Execution-Baseline Tracks 3/4/5/6)
+10. `docs/PHASE11_TRACK6_IMPLEMENTATION.md` (Reliability-Basis)
+11. `docs/RELEASE_CHECKLIST.md`
+12. `.github/workflows/ci.yml` (enforced quality gates incl. production build + eval suite)
+13. `docs/GO_LIVE_RUNBOOK.md`
+14. `CLAUDE.md` + `llms.txt` / `llms-full.txt` (nur als Assistenz-Kontext)
+15. Historische Phase-Dokumente (nur Referenz, nicht normativ)
 
 ## Aktive Dokumente
+- `docs/PHASE17_BLOCK3_ACTIVATION_AND_BRIDGE.md` (Onboarding/Today/Trajectory Bridge inkl. Deep-Link- und Analytics-Contract)
 - `docs/PHASE17_AI_GUARDRAILS_EVALS.md` (verbindliche Runtime-Contracts + Eval-Gate fuer AI-adjacent flows)
 - `docs/PHASE14_RELIABILITY_OPS.md` (aktive Reliability-Umsetzung inkl. Audit-Status)
 - `docs/PHASE16_FOCUS_OAUTH_SEARCH_IMPROVEMENTS.md` (aktuelle Umsetzung Focus/OAuth/Search)

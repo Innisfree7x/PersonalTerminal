@@ -17,10 +17,14 @@ export interface TrajectoryBriefOverview {
 }
 
 export interface TrajectoryMorningBriefing {
+  goalId: string;
   title: string;
   daysUntil: number;
   status: TrajectoryRiskStatus;
   statusLabel: string;
+  dueDate: string;
+  startDate: string;
+  startDateLabel: string;
 }
 
 export function buildTrajectoryMorningBriefing(
@@ -38,6 +42,7 @@ export function buildTrajectoryMorningBriefing(
   if (!nextTrajectoryGoal || !nextTrajectoryBlock) return null;
 
   const dueDate = new Date(`${nextTrajectoryGoal.dueDate}T00:00:00.000Z`);
+  const startDate = new Date(`${nextTrajectoryBlock.startDate}T00:00:00.000Z`);
   const daysUntil = Math.max(0, Math.ceil((dueDate.getTime() - nowDate.getTime()) / (1000 * 60 * 60 * 24)));
   const statusLabel =
     nextTrajectoryBlock.status === 'on_track'
@@ -47,9 +52,15 @@ export function buildTrajectoryMorningBriefing(
         : 'at risk';
 
   return {
+    goalId: nextTrajectoryGoal.id,
     title: nextTrajectoryGoal.title,
     daysUntil,
     status: nextTrajectoryBlock.status,
     statusLabel,
+    dueDate: nextTrajectoryGoal.dueDate,
+    startDate: nextTrajectoryBlock.startDate,
+    startDateLabel: Number.isNaN(startDate.getTime())
+      ? nextTrajectoryBlock.startDate
+      : startDate.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }),
   };
 }

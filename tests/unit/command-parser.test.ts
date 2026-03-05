@@ -56,6 +56,16 @@ describe('command parser', () => {
     expect(result.intent.path).toBe('/goals');
   });
 
+  it('parses trajectory page navigation intent', () => {
+    const result = parseCommand('open trajectory');
+    expect(result).not.toBeNull();
+    expect(result && result.ok).toBe(true);
+    if (!result || !result.ok) return;
+    expect(result.intent.kind).toBe('open-page');
+    if (result.intent.kind !== 'open-page') return;
+    expect(result.intent.path).toBe('/trajectory');
+  });
+
   it('returns inline error for malformed focus command', () => {
     const result = parseCommand('focus');
     expect(result).not.toBeNull();

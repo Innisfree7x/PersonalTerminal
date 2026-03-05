@@ -47,6 +47,7 @@ const PAGE_MAP: Array<{ aliases: string[]; label: string; path: string }> = [
   { aliases: ['calendar', 'kalender', 'termine', 'schedule'], label: 'Calendar', path: '/calendar' },
   { aliases: ['analytics', 'statistiken', 'statistik', 'stats', 'analyse'], label: 'Analytics', path: '/analytics' },
   { aliases: ['focus', 'fokus', 'focus mode', 'deep focus', 'lernen'], label: 'Focus', path: '/focus' },
+  { aliases: ['trajectory', 'trajektorie', 'timeline', 'roadmap', 'career timeline'], label: 'Trajectory', path: '/trajectory' },
   { aliases: ['settings', 'einstellungen', 'konto', 'preferences'], label: 'Settings', path: '/settings' },
 ];
 
@@ -270,7 +271,7 @@ export function parseCommand(raw: string): ParseResult | null {
     if (!page) {
       return {
         ok: false,
-        error: `"${rest}" nicht gefunden. Verfügbar: Dashboard, Goals, Career, University, Calendar, Analytics, Settings`,
+        error: `"${rest}" nicht gefunden. Verfügbar: Dashboard, Goals, Career, University, Calendar, Analytics, Focus, Trajectory, Settings`,
       };
     }
 

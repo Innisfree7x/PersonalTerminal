@@ -25,6 +25,15 @@ describe('AI eval: analytics event contract', () => {
           demo_seeded: false,
         },
       },
+      {
+        name: 'trajectory_briefing_opened',
+        payload: {
+          source: 'today_morning_briefing',
+          route: '/today',
+          trajectory_goal_id: 'goal-abc',
+          status: 'tight',
+        },
+      },
     ] as const;
 
     for (const event of validEvents) {
@@ -50,6 +59,10 @@ describe('AI eval: analytics event contract', () => {
         name: 'onboarding_step_completed',
         payload: { step: 'three' },
       },
+      {
+        name: 'trajectory_briefing_opened',
+        payload: { source: 'today_morning_briefing', route: '/today', status: 'invalid' },
+      },
     ];
 
     for (const event of invalidEvents) {
@@ -57,4 +70,3 @@ describe('AI eval: analytics event contract', () => {
     }
   });
 });
-

@@ -120,7 +120,7 @@ export function StepTrajectoryPlan({
       });
       if (!settingsResponse.ok) {
         const payload = await settingsResponse.json().catch(() => null);
-        throw new Error(payload?.error?.message || 'Trajectory settings konnten nicht gespeichert werden.');
+        throw new Error(payload?.error?.message || 'Trajectory settings konnten nicht gespeichert werden. Bitte erneut versuchen.');
       }
 
       trackOnboardingEvent('trajectory_capacity_set', {
@@ -135,7 +135,7 @@ export function StepTrajectoryPlan({
       });
       if (!planResponse.ok) {
         const payload = await planResponse.json().catch(() => null);
-        throw new Error(payload?.error?.message || 'Trajectory plan konnte nicht berechnet werden.');
+        throw new Error(payload?.error?.message || 'Trajectory plan konnte nicht berechnet werden. Bitte erneut versuchen.');
       }
 
       const planPayload = (await planResponse.json()) as TrajectoryPlanResponse;
@@ -161,7 +161,7 @@ export function StepTrajectoryPlan({
       setSummary(nextSummary);
       trackOnboardingEvent('trajectory_status_shown', { status: nextSummary.status });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Plan konnte nicht berechnet werden.');
+      setError(err instanceof Error ? err.message : 'Plan konnte nicht berechnet werden. Bitte erneut versuchen.');
     } finally {
       setSaving(false);
     }
@@ -174,10 +174,10 @@ export function StepTrajectoryPlan({
           <Gauge className="h-5 w-5 text-orange-300" />
         </div>
         <h2 className="mb-2 text-2xl font-bold text-text-primary">
-          How many hours per week can you realistically invest?
+          Set your realistic weekly capacity
         </h2>
         <p className="text-sm text-text-secondary">
-          Setze deine echte Kapazität und berechne sofort den Trajectory-Status.
+          Choose hours/week and horizon, then compute an immediate trajectory status.
         </p>
       </motion.div>
 
@@ -253,7 +253,7 @@ export function StepTrajectoryPlan({
             onClick={() => onNext(currentSettings, summary)}
             rightIcon={<ArrowRight className="h-4 w-4" />}
           >
-            Continue
+            Continue to final review
           </Button>
         </motion.div>
       ) : (

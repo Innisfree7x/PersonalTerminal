@@ -87,4 +87,28 @@ describe('analyticsEventSchema', () => {
     expect(invalidStatus.success).toBe(false);
     expect(invalidGoalPriority.success).toBe(false);
   });
+
+  it('accepts trajectory briefing click payload and rejects invalid status', () => {
+    const validEvent = analyticsEventSchema.safeParse({
+      name: 'trajectory_briefing_opened',
+      payload: {
+        source: 'today_morning_briefing',
+        route: '/today',
+        trajectory_goal_id: 'goal-1',
+        status: 'on_track',
+      },
+    });
+
+    const invalidEvent = analyticsEventSchema.safeParse({
+      name: 'trajectory_briefing_opened',
+      payload: {
+        source: 'today_morning_briefing',
+        route: '/today',
+        status: 'unknown',
+      },
+    });
+
+    expect(validEvent.success).toBe(true);
+    expect(invalidEvent.success).toBe(false);
+  });
 });

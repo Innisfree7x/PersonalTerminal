@@ -19,9 +19,11 @@ describe('buildTrajectoryMorningBriefing', () => {
   it('returns the nearest active goal briefing with matching status', () => {
     const result = buildTrajectoryMorningBriefing(baseOverview, new Date('2026-10-01T00:00:00.000Z'));
     expect(result).not.toBeNull();
+    expect(result?.goalId).toBe('g2');
     expect(result?.title).toBe('Thesis');
     expect(result?.status).toBe('on_track');
     expect(result?.statusLabel).toBe('on track');
+    expect(result?.startDate).toBe('2026-07-01');
   });
 
   it('returns null when no active goal has a computed block', () => {
