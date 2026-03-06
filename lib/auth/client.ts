@@ -34,11 +34,13 @@ export async function getCurrentUser() {
  */
 export async function signUp(email: string, password: string, metadata?: {
   fullName?: string;
+  waitlistSegment?: 'thesis' | 'gmat' | 'internship' | 'master_app' | 'other';
 }) {
   const supabase = createClient();
   const metadataPayload = metadata
     ? {
         full_name: metadata.fullName,
+        waitlist_segment: metadata.waitlistSegment,
         onboarding_completed: false,
       }
     : {

@@ -1,11 +1,11 @@
 'use client';
 
 import type { CalendarEvent } from '@/lib/types/calendar';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { X, Sparkles } from 'lucide-react';
+import { X, Sparkles, Target, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import FocusTasks from '@/components/features/dashboard/FocusTasks';
@@ -29,6 +29,7 @@ import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 import { buildTrajectoryMorningBriefing, type TrajectoryBriefOverview } from '@/lib/dashboard/trajectoryBriefing';
 import { trackAppEvent } from '@/lib/analytics/client';
+import type { RankedExecutionCandidate } from '@/lib/application/use-cases/execution-engine';
 
 const WELCOME_KEY = 'innis_welcomed_v1';
 
@@ -173,6 +174,20 @@ export default function TodayPage() {
     }
   }, [stats?.nextExam?.daysUntilExam]);
 
+  const prioritizedMoves = useMemo(() => {
+    const pool = [nextTasksData?.nextBestAction, ...(nextTasksData?.nextBestAlternatives ?? [])]
+      .filter((item): item is RankedExecutionCandidate => item != null);
+    const seen = new Set<string>();
+    const deduped: RankedExecutionCandidate[] = [];
+    for (const item of pool) {
+      if (seen.has(item.id)) continue;
+      seen.add(item.id);
+      deduped.push(item);
+      if (deduped.length >= 3) break;
+    }
+    return deduped;
+  }, [nextTasksData?.nextBestAction, nextTasksData?.nextBestAlternatives]);
+
   return (
     <div className="space-y-6" data-testid="today-page-root">
       {/* First-visit welcome orientation */}
@@ -276,6 +291,60 @@ export default function TodayPage() {
           </div>
         )}
       </motion.div>
+
+      {prioritizedMoves.length > 0 ? (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.18, delay: 0.03 }}
+          className="rounded-xl border border-border bg-surface/70 p-3.5"
+        >
+          <div className="mb-2.5 flex items-center justify-between">
+            <p className="inline-flex items-center gap-2 text-sm font-semibold text-text-primary">
+              <Target className="h-4 w-4 text-primary" />
+              Heute kritisch: Top 3 Moves
+            </p>
+            <span className="text-[11px] text-text-tertiary">
+              priorisiert nach Impact + Deadline
+            </span>
+          </div>
+          <div className="grid gap-2 md:grid-cols-3">
+            {prioritizedMoves.map((move, index) => (
+              <div key={move.id} className="rounded-lg border border-border bg-background/50 px-3 py-2.5">
+                <div className="mb-1.5 flex items-center justify-between gap-2">
+                  <span className="text-[10px] uppercase tracking-[0.14em] text-text-tertiary">Move {index + 1}</span>
+                  <span
+                    className={
+                      move.urgencyLabel === 'overdue'
+                        ? 'text-[10px] font-semibold uppercase tracking-wide text-red-400'
+                        : move.urgencyLabel === 'today'
+                          ? 'text-[10px] font-semibold uppercase tracking-wide text-amber-300'
+                          : move.urgencyLabel === 'soon'
+                            ? 'text-[10px] font-semibold uppercase tracking-wide text-sky-300'
+                            : 'text-[10px] font-semibold uppercase tracking-wide text-text-tertiary'
+                    }
+                  >
+                    {move.urgencyLabel}
+                  </span>
+                </div>
+                <p className="truncate text-sm font-medium text-text-primary">{move.title}</p>
+                <p className="mt-0.5 line-clamp-2 text-xs text-text-secondary">
+                  {move.subtitle || move.reasons[0] || 'High-impact action'}
+                </p>
+                <p className="mt-1.5 text-[11px] text-text-tertiary">
+                  Score {Math.round(move.score)}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-2 flex justify-end">
+            <Link href="/trajectory" className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-hover">
+              Strategie öffnen
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </motion.div>
+      ) : null}
 
       <CommandBar
         tasksToday={stats?.tasksToday ?? 0}

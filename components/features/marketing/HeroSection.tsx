@@ -1,13 +1,67 @@
 'use client';
 
+import { useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { ProductMockup } from './ProductMockup';
 import { TrackedCtaLink } from './TrackedCtaLink';
+import { trackMarketingEvent } from '@/lib/analytics/marketing';
+import {
+  formatTrajectoryRiskLabel,
+  getDaysUntilDate,
+  simulateTrajectoryGoalPreview,
+} from '@/lib/trajectory/risk-model';
 
 export function HeroSection() {
+  const [capacityHoursPerWeek, setCapacityHoursPerWeek] = useState(18);
+  const [effortHours, setEffortHours] = useState(520);
+  const trackedSimulationRef = useRef(false);
+  const dueDate = '2027-03-01';
+
+  const preview = useMemo(
+    () =>
+      simulateTrajectoryGoalPreview({
+        dueDate,
+        effortHours,
+        bufferWeeks: 2,
+        capacityHoursPerWeek,
+      }),
+    [capacityHoursPerWeek, effortHours]
+  );
+
+  const dueDays = useMemo(() => getDaysUntilDate(dueDate), [dueDate]);
+  const prepStartLabel = useMemo(() => {
+    const parsed = new Date(`${preview.startDate}T00:00:00.000Z`);
+    if (Number.isNaN(parsed.getTime())) return preview.startDate;
+    return parsed.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }, [preview.startDate]);
+
+  const statusClasses =
+    preview.status === 'on_track'
+      ? 'border-emerald-500/35 bg-emerald-500/10 text-emerald-300'
+      : preview.status === 'tight'
+        ? 'border-amber-500/35 bg-amber-500/10 text-amber-300'
+        : 'border-red-500/35 bg-red-500/10 text-red-300';
+
+  const trackSimulationOnce = (nextCapacity: number, nextEffort: number) => {
+    if (trackedSimulationRef.current) return;
+    trackedSimulationRef.current = true;
+    const nextPreview = simulateTrajectoryGoalPreview({
+      dueDate,
+      effortHours: nextEffort,
+      bufferWeeks: 2,
+      capacityHoursPerWeek: nextCapacity,
+    });
+    void trackMarketingEvent('hero_simulated', {
+      source: 'hero_proof',
+      hours_per_week: nextCapacity,
+      effort_hours: nextEffort,
+      status: nextPreview.status,
+    });
+  };
+
   return (
-    <section className="relative overflow-hidden pb-0 pt-14 md:pt-20">
+    <section className="relative overflow-hidden pb-0 pt-10 md:pt-14">
       {/* Background glows */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-[-8%] top-[15%] h-[420px] w-[420px] rounded-full bg-red-500/8 blur-[120px]" />
@@ -15,14 +69,14 @@ export function HeroSection() {
       </div>
 
       <div className="marketing-container relative z-10 w-full">
-        <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.1fr] xl:gap-16">
+        <div className="grid items-center gap-8 lg:grid-cols-[1fr_1.1fr] xl:gap-14">
 
           {/* Left: Copy */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="space-y-5"
+            className="space-y-3.5 md:space-y-4"
           >
             {/* Badge */}
             <motion.div
@@ -59,6 +113,16 @@ export function HeroSection() {
             >
               INNIS zeigt dir sofort, ob dein Karriere-Plan realistisch ist:
               Thesis, GMAT, Master-Apps und Praktika in einem strategischen Zeitplan.
+            </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.34 }}
+              className="text-lg font-semibold tracking-tight text-[#FAF0E6] md:text-xl"
+            >
+              Eine Timeline.{' '}
+              <span className="text-zinc-500">Ein Daily-Flow.</span>
             </motion.p>
 
             {/* CTAs */}
@@ -120,6 +184,75 @@ export function HeroSection() {
                 </div>
               ))}
             </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.58 }}
+              className="premium-card-soft rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.04] to-white/[0.02] p-4"
+            >
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                  Interactive Proof
+                </p>
+                <span className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold ${statusClasses}`}>
+                  {formatTrajectoryRiskLabel(preview.status)}
+                </span>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block">
+                  <span className="flex items-center justify-between text-[11px] text-zinc-500">
+                    Kapazität
+                    <span className="font-semibold text-zinc-300">{capacityHoursPerWeek}h/Woche</span>
+                  </span>
+                  <input
+                    type="range"
+                    min={5}
+                    max={50}
+                    step={1}
+                    value={capacityHoursPerWeek}
+                    onChange={(event) => {
+                      const nextValue = Number(event.target.value);
+                      setCapacityHoursPerWeek(nextValue);
+                      trackSimulationOnce(nextValue, effortHours);
+                    }}
+                    className="mt-1.5 w-full accent-[rgb(239,68,68)]"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="flex items-center justify-between text-[11px] text-zinc-500">
+                    Aufwand
+                    <span className="font-semibold text-zinc-300">{effortHours}h</span>
+                  </span>
+                  <input
+                    type="range"
+                    min={120}
+                    max={900}
+                    step={10}
+                    value={effortHours}
+                    onChange={(event) => {
+                      const nextValue = Number(event.target.value);
+                      setEffortHours(nextValue);
+                      trackSimulationOnce(capacityHoursPerWeek, nextValue);
+                    }}
+                    className="mt-1.5 w-full accent-[rgb(234,179,8)]"
+                  />
+                </label>
+              </div>
+
+              <div className="mt-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-xs">
+                <p className="text-zinc-300">
+                  GMAT Deadline: <span className="font-semibold text-[#FAF0E6]">{dueDays} Tage</span>
+                  {' · '}Prep Start: <span className="font-semibold text-[#FAF0E6]">{prepStartLabel}</span>
+                </p>
+                <p className="mt-1 text-zinc-500">
+                  Benötigt: {preview.requiredWeeks} Wochen · Buffer: 2 Wochen
+                </p>
+              </div>
+            </motion.div>
+
           </motion.div>
 
           {/* Right: Product Mockup */}

@@ -16,6 +16,7 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [waitlistSegment, setWaitlistSegment] = useState<'thesis' | 'gmat' | 'internship' | 'master_app' | 'other'>('thesis');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -40,14 +41,19 @@ export default function SignUpPage() {
 
     try {
       void trackMarketingEvent('signup_started', { source: 'auth_signup_form' });
-      const result = await signUp(email, password, { fullName });
+      void trackMarketingEvent('waitlist_segment_selected', {
+        source: 'auth_signup_form',
+        segment: waitlistSegment,
+      });
+
+      const result = await signUp(email, password, { fullName, waitlistSegment });
       if (result.session && result.user) {
-        void trackMarketingEvent('signup_completed', { source: 'auth_signup_form' });
+        void trackMarketingEvent('signup_completed', { source: 'auth_signup_form', segment: waitlistSegment });
         router.push('/onboarding');
         router.refresh();
         return;
       }
-      void trackMarketingEvent('signup_completed', { source: 'auth_signup_form' });
+      void trackMarketingEvent('signup_completed', { source: 'auth_signup_form', segment: waitlistSegment });
       setSuccess(true);
       setTimeout(() => {
         router.push('/auth/login');
@@ -125,6 +131,25 @@ export default function SignUpPage() {
                 disabled={loading}
                 className="w-full"
               />
+            </div>
+
+            <div>
+              <label htmlFor="waitlistSegment" className="block text-sm font-medium text-text-primary mb-2">
+                Primärer Fokus
+              </label>
+              <select
+                id="waitlistSegment"
+                value={waitlistSegment}
+                onChange={(e) => setWaitlistSegment(e.target.value as 'thesis' | 'gmat' | 'internship' | 'master_app' | 'other')}
+                disabled={loading}
+                className="h-10 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="thesis">Thesis</option>
+                <option value="gmat">GMAT</option>
+                <option value="internship">Praktikum</option>
+                <option value="master_app">Master-Bewerbungen</option>
+                <option value="other">Sonstiges</option>
+              </select>
             </div>
 
             <div>

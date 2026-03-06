@@ -12,6 +12,18 @@ const pains = [
   { emoji: '🧠', text: '…und trotzdem Chaos' },
 ];
 
+const beforeItems = [
+  '5 Tools parallel geöffnet',
+  'Deadlines nur im Kopf',
+  'Tägliches Neuplanen statt Execution',
+];
+
+const afterItems = [
+  'Eine Timeline mit Risk-Status',
+  'Morning-Brief verbindet Strategie mit Today',
+  'Klare Next-Moves statt Kontextwechsel',
+];
+
 export function ProblemStrip() {
   return (
     <section className="relative py-16 md:py-20">
@@ -64,6 +76,35 @@ export function ProblemStrip() {
               <span>{pain.text}</span>
             </motion.span>
           ))}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.45, delay: 0.35 }}
+          className="mx-auto mt-8 grid max-w-3xl gap-3 md:grid-cols-2"
+        >
+          <div className="rounded-xl border border-red-500/25 bg-red-500/[0.06] p-3.5">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-red-300">Before</p>
+            <div className="space-y-1.5">
+              {beforeItems.map((item) => (
+                <p key={item} className="text-sm text-zinc-400">
+                  · {item}
+                </p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/[0.06] p-3.5">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-300">After INNIS</p>
+            <div className="space-y-1.5">
+              {afterItems.map((item) => (
+                <p key={item} className="text-sm text-zinc-300">
+                  · {item}
+                </p>
+              ))}
+            </div>
+          </div>
         </motion.div>
 
         {/* Bridge to solution */}

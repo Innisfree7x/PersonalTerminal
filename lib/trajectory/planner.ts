@@ -1,4 +1,10 @@
-export type TrajectoryRiskStatus = 'on_track' | 'tight' | 'at_risk';
+import {
+  computeTrajectoryPrepWindow,
+  evaluateTrajectoryRisk,
+  type TrajectoryRiskStatus,
+} from '@/lib/trajectory/risk-model';
+
+export type { TrajectoryRiskStatus } from '@/lib/trajectory/risk-model';
 
 export interface TrajectoryGoalPlanInput {
   id: string;
@@ -72,11 +78,6 @@ function dateRangeOverlapDaysInclusive(aStart: Date, aEnd: Date, bStart: Date, b
   return Math.floor((end - start) / DAY_MS) + 1;
 }
 
-export function calculateRequiredWeeks(effortHours: number, capacityHoursPerWeek: number): number {
-  if (capacityHoursPerWeek <= 0) return Math.max(1, Math.ceil(effortHours));
-  return Math.max(1, Math.ceil(effortHours / capacityHoursPerWeek));
-}
-
 export function buildTaskPackageDates(startDate: string, endDate: string, taskCount: number): string[] {
   if (taskCount <= 0) return [];
 
@@ -148,20 +149,21 @@ export function computeTrajectoryPlan(input: {
   const generatedBase = input.goals
     .filter((goal) => goal.status === 'active')
     .map((goal) => {
-      const requiredWeeks = calculateRequiredWeeks(goal.effortHours, capacity);
-      const dueDate = parseIsoDate(goal.dueDate);
-      const blockEnd = addUtcDays(dueDate, -Math.max(0, goal.bufferWeeks * 7));
-      const blockStart = addUtcDays(blockEnd, -(requiredWeeks * 7));
-      const plannedBlockHours = requiredWeeks * capacity;
+      const prepWindow = computeTrajectoryPrepWindow({
+        dueDate: goal.dueDate,
+        effortHours: goal.effortHours,
+        bufferWeeks: goal.bufferWeeks,
+        capacityHoursPerWeek: capacity,
+      });
 
       return {
         goalId: goal.id,
         title: goal.title,
-        startDate: toIsoDate(blockStart),
-        endDate: toIsoDate(blockEnd),
-        weeklyHours: capacity,
-        requiredWeeks,
-        plannedBlockHours,
+        startDate: prepWindow.startDate,
+        endDate: prepWindow.endDate,
+        weeklyHours: prepWindow.effectiveCapacityHoursPerWeek,
+        requiredWeeks: prepWindow.requiredWeeks,
+        plannedBlockHours: prepWindow.plannedBlockHours,
       };
     });
 
@@ -182,19 +184,11 @@ export function computeTrajectoryPlan(input: {
 
   const generatedBlocks: GeneratedTrajectoryBlock[] = generatedBase.map((block) => {
     const overlapRatio = computeOverlapRatio(block, combinedBlocks);
-    const reasons: string[] = [];
-
-    let status: TrajectoryRiskStatus = 'on_track';
-    if (parseIsoDate(block.startDate) < today) {
-      status = 'at_risk';
-      reasons.push('required_start_in_past');
-    } else if (overlapRatio >= 0.5) {
-      status = 'at_risk';
-      reasons.push('collision_above_50pct');
-    } else if (overlapRatio >= 0.25) {
-      status = 'tight';
-      reasons.push('collision_above_25pct');
-    }
+    const { status, reasons } = evaluateTrajectoryRisk({
+      startDate: block.startDate,
+      today,
+      overlapRatio,
+    });
 
     return {
       ...block,

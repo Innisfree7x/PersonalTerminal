@@ -9,12 +9,18 @@ export type MarketingEventName =
   | 'pricing_plan_selected'
   | 'signup_started'
   | 'signup_completed'
+  | 'hero_simulated'
+  | 'waitlist_segment_selected'
   | 'day2_return';
 
 export interface MarketingEventPayload {
   source?: string;
   plan?: string;
   variant?: string;
+  segment?: string;
+  status?: string;
+  hours_per_week?: number;
+  effort_hours?: number;
 }
 
 /**
@@ -29,9 +35,9 @@ export async function trackMarketingEvent(
 ): Promise<void> {
   // Canonical event for funnel queries while keeping granular variants.
   if (name === 'landing_cta_primary_clicked' || name === 'landing_cta_secondary_clicked') {
-    track('landing_cta_clicked', payload as Record<string, string>);
+    track('landing_cta_clicked', payload as Record<string, string | number | boolean>);
   }
-  track(name, payload as Record<string, string>);
+  track(name, payload as Record<string, string | number | boolean>);
 
   try {
     if (name === 'landing_cta_primary_clicked' || name === 'landing_cta_secondary_clicked') {

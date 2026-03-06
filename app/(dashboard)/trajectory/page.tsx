@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { addMonths, differenceInCalendarDays, format, parseISO, startOfDay } from 'date-fns';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 import {
   AlertTriangle,
   ArrowRight,
@@ -226,6 +227,7 @@ function monthsToWeeks(months: number): number {
 }
 
 export default function TrajectoryPage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [deepLinkedGoalId, setDeepLinkedGoalId] = useState('');
 
@@ -516,19 +518,31 @@ export default function TrajectoryPage() {
   });
 
   const createTaskPackageMutation = useMutation({
-    mutationFn: () => {
-      if (!selectedBlock) throw new Error('Please pick a generated block first.');
+    mutationFn: (variables?: {
+      goalId?: string;
+      taskCount?: number;
+      navigateToToday?: boolean;
+      source?: 'footer' | 'risk_console_alert';
+    }) => {
+      const targetGoalId = variables?.goalId ?? selectedBlock?.goalId;
+      const targetBlock = generatedBlocks.find((block) => block.goalId === targetGoalId);
+      if (!targetGoalId || !targetBlock) throw new Error('Please pick a generated block first.');
+
+      const effectiveTaskCount = Math.max(
+        1,
+        Math.min(60, Math.round(variables?.taskCount ?? taskCount))
+      );
       return apiRequest<{ skippedExisting: boolean; tasks: Array<{ id: string }> }>('/api/trajectory/tasks/package', {
         method: 'POST',
         body: JSON.stringify({
-          goalId: selectedBlock.goalId,
-          startDate: selectedBlock.startDate,
-          endDate: selectedBlock.endDate,
-          taskCount,
+          goalId: targetGoalId,
+          startDate: targetBlock.startDate,
+          endDate: targetBlock.endDate,
+          taskCount: effectiveTaskCount,
         }),
       });
     },
-    onSuccess: (result) => {
+    onSuccess: (result, variables) => {
       if (result.skippedExisting) {
         toast.success('Task package already existed and was reused.');
       } else {
@@ -536,6 +550,9 @@ export default function TrajectoryPage() {
       }
       queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['trajectory', 'overview'] });
+      if (variables?.navigateToToday) {
+        router.push('/today?source=trajectory_risk_bridge');
+      }
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -1215,18 +1232,53 @@ export default function TrajectoryPage() {
                 </div>
               ) : (
                 alerts.map((alert, index) => (
-                  <div
-                    key={`${alert.goalId}-${alert.code}-${index}`}
-                    className={cn(
-                      'rounded-lg border p-3 text-sm',
-                      alert.severity === 'critical'
-                        ? 'border-error/35 bg-error/10 text-error'
-                        : 'border-warning/35 bg-warning/10 text-warning'
-                    )}
-                  >
-                    <p className="font-semibold">{alert.code.replaceAll('_', ' ')}</p>
-                    <p className="mt-0.5 text-xs text-text-secondary">{alert.message}</p>
-                  </div>
+                  (() => {
+                    const alertBlock = generatedBlocks.find((block) => block.goalId === alert.goalId);
+                    const suggestedTaskCount = alertBlock
+                      ? Math.max(3, Math.min(12, alertBlock.requiredWeeks))
+                      : taskCount;
+
+                    return (
+                      <div
+                        key={`${alert.goalId}-${alert.code}-${index}`}
+                        className={cn(
+                          'rounded-lg border p-3 text-sm',
+                          alert.severity === 'critical'
+                            ? 'border-error/35 bg-error/10 text-error'
+                            : 'border-warning/35 bg-warning/10 text-warning'
+                        )}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="font-semibold">{alert.code.replaceAll('_', ' ')}</p>
+                            <p className="mt-0.5 text-xs text-text-secondary">{alert.message}</p>
+                          </div>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="shrink-0"
+                            disabled={!alertBlock}
+                            loading={
+                              createTaskPackageMutation.isPending &&
+                              createTaskPackageMutation.variables?.source === 'risk_console_alert' &&
+                              createTaskPackageMutation.variables?.goalId === alert.goalId
+                            }
+                            onClick={() => {
+                              setSelectedGoalId(alert.goalId);
+                              createTaskPackageMutation.mutate({
+                                goalId: alert.goalId,
+                                taskCount: suggestedTaskCount,
+                                navigateToToday: true,
+                                source: 'risk_console_alert',
+                              });
+                            }}
+                          >
+                            In Today übernehmen
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })()
                 ))
               )}
             </div>
@@ -1394,7 +1446,7 @@ export default function TrajectoryPage() {
           <Button
             variant="secondary"
             size="md"
-            onClick={() => createTaskPackageMutation.mutate()}
+            onClick={() => createTaskPackageMutation.mutate({ source: 'footer' })}
             loading={createTaskPackageMutation.isPending}
             disabled={!selectedBlock}
             leftIcon={computed.summary.atRisk > 0 ? <AlertTriangle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
