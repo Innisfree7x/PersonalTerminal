@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { renderWithProviders, screen, waitFor } from '@/tests/utils/test-utils';
 import TodayPage from '@/app/(dashboard)/today/page';
+import { SoundProvider } from '@/components/providers/SoundProvider';
 
 vi.mock('@/components/features/dashboard/FocusTasks', () => ({
   default: () => <div>Focus Tasks Mock</div>,
@@ -88,7 +89,11 @@ describe('Dashboard Integration', () => {
   });
 
   test('renders dashboard widgets', async () => {
-    renderWithProviders(<TodayPage />);
+    renderWithProviders(
+      <SoundProvider>
+        <TodayPage />
+      </SoundProvider>
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Focus Tasks Mock')).toBeInTheDocument();
@@ -99,7 +104,11 @@ describe('Dashboard Integration', () => {
   });
 
   test('loads next-tasks data from API', async () => {
-    renderWithProviders(<TodayPage />);
+    renderWithProviders(
+      <SoundProvider>
+        <TodayPage />
+      </SoundProvider>
+    );
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith('/api/dashboard/next-tasks');

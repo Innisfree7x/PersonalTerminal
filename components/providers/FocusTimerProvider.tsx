@@ -19,6 +19,7 @@ import {
 } from '@/lib/api/focus-sessions';
 import type { FocusSessionCategory } from '@/lib/schemas/focusSession.schema';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
+import { useAppSound } from '@/lib/hooks/useAppSound';
 
 type TimerStatus = 'idle' | 'running' | 'paused' | 'break' | 'break_paused';
 
@@ -71,6 +72,7 @@ const FocusTimerContext = createContext<FocusTimerContextType | undefined>(undef
 
 const STORAGE_KEY = 'prism-focus-timer';
 const SETTINGS_STORAGE_KEY = 'prism-timer-settings';
+const SOUND_OPT_IN_PROMPT_SEEN_KEY = 'innis:sound-opt-in-prompt-seen:v1';
 
 interface PersistedState {
   status: TimerStatus;
@@ -123,27 +125,9 @@ function storageRemove(key: string): void {
   }
 }
 
-function playNotificationSound() {
-  try {
-    const audioCtx = new AudioContext();
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
-    oscillator.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
-    oscillator.frequency.setValueAtTime(800, audioCtx.currentTime + 0.2);
-    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-    oscillator.start(audioCtx.currentTime);
-    oscillator.stop(audioCtx.currentTime + 0.4);
-  } catch {
-    // Audio not available
-  }
-}
-
 export function FocusTimerProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
+  const { settings: appSoundSettings, setEnabled: setAppSoundEnabled, play: playAppSound } = useAppSound();
 
   const [status, setStatus] = useState<TimerStatus>('idle');
   const [timeLeft, setTimeLeft] = useState(0);
@@ -168,6 +152,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startedAtRef = useRef<Date | null>(null);
   const hasRestoredRef = useRef(false);
+  const soundPromptDisplayedRef = useRef(false);
 
   // Fetch today's summary
   const { data: todaySummary } = useQuery({
@@ -242,18 +227,66 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
   );
 
   // Timer completion handler
+  const maybePromptForSoundOptIn = useCallback(() => {
+    if (soundPromptDisplayedRef.current) return;
+    if (appSoundSettings.enabled) return;
+    if (settings.soundEnabled === false) return;
+    const alreadySeen = storageGet(SOUND_OPT_IN_PROMPT_SEEN_KEY) === '1';
+    if (alreadySeen) return;
+
+    soundPromptDisplayedRef.current = true;
+    storageSet(SOUND_OPT_IN_PROMPT_SEEN_KEY, '1');
+
+    toast.custom(
+      (toastCtx) => (
+        <div className="w-[21rem] rounded-xl border border-primary/35 bg-surface p-3.5 shadow-2xl">
+          <p className="text-sm font-semibold text-text-primary">Sound feedback aktivieren?</p>
+          <p className="mt-1 text-xs leading-relaxed text-text-secondary">
+            Du hast deine erste Fokus-Session abgeschlossen. Aktiviere dezente Produkt-Sounds für Abschluss,
+            Statuswechsel und Momentum.
+          </p>
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              type="button"
+              className="rounded-md border border-primary/40 bg-primary/15 px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/22"
+              onClick={() => {
+                setAppSoundEnabled(true);
+                playAppSound('focus-end', { force: true });
+                toast.dismiss(toastCtx.id);
+                toast.success('Sound feedback aktiviert.');
+              }}
+            >
+              Aktivieren
+            </button>
+            <button
+              type="button"
+              className="rounded-md border border-border bg-surface-hover px-2.5 py-1.5 text-xs text-text-secondary hover:text-text-primary"
+              onClick={() => toast.dismiss(toastCtx.id)}
+            >
+              Nicht jetzt
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 12000 }
+    );
+  }, [appSoundSettings.enabled, playAppSound, setAppSoundEnabled, settings.soundEnabled]);
+
   const handleTimerComplete = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = null;
 
-    if (settings.soundEnabled) {
-      playNotificationSound();
+    if (settings.soundEnabled && appSoundSettings.enabled) {
+      playAppSound('focus-end');
     }
 
     if (sessionType === 'focus') {
       dispatchChampionEvent({ type: 'FOCUS_END' });
       // Save focus session
       saveSession(true, totalTime, totalTime, 'focus');
+      if (settings.soundEnabled && !appSoundSettings.enabled) {
+        maybePromptForSoundOptIn();
+      }
       const newPomodoros = completedPomodoros + 1;
       setCompletedPomodoros(newPomodoros);
 
@@ -284,7 +317,16 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
       startedAtRef.current = null;
       storageRemove(STORAGE_KEY);
     }
-  }, [sessionType, totalTime, completedPomodoros, settings, saveSession]);
+  }, [
+    appSoundSettings.enabled,
+    completedPomodoros,
+    maybePromptForSoundOptIn,
+    playAppSound,
+    saveSession,
+    sessionType,
+    settings,
+    totalTime,
+  ]);
 
   // Interval tick
   useEffect(() => {

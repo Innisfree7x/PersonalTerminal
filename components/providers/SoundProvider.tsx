@@ -14,6 +14,10 @@ export type SoundEvent =
   | 'pop'
   | 'swoosh'
   | 'click'
+  | 'focus-end'
+  | 'momentum-up'
+  | 'trajectory-on-track'
+  | 'trajectory-at-risk'
   | 'champ-move'
   | 'champ-q'
   | 'champ-w'
@@ -50,17 +54,32 @@ export interface SoundContextType {
 // ─── Defaults ─────────────────────────────────────────────────────────────────
 
 const DEFAULTS: SoundSettings = {
-  enabled: true,
-  masterVolume: 0.45,
-  notificationSound: 'teams-default',
+  enabled: false,
+  masterVolume: 0.35,
+  notificationSound: 'classic',
 };
-const STORAGE_KEY = 'prism-sound-settings';
+const STORAGE_KEY = 'innis:sound-settings:v1';
+const LEGACY_STORAGE_KEYS = ['prism-sound-settings'];
+
+function canReadStorage(): boolean {
+  if (typeof window === 'undefined') return false;
+  return typeof window.localStorage?.getItem === 'function';
+}
+
+function canWriteStorage(): boolean {
+  if (typeof window === 'undefined') return false;
+  return typeof window.localStorage?.setItem === 'function';
+}
 
 // Per-event base gain (relative to masterVolume)
 const EVENT_GAIN: Record<SoundEvent, number> = {
   pop: 0.9,
   swoosh: 0.8,
   click: 0.45, // click is quieter by design
+  'focus-end': 0.65,
+  'momentum-up': 0.8,
+  'trajectory-on-track': 0.7,
+  'trajectory-at-risk': 0.5,
   'champ-move': 0.4,
   'champ-q': 0.85,
   'champ-w': 0.55,
@@ -78,6 +97,10 @@ const COOLDOWN: Record<SoundEvent, number> = {
   pop: 200,
   swoosh: 250,
   click: 150,
+  'focus-end': 900,
+  'momentum-up': 1200,
+  'trajectory-on-track': 1400,
+  'trajectory-at-risk': 1400,
   'champ-move': 120,
   'champ-q': 220,
   'champ-w': 260,
@@ -201,10 +224,99 @@ function synthClick(ctx: AudioContext, gain: number): void {
   ns.start(ctx.currentTime);
 }
 
+function synthFocusEnd(ctx: AudioContext, gain: number): void {
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const amp = ctx.createGain();
+
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(440, now);
+  osc.frequency.exponentialRampToValueAtTime(360, now + 0.32);
+
+  amp.gain.setValueAtTime(0, now);
+  amp.gain.linearRampToValueAtTime(gain, now + 0.04);
+  amp.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+
+  osc.connect(amp);
+  amp.connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.4);
+}
+
+function synthMomentumUp(ctx: AudioContext, gain: number): void {
+  const now = ctx.currentTime;
+  const notes = [523.25, 659.25, 783.99]; // C5 -> E5 -> G5
+  notes.forEach((freq, index) => {
+    const osc = ctx.createOscillator();
+    const amp = ctx.createGain();
+    const start = now + index * 0.06;
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, start);
+    osc.frequency.exponentialRampToValueAtTime(freq * 1.02, start + 0.12);
+
+    amp.gain.setValueAtTime(0.0001, start);
+    amp.gain.exponentialRampToValueAtTime(gain * (0.7 - index * 0.1), start + 0.02);
+    amp.gain.exponentialRampToValueAtTime(0.0001, start + 0.16);
+
+    osc.connect(amp);
+    amp.connect(ctx.destination);
+    osc.start(start);
+    osc.stop(start + 0.17);
+  });
+}
+
+function synthTrajectoryOnTrack(ctx: AudioContext, gain: number): void {
+  const now = ctx.currentTime;
+  const oscA = ctx.createOscillator();
+  const oscB = ctx.createOscillator();
+  const amp = ctx.createGain();
+
+  oscA.type = 'sine';
+  oscB.type = 'triangle';
+  oscA.frequency.setValueAtTime(392, now); // G4
+  oscB.frequency.setValueAtTime(493.88, now); // B4
+
+  amp.gain.setValueAtTime(0.0001, now);
+  amp.gain.exponentialRampToValueAtTime(gain * 0.8, now + 0.03);
+  amp.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+
+  oscA.connect(amp);
+  oscB.connect(amp);
+  amp.connect(ctx.destination);
+  oscA.start(now);
+  oscB.start(now + 0.01);
+  oscA.stop(now + 0.3);
+  oscB.stop(now + 0.29);
+}
+
+function synthTrajectoryAtRisk(ctx: AudioContext, gain: number): void {
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const amp = ctx.createGain();
+
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(220, now);
+  osc.frequency.exponentialRampToValueAtTime(170, now + 0.22);
+
+  amp.gain.setValueAtTime(0.0001, now);
+  amp.gain.exponentialRampToValueAtTime(gain * 0.65, now + 0.015);
+  amp.gain.exponentialRampToValueAtTime(0.0001, now + 0.26);
+
+  osc.connect(amp);
+  amp.connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.28);
+}
+
 const SYNTHS: Record<SoundEvent, (ctx: AudioContext, gain: number) => void> = {
   pop: synthPop,
   swoosh: synthSwoosh,
   click: synthClick,
+  'focus-end': synthFocusEnd,
+  'momentum-up': synthMomentumUp,
+  'trajectory-on-track': synthTrajectoryOnTrack,
+  'trajectory-at-risk': synthTrajectoryAtRisk,
   'champ-move': synthClick,
   'champ-q': synthSwoosh,
   'champ-w': synthClick,
@@ -257,8 +369,18 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
 
   // ── Hydration ──────────────────────────────────────────────────────────────
   useEffect(() => {
+    if (!canReadStorage()) {
+      setMounted(true);
+      return;
+    }
+
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw =
+        localStorage.getItem(STORAGE_KEY) ??
+        LEGACY_STORAGE_KEYS.map((key) => localStorage.getItem(key)).find(
+          (value): value is string => typeof value === 'string' && value.length > 0
+        ) ??
+        null;
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<SoundSettings>;
         setSettings((prev) => ({
@@ -278,7 +400,7 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
 
   // ── Persist ────────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || !canWriteStorage()) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   }, [settings, mounted]);
 
@@ -304,7 +426,7 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
       }
     ) => {
       if (!mounted) return;
-      if (!settings.enabled) return;
+      if (!settings.enabled && !options?.force) return;
       if (typeof window === 'undefined') return;
 
       // Respect prefers-reduced-motion

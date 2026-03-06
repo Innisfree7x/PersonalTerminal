@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { X, Sparkles, Target, ArrowRight } from 'lucide-react';
+import { X, Sparkles, Target, ArrowRight, Gauge, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import FocusTasks from '@/components/features/dashboard/FocusTasks';
@@ -30,8 +30,29 @@ import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 import { buildTrajectoryMorningBriefing, type TrajectoryBriefOverview } from '@/lib/dashboard/trajectoryBriefing';
 import { trackAppEvent } from '@/lib/analytics/client';
 import type { RankedExecutionCandidate } from '@/lib/application/use-cases/execution-engine';
+import { useAppSound } from '@/lib/hooks/useAppSound';
 
 const WELCOME_KEY = 'innis_welcomed_v1';
+const LAST_MOMENTUM_SCORE_KEY = 'innis:last-momentum-score:v1';
+
+type TrajectoryMomentumResponse = {
+  generatedAt: string;
+  momentum: {
+    score: number;
+    delta: number;
+    trend: 'up' | 'flat' | 'down';
+    stats: {
+      onTrack: number;
+      tight: number;
+      atRisk: number;
+      activeGoals: number;
+      plannedHoursPerWeek: number;
+      last7DaysHours: number;
+      previous7DaysHours: number;
+      capacityRatio: number;
+    };
+  };
+};
 
 function hasWelcomedUser(): boolean {
   if (typeof window === 'undefined') return true;
@@ -53,6 +74,7 @@ function markUserWelcomed(): void {
 
 export default function TodayPage() {
   const queryClient = useQueryClient();
+  const { play } = useAppSound();
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
 
@@ -135,6 +157,20 @@ export default function TodayPage() {
     refetchOnReconnect: false,
   });
 
+  const { data: momentumData } = useQuery<TrajectoryMomentumResponse>({
+    queryKey: ['trajectory', 'momentum'],
+    queryFn: async () => {
+      const response = await fetch('/api/trajectory/momentum');
+      if (!response.ok) {
+        throw new Error('Failed to fetch trajectory momentum');
+      }
+      return response.json();
+    },
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+
   // Disconnect mutation
   const disconnectMutation = useMutation({
     mutationFn: disconnectGoogleCalendarAction,
@@ -163,6 +199,7 @@ export default function TodayPage() {
   const stats = nextTasksData?.stats;
   const studyProgress = nextTasksData?.studyProgress || [];
   const trajectoryBriefing = buildTrajectoryMorningBriefing(trajectoryOverview);
+  const momentum = momentumData?.momentum ?? null;
   const trajectoryBriefingHref = trajectoryBriefing
     ? `/trajectory?goalId=${encodeURIComponent(trajectoryBriefing.goalId)}&source=morning_briefing`
     : '/trajectory?source=morning_briefing';
@@ -173,6 +210,24 @@ export default function TodayPage() {
       dispatchChampionEvent({ type: 'DEADLINE_WARNING', hoursLeft: Math.max(1, days * 24) });
     }
   }, [stats?.nextExam?.daysUntilExam]);
+
+  useEffect(() => {
+    if (!momentum || momentum.trend !== 'up') return;
+    if (typeof window === 'undefined') return;
+
+    const previousRaw = window.localStorage.getItem(LAST_MOMENTUM_SCORE_KEY);
+    const previousScore = previousRaw ? Number(previousRaw) : null;
+    if (previousScore === null || Number.isNaN(previousScore)) {
+      window.localStorage.setItem(LAST_MOMENTUM_SCORE_KEY, String(momentum.score));
+      return;
+    }
+
+    const increasedBy = momentum.score - previousScore;
+    if (increasedBy >= 2) {
+      play('momentum-up');
+    }
+    window.localStorage.setItem(LAST_MOMENTUM_SCORE_KEY, String(momentum.score));
+  }, [momentum, play]);
 
   const prioritizedMoves = useMemo(() => {
     const pool = [nextTasksData?.nextBestAction, ...(nextTasksData?.nextBestAlternatives ?? [])]
@@ -291,6 +346,75 @@ export default function TodayPage() {
           </div>
         )}
       </motion.div>
+
+      {momentum ? (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.16, delay: 0.01 }}
+          className="relative overflow-hidden rounded-xl border border-border bg-surface/70 p-4"
+        >
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent" />
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="inline-flex items-center gap-2 text-sm font-semibold text-text-primary">
+                <Gauge className="h-4 w-4 text-primary" />
+                Momentum score
+              </p>
+              <p className="mt-1 text-xs text-text-secondary">
+                Weekly trajectory heartbeat based on risk status + capacity trend.
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-bold text-text-primary">{momentum.score}</p>
+              <p
+                className={`inline-flex items-center gap-1 text-xs font-medium ${
+                  momentum.delta > 0
+                    ? 'text-emerald-400'
+                    : momentum.delta < 0
+                      ? 'text-red-400'
+                      : 'text-text-tertiary'
+                }`}
+              >
+                {momentum.delta > 0 ? (
+                  <TrendingUp className="h-3.5 w-3.5" />
+                ) : momentum.delta < 0 ? (
+                  <TrendingDown className="h-3.5 w-3.5" />
+                ) : (
+                  <Minus className="h-3.5 w-3.5" />
+                )}
+                {momentum.delta > 0 ? `+${momentum.delta}` : momentum.delta} vs last week
+              </p>
+            </div>
+          </div>
+          {momentum.stats.activeGoals > 0 ? (
+            <div className="mt-3 grid gap-2 text-xs sm:grid-cols-4">
+              <div className="rounded-lg border border-white/10 bg-background/40 px-3 py-2">
+                <p className="text-text-tertiary">On track</p>
+                <p className="mt-0.5 text-sm font-semibold text-emerald-400">{momentum.stats.onTrack}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-background/40 px-3 py-2">
+                <p className="text-text-tertiary">Tight</p>
+                <p className="mt-0.5 text-sm font-semibold text-amber-300">{momentum.stats.tight}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-background/40 px-3 py-2">
+                <p className="text-text-tertiary">At risk</p>
+                <p className="mt-0.5 text-sm font-semibold text-red-400">{momentum.stats.atRisk}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-background/40 px-3 py-2">
+                <p className="text-text-tertiary">Focus load</p>
+                <p className="mt-0.5 text-sm font-semibold text-text-primary">
+                  {momentum.stats.last7DaysHours.toFixed(1)}h / {momentum.stats.plannedHoursPerWeek}h
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-3 rounded-lg border border-white/10 bg-background/40 px-3 py-2 text-xs text-text-secondary">
+              No active milestones yet. Add your first goal in trajectory to activate a real momentum score.
+            </div>
+          )}
+        </motion.div>
+      ) : null}
 
       {prioritizedMoves.length > 0 ? (
         <motion.div

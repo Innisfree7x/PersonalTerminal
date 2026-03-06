@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { addMonths, differenceInCalendarDays, format, parseISO, startOfDay } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -27,6 +27,7 @@ import { Input, Textarea } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { buildTimelineRuler } from '@/lib/trajectory/timeline';
 import { cn } from '@/lib/utils';
+import { useAppSound } from '@/lib/hooks/useAppSound';
 
 type GoalCategory = 'thesis' | 'gmat' | 'master_app' | 'internship' | 'other';
 type GoalStatus = 'active' | 'done' | 'archived';
@@ -229,6 +230,8 @@ function monthsToWeeks(months: number): number {
 export default function TrajectoryPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { play } = useAppSound();
+  const previousOverallStatusRef = useRef<RiskStatus | null>(null);
   const [deepLinkedGoalId, setDeepLinkedGoalId] = useState('');
 
   const [simulationHours, setSimulationHours] = useState<number | null>(null);
@@ -313,6 +316,31 @@ export default function TrajectoryPage() {
     [computed?.generatedBlocks]
   );
   const alerts = useMemo(() => computed?.alerts ?? EMPTY_ALERTS, [computed?.alerts]);
+
+  const overallStatus = useMemo<RiskStatus>(() => {
+    if (!computed?.summary) return 'on_track';
+    if (computed.summary.atRisk > 0) return 'at_risk';
+    if (computed.summary.tight > 0) return 'tight';
+    return 'on_track';
+  }, [computed?.summary]);
+
+  useEffect(() => {
+    const previous = previousOverallStatusRef.current;
+    if (!previous) {
+      previousOverallStatusRef.current = overallStatus;
+      return;
+    }
+    if (previous === overallStatus) return;
+
+    const becameRisk = overallStatus === 'at_risk' && previous !== 'at_risk';
+    const recovered = previous !== 'on_track' && overallStatus === 'on_track';
+    if (becameRisk) {
+      play('trajectory-at-risk');
+    } else if (recovered) {
+      play('trajectory-on-track');
+    }
+    previousOverallStatusRef.current = overallStatus;
+  }, [overallStatus, play]);
 
   useEffect(() => {
     if (generatedBlocks.length === 0) {

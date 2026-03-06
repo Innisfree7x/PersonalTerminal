@@ -6,6 +6,7 @@ import { ArrowRight, CalendarRange, Gauge, Sparkles, ChevronRight } from 'lucide
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { trackOnboardingEvent } from '@/app/onboarding/analytics';
+import { useAppSound } from '@/lib/hooks/useAppSound';
 
 export type TrajectoryRiskStatus = 'on_track' | 'tight' | 'at_risk';
 
@@ -88,6 +89,7 @@ export function StepTrajectoryPlan({
   existingSummary,
   onNext,
 }: StepTrajectoryPlanProps) {
+  const { play } = useAppSound();
   const [hoursPerWeek, setHoursPerWeek] = useState(initialSettings?.hoursPerWeek ?? 8);
   const [horizonMonths, setHorizonMonths] = useState(initialSettings?.horizonMonths ?? 24);
   const [saving, setSaving] = useState(false);
@@ -160,6 +162,11 @@ export function StepTrajectoryPlan({
 
       setSummary(nextSummary);
       trackOnboardingEvent('trajectory_status_shown', { status: nextSummary.status });
+      if (nextSummary.status === 'on_track') {
+        play('trajectory-on-track');
+      } else if (nextSummary.status === 'at_risk') {
+        play('trajectory-at-risk');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Plan konnte nicht berechnet werden. Bitte erneut versuchen.');
     } finally {

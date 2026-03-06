@@ -3,9 +3,14 @@ import type { ReactElement } from 'react';
 import { fireEvent, renderWithProviders, screen, waitFor } from '@/tests/utils/test-utils';
 import PomodoroTimer from '@/components/features/dashboard/PomodoroTimer';
 import { FocusTimerProvider } from '@/components/providers/FocusTimerProvider';
+import { SoundProvider } from '@/components/providers/SoundProvider';
 
 function renderWithFocusProvider(ui: ReactElement) {
-  return renderWithProviders(<FocusTimerProvider>{ui}</FocusTimerProvider>);
+  return renderWithProviders(
+    <SoundProvider>
+      <FocusTimerProvider>{ui}</FocusTimerProvider>
+    </SoundProvider>
+  );
 }
 
 describe('PomodoroTimer', () => {
