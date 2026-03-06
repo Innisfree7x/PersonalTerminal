@@ -157,9 +157,11 @@ export default function FocusTasks() {
     mutationFn: ({ id, completed }: { id: string; completed: boolean }) =>
       updateDailyTaskAction(id, { completed }),
     onSuccess: (_data, variables) => {
-      play('pop');
       if (variables.completed) {
+        play('task-completed');
         dispatchChampionEvent({ type: 'TASK_COMPLETED' });
+      } else {
+        play('click');
       }
       queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
@@ -177,7 +179,7 @@ export default function FocusTasks() {
     mutationFn: ({ courseId, exerciseNumber }: { courseId: string; exerciseNumber: number }) =>
       toggleExerciseCompletionAction(courseId, exerciseNumber, true),
     onSuccess: () => {
-      play('pop');
+      play('task-completed');
       dispatchChampionEvent({ type: 'EXERCISE_COMPLETED' });
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['courses'] });

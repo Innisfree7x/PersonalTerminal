@@ -52,7 +52,7 @@ Both must happen in the same session window (<= 30 minutes) for "Aha reached".
   - sound setting enabled
   - immediate preview cue plays
 - Core app cues available:
-  - `focus-end`
+  - `task-completed`
   - `trajectory-on-track`
   - `trajectory-at-risk`
   - `momentum-up`
@@ -62,7 +62,7 @@ Both must happen in the same session window (<= 30 minutes) for "Aha reached".
   - no forced autoplay outside explicit preview/opt-in actions
 
 Cooldown scope for default 10s:
-- `focus-end`
+- `task-completed`
 - `trajectory-on-track`
 - `trajectory-at-risk`
 - `momentum-up`

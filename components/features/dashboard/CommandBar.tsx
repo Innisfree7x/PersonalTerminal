@@ -13,6 +13,7 @@ import type { RankedExecutionCandidate, ExecutionRiskSignal } from '@/lib/applic
 import { useStreak } from '@/lib/hooks/useStreak';
 import { createDailyTaskAction, updateDailyTaskAction } from '@/app/actions/daily-tasks';
 import { toggleExerciseCompletionAction } from '@/app/actions/university';
+import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -208,7 +209,8 @@ function ActionSection({ nextBestAction, alternatives, riskSignals, onChanged }:
         const taskId = String(payload.taskId ?? '');
         if (!taskId) throw new Error('Missing task id');
         await updateDailyTaskAction(taskId, { completed: true });
-        play('pop');
+        play('task-completed');
+        dispatchChampionEvent({ type: 'TASK_COMPLETED' });
         toast.success('Task completed');
         break;
       }
@@ -217,7 +219,8 @@ function ActionSection({ nextBestAction, alternatives, riskSignals, onChanged }:
         const exerciseNumber = Number(payload.exerciseNumber ?? 0);
         if (!courseId || !exerciseNumber) throw new Error('Missing homework payload');
         await toggleExerciseCompletionAction(courseId, exerciseNumber, true);
-        play('pop');
+        play('task-completed');
+        dispatchChampionEvent({ type: 'EXERCISE_COMPLETED' });
         toast.success('Exercise completed');
         break;
       }

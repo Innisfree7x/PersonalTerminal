@@ -14,6 +14,7 @@ export type SoundEvent =
   | 'pop'
   | 'swoosh'
   | 'click'
+  | 'task-completed'
   | 'focus-end'
   | 'momentum-up'
   | 'trajectory-on-track'
@@ -76,6 +77,7 @@ const EVENT_GAIN: Record<SoundEvent, number> = {
   pop: 0.9,
   swoosh: 0.8,
   click: 0.45, // click is quieter by design
+  'task-completed': 0.9,
   'focus-end': 0.65,
   'momentum-up': 0.8,
   'trajectory-on-track': 0.7,
@@ -97,6 +99,7 @@ const COOLDOWN: Record<SoundEvent, number> = {
   pop: 200,
   swoosh: 250,
   click: 150,
+  'task-completed': 10_000,
   'focus-end': 10_000,
   'momentum-up': 10_000,
   'trajectory-on-track': 10_000,
@@ -313,6 +316,7 @@ const SYNTHS: Record<SoundEvent, (ctx: AudioContext, gain: number) => void> = {
   pop: synthPop,
   swoosh: synthSwoosh,
   click: synthClick,
+  'task-completed': synthPop,
   'focus-end': synthFocusEnd,
   'momentum-up': synthMomentumUp,
   'trajectory-on-track': synthTrajectoryOnTrack,
@@ -338,6 +342,9 @@ export function resolveSampleSrcForEvent(
   }
 
   if (event === 'pop') {
+    return '/sounds/teams-default.mp3';
+  }
+  if (event === 'task-completed') {
     return '/sounds/teams-default.mp3';
   }
   if (event === 'swoosh') {
