@@ -57,9 +57,15 @@ Both must happen in the same session window (<= 30 minutes) for "Aha reached".
   - `trajectory-at-risk`
   - `momentum-up`
 - Playback guardrails:
-  - per-event cooldown
+  - per-event cooldown (default: **10 seconds per product cue event**)
   - global reduced-motion respect
   - no forced autoplay outside explicit preview/opt-in actions
+
+Cooldown scope for default 10s:
+- `focus-end`
+- `trajectory-on-track`
+- `trajectory-at-risk`
+- `momentum-up`
 
 ## Crisis Mode Policy (locked for next phase)
 
@@ -99,4 +105,5 @@ Ops dashboard must expose:
 - avg time `signup -> trajectory_status_shown`
 - waitlist segment distribution
 
-Implementation can be incremental but contract is fixed.
+Release dependency:
+- Ops visibility above must go live in the same rollout as Momentum Score (no defer).
