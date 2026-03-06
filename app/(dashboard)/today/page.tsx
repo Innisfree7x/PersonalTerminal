@@ -72,6 +72,12 @@ function markUserWelcomed(): void {
   }
 }
 
+function resolveMoveHref(type: RankedExecutionCandidate['type']): string {
+  if (type === 'interview') return '/career';
+  if (type === 'goal') return '/goals';
+  return '/today';
+}
+
 export default function TodayPage() {
   const queryClient = useQueryClient();
   const { play } = useAppSound();
@@ -396,6 +402,29 @@ export default function TodayPage() {
         </div>
       </motion.div>
 
+      <CommandBar
+        tasksToday={stats?.tasksToday ?? 0}
+        tasksCompleted={stats?.tasksCompleted ?? 0}
+        exercisesCompleted={stats?.exercisesThisWeek ?? 0}
+        exercisesTotal={stats?.exercisesTotal ?? 0}
+        nextExam={
+          stats?.nextExam && typeof stats.nextExam.daysUntilExam === 'number'
+            ? { name: stats.nextExam.name, daysUntilExam: stats.nextExam.daysUntilExam }
+            : null
+        }
+        goalsDueSoon={stats?.goalsDueSoon ?? 0}
+        interviewsUpcoming={stats?.interviewsUpcoming ?? 0}
+        executionScore={nextTasksData?.executionScore ?? 0}
+        nextBestAction={nextTasksData?.nextBestAction ?? null}
+        alternatives={nextTasksData?.nextBestAlternatives ?? []}
+        riskSignals={nextTasksData?.riskSignals ?? []}
+        onChanged={() => {
+          queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
+          queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
+          queryClient.invalidateQueries({ queryKey: ['courses'] });
+        }}
+      />
+
       {prioritizedMoves.length > 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
@@ -409,7 +438,7 @@ export default function TodayPage() {
               Heute kritisch: Top 3 Moves
             </p>
             <span className="text-[11px] text-text-tertiary">
-              priorisiert nach Impact + Deadline
+              direkt in den passenden Bereich springen
             </span>
           </div>
           <div className="grid gap-2 md:grid-cols-3">
@@ -435,43 +464,23 @@ export default function TodayPage() {
                 <p className="mt-0.5 line-clamp-2 text-xs text-text-secondary">
                   {move.subtitle || move.reasons[0] || 'High-impact action'}
                 </p>
-                <p className="mt-1.5 text-[11px] text-text-tertiary">
-                  Score {Math.round(move.score)}
-                </p>
+                <div className="mt-2 flex items-center justify-between">
+                  <p className="text-[11px] text-text-tertiary">
+                    Score {Math.round(move.score)}
+                  </p>
+                  <Link
+                    href={resolveMoveHref(move.type)}
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:text-primary-hover"
+                  >
+                    Öffnen
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
+                </div>
               </div>
             ))}
           </div>
-          <div className="mt-2 flex justify-end">
-            <Link href="/trajectory" className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-hover">
-              Strategie öffnen
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
         </motion.div>
       ) : null}
-
-      <CommandBar
-        tasksToday={stats?.tasksToday ?? 0}
-        tasksCompleted={stats?.tasksCompleted ?? 0}
-        exercisesCompleted={stats?.exercisesThisWeek ?? 0}
-        exercisesTotal={stats?.exercisesTotal ?? 0}
-        nextExam={
-          stats?.nextExam && typeof stats.nextExam.daysUntilExam === 'number'
-            ? { name: stats.nextExam.name, daysUntilExam: stats.nextExam.daysUntilExam }
-            : null
-        }
-        goalsDueSoon={stats?.goalsDueSoon ?? 0}
-        interviewsUpcoming={stats?.interviewsUpcoming ?? 0}
-        executionScore={nextTasksData?.executionScore ?? 0}
-        nextBestAction={nextTasksData?.nextBestAction ?? null}
-        alternatives={nextTasksData?.nextBestAlternatives ?? []}
-        riskSignals={nextTasksData?.riskSignals ?? []}
-        onChanged={() => {
-          queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
-          queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
-          queryClient.invalidateQueries({ queryKey: ['courses'] });
-        }}
-      />
 
       {/* MAIN 3-COLUMN GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
