@@ -27,10 +27,10 @@ const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-surface border border-border rounded-lg px-3 py-2 shadow-lg">
-      <p className="text-xs text-text-tertiary mb-1">{DAY_LABELS[parseInt(label)]}</p>
-      <p className="text-sm font-medium text-text-primary">{payload[0].value} min</p>
-      <p className="text-xs text-text-tertiary">{payload[0].payload.sessions} sessions</p>
+    <div className="rounded-xl border border-white/[0.12] bg-zinc-950/90 px-3 py-2 shadow-2xl backdrop-blur-md">
+      <p className="text-[10px] text-zinc-500 mb-0.5">{DAY_LABELS[parseInt(label)]}</p>
+      <p className="text-xs font-semibold text-text-primary">{payload[0].value} min</p>
+      <p className="text-[10px] text-zinc-500">{payload[0].payload.sessions} sessions</p>
     </div>
   );
 }
@@ -68,13 +68,17 @@ const WeekdayChart = memo(function WeekdayChart({ data }: WeekdayChartProps) {
               axisLine={false}
               tickFormatter={(val) => `${val}m`}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
             <Bar
               dataKey="totalMinutes"
               fill="#EAB308"
               radius={[4, 4, 0, 0]}
               maxBarSize={40}
               opacity={0.8}
+              isAnimationActive={true}
+              animationBegin={0}
+              animationDuration={800}
+              animationEasing="ease-out"
             />
           </BarChart>
         </ResponsiveContainer>

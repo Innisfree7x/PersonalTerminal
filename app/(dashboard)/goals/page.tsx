@@ -326,24 +326,24 @@ export default function GoalsPage() {
         transition={{ duration: 0.12 }}
         className="grid grid-cols-2 md:grid-cols-4 gap-4"
       >
-        <div className="card-surface p-4">
+        <div className="card-surface rounded-xl p-4">
           <div className="text-2xl font-bold text-text-primary">{stats.total}</div>
-          <div className="text-xs text-text-tertiary">Total Goals</div>
+          <div className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 mt-0.5">Total Goals</div>
         </div>
-        <div className="bg-success/10 border border-success/30 rounded-lg p-4">
+        <div className="card-surface rounded-xl p-4">
           <div className="text-2xl font-bold text-success">{stats.completed}</div>
-          <div className="text-xs text-text-tertiary">Completed</div>
+          <div className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 mt-0.5">Completed</div>
         </div>
-        <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
+        <div className="card-surface rounded-xl p-4">
           <div className="text-2xl font-bold text-primary">
             {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%
           </div>
-          <div className="text-xs text-text-tertiary">Success Rate</div>
+          <div className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 mt-0.5">Success Rate</div>
         </div>
         {stats.overdue > 0 && (
-          <div className="bg-error/10 border border-error/30 rounded-lg p-4">
+          <div className="card-surface rounded-xl p-4">
             <div className="text-2xl font-bold text-error">{stats.overdue}</div>
-            <div className="text-xs text-text-tertiary">Overdue</div>
+            <div className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 mt-0.5">Overdue</div>
           </div>
         )}
       </motion.div>

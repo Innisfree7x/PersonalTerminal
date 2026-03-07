@@ -26,14 +26,14 @@ interface DailyFocusChartProps {
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-surface border border-border rounded-lg px-3 py-2 shadow-lg">
-      <p className="text-xs text-text-tertiary mb-1">
+    <div className="rounded-xl border border-white/[0.12] bg-zinc-950/90 px-3 py-2 shadow-2xl backdrop-blur-md">
+      <p className="text-[10px] text-zinc-500 mb-0.5">
         {format(parseISO(label), 'EEE, MMM d')}
       </p>
-      <p className="text-sm font-medium text-text-primary">
+      <p className="text-xs font-semibold text-text-primary">
         {payload[0].value} min
       </p>
-      <p className="text-xs text-text-tertiary">
+      <p className="text-[10px] text-zinc-500">
         {payload[0].payload.sessions} sessions
       </p>
     </div>
@@ -74,7 +74,7 @@ const DailyFocusChart = memo(function DailyFocusChart({ data }: DailyFocusChartP
               axisLine={false}
               tickFormatter={(val) => `${val}m`}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.08)' }} />
             <Area
               type="monotone"
               dataKey="totalMinutes"
@@ -83,6 +83,10 @@ const DailyFocusChart = memo(function DailyFocusChart({ data }: DailyFocusChartP
               fill="url(#focusGradient)"
               dot={false}
               activeDot={{ r: 4, fill: '#EAB308', strokeWidth: 0 }}
+              isAnimationActive={true}
+              animationBegin={0}
+              animationDuration={800}
+              animationEasing="ease-out"
             />
           </AreaChart>
         </ResponsiveContainer>

@@ -52,6 +52,15 @@ export default function CourseCard({
     return 'info';
   };
 
+  const urgencyRing =
+    daysUntilExam !== null && !examWritten && daysUntilExam <= 1
+      ? 'ring-2 ring-red-500/50 shadow-[0_0_12px_2px_rgba(239,68,68,0.2)]'
+      : daysUntilExam !== null && !examWritten && daysUntilExam <= 3
+        ? 'ring-2 ring-amber-500/40'
+        : daysUntilExam !== null && !examWritten && daysUntilExam <= 7
+          ? 'ring-1 ring-amber-400/25'
+          : '';
+
   const gradeColor = (grade: number) => {
     if (grade <= 1.3) return 'text-emerald-400';
     if (grade <= 2.3) return 'text-sky-400';
@@ -111,7 +120,7 @@ export default function CourseCard({
           ? 'from-emerald-500/[0.06] to-transparent border-emerald-500/25'
           : focused
             ? 'from-university-accent/10 to-transparent border-primary/70 ring-1 ring-primary/40'
-            : 'from-university-accent/10 to-transparent border-university-accent/30'
+            : `from-university-accent/10 to-transparent border-university-accent/30 ${urgencyRing}`
       }`}
       whileHover={{ y: -2 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
@@ -183,9 +192,15 @@ export default function CourseCard({
                       )}
                     </div>
                   ) : daysUntilExam !== null ? (
-                    <Badge variant={getExamUrgency()} size="sm">
-                      {daysUntilExam}d left
-                    </Badge>
+                    daysUntilExam <= 7 ? (
+                      <span className="font-mono text-[10px] font-semibold text-amber-300">
+                        {daysUntilExam === 0 ? 'Heute' : daysUntilExam === 1 ? 'Morgen' : `${daysUntilExam}d`}
+                      </span>
+                    ) : (
+                      <Badge variant={getExamUrgency()} size="sm">
+                        {daysUntilExam}d left
+                      </Badge>
+                    )
                   ) : null}
                 </>
               )}

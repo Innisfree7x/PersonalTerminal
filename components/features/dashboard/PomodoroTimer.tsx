@@ -34,6 +34,7 @@ const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: Pomodor
   const isIdle = status === 'idle';
   const isRunning = status === 'running' || status === 'break';
   const isBreak = sessionType === 'break';
+  const isWarning = !isIdle && !isBreak && timeLeft < 300;
 
   // When idle, show the selected duration as the "ready" state
   const displayTime = isIdle ? selectedDuration * 60 : timeLeft;
@@ -194,7 +195,7 @@ const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: Pomodor
             stroke="currentColor"
             strokeWidth="3"
             strokeLinecap="round"
-            className={isBreak ? 'text-success' : 'text-primary'}
+            className={`transition-colors duration-1000 ${isBreak ? 'text-success' : isWarning ? 'text-red-400' : 'text-primary'}`}
             style={{
               strokeDasharray: `${2 * Math.PI * 45}`,
               strokeDashoffset: `${2 * Math.PI * 45 * (1 - progress / 100)}`,

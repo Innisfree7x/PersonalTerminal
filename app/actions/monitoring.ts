@@ -6,12 +6,13 @@ import { isAdminUser } from '@/lib/auth/authorization';
 import {
   acknowledgeMonitoringIncident,
   clearMonitoringIncidents,
+  type MonitoringHealthSnapshot,
   dismissMonitoringIncident,
   getMonitoringHealth,
   isMonitoringEnabled,
   resolveMonitoringIncident,
-  type MonitoringHealthSnapshot,
 } from '@/lib/monitoring';
+import { fetchPersistentErrorSnapshot } from '@/lib/monitoring/persistence';
 import { createAdminAuditLog, fetchRecentAdminAuditLogs } from '@/lib/monitoring/audit';
 import { fetchOpsFlowSloSnapshot } from '@/lib/ops/flowMetrics';
 import { evaluateBurnRates, summarizeBurnRateStatus, type BurnRateEvaluation } from '@/lib/ops/burnRateAlerts';
@@ -137,9 +138,10 @@ export async function fetchMonitoringHealthAction(
 ): Promise<MonitoringHealthSnapshot> {
   const user = await assertAdmin();
 
-  const [flowSlo, activationMetrics] = await Promise.all([
+  const [flowSlo, activationMetrics, persistentErrors] = await Promise.all([
     fetchOpsFlowSloSnapshot({ windowHours: 24 * 7 }),
     fetchActivationMetricsSnapshot(),
+    fetchPersistentErrorSnapshot(),
   ]);
 
   if (!isMonitoringEnabled()) {
@@ -151,6 +153,7 @@ export async function fetchMonitoringHealthAction(
       recentAdminAuditLogs: [],
       flowSlo,
       activationMetrics,
+      persistentErrors,
     };
   }
 
@@ -171,6 +174,7 @@ export async function fetchMonitoringHealthAction(
     recentAdminAuditLogs,
     flowSlo,
     activationMetrics,
+    persistentErrors,
   };
 }
 

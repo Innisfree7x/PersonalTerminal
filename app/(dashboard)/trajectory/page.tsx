@@ -18,10 +18,12 @@ import {
   Eye,
   EyeOff,
   Save,
+  Share2,
   Sparkles,
   Trash2,
   Wand2,
 } from 'lucide-react';
+import TrajectoryShareCard from '@/components/features/trajectory/TrajectoryShareCard';
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
@@ -232,6 +234,21 @@ export default function TrajectoryPage() {
   const queryClient = useQueryClient();
   const { play } = useAppSound();
   const previousOverallStatusRef = useRef<RiskStatus | null>(null);
+  const shareCardRef = useRef<HTMLDivElement>(null);
+
+  const handleExport = async () => {
+    if (!shareCardRef.current) return;
+    const { toPng } = await import('html-to-image');
+    try {
+      const dataUrl = await toPng(shareCardRef.current, { width: 1200, height: 630, pixelRatio: 2 });
+      const link = document.createElement('a');
+      link.download = 'innis-trajectory-plan.png';
+      link.href = dataUrl;
+      link.click();
+    } catch {
+      toast.error('Export fehlgeschlagen. Bitte erneut versuchen.');
+    }
+  };
   const [deepLinkedGoalId, setDeepLinkedGoalId] = useState('');
   const [deepLinkedWindowId, setDeepLinkedWindowId] = useState('');
 
@@ -769,9 +786,25 @@ export default function TrajectoryPage() {
             >
               Save as baseline
             </Button>
+
+            <button
+              onClick={handleExport}
+              className="inline-flex items-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 hover:bg-white/[0.08] transition-colors"
+            >
+              <Share2 className="h-3.5 w-3.5" />
+              Als Bild exportieren
+            </button>
           </div>
         </div>
       </motion.div>
+
+      <TrajectoryShareCard
+        ref={shareCardRef}
+        goals={goals}
+        generatedBlocks={generatedBlocks}
+        overallStatus={overallStatus}
+        effectiveCapacity={effectiveCapacity}
+      />
 
       <div className="grid gap-6 xl:grid-cols-[1.72fr_0.82fr] 2xl:grid-cols-[1.8fr_0.75fr]">
         <motion.section

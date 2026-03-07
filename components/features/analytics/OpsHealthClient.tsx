@@ -269,6 +269,84 @@ export default function OpsHealthClient() {
             )}
           </div>
 
+          <div className="card-surface rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <div className="text-sm font-semibold text-text-primary">Persistent Error Events (24h)</div>
+                <div className="text-xs text-text-tertiary mt-1">
+                  Server-persisted runtime errors for restart-safe monitoring
+                </div>
+              </div>
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                  data.persistentErrors?.available
+                    ? 'bg-success/15 text-success border border-success/30'
+                    : 'bg-warning/15 text-warning border border-warning/30'
+                }`}
+              >
+                {data.persistentErrors?.available ? 'Live' : 'Unavailable'}
+              </span>
+            </div>
+
+            {data.persistentErrors?.available ? (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <div className="rounded-lg border border-border bg-surface/60 px-3 py-2">
+                    <div className="text-[10px] uppercase tracking-wide text-text-tertiary">Total</div>
+                    <div className="mt-1 text-xl font-bold text-text-primary">
+                      {data.persistentErrors.totalLast24h}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-border bg-surface/60 px-3 py-2">
+                    <div className="text-[10px] uppercase tracking-wide text-text-tertiary">Critical</div>
+                    <div className="mt-1 text-xl font-bold text-error">
+                      {data.persistentErrors.bySeverityLast24h.critical}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-border bg-surface/60 px-3 py-2">
+                    <div className="text-[10px] uppercase tracking-wide text-text-tertiary">Error</div>
+                    <div className="mt-1 text-xl font-bold text-warning">
+                      {data.persistentErrors.bySeverityLast24h.error}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-border bg-surface/60 px-3 py-2">
+                    <div className="text-[10px] uppercase tracking-wide text-text-tertiary">Warning</div>
+                    <div className="mt-1 text-xl font-bold text-info">
+                      {data.persistentErrors.bySeverityLast24h.warning}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-border bg-surface/60 px-3 py-2">
+                  <div className="text-[10px] uppercase tracking-wide text-text-tertiary mb-1">
+                    Top messages
+                  </div>
+                  {data.persistentErrors.topMessagesLast24h.length > 0 ? (
+                    <div className="space-y-1">
+                      {data.persistentErrors.topMessagesLast24h.map((entry, index) => (
+                        <div key={`${entry.severity}:${entry.message}:${index}`} className="flex items-center justify-between gap-2 text-xs">
+                          <span className="truncate text-text-secondary">{entry.message}</span>
+                          <span className="shrink-0 text-text-tertiary">
+                            {entry.count}x · {entry.severity}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-text-tertiary">No persistent errors in last 24h.</div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="text-sm text-text-tertiary">
+                Persistent error store unavailable
+                {data.persistentErrors?.reasonIfUnavailable
+                  ? ` (${data.persistentErrors.reasonIfUnavailable})`
+                  : '.'}
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="card-surface rounded-xl p-4">
               <div className="text-xs text-text-tertiary">Incidents</div>

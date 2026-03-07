@@ -3,6 +3,7 @@
 import { Application } from '@/lib/schemas/application.schema';
 import { motion } from 'framer-motion';
 import { TrendingUp, Briefcase, CheckCircle, BarChart3 } from 'lucide-react';
+import { computePipelineScore } from '@/lib/career/pipelineScore';
 
 interface ApplicationStatsProps {
   applications: Application[];
@@ -28,6 +29,12 @@ export default function ApplicationStats({ applications }: ApplicationStatsProps
     stats.total > 0
       ? Math.round((stats.offer / stats.total) * 100)
       : 0;
+
+  const pipeline = computePipelineScore({
+    applied: stats.applied,
+    interviews: stats.interview,
+    offers: stats.offer,
+  });
 
   const statCards = [
     {
@@ -69,11 +76,29 @@ export default function ApplicationStats({ applications }: ApplicationStatsProps
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      className="space-y-3"
     >
+      {/* Pipeline Score Strip */}
+      <div className="card-surface rounded-xl px-4 py-3 flex items-center gap-4">
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-[10px] uppercase tracking-[0.12em] text-zinc-500">Pipeline</span>
+          <span className="text-sm font-bold text-text-primary font-mono">{pipeline.score}</span>
+          <span className="text-[10px] text-zinc-600">/ 100</span>
+          <span className="text-[10px] text-zinc-500">—</span>
+          <span className="text-[10px] text-zinc-400">{pipeline.label}</span>
+        </div>
+        <div className="flex-1 h-1 rounded-full bg-white/[0.06]">
+          <div
+            className="h-1 rounded-full bg-primary/60 transition-all duration-700"
+            style={{ width: `${pipeline.score}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {statCards.map((stat, index) => {
         const Icon = stat.icon;
-        
+
         return (
           <motion.div
             key={stat.label}
@@ -85,14 +110,14 @@ export default function ApplicationStats({ applications }: ApplicationStatsProps
           >
             {/* Animated background glow */}
             <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-            
+
             <div className="relative z-10">
               <div className="flex items-start justify-between mb-4">
                 <div className={`p-2 rounded-lg ${stat.gradient} border ${stat.borderColor}`}>
                   <Icon className={`w-5 h-5 ${stat.color}`} />
                 </div>
               </div>
-              
+
               <div>
                 <div className={`text-3xl font-bold ${stat.color} mb-1`}>
                   {stat.value}
@@ -105,6 +130,7 @@ export default function ApplicationStats({ applications }: ApplicationStatsProps
           </motion.div>
         );
       })}
+      </div>
     </motion.div>
   );
 }

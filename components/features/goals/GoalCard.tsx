@@ -204,6 +204,23 @@ export default function GoalCard({
               : `${daysUntilTarget}d left`}
           </span>
         </div>
+
+        {/* Time Progress Bar */}
+        <div className="mt-2 h-0.5 w-full rounded-full bg-white/[0.06]">
+          <div
+            className="h-0.5 rounded-full bg-primary/50 transition-all duration-700"
+            style={{
+              width: `${Math.min(
+                Math.max(
+                  (Date.now() - goal.createdAt.getTime()) /
+                    (goal.targetDate.getTime() - goal.createdAt.getTime()),
+                  0
+                ),
+                1
+              ) * 100}%`,
+            }}
+          />
+        </div>
       </div>
     </motion.div>
   );

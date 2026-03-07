@@ -12,6 +12,8 @@ import {
 } from '@/lib/monitoring/store';
 import type { AdminAuditLogRecord } from '@/lib/monitoring/audit';
 import type { OpsFlowSloSnapshot } from '@/lib/ops/flowMetrics';
+import { captureWithSentry } from '@/lib/monitoring/sentry';
+import { persistMonitoringEvent, type PersistentErrorSnapshot } from '@/lib/monitoring/persistence';
 
 export type MonitoringSeverity = 'info' | 'warning' | 'error' | 'critical';
 
@@ -44,6 +46,7 @@ export interface MonitoringHealthSnapshot {
     waitlistSegments: Array<{ segment: string; users: number }>;
     reasonIfUnavailable?: string;
   };
+  persistentErrors?: PersistentErrorSnapshot;
 }
 
 function truncate(value: string, max = 4000): string {
@@ -60,36 +63,6 @@ function normalizePayload(payload: MonitoringPayload): Required<MonitoringPayloa
     context: payload.context ?? {},
     source: payload.source ?? 'server',
   };
-}
-
-async function tryCaptureWithSentry(payload: Required<MonitoringPayload>): Promise<void> {
-  try {
-    const dynamicImport = new Function('moduleName', 'return import(moduleName)') as (
-      moduleName: string
-    ) => Promise<unknown>;
-    const sentryModule = (await dynamicImport('@sentry/nextjs')) as {
-      captureMessage?: (message: string, level?: string) => void;
-      captureException?: (error: Error) => void;
-      withScope?: (callback: (scope: { setTag: (key: string, value: string) => void; setContext: (name: string, value: Record<string, unknown>) => void }) => void) => void;
-    };
-
-    if (sentryModule.withScope && sentryModule.captureException) {
-      sentryModule.withScope((scope) => {
-        scope.setTag('source', payload.source);
-        scope.setTag('severity', payload.severity);
-        scope.setContext('monitoring_context', payload.context);
-      });
-      const err = new Error(payload.message);
-      err.name = payload.errorName;
-      if (payload.stack) err.stack = payload.stack;
-      sentryModule.captureException(err);
-      return;
-    }
-
-    sentryModule.captureMessage?.(payload.message, payload.severity);
-  } catch {
-    // Sentry package is optional. No-op if not installed.
-  }
 }
 
 async function sendAlertWebhook(payload: Required<MonitoringPayload>): Promise<void> {
@@ -146,13 +119,17 @@ export async function captureServerError(error: unknown, payload: Omit<Monitorin
     shouldAlert || normalized.severity === 'critical' || normalized.severity === 'error';
 
   if (!shouldSendExternal) {
-    await Promise.allSettled([tryCaptureWithSentry(normalized)]);
+    await Promise.allSettled([
+      captureWithSentry(normalized),
+      persistMonitoringEvent(normalized, { fingerprint }),
+    ]);
     return;
   }
 
   await Promise.allSettled([
-    tryCaptureWithSentry(normalized),
+    captureWithSentry(normalized),
     sendAlertWebhook(normalized),
+    persistMonitoringEvent(normalized, { fingerprint }),
   ]);
 
   markIncidentAlerted(fingerprint);

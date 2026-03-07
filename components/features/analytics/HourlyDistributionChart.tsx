@@ -27,14 +27,14 @@ function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   const hour = parseInt(label);
   return (
-    <div className="bg-surface border border-border rounded-lg px-3 py-2 shadow-lg">
-      <p className="text-xs text-text-tertiary mb-1">
-        {hour.toString().padStart(2, '0')}:00 - {((hour + 1) % 24).toString().padStart(2, '0')}:00
+    <div className="rounded-xl border border-white/[0.12] bg-zinc-950/90 px-3 py-2 shadow-2xl backdrop-blur-md">
+      <p className="text-[10px] text-zinc-500 mb-0.5">
+        {hour.toString().padStart(2, '0')}:00–{((hour + 1) % 24).toString().padStart(2, '0')}:00
       </p>
-      <p className="text-sm font-medium text-text-primary">
+      <p className="text-xs font-semibold text-text-primary">
         {payload[0].value} min
       </p>
-      <p className="text-xs text-text-tertiary">
+      <p className="text-[10px] text-zinc-500">
         {payload[0].payload.sessions} sessions
       </p>
     </div>
@@ -73,8 +73,8 @@ const HourlyDistributionChart = memo(function HourlyDistributionChart({
               axisLine={false}
               tickFormatter={(val) => `${val}m`}
             />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="totalMinutes" radius={[4, 4, 0, 0]} maxBarSize={24}>
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+            <Bar dataKey="totalMinutes" radius={[4, 4, 0, 0]} maxBarSize={24} isAnimationActive={true} animationBegin={0} animationDuration={800} animationEasing="ease-out">
               {data.map((entry, index) => (
                 <Cell
                   key={index}
