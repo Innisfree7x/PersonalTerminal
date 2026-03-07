@@ -191,8 +191,9 @@ export default function Sidebar() {
         animate={{
           width: isCollapsed ? '80px' : '240px',
         }}
-        className={`fixed top-0 left-0 z-40 h-screen transition-all ${isOpen ? 'translate-x-0' : '-translate-x-full'
-          } lg:translate-x-0 bg-surface/80 backdrop-blur-xl border-r border-border`}
+        className={`dashboard-sidebar-surface fixed top-0 left-0 z-40 h-screen border-r transition-all ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:translate-x-0`}
       >
         <div className="h-full flex flex-col relative">
           {/* Ambient top glow — ties sidebar to the primary colour */}
@@ -227,10 +228,10 @@ export default function Sidebar() {
             {!isCollapsed && (
               <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className="hidden lg:flex p-1.5 rounded-md hover:bg-surface-hover text-text-secondary hover:text-text-primary transition-colors"
+                className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary lg:inline-flex"
                 aria-label="Collapse sidebar"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="h-4 w-4" />
               </button>
             )}
           </div>
@@ -240,7 +241,7 @@ export default function Sidebar() {
             <div className="hidden lg:flex justify-center py-2 border-b border-border">
               <button
                 onClick={() => setIsCollapsed(false)}
-                className="p-1.5 rounded-md hover:bg-surface-hover text-text-secondary hover:text-text-primary transition-colors"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary"
                 aria-label="Expand sidebar"
               >
                 <ChevronLeft className="w-4 h-4 rotate-180" />

@@ -418,6 +418,56 @@
       0 0 28px rgb(var(--primary) / 0.14);
   }
 
+  .dashboard-sidebar-surface {
+    background:
+      radial-gradient(120% 68% at 10% -18%, rgb(var(--primary) / 0.14), transparent 54%),
+      radial-gradient(120% 70% at 90% 0%, rgb(var(--info) / 0.08), transparent 58%),
+      linear-gradient(180deg, rgb(var(--surface) / 0.84), rgb(var(--background) / 0.88));
+    border-color: rgb(255 255 255 / 0.12);
+    box-shadow:
+      inset -1px 0 0 rgb(255 255 255 / 0.035),
+      12px 0 42px rgb(0 0 0 / 0.18);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .dashboard-sidebar-surface {
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+  }
+
+  .command-item {
+    position: relative;
+  }
+
+  .command-item::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 7px;
+    bottom: 7px;
+    width: 2px;
+    border-radius: 9999px;
+    background: linear-gradient(180deg, rgb(var(--primary) / 0.45), rgb(var(--primary) / 0.95), rgb(var(--primary) / 0.55));
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+
+  .command-item[data-selected='true']::before,
+  .command-item[aria-selected='true']::before {
+    opacity: 1;
+  }
+
+  .command-item-icon {
+    color: rgb(113 113 122);
+    transition: color 150ms ease, filter 150ms ease;
+  }
+
+  .command-item[data-selected='true'] .command-item-icon,
+  .command-item[aria-selected='true'] .command-item-icon {
+    color: rgb(var(--primary));
+    filter: drop-shadow(0 0 5px rgb(var(--primary) / 0.42));
+  }
+
   .input-field {
     @apply bg-surface text-text-primary border border-border rounded-lg px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors;
   }

@@ -501,9 +501,9 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                           key={cmd.id}
                           value={`${cmd.label} ${cmd.keywords.join(' ')}`}
                           onSelect={() => handleSelect(cmd)}
-                          className="mb-0.5 flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-300 transition-colors aria-selected:bg-white/[0.06] aria-selected:text-zinc-100"
+                          className="command-item mb-0.5 flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 pl-3.5 text-sm font-medium text-zinc-300 transition-colors aria-selected:bg-primary/[0.12] aria-selected:text-zinc-100"
                         >
-                          <Icon className="h-4 w-4 flex-shrink-0 text-zinc-500" />
+                          <Icon className="command-item-icon h-4 w-4 flex-shrink-0 text-zinc-500" />
                           <span className="flex-1">{cmd.label}</span>
                         </Command.Item>
                       );
@@ -523,9 +523,9 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                           key={cmd.id}
                           value={`${cmd.label} ${cmd.keywords.join(' ')}`}
                           onSelect={() => handleSelect(cmd)}
-                          className="mb-0.5 flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-300 transition-colors aria-selected:bg-white/[0.06] aria-selected:text-zinc-100"
+                          className="command-item mb-0.5 flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 pl-3.5 text-sm font-medium text-zinc-300 transition-colors aria-selected:bg-primary/[0.12] aria-selected:text-zinc-100"
                         >
-                          <Icon className="h-4 w-4 flex-shrink-0 text-zinc-500" />
+                          <Icon className="command-item-icon h-4 w-4 flex-shrink-0 text-zinc-500" />
                           <span className="flex-1">{cmd.label}</span>
                           {isActive && (
                             <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-zinc-400">
@@ -550,9 +550,9 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                             key={cmd.id}
                             value={`${cmd.label} ${cmd.keywords.join(' ')}`}
                             onSelect={() => handleSelect(cmd)}
-                            className="mb-0.5 flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-300 transition-colors aria-selected:bg-white/[0.06] aria-selected:text-zinc-100"
+                            className="command-item mb-0.5 flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 pl-3.5 text-sm font-medium text-zinc-300 transition-colors aria-selected:bg-primary/[0.12] aria-selected:text-zinc-100"
                           >
-                            <Icon className="h-4 w-4 flex-shrink-0 text-zinc-500" />
+                            <Icon className="command-item-icon h-4 w-4 flex-shrink-0 text-zinc-500" />
                             <span className="flex-1">{cmd.label}</span>
                             {'shortcut' in cmd && cmd.shortcut && (
                               <kbd className="rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[10px] text-zinc-500">
@@ -577,9 +577,9 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                           key={cmd.id}
                           value={`${cmd.label} ${cmd.keywords.join(' ')}`}
                           onSelect={() => handleSelect(cmd)}
-                          className="mb-0.5 flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-300 transition-colors aria-selected:bg-white/[0.06] aria-selected:text-zinc-100"
+                          className="command-item mb-0.5 flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 pl-3.5 text-sm font-medium text-zinc-300 transition-colors aria-selected:bg-primary/[0.12] aria-selected:text-zinc-100"
                         >
-                          <Icon className="h-4 w-4 flex-shrink-0 text-zinc-500" />
+                          <Icon className="command-item-icon h-4 w-4 flex-shrink-0 text-zinc-500" />
                           <span className="flex-1">{cmd.label}</span>
                           {cmd.shortcut && (
                             <kbd className="rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[10px] text-zinc-500">
