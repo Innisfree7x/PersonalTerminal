@@ -53,36 +53,6 @@ export interface Database {
         };
         Relationships: [];
       };
-      events: {
-        Row: {
-          id: string;
-          title: string;
-          description: string | null;
-          start_time: string;
-          end_time: string;
-          type: 'meeting' | 'task' | 'break';
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          title: string;
-          description?: string | null;
-          start_time: string;
-          end_time: string;
-          type: 'meeting' | 'task' | 'break';
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          title?: string;
-          description?: string | null;
-          start_time?: string;
-          end_time?: string;
-          type?: 'meeting' | 'task' | 'break';
-          created_at?: string;
-        };
-        Relationships: [];
-      };
       job_applications: {
         Row: {
           id: string;

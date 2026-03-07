@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
+import { LEGACY_STORAGE_KEYS, readStorageValueWithLegacy, STORAGE_KEYS } from '@/lib/storage/keys';
 
 export type Theme =
     | 'midnight'
@@ -94,9 +95,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        // Load saved settings
-        const savedTheme = localStorage.getItem('prism-theme');
-        const savedAccent = localStorage.getItem('prism-accent');
+        if (typeof window === 'undefined') return;
+        const storage = window.localStorage;
+
+        // Load saved settings (with one-time migration from legacy keys)
+        const savedTheme = readStorageValueWithLegacy(
+            storage,
+            STORAGE_KEYS.theme,
+            LEGACY_STORAGE_KEYS.theme
+        );
+        const savedAccent = readStorageValueWithLegacy(
+            storage,
+            STORAGE_KEYS.accent,
+            LEGACY_STORAGE_KEYS.accent
+        );
 
         if (savedTheme && isTheme(savedTheme)) setTheme(savedTheme);
         if (savedAccent && isAccent(savedAccent)) setAccentColor(savedAccent);
@@ -108,7 +120,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
         // Apply theme
         document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('prism-theme', theme);
+        localStorage.setItem(STORAGE_KEYS.theme, theme);
 
         // Apply accent color
         const colors = ACCENT_COLORS[accentColor] ?? ACCENT_COLORS.gold;
@@ -117,7 +129,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         document.documentElement.style.setProperty('--primary-secondary', colors.secondary);
 
         // Save accent preference
-        localStorage.setItem('prism-accent', accentColor);
+        localStorage.setItem(STORAGE_KEYS.accent, accentColor);
 
     }, [theme, accentColor, mounted]);
 

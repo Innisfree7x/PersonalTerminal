@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import type { ParsedIntent } from '@/lib/command/parser';
+import { LEGACY_STORAGE_KEYS, readStorageValueWithLegacy, STORAGE_KEYS } from '@/lib/storage/keys';
 
 // ── Intent execution event (consumed by lib/command/executor.ts — Codex) ──────
 export const PRISM_INTENT_EXECUTE_EVENT = 'prism:intent-execute';
@@ -20,7 +21,7 @@ export type PrismCommandAction =
   | 'start-next-best-action';
 
 const PRISM_COMMAND_EVENT = 'prism:command-action';
-const PRISM_PENDING_COMMAND_KEY = 'prism:pending-command-action';
+const PRISM_PENDING_COMMAND_KEY = STORAGE_KEYS.commandPendingAction;
 
 export function dispatchPrismCommandAction(action: PrismCommandAction): void {
   if (typeof window === 'undefined') return;
@@ -34,7 +35,11 @@ export function queuePrismCommandAction(action: PrismCommandAction): void {
 
 function consumeQueuedPrismCommandAction(action: PrismCommandAction): boolean {
   if (typeof window === 'undefined') return false;
-  const queued = window.sessionStorage.getItem(PRISM_PENDING_COMMAND_KEY);
+  const queued = readStorageValueWithLegacy(
+    window.sessionStorage,
+    PRISM_PENDING_COMMAND_KEY,
+    LEGACY_STORAGE_KEYS.commandPendingAction
+  );
   if (queued !== action) return false;
   window.sessionStorage.removeItem(PRISM_PENDING_COMMAND_KEY);
   return true;

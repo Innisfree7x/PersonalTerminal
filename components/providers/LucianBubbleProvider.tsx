@@ -230,6 +230,21 @@ function messageFromEvent(event: ChampionEvent): QueuedMessage | null {
     case 'FOCUS_END':
       return pickMessage('celebrate', 1);
 
+    case 'DONE_FOR_TODAY':
+      return pickMessage('celebrate', 0, { n: event.completed, total: event.total });
+
+    case 'MORNING_CHECKIN':
+      if (event.status === 'at_risk') {
+        return pickMessage('warning', 1, { n: event.daysUntil ?? 0, item: event.title ?? 'Dein Ziel' });
+      }
+      if (event.status === 'tight') {
+        return pickMessage('motivate', 2, { n: event.daysUntil ?? 0, item: event.title ?? 'Dein Ziel' });
+      }
+      if (event.status === 'on_track') {
+        return pickMessage('celebrate', 2, { n: event.daysUntil ?? 0, item: event.title ?? 'Dein Ziel' });
+      }
+      return pickMessage('idle', 3);
+
     case 'LEVEL_UP':
       return pickMessage('celebrate', 1, { n: event.newLevel });
 

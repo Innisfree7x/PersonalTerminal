@@ -13,6 +13,7 @@ import type { RankedExecutionCandidate } from '@/lib/application/use-cases/execu
 import type { ExecutionRiskSignal } from '@/lib/application/use-cases/execution-engine';
 import { createDailyTaskAction, updateDailyTaskAction } from '@/app/actions/daily-tasks';
 import { toggleExerciseCompletionAction } from '@/app/actions/university';
+import { getTodayKey, loadDismissedIds, persistDismissedIds } from '@/lib/dashboard/nbaDismissals';
 
 interface NextBestActionWidgetProps {
   executionScore: number;
@@ -20,36 +21,6 @@ interface NextBestActionWidgetProps {
   alternatives: RankedExecutionCandidate[];
   riskSignals?: ExecutionRiskSignal[];
   onChanged?: () => void;
-}
-
-const DISMISS_STORAGE_KEY = 'prism:nba:dismissed';
-
-function getTodayKey(): string {
-  return new Date().toISOString().split('T')[0] ?? '';
-}
-
-function loadDismissedIds(): Set<string> {
-  if (typeof window === 'undefined') return new Set<string>();
-  try {
-    const raw = window.sessionStorage.getItem(DISMISS_STORAGE_KEY);
-    if (!raw) return new Set<string>();
-    const parsed = JSON.parse(raw) as Record<string, string[]>;
-    return new Set(parsed[getTodayKey()] ?? []);
-  } catch {
-    return new Set<string>();
-  }
-}
-
-function persistDismissedIds(ids: Set<string>): void {
-  if (typeof window === 'undefined') return;
-  try {
-    const raw = window.sessionStorage.getItem(DISMISS_STORAGE_KEY);
-    const parsed = raw ? (JSON.parse(raw) as Record<string, string[]>) : {};
-    parsed[getTodayKey()] = Array.from(ids);
-    window.sessionStorage.setItem(DISMISS_STORAGE_KEY, JSON.stringify(parsed));
-  } catch {
-    // ignore storage failures
-  }
 }
 
 function scoreTone(score: number): {

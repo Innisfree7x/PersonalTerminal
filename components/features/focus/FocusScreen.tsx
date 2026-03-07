@@ -20,6 +20,7 @@ import {
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import { useChampion } from '@/components/providers/ChampionProvider';
 import { trackAppEvent } from '@/lib/analytics/client';
+import { LEGACY_STORAGE_KEYS, STORAGE_KEYS } from '@/lib/storage/keys';
 
 type Quote = {
   text: string;
@@ -36,8 +37,9 @@ const FOCUS_QUOTES: Quote[] = [
 ];
 
 const DURATION_PRESETS = [25, 50, 90];
-const FOCUS_VISUAL_PREFS_STORAGE_KEY = 'innis:focus-screen:visual-prefs:v1';
-const LEGACY_FOCUS_VISUAL_PREFS_STORAGE_KEY = 'prism:focus-screen:visual-prefs:v1';
+const FOCUS_VISUAL_PREFS_STORAGE_KEY = STORAGE_KEYS.focusScreenVisualPrefs;
+const LEGACY_FOCUS_VISUAL_PREFS_STORAGE_KEY =
+  LEGACY_STORAGE_KEYS.focusScreenVisualPrefs[0] ?? 'prism:focus-screen:visual-prefs:v1';
 
 type FocusThemePreset = {
   id: string;

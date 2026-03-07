@@ -30,6 +30,8 @@ import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 import { buildTrajectoryMorningBriefing, type TrajectoryBriefOverview } from '@/lib/dashboard/trajectoryBriefing';
 import { trackAppEvent } from '@/lib/analytics/client';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import { STORAGE_KEYS } from '@/lib/storage/keys';
+import { getTodayKey } from '@/lib/dashboard/nbaDismissals';
 
 const WELCOME_KEY = 'innis_welcomed_v1';
 const LAST_MOMENTUM_SCORE_KEY = 'innis:last-momentum-score:v1';
@@ -71,11 +73,21 @@ function markUserWelcomed(): void {
   }
 }
 
+function getIsoWeekKey(date: Date): string {
+  const utc = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const day = utc.getUTCDay() || 7;
+  utc.setUTCDate(utc.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(utc.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((utc.getTime() - yearStart.getTime()) / 86_400_000) + 1) / 7);
+  return `${utc.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+}
+
 export default function TodayPage() {
   const queryClient = useQueryClient();
   const { play } = useAppSound();
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showWeeklyCheckin, setShowWeeklyCheckin] = useState(false);
 
   useEffect(() => {
     if (!hasWelcomedUser()) {
@@ -83,9 +95,22 @@ export default function TodayPage() {
     }
   }, []);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const thisWeek = getIsoWeekKey(new Date());
+    const seenWeek = window.localStorage.getItem(STORAGE_KEYS.weeklyCheckinWeekKey);
+    setShowWeeklyCheckin(seenWeek !== thisWeek);
+  }, []);
+
   const dismissWelcome = () => {
     markUserWelcomed();
     setShowWelcome(false);
+  };
+
+  const dismissWeeklyCheckin = () => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(STORAGE_KEYS.weeklyCheckinWeekKey, getIsoWeekKey(new Date()));
+    setShowWeeklyCheckin(false);
   };
 
   // Check URL params for OAuth callback messages
@@ -142,7 +167,7 @@ export default function TodayPage() {
     refetchOnReconnect: false,
   });
 
-  const { data: trajectoryOverview } = useQuery<TrajectoryBriefOverview>({
+  const { data: trajectoryOverview, isFetched: isTrajectoryOverviewFetched } = useQuery<TrajectoryBriefOverview>({
     queryKey: ['trajectory', 'overview', 'briefing'],
     queryFn: async () => {
       const response = await fetch('/api/trajectory/overview');
@@ -209,6 +234,22 @@ export default function TodayPage() {
       dispatchChampionEvent({ type: 'DEADLINE_WARNING', hoursLeft: Math.max(1, days * 24) });
     }
   }, [stats?.nextExam?.daysUntilExam]);
+
+  useEffect(() => {
+    if (!isTrajectoryOverviewFetched) return;
+    if (typeof window === 'undefined') return;
+    const today = getTodayKey();
+    const alreadySent = window.localStorage.getItem(STORAGE_KEYS.todayMorningCheckinDate) === today;
+    if (alreadySent) return;
+
+    dispatchChampionEvent({
+      type: 'MORNING_CHECKIN',
+      ...(trajectoryBriefing?.status ? { status: trajectoryBriefing.status } : {}),
+      ...(typeof trajectoryBriefing?.daysUntil === 'number' ? { daysUntil: trajectoryBriefing.daysUntil } : {}),
+      ...(trajectoryBriefing?.title ? { title: trajectoryBriefing.title } : {}),
+    });
+    window.localStorage.setItem(STORAGE_KEYS.todayMorningCheckinDate, today);
+  }, [isTrajectoryOverviewFetched, trajectoryBriefing]);
 
   useEffect(() => {
     if (!momentum || momentum.trend !== 'up') return;
@@ -360,23 +401,55 @@ export default function TodayPage() {
                 )}
                 {momentum.delta > 0 ? `+${momentum.delta}` : momentum.delta} vs last week
               </span>
-              <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-emerald-300">
-                On track {momentum.stats.onTrack}
-              </span>
-              <span className="rounded-full border border-amber-300/20 bg-amber-500/10 px-2.5 py-1 text-amber-300">
-                Tight {momentum.stats.tight}
-              </span>
-              <span className="rounded-full border border-red-400/20 bg-red-500/10 px-2.5 py-1 text-red-400">
-                At risk {momentum.stats.atRisk}
-              </span>
-              <span className="rounded-full border border-white/10 bg-background/40 px-2.5 py-1 text-text-secondary">
-                Focus load {momentum.stats.last7DaysHours.toFixed(1)}h / {momentum.stats.plannedHoursPerWeek}h
-              </span>
+              {!showWelcome ? (
+                <>
+                  <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-emerald-300">
+                    On track {momentum.stats.onTrack}
+                  </span>
+                  <span className="rounded-full border border-amber-300/20 bg-amber-500/10 px-2.5 py-1 text-amber-300">
+                    Tight {momentum.stats.tight}
+                  </span>
+                  <span className="rounded-full border border-red-400/20 bg-red-500/10 px-2.5 py-1 text-red-400">
+                    At risk {momentum.stats.atRisk}
+                  </span>
+                  <span className="rounded-full border border-white/10 bg-background/40 px-2.5 py-1 text-text-secondary">
+                    Focus load {momentum.stats.last7DaysHours.toFixed(1)}h / {momentum.stats.plannedHoursPerWeek}h
+                  </span>
+                </>
+              ) : (
+                <span className="rounded-full border border-white/10 bg-background/35 px-2.5 py-1 text-text-tertiary">
+                  Detail breakdown unlocks after your first guided day.
+                </span>
+              )}
             </div>
           ) : (
             <p className="text-xs text-text-secondary">
               Momentum activates after your first active trajectory milestone.
             </p>
+          )}
+
+          {showWeeklyCheckin && (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
+              <p className="text-xs text-text-secondary">
+                Weekly check-in: verify timeline risks and lock this week&apos;s next move.
+              </p>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/trajectory?source=weekly_checkin"
+                  onClick={dismissWeeklyCheckin}
+                  className="inline-flex items-center rounded-md border border-primary/35 bg-primary/12 px-2.5 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+                >
+                  Review now
+                </Link>
+                <button
+                  type="button"
+                  onClick={dismissWeeklyCheckin}
+                  className="inline-flex items-center rounded-md border border-white/12 bg-white/[0.02] px-2.5 py-1 text-xs text-text-tertiary transition-colors hover:bg-white/[0.06]"
+                >
+                  Later
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </motion.div>

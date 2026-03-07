@@ -11,7 +11,9 @@ export type ChampionEvent =
   | { type: 'STREAK_BROKEN' }
   | { type: 'PAGE_CHANGE'; page: string }
   | { type: 'APPLICATION_SENT' }
-  | { type: 'EXERCISE_COMPLETED' };
+  | { type: 'EXERCISE_COMPLETED' }
+  | { type: 'DONE_FOR_TODAY'; completed: number; total: number }
+  | { type: 'MORNING_CHECKIN'; status?: 'on_track' | 'tight' | 'at_risk'; daysUntil?: number; title?: string };
 
 const CHAMPION_EVENT_NAME = 'prism:champion-event';
 
@@ -34,4 +36,3 @@ export function subscribeChampionEvent(
   window.addEventListener(CHAMPION_EVENT_NAME, listener);
   return () => window.removeEventListener(CHAMPION_EVENT_NAME, listener);
 }
-

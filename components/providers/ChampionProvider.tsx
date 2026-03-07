@@ -17,6 +17,7 @@ import { CHAMPION_CONFIG, type ChampionId } from '@/lib/champion/config';
 import { CHAMPION_VFX_CONFIG, type ChampionVfxPreset } from '@/lib/champion/vfxConfig';
 import { useAppSound } from '@/lib/hooks/useAppSound';
 import { trackAppEvent } from '@/lib/analytics/client';
+import { LEGACY_STORAGE_KEYS, readStorageValueWithLegacy, STORAGE_KEYS } from '@/lib/storage/keys';
 
 type ChampionMode = 'passive' | 'active';
 type ChampionAnimation =
@@ -96,9 +97,9 @@ interface EffectState {
   tone?: string;
 }
 
-const SETTINGS_KEY = 'prism-champion-settings';
-const STATS_KEY = 'prism-champion-stats';
-const POSITION_KEY = 'prism-champion-position';
+const SETTINGS_KEY = STORAGE_KEYS.championSettings;
+const STATS_KEY = STORAGE_KEYS.championStats;
+const POSITION_KEY = STORAGE_KEYS.championPosition;
 const BASE_SPEED = 200;
 const SCALE_TO_SIZE: Record<ChampionScale, number> = {
   small: 132,
@@ -131,6 +132,7 @@ const XP_FOR_ACTION: Record<string, number> = {
   EXERCISE_COMPLETED: 15,
   APPLICATION_SENT: 30,
   FOCUS_END: 50,
+  DONE_FOR_TODAY: 35,
 };
 
 function isChampionVfxPreset(value: unknown): value is ChampionVfxPreset {
@@ -1423,9 +1425,21 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
   ]);
 
   useEffect(() => {
-    const savedSettings = localStorage.getItem(SETTINGS_KEY);
-    const savedStats = localStorage.getItem(STATS_KEY);
-    const savedPosition = localStorage.getItem(POSITION_KEY);
+    const savedSettings = readStorageValueWithLegacy(
+      localStorage,
+      SETTINGS_KEY,
+      LEGACY_STORAGE_KEYS.championSettings
+    );
+    const savedStats = readStorageValueWithLegacy(
+      localStorage,
+      STATS_KEY,
+      LEGACY_STORAGE_KEYS.championStats
+    );
+    const savedPosition = readStorageValueWithLegacy(
+      localStorage,
+      POSITION_KEY,
+      LEGACY_STORAGE_KEYS.championPosition
+    );
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings) as Partial<ChampionSettings>;
@@ -1502,6 +1516,12 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
         if (Date.now() >= animationLockUntilRef.current) {
           setBaseAnimation();
         }
+      }
+
+      if (event.type === 'DONE_FOR_TODAY') {
+        taskStreakRef.current = 0;
+        playReactionAnimation('victory', REACTION_ANIMATION_DURATION_MS.victory);
+        if (settings.soundsEnabled) play('champ-victory');
       }
 
       if (event.type === 'PAGE_CHANGE') {

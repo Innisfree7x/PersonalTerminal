@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useTransition, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -14,6 +14,8 @@ import { useStreak } from '@/lib/hooks/useStreak';
 import { createDailyTaskAction, updateDailyTaskAction } from '@/app/actions/daily-tasks';
 import { toggleExerciseCompletionAction } from '@/app/actions/university';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
+import { getTodayKey, loadDismissedIds, persistDismissedIds } from '@/lib/dashboard/nbaDismissals';
+import { STORAGE_KEYS } from '@/lib/storage/keys';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -141,38 +143,6 @@ function StatChip({
       </div>
     </div>
   );
-}
-
-// ─── NBA dismiss helpers ──────────────────────────────────────────────────────
-
-const DISMISS_STORAGE_KEY = 'prism:nba:dismissed';
-
-function getTodayKey(): string {
-  return new Date().toISOString().split('T')[0] ?? '';
-}
-
-function loadDismissedIds(): Set<string> {
-  if (typeof window === 'undefined') return new Set<string>();
-  try {
-    const raw = window.sessionStorage.getItem(DISMISS_STORAGE_KEY);
-    if (!raw) return new Set<string>();
-    const parsed = JSON.parse(raw) as Record<string, string[]>;
-    return new Set(parsed[getTodayKey()] ?? []);
-  } catch {
-    return new Set<string>();
-  }
-}
-
-function persistDismissedIds(ids: Set<string>): void {
-  if (typeof window === 'undefined') return;
-  try {
-    const raw = window.sessionStorage.getItem(DISMISS_STORAGE_KEY);
-    const parsed = raw ? (JSON.parse(raw) as Record<string, string[]>) : {};
-    parsed[getTodayKey()] = Array.from(ids);
-    window.sessionStorage.setItem(DISMISS_STORAGE_KEY, JSON.stringify(parsed));
-  } catch {
-    // ignore storage failures
-  }
 }
 
 // ─── ActionSection (inline NBA, logic from NextBestActionWidget) ──────────────
@@ -374,11 +344,31 @@ export default function CommandBar({
   onChanged,
 }: CommandBarProps) {
   const { streak } = useStreak();
+  const { play } = useAppSound();
+  const doneSignalRef = useRef(false);
 
   const allDone = tasksToday > 0 && tasksCompleted >= tasksToday;
   const examDays = nextExam?.daysUntilExam ?? null;
   const examUrgent = examDays !== null && examDays <= 1;
   const examWarning = examDays !== null && examDays <= 7;
+
+  useEffect(() => {
+    if (!allDone || tasksToday <= 0) {
+      doneSignalRef.current = false;
+      return;
+    }
+    if (typeof window === 'undefined') return;
+
+    const today = getTodayKey();
+    const alreadySignaled = window.localStorage.getItem(STORAGE_KEYS.todayDoneSignalDate) === today;
+    if (alreadySignaled || doneSignalRef.current) return;
+
+    doneSignalRef.current = true;
+    window.localStorage.setItem(STORAGE_KEYS.todayDoneSignalDate, today);
+    play('task-completed');
+    dispatchChampionEvent({ type: 'DONE_FOR_TODAY', completed: tasksCompleted, total: tasksToday });
+    toast.success('Done for today. Starker Abschluss.');
+  }, [allDone, play, tasksCompleted, tasksToday]);
 
   const taskChip = allDone ? (
     <RailChip label="Clear" tone="success" />

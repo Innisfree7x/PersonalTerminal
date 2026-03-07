@@ -20,6 +20,7 @@ import {
 import type { FocusSessionCategory } from '@/lib/schemas/focusSession.schema';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import { LEGACY_STORAGE_KEYS, readStorageValueWithLegacy, STORAGE_KEYS } from '@/lib/storage/keys';
 
 type TimerStatus = 'idle' | 'running' | 'paused' | 'break' | 'break_paused';
 
@@ -70,8 +71,8 @@ interface FocusTimerContextType {
 
 const FocusTimerContext = createContext<FocusTimerContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'prism-focus-timer';
-const SETTINGS_STORAGE_KEY = 'prism-timer-settings';
+const STORAGE_KEY = STORAGE_KEYS.focusTimerSession;
+const SETTINGS_STORAGE_KEY = STORAGE_KEYS.focusTimerSettings;
 const SOUND_OPT_IN_PROMPT_SEEN_KEY = 'innis:sound-opt-in-prompt-seen:v1';
 
 interface PersistedState {
@@ -95,10 +96,13 @@ function safeStorage(): Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> | nu
   return storage as Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 }
 
-function storageGet(key: string): string | null {
+function storageGet(key: string, legacyKeys: readonly string[] = []): string | null {
   const storage = safeStorage();
   if (!storage) return null;
   try {
+    if (legacyKeys.length > 0) {
+      return readStorageValueWithLegacy(storage, key, legacyKeys);
+    }
     return storage.getItem(key);
   } catch {
     return null;
@@ -138,7 +142,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
   const [settings, setSettings] = useState<TimerSettings>(() => {
-    const saved = storageGet(SETTINGS_STORAGE_KEY);
+    const saved = storageGet(SETTINGS_STORAGE_KEY, LEGACY_STORAGE_KEYS.focusTimerSettings);
     if (saved) {
       try {
         return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
@@ -358,7 +362,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
     if (hasRestoredRef.current) return;
     hasRestoredRef.current = true;
 
-    const saved = storageGet(STORAGE_KEY);
+    const saved = storageGet(STORAGE_KEY, LEGACY_STORAGE_KEYS.focusTimerSession);
     if (!saved) return;
 
     try {

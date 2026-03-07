@@ -11,6 +11,7 @@ import { useAppSound } from '@/lib/hooks/useAppSound';
 import { dispatchPrismCommandAction, queuePrismCommandAction, type PrismCommandAction } from '@/lib/hooks/useCommandActions';
 import { dispatchListNavigationAction } from '@/lib/hooks/useListNavigation';
 import { dispatchPingAction, type PingAction } from '@/lib/hotkeys/ping';
+import { LEGACY_STORAGE_KEYS, readStorageValueWithLegacy, STORAGE_KEYS } from '@/lib/storage/keys';
 
 interface PowerHotkeysContextValue {
   overlayOpen: boolean;
@@ -49,7 +50,7 @@ const DEFAULT_SUMMONER_SPELLS: SummonerSpells = {
   f: 'focus-toggle',
 };
 
-const SUMMONER_STORAGE_KEY = 'prism:summoner-spells';
+const SUMMONER_STORAGE_KEY = STORAGE_KEYS.summonerSpells;
 
 function normalizeSummonerSpells(value: unknown): SummonerSpells {
   if (!value || typeof value !== 'object') return DEFAULT_SUMMONER_SPELLS;
@@ -237,7 +238,12 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
   const [summonerSpells, setSummonerSpells] = useState<SummonerSpells>(() => {
     if (typeof window === 'undefined') return DEFAULT_SUMMONER_SPELLS;
     try {
-      return normalizeSummonerSpells(JSON.parse(window.localStorage.getItem(SUMMONER_STORAGE_KEY) ?? 'null'));
+      const raw = readStorageValueWithLegacy(
+        window.localStorage,
+        SUMMONER_STORAGE_KEY,
+        LEGACY_STORAGE_KEYS.summonerSpells
+      );
+      return normalizeSummonerSpells(JSON.parse(raw ?? 'null'));
     } catch {
       return DEFAULT_SUMMONER_SPELLS;
     }
