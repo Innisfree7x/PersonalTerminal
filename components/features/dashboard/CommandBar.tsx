@@ -39,10 +39,10 @@ export interface CommandBarProps {
 type Tone = 'task' | 'exercise' | 'streak' | 'career';
 
 const TONE: Record<Tone, { icon: string; value: string; stripe: string }> = {
-  task:     { icon: 'text-red-300/75',    value: 'text-red-300',    stripe: 'bg-red-400/50' },
-  exercise: { icon: 'text-amber-300/75',  value: 'text-amber-300',  stripe: 'bg-amber-400/50' },
-  streak:   { icon: 'text-orange-300/75', value: 'text-orange-300', stripe: 'bg-orange-400/50' },
-  career:   { icon: 'text-sky-300/75',    value: 'text-sky-300',    stripe: 'bg-sky-400/45' },
+  task:     { icon: 'text-red-300/75',    value: 'text-red-300',    stripe: 'bg-current text-red-400/75' },
+  exercise: { icon: 'text-amber-300/75',  value: 'text-amber-300',  stripe: 'bg-current text-amber-400/75' },
+  streak:   { icon: 'text-orange-300/75', value: 'text-orange-300', stripe: 'bg-current text-orange-400/75' },
+  career:   { icon: 'text-sky-300/75',    value: 'text-sky-300',    stripe: 'bg-current text-sky-400/70' },
 };
 
 // ─── RailChip (copied from DashboardStats) ────────────────────────────────────
@@ -73,8 +73,17 @@ function RailChip({ label, tone, pulse = false }: { label: string; tone: ChipTon
     success: 'bg-emerald-400',
     info:    'bg-sky-400',
   };
+  const glowClasses: Record<ChipTone, string> = {
+    muted:   '',
+    danger:  'shadow-[0_0_8px_0px] shadow-red-500/25',
+    warning: 'shadow-[0_0_8px_0px] shadow-amber-500/25',
+    success: 'shadow-[0_0_8px_0px] shadow-emerald-500/25',
+    info:    'shadow-[0_0_8px_0px] shadow-sky-500/25',
+  };
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.14em] ${toneClasses[tone]}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.14em] transition-shadow duration-200 ${toneClasses[tone]} ${glowClasses[tone]}`}
+    >
       {pulse ? <PulseDot className={pulseColor[tone]} /> : null}
       {label}
     </span>
@@ -115,8 +124,8 @@ function StatChip({
 }) {
   const c = TONE[tone];
   return (
-    <div className="group relative flex min-w-[140px] flex-1 items-center gap-2.5 overflow-hidden px-4 py-3.5 transition-colors hover:bg-surface-hover/40">
-      <div className={`absolute inset-y-2.5 left-0 w-0.5 rounded-r-full ${c.stripe}`} />
+    <div className="group relative flex min-w-[140px] flex-1 items-center gap-2.5 overflow-hidden px-4 py-3.5 transition-all duration-200 hover:bg-white/[0.04]">
+      <div className={`absolute inset-y-2.5 left-0 w-0.5 rounded-r-full transition-all duration-200 ${c.stripe} group-hover:shadow-[0_0_6px_1px] group-hover:shadow-current`} />
       <Icon className={`h-3.5 w-3.5 flex-shrink-0 ${c.icon}`} />
       <div className="min-w-0">
         <div className="flex items-baseline gap-1 leading-none">
@@ -402,10 +411,10 @@ export default function CommandBar({
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      className="card-surface relative overflow-hidden rounded-xl"
+      className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-zinc-950/80 shadow-2xl motion-safe:backdrop-blur-md"
     >
       {/* Top inset highlight */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.12] to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.18] to-transparent" />
       {/* Bottom 4-color gradient line */}
       <div
         className="absolute inset-x-0 bottom-0 h-px"
