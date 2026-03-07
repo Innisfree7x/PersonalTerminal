@@ -7,6 +7,13 @@ export interface TrajectoryBriefOverview {
     dueDate: string;
     status: 'active' | 'done' | 'archived';
   }>;
+  windows?: Array<{
+    id: string;
+    title: string;
+    startDate: string;
+    endDate: string;
+    confidence: 'low' | 'medium' | 'high';
+  }>;
   computed: {
     generatedBlocks: Array<{
       goalId: string;

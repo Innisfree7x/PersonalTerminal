@@ -1,6 +1,6 @@
 # Context Canon (Single Source of Truth)
 
-Stand: 2026-03-06 (post Phase-18 activation/conversion waves)  
+Stand: 2026-03-07 (post Phase-19 momentum/sound/design hardening)  
 Status: Active
 
 ## Zweck
@@ -8,26 +8,32 @@ Dieses Dokument definiert verbindlich, welche Quellen für aktuelle Entscheidung
 Wenn zwei Dokumente widersprüchlich sind, gilt immer diese Prioritätsliste.
 
 ## Prioritätsreihenfolge (verbindlich)
-1. `docs/PHASE18_ACTIVATION_CONVERSION_WAVES.md` (shared risk model, interactive hero, risk-to-action bridge, signup segmentation)
-2. `docs/PHASE17_BLOCK3_ACTIVATION_AND_BRIDGE.md` (Onboarding/Today/Trajectory Bridge + contract updates)
-3. `docs/PHASE17_AI_GUARDRAILS_EVALS.md` (AI-runtime guardrails + eval gate)
-4. `docs/PHASE14_RELIABILITY_OPS.md` (aktueller Reliability-Ausfuehrungsstand inkl. Blocker)
-5. `docs/PHASE16_FOCUS_OAUTH_SEARCH_IMPROVEMENTS.md` (aktueller Scope + AC fuer Focus/OAuth/Search)
-6. `docs/PHASE16_AUDIT_2026-03-03.md` (Verifikation, Risiken, Handoff)
-7. `docs/PHASE13.md` (abgeschlossene Gate-Struktur als Referenz)
-8. `docs/PHASE13_RELEASE_AUDIT_2026-02-28.md` (Release-Gate Historie + QA-Kontext)
-9. `docs/PHASE12_MASTERPLAN.md` (strategischer Parent)
-10. `docs/PHASE12_EXECUTION_BLUEPRINT.md` (Execution-Baseline Tracks 3/4/5/6)
-11. `docs/PHASE11_TRACK6_IMPLEMENTATION.md` (Reliability-Basis)
-12. `docs/RELEASE_CHECKLIST.md`
-13. `.github/workflows/ci.yml` (enforced quality gates incl. production build + eval suite)
-14. `docs/GO_LIVE_RUNBOOK.md`
-15. `CLAUDE.md` + `llms.txt` / `llms-full.txt` (nur als Assistenz-Kontext)
-16. Historische Phase-Dokumente (nur Referenz, nicht normativ)
+1. `docs/PHASE19_MOMENTUM_SOUND_EXECUTION_CONTRACT.md` (verbindlicher Scope + AC + cooldown/ops gates)
+2. `docs/PHASE19_DESIGN_ELEVATION.md` (visueller Contract fuer Dashboard/CommandRail Glass-Layer)
+3. `docs/PHASE19_RELEASE_AUDIT_2026-03-07.md` (Ist-Stand, Verifikation, bekannte Risiken)
+4. `docs/PHASE18_ACTIVATION_CONVERSION_WAVES.md` (shared risk model, interactive hero, risk-to-action bridge, signup segmentation)
+5. `docs/PHASE17_BLOCK3_ACTIVATION_AND_BRIDGE.md` (Onboarding/Today/Trajectory Bridge + contract updates)
+6. `docs/PHASE17_AI_GUARDRAILS_EVALS.md` (AI-runtime guardrails + eval gate)
+7. `docs/PHASE14_RELIABILITY_OPS.md` (aktueller Reliability-Ausfuehrungsstand inkl. Blocker)
+8. `docs/PHASE16_FOCUS_OAUTH_SEARCH_IMPROVEMENTS.md` (aktueller Scope + AC fuer Focus/OAuth/Search)
+9. `docs/PHASE16_AUDIT_2026-03-03.md` (Verifikation, Risiken, Handoff)
+10. `docs/PHASE13.md` (abgeschlossene Gate-Struktur als Referenz)
+11. `docs/PHASE13_RELEASE_AUDIT_2026-02-28.md` (Release-Gate Historie + QA-Kontext)
+12. `docs/PHASE12_MASTERPLAN.md` (strategischer Parent)
+13. `docs/PHASE12_EXECUTION_BLUEPRINT.md` (Execution-Baseline Tracks 3/4/5/6)
+14. `docs/PHASE11_TRACK6_IMPLEMENTATION.md` (Reliability-Basis)
+15. `docs/RELEASE_CHECKLIST.md`
+16. `.github/workflows/ci.yml` (enforced quality gates incl. production build + eval suite)
+17. `docs/GO_LIVE_RUNBOOK.md`
+18. `CLAUDE.md` + `llms.txt` / `llms-full.txt` (nur als Assistenz-Kontext)
+19. Historische Phase-Dokumente (nur Referenz, nicht normativ)
 
 ## Aktive Dokumente
 - `docs/PHASE17_BLOCK3_ACTIVATION_AND_BRIDGE.md` (Onboarding/Today/Trajectory Bridge inkl. Deep-Link- und Analytics-Contract)
 - `docs/PHASE18_ACTIVATION_CONVERSION_WAVES.md` (Activation/Conversion Wave-Umsetzung inkl. shared risk model und risk-to-action bridge)
+- `docs/PHASE19_MOMENTUM_SOUND_EXECUTION_CONTRACT.md` (Momentum + Sound Phase 1 Scope Contract)
+- `docs/PHASE19_DESIGN_ELEVATION.md` (Design Elevation Contract fuer Glass/Glow-Layer)
+- `docs/PHASE19_RELEASE_AUDIT_2026-03-07.md` (Release- und Verifikationsstand inkl. Overnight-Hardening)
 - `docs/PHASE17_AI_GUARDRAILS_EVALS.md` (verbindliche Runtime-Contracts + Eval-Gate fuer AI-adjacent flows)
 - `docs/PHASE14_RELIABILITY_OPS.md` (aktive Reliability-Umsetzung inkl. Audit-Status)
 - `docs/PHASE16_FOCUS_OAUTH_SEARCH_IMPROVEMENTS.md` (aktuelle Umsetzung Focus/OAuth/Search)

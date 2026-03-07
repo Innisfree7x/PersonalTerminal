@@ -28,6 +28,7 @@ import {
 import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 import { buildTrajectoryMorningBriefing, type TrajectoryBriefOverview } from '@/lib/dashboard/trajectoryBriefing';
+import { buildWindowMoveCandidates, resolveMoveDestination } from '@/lib/dashboard/topMoves';
 import { trackAppEvent } from '@/lib/analytics/client';
 import type { RankedExecutionCandidate } from '@/lib/application/use-cases/execution-engine';
 import { useAppSound } from '@/lib/hooks/useAppSound';
@@ -70,12 +71,6 @@ function markUserWelcomed(): void {
   } catch {
     // Ignore storage access errors in restricted environments/tests.
   }
-}
-
-function resolveMoveHref(type: RankedExecutionCandidate['type']): string {
-  if (type === 'interview') return '/career';
-  if (type === 'goal') return '/goals';
-  return '/today';
 }
 
 export default function TodayPage() {
@@ -248,6 +243,13 @@ export default function TodayPage() {
     }
     return deduped;
   }, [nextTasksData?.nextBestAction, nextTasksData?.nextBestAlternatives]);
+
+  const upcomingWindowMoves = useMemo(
+    () => buildWindowMoveCandidates(trajectoryOverview?.windows ?? []),
+    [trajectoryOverview?.windows]
+  );
+
+  const showTopMovesPanel = prioritizedMoves.length > 0 || upcomingWindowMoves.length > 0;
 
   return (
     <div className="space-y-6" data-testid="today-page-root">
@@ -425,7 +427,7 @@ export default function TodayPage() {
         }}
       />
 
-      {prioritizedMoves.length > 0 ? (
+      {showTopMovesPanel ? (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -441,43 +443,66 @@ export default function TodayPage() {
               direkt in den passenden Bereich springen
             </span>
           </div>
+          {upcomingWindowMoves.length > 0 ? (
+            <div className="mb-2.5 flex flex-wrap items-center gap-2">
+              {upcomingWindowMoves.map((windowMove) => (
+                <Link
+                  key={windowMove.id}
+                  href={windowMove.href}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/30 bg-sky-500/10 px-2.5 py-1 text-[11px] text-sky-300 hover:border-sky-300/40 hover:bg-sky-500/15"
+                >
+                  <span className="font-semibold">{windowMove.title}</span>
+                  <span className="text-sky-200/85">· {windowMove.subtitle}</span>
+                </Link>
+              ))}
+            </div>
+          ) : null}
           <div className="grid gap-2 md:grid-cols-3">
-            {prioritizedMoves.map((move, index) => (
-              <div key={move.id} className="rounded-lg border border-border bg-background/50 px-3 py-2.5">
-                <div className="mb-1.5 flex items-center justify-between gap-2">
-                  <span className="text-[10px] uppercase tracking-[0.14em] text-text-tertiary">Move {index + 1}</span>
-                  <span
-                    className={
-                      move.urgencyLabel === 'overdue'
-                        ? 'text-[10px] font-semibold uppercase tracking-wide text-red-400'
-                        : move.urgencyLabel === 'today'
-                          ? 'text-[10px] font-semibold uppercase tracking-wide text-amber-300'
-                          : move.urgencyLabel === 'soon'
-                            ? 'text-[10px] font-semibold uppercase tracking-wide text-sky-300'
-                            : 'text-[10px] font-semibold uppercase tracking-wide text-text-tertiary'
-                    }
-                  >
-                    {move.urgencyLabel}
-                  </span>
-                </div>
-                <p className="truncate text-sm font-medium text-text-primary">{move.title}</p>
-                <p className="mt-0.5 line-clamp-2 text-xs text-text-secondary">
-                  {move.subtitle || move.reasons[0] || 'High-impact action'}
-                </p>
-                <div className="mt-2 flex items-center justify-between">
-                  <p className="text-[11px] text-text-tertiary">
-                    Score {Math.round(move.score)}
-                  </p>
-                  <Link
-                    href={resolveMoveHref(move.type)}
-                    className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:text-primary-hover"
-                  >
-                    Öffnen
-                    <ArrowRight className="h-3 w-3" />
-                  </Link>
-                </div>
+            {prioritizedMoves.length > 0 ? (
+              prioritizedMoves.map((move, index) => {
+                const destination = resolveMoveDestination(move);
+                return (
+                  <div key={move.id} className="rounded-lg border border-border bg-background/50 px-3 py-2.5">
+                    <div className="mb-1.5 flex items-center justify-between gap-2">
+                      <span className="text-[10px] uppercase tracking-[0.14em] text-text-tertiary">Move {index + 1}</span>
+                      <span
+                        className={
+                          move.urgencyLabel === 'overdue'
+                            ? 'text-[10px] font-semibold uppercase tracking-wide text-red-400'
+                            : move.urgencyLabel === 'today'
+                              ? 'text-[10px] font-semibold uppercase tracking-wide text-amber-300'
+                              : move.urgencyLabel === 'soon'
+                                ? 'text-[10px] font-semibold uppercase tracking-wide text-sky-300'
+                                : 'text-[10px] font-semibold uppercase tracking-wide text-text-tertiary'
+                        }
+                      >
+                        {move.urgencyLabel}
+                      </span>
+                    </div>
+                    <p className="truncate text-sm font-medium text-text-primary">{move.title}</p>
+                    <p className="mt-0.5 line-clamp-2 text-xs text-text-secondary">
+                      {move.subtitle || move.reasons[0] || 'High-impact action'}
+                    </p>
+                    <div className="mt-2 flex items-center justify-between">
+                      <p className="text-[11px] text-text-tertiary">
+                        Score {Math.round(move.score)}
+                      </p>
+                      <Link
+                        href={destination.href}
+                        className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:text-primary-hover"
+                      >
+                        {destination.label}
+                        <ArrowRight className="h-3 w-3" />
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="rounded-lg border border-border bg-background/50 px-3 py-2.5 text-xs text-text-secondary md:col-span-3">
+                No direct execution moves yet. Opportunity windows are linked above.
               </div>
-            ))}
+            )}
           </div>
         </motion.div>
       ) : null}

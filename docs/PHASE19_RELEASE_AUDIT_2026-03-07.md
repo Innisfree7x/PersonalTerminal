@@ -33,6 +33,15 @@ Scope: Momentum + Sound + Design Elevation
 - RailChip tonal glow for `danger|warning|success|info`
 - global `.card-surface` / `.card-surface-hover` moved to softer glass depth with reduced-motion blur guards
 
+5. Overnight UX hardening patch:
+- `/today` Top-3 moves now resolve to contextual destinations with payload-aware deep links:
+  - task -> `/today?...#focus-tasks`
+  - homework -> `/university?...`
+  - goal -> `/goals?...`
+  - interview -> `/career?...`
+- `/today` now surfaces upcoming trajectory windows (<=45d) above Top-3 moves as quick bridge chips.
+- `/trajectory` now supports `windowId` deep link highlighting (timeline lane + sidebar focus state), enabling direct navigation from Today opportunity chips.
+
 ## Data Contract Notes
 
 - `trajectory_status_shown_at` is written to user metadata when onboarding trajectory status is first computed.
@@ -44,6 +53,7 @@ Scope: Momentum + Sound + Design Elevation
 - `npm run lint` ✅
 - `npm run build` ✅
 - `npm run test -- --run tests/unit/onboarding-v2-flow.test.tsx tests/unit/trajectory-onboarding-submit-guard.test.tsx tests/unit/step-complete-gate.test.tsx tests/unit/trajectory-momentum.test.ts` ✅
+- `npm run test -- --run tests/unit/top-moves.test.ts tests/unit/trajectory-morning-briefing.test.ts tests/unit/trajectory-timeline.test.ts` ✅
 
 ## Known Risks
 

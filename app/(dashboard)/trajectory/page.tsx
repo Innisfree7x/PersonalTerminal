@@ -233,6 +233,7 @@ export default function TrajectoryPage() {
   const { play } = useAppSound();
   const previousOverallStatusRef = useRef<RiskStatus | null>(null);
   const [deepLinkedGoalId, setDeepLinkedGoalId] = useState('');
+  const [deepLinkedWindowId, setDeepLinkedWindowId] = useState('');
 
   const [simulationHours, setSimulationHours] = useState<number | null>(null);
   const [horizonMonthsDraft, setHorizonMonthsDraft] = useState<number | null>(null);
@@ -241,6 +242,7 @@ export default function TrajectoryPage() {
   const [showPrepBlocks, setShowPrepBlocks] = useState(true);
   const [showWindows, setShowWindows] = useState(true);
   const [selectedGoalId, setSelectedGoalId] = useState<string>('');
+  const [selectedWindowId, setSelectedWindowId] = useState<string>('');
   const [taskCount, setTaskCount] = useState<number>(6);
 
   const [goalForm, setGoalForm] = useState<GoalFormState>({
@@ -270,7 +272,9 @@ export default function TrajectoryPage() {
     if (typeof window === 'undefined') return;
     const url = new URL(window.location.href);
     const goalId = url.searchParams.get('goalId')?.trim() ?? '';
+    const windowId = url.searchParams.get('windowId')?.trim() ?? '';
     setDeepLinkedGoalId(goalId);
+    setDeepLinkedWindowId(windowId);
   }, []);
 
   const {
@@ -356,6 +360,27 @@ export default function TrajectoryPage() {
       return generatedBlocks[0]?.goalId ?? '';
     });
   }, [generatedBlocks, deepLinkedGoalId]);
+
+  useEffect(() => {
+    if (windows.length === 0) {
+      setSelectedWindowId('');
+      return;
+    }
+
+    if (deepLinkedWindowId) {
+      const hasWindow = windows.some((window) => window.id === deepLinkedWindowId);
+      if (hasWindow) {
+        setSelectedWindowId(deepLinkedWindowId);
+        setShowWindows(true);
+        return;
+      }
+    }
+
+    setSelectedWindowId((current) => {
+      if (current && windows.some((window) => window.id === current)) return current;
+      return windows[0]?.id ?? '';
+    });
+  }, [windows, deepLinkedWindowId]);
 
   const selectedBlock = useMemo(
     () => generatedBlocks.find((block) => block.goalId === selectedGoalId) ?? null,
@@ -904,12 +929,22 @@ export default function TrajectoryPage() {
                   {showWindows ? windows.map((window, index) => {
                     const frame = span(window.startDate, window.endDate);
                     const topOffset = 188 + (index % 2) * 34;
+                    const isSelected = window.id === selectedWindowId;
                     return (
                       <div
                         key={window.id}
-                        className="absolute h-7 rounded-md border border-info/45 bg-info/20 px-2 text-[11px] font-semibold leading-7 text-info"
-                        style={{ left: `${frame.left}%`, width: `${frame.width}%`, top: `${topOffset}px` }}
+                        className={cn(
+                          'absolute h-7 cursor-pointer rounded-md border border-info/45 bg-info/20 px-2 text-[11px] font-semibold leading-7 text-info transition-all',
+                          isSelected && 'ring-1 ring-info/60 shadow-[0_0_0_1px_rgba(96,165,250,0.4)]'
+                        )}
+                        style={{
+                          left: `${frame.left}%`,
+                          width: `${frame.width}%`,
+                          top: `${topOffset}px`,
+                          zIndex: isSelected ? 25 : 12,
+                        }}
                         title={`${window.title} · ${formatShortDate(window.startDate)} to ${formatShortDate(window.endDate)}`}
+                        onClick={() => setSelectedWindowId(window.id)}
                       >
                         <span className="truncate block">{window.title}</span>
                       </div>
@@ -1379,8 +1414,18 @@ export default function TrajectoryPage() {
               {windows.length === 0 ? (
                 <p className="text-sm text-text-tertiary">No windows yet.</p>
               ) : (
-                windows.map((window) => (
-                  <div key={window.id} className="rounded-lg border border-border bg-background/50 px-3 py-2">
+                windows.map((window) => {
+                  const isSelected = window.id === selectedWindowId;
+                  return (
+                  <div
+                    key={window.id}
+                    className={cn(
+                      'rounded-lg border bg-background/50 px-3 py-2 transition-colors',
+                      isSelected
+                        ? 'border-info/50 ring-1 ring-info/50'
+                        : 'border-border'
+                    )}
+                  >
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-sm font-semibold text-text-primary">{window.title}</p>
@@ -1389,6 +1434,21 @@ export default function TrajectoryPage() {
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedWindowId(window.id);
+                            setShowWindows(true);
+                          }}
+                          className={cn(
+                            'rounded-md border px-1.5 py-1 text-[10px] font-medium transition-colors',
+                            isSelected
+                              ? 'border-info/45 bg-info/15 text-info'
+                              : 'border-border text-text-tertiary hover:border-info/30 hover:text-info'
+                          )}
+                        >
+                          focus
+                        </button>
                         <Badge size="sm" variant="info">
                           {window.confidence}
                         </Badge>
@@ -1402,7 +1462,8 @@ export default function TrajectoryPage() {
                       </div>
                     </div>
                   </div>
-                ))
+                );
+                })
               )}
             </div>
           </div>
