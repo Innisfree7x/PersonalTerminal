@@ -157,7 +157,7 @@ export default function OpsHealthClient() {
             </div>
 
             {data.flowSlo?.migrationApplied ? (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {data.flowSlo.flows.map((flow) => {
                   const availabilityTarget = flow.target.availabilityPct;
                   const p95Target = flow.target.p95Ms;
@@ -188,6 +188,31 @@ export default function OpsHealthClient() {
                     </div>
                   );
                 })}
+
+                {data.flowSlo.routeLatency && data.flowSlo.routeLatency.length > 0 ? (
+                  <div className="rounded-lg border border-border bg-surface/50 px-3 py-2">
+                    <div className="text-[10px] uppercase tracking-wide text-text-tertiary mb-2">
+                      Today Route Latency (p95)
+                    </div>
+                    <div className="space-y-1.5">
+                      {data.flowSlo.routeLatency.map((entry) => (
+                        <div
+                          key={entry.route}
+                          className="flex items-center justify-between gap-2 rounded-md border border-border/60 bg-background/40 px-2 py-1.5 text-xs"
+                        >
+                          <div className="truncate font-mono text-text-secondary">{entry.route}</div>
+                          <div className="flex items-center gap-2 text-text-tertiary">
+                            <span>{entry.total} samples</span>
+                            <span className="text-text-primary">
+                              {entry.p95Ms === null ? 'n/a' : `${entry.p95Ms}ms p95`}
+                            </span>
+                            <span>{entry.availabilityPct === null ? 'n/a' : `${entry.availabilityPct.toFixed(2)}%`}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ) : (
               <div className="text-sm text-text-tertiary">

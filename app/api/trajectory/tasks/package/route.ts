@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError } from '@/lib/api/server-errors';
+import { enforceTrustedMutationOrigin } from '@/lib/api/csrf';
 import { createTrajectoryTaskPackageSchema } from '@/lib/schemas/trajectory.schema';
 import { createTrajectoryTaskPackage, getTrajectoryGoalById } from '@/lib/supabase/trajectory';
 
@@ -27,6 +28,9 @@ function toDailyTaskResponse(task: {
 }
 
 export async function POST(request: NextRequest) {
+  const originViolation = enforceTrustedMutationOrigin(request);
+  if (originViolation) return originViolation;
+
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 

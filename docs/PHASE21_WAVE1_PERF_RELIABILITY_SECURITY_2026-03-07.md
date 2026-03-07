@@ -91,6 +91,64 @@ Kein Feature-Scope, kein UI-Rewrite außerhalb des Premium-Polish-Vertrags.
   - `Origin-Agent-Cluster: ?1`
   - `X-Permitted-Cross-Domain-Policies: none`
 
+### 7) `/today` Trajectory-Hotpath auf einen API-Call reduziert
+
+- Neue Route: `app/api/trajectory/morning/route.ts`
+- Vorher:
+  - `/api/trajectory/overview`
+  - `/api/trajectory/momentum`
+  - beide wurden auf `/today` parallel geladen, aber mit doppelter Plan-Berechnung.
+- Jetzt:
+  - ein kombinierter Snapshot-Call liefert:
+    - minimales `overview`-Payload (für Morning Briefing)
+    - `momentum` (für die Badge-Leiste)
+  - private SWR + Trace-Header + Flow-Metric-Emission.
+- Effekt: weniger Network-Overhead und weniger doppelte Compute-Last pro Today-Load.
+
+### 8) Flow-Metric-Emission nicht mehr blockierend auf Hot-Routes
+
+- Dateien:
+  - `app/api/dashboard/next-tasks/route.ts`
+  - `app/api/dashboard/today/route.ts`
+  - `app/api/dashboard/stats/route.ts`
+  - `app/api/dashboard/week-events/route.ts`
+  - `app/api/trajectory/overview/route.ts`
+  - `app/api/trajectory/momentum/route.ts`
+  - `app/api/trajectory/morning/route.ts`
+- Änderung: Metric-Writes laufen non-blocking (`void ...catch`), damit API-Responses nicht durch Observability-IO verzögert werden.
+- Effekt: stabilere p95 auf Read-Hotpaths.
+
+### 9) CSRF-Origin-Guard auf Mutations flächig ausgerollt
+
+- Neu abgesichert (zusätzlich zu Wave-1-Kernrouten):
+  - `app/api/applications/route.ts` (POST)
+  - `app/api/applications/[id]/route.ts` (PATCH/DELETE)
+  - `app/api/goals/route.ts` (POST)
+  - `app/api/goals/[id]/route.ts` (PATCH/DELETE)
+  - `app/api/courses/route.ts` (POST)
+  - `app/api/courses/[id]/route.ts` (PATCH/DELETE)
+  - `app/api/trajectory/settings/route.ts` (PATCH)
+  - `app/api/trajectory/goals/route.ts` (POST)
+  - `app/api/trajectory/goals/[id]/route.ts` (PATCH/DELETE)
+  - `app/api/trajectory/windows/route.ts` (POST)
+  - `app/api/trajectory/windows/[id]/route.ts` (PATCH/DELETE)
+  - `app/api/trajectory/plan/route.ts` (POST)
+  - `app/api/trajectory/blocks/commit/route.ts` (POST)
+  - `app/api/trajectory/tasks/package/route.ts` (POST)
+  - `app/api/notes/route.ts` (POST)
+  - `app/api/auth/google/disconnect/route.ts` (POST)
+  - `app/api/analytics/event/route.ts` (POST)
+  - `app/api/ops/flow-metrics/route.ts` (POST)
+- Effekt: konsistenter Baseline-Schutz gegen Browser-Cross-Origin-Mutations im gesamten Product-Scope.
+
+### 10) Ops-Transparenz: Route-p95 im Ops-Dashboard
+
+- Datei: `lib/ops/flowMetrics.ts`
+  - `OpsFlowSloSnapshot` erweitert um `routeLatency[]` (p95 + availability + sample count pro Route).
+- Datei: `components/features/analytics/OpsHealthClient.tsx`
+  - neue Darstellung “Today Route Latency (p95)” unter Flow-SLO.
+- Effekt: echte Route-Einblicke statt nur globaler Flow-Durchschnitt.
+
 ## Premium-Polish (laut `docs/PHASE19_PREMIUM_POLISH.md`)
 
 Zusätzlich umgesetzt:
@@ -117,11 +175,11 @@ Ausgeführt:
 
 - `npm run type-check` ✅
 - `npm run lint` ✅
-- `npm run test -- --run tests/unit/api/csrf-guard.test.ts tests/unit/api/daily-tasks.test.ts tests/unit/api/courses.test.ts tests/unit/api/focus-sessions.test.ts` ✅
+- `npm run test -- --run tests/unit/api/*.test.ts` ✅ (14 Dateien, 106 Tests)
 - `npm run build` ✅
 
 ## Risiko / Follow-up (Wave 2 Kandidaten)
 
-1. CSRF-Origin-Guard auf weitere mutierende API-Routen ausrollen (Trajectory/Career/Goals), aktuell nur kritische Kernflüsse.
-2. p95/p99 Messung pro Route in Ops-Dashboard visualisieren (nicht nur `Server-Timing` + flow metrics raw).
-3. Optional: edge-cache für read-only marketing endpoints und prefetch budget tuning auf `/today`.
+1. p95/p99 Messung pro Route in Ops-Dashboard weiter ausbauen (Filter/Sort nach Route, ggf. Zeitfenstervergleich).
+2. Optional: edge-cache für read-only marketing endpoints und prefetch budget tuning auf `/today`.
+3. Optional: RLS-Isolation zusätzlich als E2E-Matrix mit zwei echten Test-Usern in CI absichern (neben den bestehenden Unit-Tests).

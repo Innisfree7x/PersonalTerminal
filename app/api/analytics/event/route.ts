@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/server';
 import { analyticsEventSchema } from '@/lib/analytics/events';
 import { dispatchAnalyticsEvent } from '@/lib/analytics/provider';
+import { enforceTrustedMutationOrigin } from '@/lib/api/csrf';
 
 /**
  * POST /api/analytics/event
@@ -9,6 +10,9 @@ import { dispatchAnalyticsEvent } from '@/lib/analytics/provider';
  * Always non-blocking for UX: even provider failures return 202 once payload is valid.
  */
 export async function POST(request: NextRequest) {
+  const originViolation = enforceTrustedMutationOrigin(request);
+  if (originViolation) return originViolation;
+
   try {
     const body = await request.json();
     const parsed = analyticsEventSchema.safeParse(body);

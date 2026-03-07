@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError } from '@/lib/api/server-errors';
+import { enforceTrustedMutationOrigin } from '@/lib/api/csrf';
 import { createTrajectoryGoalSchema } from '@/lib/schemas/trajectory.schema';
 import { createTrajectoryGoal, listTrajectoryGoals } from '@/lib/supabase/trajectory';
 
@@ -17,6 +18,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const originViolation = enforceTrustedMutationOrigin(request);
+  if (originViolation) return originViolation;
+
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 

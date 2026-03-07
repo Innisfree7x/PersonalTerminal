@@ -5,6 +5,7 @@ import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError } from '@/lib/api/server-errors';
 import { createApiTraceContext, withApiTraceHeaders } from '@/lib/api/observability';
 import { applyPrivateSWRPolicy } from '@/lib/api/responsePolicy';
+import { recordFlowMetric } from '@/lib/ops/flowMetrics';
 
 interface TodayPriorities {
   goalsDueToday: Array<{
@@ -35,6 +36,7 @@ interface TodayPriorities {
  */
 export async function GET(request: NextRequest) {
   const trace = createApiTraceContext(request, '/api/dashboard/today');
+  const startedAt = trace.startedAt;
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return withApiTraceHeaders(errorResponse, trace, { metricName: 'dash_today' });
 
@@ -134,12 +136,35 @@ export async function GET(request: NextRequest) {
       pendingFollowUps,
     };
 
+    void recordFlowMetric({
+      flow: 'today_load',
+      status: 'success',
+      durationMs: Date.now() - startedAt,
+      userId: user.id,
+      route: '/api/dashboard/today',
+      requestId: trace.requestId,
+      context: {
+        goalsDueToday: goalsDueToday.length,
+        upcomingInterviews: upcomingInterviews.length,
+        pendingFollowUps: pendingFollowUps.length,
+      },
+    }).catch(() => {});
+
     const response = applyPrivateSWRPolicy(NextResponse.json(priorities), {
       maxAgeSeconds: 20,
       staleWhileRevalidateSeconds: 60,
     });
     return withApiTraceHeaders(response, trace, { metricName: 'dash_today' });
   } catch (error) {
+    void recordFlowMetric({
+      flow: 'today_load',
+      status: 'failure',
+      durationMs: Date.now() - startedAt,
+      userId: user.id,
+      route: '/api/dashboard/today',
+      requestId: trace.requestId,
+      errorCode: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
+    }).catch(() => {});
     const response = handleRouteError(
       error,
       'Failed to fetch priorities',

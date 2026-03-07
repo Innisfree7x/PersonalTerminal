@@ -41,4 +41,39 @@ describe('csrf guard + response policy', () => {
   it('recognizes invalid origins as untrusted', () => {
     expect(isTrustedOriginForTests('notaurl')).toBe(false);
   });
+
+  it('accepts GOOGLE_REDIRECT_URI origin as trusted mutation origin', () => {
+    const previous = process.env.GOOGLE_REDIRECT_URI;
+    process.env.GOOGLE_REDIRECT_URI = 'https://personal-terminal-green.vercel.app/api/auth/google/callback';
+    try {
+      const result = enforceTrustedMutationOrigin(
+        makeRequest('POST', 'https://personal-terminal-green.vercel.app') as any
+      );
+      expect(result).toBeNull();
+      expect(isTrustedOriginForTests('https://personal-terminal-green.vercel.app')).toBe(true);
+    } finally {
+      if (previous === undefined) delete process.env.GOOGLE_REDIRECT_URI;
+      else process.env.GOOGLE_REDIRECT_URI = previous;
+    }
+  });
+
+  it('keeps localhost fallback trusted even with invalid env origins', () => {
+    const previousSite = process.env.NEXT_PUBLIC_SITE_URL;
+    const previousRedirect = process.env.GOOGLE_REDIRECT_URI;
+    const previousVercel = process.env.VERCEL_URL;
+    process.env.NEXT_PUBLIC_SITE_URL = 'not-a-url';
+    process.env.GOOGLE_REDIRECT_URI = 'also-not-a-url';
+    process.env.VERCEL_URL = '';
+    try {
+      expect(isTrustedOriginForTests('http://localhost:3000')).toBe(true);
+      expect(isTrustedOriginForTests('http://127.0.0.1:3000')).toBe(true);
+    } finally {
+      if (previousSite === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
+      else process.env.NEXT_PUBLIC_SITE_URL = previousSite;
+      if (previousRedirect === undefined) delete process.env.GOOGLE_REDIRECT_URI;
+      else process.env.GOOGLE_REDIRECT_URI = previousRedirect;
+      if (previousVercel === undefined) delete process.env.VERCEL_URL;
+      else process.env.VERCEL_URL = previousVercel;
+    }
+  });
 });

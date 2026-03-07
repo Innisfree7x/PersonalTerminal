@@ -3,6 +3,7 @@ import { createApplication, fetchApplications } from '@/lib/supabase/application
 import { createApplicationSchema } from '@/lib/schemas/application.schema';
 import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError } from '@/lib/api/server-errors';
+import { enforceTrustedMutationOrigin } from '@/lib/api/csrf';
 
 /**
  * GET /api/applications - Fetch applications with pagination
@@ -39,6 +40,9 @@ export async function GET(request: NextRequest) {
  * POST /api/applications - Create a new application
  */
 export async function POST(request: NextRequest) {
+  const originViolation = enforceTrustedMutationOrigin(request);
+  if (originViolation) return originViolation;
+
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 

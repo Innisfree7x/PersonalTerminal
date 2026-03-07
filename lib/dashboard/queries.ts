@@ -397,10 +397,17 @@ export async function getDashboardNextTasks(userId: string): Promise<DashboardNe
   const homeworks: NextHomework[] = [];
 
   for (const course of courses) {
-    const completedCount = course.exercises.filter((ex) => ex.completed).length;
-    const nextExercise = course.exercises
-      .filter((ex) => !ex.completed)
-      .sort((a, b) => a.exerciseNumber - b.exerciseNumber)[0];
+    let completedCount = 0;
+    let nextExercise: (typeof course.exercises)[number] | null = null;
+    for (const exercise of course.exercises) {
+      if (exercise.completed) {
+        completedCount += 1;
+        continue;
+      }
+      if (!nextExercise || exercise.exerciseNumber < nextExercise.exerciseNumber) {
+        nextExercise = exercise;
+      }
+    }
 
     if (nextExercise) {
       const hw: NextHomework = {
@@ -490,7 +497,10 @@ export async function getDashboardNextTasks(userId: string): Promise<DashboardNe
     };
   });
 
-  const [{ data: dailyTasksData }, { data: completedExercisesTodayData }] = await Promise.all([
+  const [
+    { data: dailyTasksData, error: dailyTasksError },
+    { data: completedExercisesTodayData, error: completedExercisesTodayError },
+  ] = await Promise.all([
     supabase
       .from('daily_tasks')
       .select('id, title, completed, date, time_estimate')
@@ -504,6 +514,15 @@ export async function getDashboardNextTasks(userId: string): Promise<DashboardNe
       .gte('completed_at', todayStart.toISOString())
       .lt('completed_at', new Date(todayStart.getTime() + 24 * 60 * 60 * 1000).toISOString()),
   ]);
+
+  if (dailyTasksError) {
+    throw new Error(`Failed to fetch daily tasks for dashboard next tasks: ${dailyTasksError.message}`);
+  }
+  if (completedExercisesTodayError) {
+    throw new Error(
+      `Failed to fetch completed exercises for dashboard next tasks: ${completedExercisesTodayError.message}`
+    );
+  }
 
   const dailyTasks: DashboardDailyTask[] = (dailyTasksData || []).map((task) => ({
     id: task.id,

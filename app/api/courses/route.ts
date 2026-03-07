@@ -3,6 +3,7 @@ import { fetchCoursesWithExercises, createCourse } from '@/lib/supabase/courses'
 import { createCourseSchema } from '@/lib/schemas/course.schema';
 import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError } from '@/lib/api/server-errors';
+import { enforceTrustedMutationOrigin } from '@/lib/api/csrf';
 
 /**
  * GET /api/courses - Fetch all courses with exercise progress
@@ -23,6 +24,9 @@ export async function GET(_request: NextRequest) {
  * POST /api/courses - Create a new course with exercise progress entries
  */
 export async function POST(request: NextRequest) {
+  const originViolation = enforceTrustedMutationOrigin(request);
+  if (originViolation) return originViolation;
+
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 

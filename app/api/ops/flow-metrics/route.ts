@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getCurrentUser } from '@/lib/auth/server';
 import { isMonitoringIngressAllowed } from '@/lib/monitoring';
 import { recordFlowMetric, type RecordFlowMetricInput } from '@/lib/ops/flowMetrics';
+import { enforceTrustedMutationOrigin } from '@/lib/api/csrf';
 
 const loginFlowMetricSchema = z.object({
   flow: z.literal('login'),
@@ -21,6 +22,9 @@ function firstForwardedIp(request: NextRequest): string {
 }
 
 export async function POST(request: NextRequest) {
+  const originViolation = enforceTrustedMutationOrigin(request);
+  if (originViolation) return originViolation;
+
   try {
     const payload = loginFlowMetricSchema.parse(await request.json());
     const ingressKey = `ops-flow-login:${firstForwardedIp(request)}`;

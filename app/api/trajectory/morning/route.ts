@@ -14,10 +14,12 @@ import { computeMomentumScore } from '@/lib/trajectory/momentum';
 import { recordFlowMetric } from '@/lib/ops/flowMetrics';
 
 export async function GET(request: NextRequest) {
-  const trace = createApiTraceContext(request, '/api/trajectory/momentum');
+  const trace = createApiTraceContext(request, '/api/trajectory/morning');
   const startedAt = trace.startedAt;
   const { user, errorResponse } = await requireApiAuth();
-  if (errorResponse) return withApiTraceHeaders(errorResponse, trace, { metricName: 'traj_momentum' });
+  if (errorResponse) {
+    return withApiTraceHeaders(errorResponse, trace, { metricName: 'traj_morning' });
+  }
 
   try {
     const [settings, goals, blocks, focusSessions] = await Promise.all([
@@ -63,22 +65,24 @@ export async function GET(request: NextRequest) {
       })),
     });
 
-    void recordFlowMetric({
-      flow: 'today_load',
-      status: 'success',
-      durationMs: Date.now() - startedAt,
-      userId: user.id,
-      route: '/api/trajectory/momentum',
-      requestId: trace.requestId,
-      context: {
-        score: momentum.score,
-        trend: momentum.trend,
-      },
-    }).catch(() => {});
-
     const response = applyPrivateSWRPolicy(
       NextResponse.json({
         generatedAt: new Date().toISOString(),
+        overview: {
+          goals: goals.map((goal) => ({
+            id: goal.id,
+            title: goal.title,
+            dueDate: goal.dueDate,
+            status: goal.status,
+          })),
+          computed: {
+            generatedBlocks: computed.generatedBlocks.map((block) => ({
+              goalId: block.goalId,
+              startDate: block.startDate,
+              status: block.status,
+            })),
+          },
+        },
         momentum,
       }),
       {
@@ -86,22 +90,37 @@ export async function GET(request: NextRequest) {
         staleWhileRevalidateSeconds: 60,
       }
     );
-    return withApiTraceHeaders(response, trace, { metricName: 'traj_momentum' });
+
+    void recordFlowMetric({
+      flow: 'today_load',
+      status: 'success',
+      durationMs: Date.now() - startedAt,
+      userId: user.id,
+      route: '/api/trajectory/morning',
+      requestId: trace.requestId,
+      context: {
+        goalCount: goals.length,
+        generatedBlocks: computed.generatedBlocks.length,
+      },
+    }).catch(() => {});
+
+    return withApiTraceHeaders(response, trace, { metricName: 'traj_morning' });
   } catch (error) {
     void recordFlowMetric({
       flow: 'today_load',
       status: 'failure',
       durationMs: Date.now() - startedAt,
       userId: user.id,
-      route: '/api/trajectory/momentum',
+      route: '/api/trajectory/morning',
       requestId: trace.requestId,
       errorCode: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
     }).catch(() => {});
+
     const response = handleRouteError(
       error,
-      'Failed to compute trajectory momentum',
-      'Error computing trajectory momentum'
+      'Failed to build trajectory morning snapshot',
+      'Error building trajectory morning snapshot'
     );
-    return withApiTraceHeaders(response, trace, { metricName: 'traj_momentum' });
+    return withApiTraceHeaders(response, trace, { metricName: 'traj_morning' });
   }
 }

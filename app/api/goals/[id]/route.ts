@@ -3,6 +3,7 @@ import { updateGoal, deleteGoal } from '@/lib/supabase/goals';
 import { createGoalSchema } from '@/lib/schemas/goal.schema';
 import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError, apiErrorResponse } from '@/lib/api/server-errors';
+import { enforceTrustedMutationOrigin } from '@/lib/api/csrf';
 
 /**
  * PATCH /api/goals/[id] - Update a goal
@@ -11,6 +12,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const originViolation = enforceTrustedMutationOrigin(request);
+  if (originViolation) return originViolation;
+
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
@@ -57,9 +61,12 @@ export async function PATCH(
  * DELETE /api/goals/[id] - Delete a goal
  */
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const originViolation = enforceTrustedMutationOrigin(request);
+  if (originViolation) return originViolation;
+
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 

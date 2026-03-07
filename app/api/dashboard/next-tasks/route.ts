@@ -12,6 +12,9 @@ import { applyPrivateSWRPolicy } from '@/lib/api/responsePolicy';
 export async function GET(_request: NextRequest) {
   const trace = createApiTraceContext(_request, '/api/dashboard/next-tasks');
   const startedAt = trace.startedAt;
+  const emitFlowMetric = (payload: Parameters<typeof recordFlowMetric>[0]) => {
+    void recordFlowMetric(payload).catch(() => {});
+  };
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) {
     return withApiTraceHeaders(errorResponse, trace, { metricName: 'nexttasks' });
@@ -20,7 +23,7 @@ export async function GET(_request: NextRequest) {
   try {
     const result = await getDashboardNextTasks(user.id);
     const durationMs = Date.now() - startedAt;
-    await recordFlowMetric({
+    emitFlowMetric({
       flow: 'today_load',
       status: 'success',
       durationMs,
@@ -29,6 +32,8 @@ export async function GET(_request: NextRequest) {
       requestId: trace.requestId,
       context: {
         queryDurationMs: result.meta.queryDurationMs,
+        nextBestAlternatives: result.nextBestAlternatives.length,
+        riskSignals: result.riskSignals.length,
       },
     });
 
@@ -42,7 +47,7 @@ export async function GET(_request: NextRequest) {
     });
     return withApiTraceHeaders(response, trace, { metricName: 'nexttasks' });
   } catch (error) {
-    await recordFlowMetric({
+    emitFlowMetric({
       flow: 'today_load',
       status: 'failure',
       durationMs: Date.now() - startedAt,

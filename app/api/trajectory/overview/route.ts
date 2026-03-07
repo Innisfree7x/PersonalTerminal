@@ -1,6 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError } from '@/lib/api/server-errors';
+import { createApiTraceContext, withApiTraceHeaders } from '@/lib/api/observability';
+import { applyPrivateSWRPolicy } from '@/lib/api/responsePolicy';
 import {
   getOrCreateTrajectorySettings,
   listTrajectoryBlocks,
@@ -8,10 +10,13 @@ import {
   listTrajectoryWindows,
 } from '@/lib/supabase/trajectory';
 import { computeTrajectoryPlan } from '@/lib/trajectory/planner';
+import { recordFlowMetric } from '@/lib/ops/flowMetrics';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const trace = createApiTraceContext(request, '/api/trajectory/overview');
+  const startedAt = trace.startedAt;
   const { user, errorResponse } = await requireApiAuth();
-  if (errorResponse) return errorResponse;
+  if (errorResponse) return withApiTraceHeaders(errorResponse, trace, { metricName: 'traj_overview' });
 
   try {
     const [settings, goals, windows, blocks] = await Promise.all([
@@ -40,14 +45,49 @@ export async function GET() {
       capacityHoursPerWeek: settings.hoursPerWeek,
     });
 
-    return NextResponse.json({
-      settings,
-      goals,
-      windows,
-      blocks,
-      computed,
-    });
+    void recordFlowMetric({
+      flow: 'today_load',
+      status: 'success',
+      durationMs: Date.now() - startedAt,
+      userId: user.id,
+      route: '/api/trajectory/overview',
+      requestId: trace.requestId,
+      context: {
+        goals: goals.length,
+        windows: windows.length,
+        blocks: blocks.length,
+      },
+    }).catch(() => {});
+
+    const response = applyPrivateSWRPolicy(
+      NextResponse.json({
+        settings,
+        goals,
+        windows,
+        blocks,
+        computed,
+      }),
+      {
+        maxAgeSeconds: 20,
+        staleWhileRevalidateSeconds: 60,
+      }
+    );
+    return withApiTraceHeaders(response, trace, { metricName: 'traj_overview' });
   } catch (error) {
-    return handleRouteError(error, 'Failed to fetch trajectory overview', 'Error fetching trajectory overview');
+    void recordFlowMetric({
+      flow: 'today_load',
+      status: 'failure',
+      durationMs: Date.now() - startedAt,
+      userId: user.id,
+      route: '/api/trajectory/overview',
+      requestId: trace.requestId,
+      errorCode: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
+    }).catch(() => {});
+    const response = handleRouteError(
+      error,
+      'Failed to fetch trajectory overview',
+      'Error fetching trajectory overview'
+    );
+    return withApiTraceHeaders(response, trace, { metricName: 'traj_overview' });
   }
 }

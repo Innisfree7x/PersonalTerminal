@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireApiAuth } from '@/lib/api/auth';
+import { enforceTrustedMutationOrigin } from '@/lib/api/csrf';
 
 const createNoteSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // YYYY-MM-DD
@@ -36,6 +37,9 @@ export async function GET(_request: NextRequest) {
  * POST /api/notes - Create or update a note for today
  */
 export async function POST(request: NextRequest) {
+  const originViolation = enforceTrustedMutationOrigin(request);
+  if (originViolation) return originViolation;
+
   const { errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 

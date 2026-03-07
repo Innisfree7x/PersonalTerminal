@@ -38,6 +38,15 @@ export interface OpsFlowSummary {
   };
 }
 
+export interface OpsRouteLatencySummary {
+  route: string;
+  total: number;
+  success: number;
+  failure: number;
+  availabilityPct: number | null;
+  p95Ms: number | null;
+}
+
 export interface OpsFlowSloSnapshot {
   generatedAt: string;
   windowHours: number;
@@ -45,12 +54,14 @@ export interface OpsFlowSloSnapshot {
   to: string;
   migrationApplied: boolean;
   flows: OpsFlowSummary[];
+  routeLatency: OpsRouteLatencySummary[];
 }
 
 interface OpsFlowMetricRow {
   flow: OpsCriticalFlow;
   status: OpsFlowStatus;
   duration_ms: number;
+  route: string | null;
 }
 
 interface OpsFlowTableStatusCache {
@@ -166,6 +177,7 @@ export async function fetchOpsFlowSloSnapshot(
     to: to.toISOString(),
     migrationApplied: false,
     flows: (Object.keys(FLOW_SLO_TARGETS) as OpsCriticalFlow[]).map(createBaseSummary),
+    routeLatency: [],
   };
 
   const tableAvailable = await isOpsFlowMetricsTableAvailable();
@@ -176,7 +188,7 @@ export async function fetchOpsFlowSloSnapshot(
   const supabase = createClient();
   const { data, error } = await supabase
     .from('ops_flow_metrics')
-    .select('flow, status, duration_ms')
+    .select('flow, status, duration_ms, route')
     .gte('measured_at', from.toISOString())
     .lte('measured_at', to.toISOString())
     .order('measured_at', { ascending: false })
@@ -219,6 +231,56 @@ export async function fetchOpsFlowSloSnapshot(
     return summary;
   });
 
+  const routeMap = new Map<
+    string,
+    {
+      summary: OpsRouteLatencySummary;
+      successDurations: number[];
+    }
+  >();
+  for (const row of rows) {
+    if (row.flow !== 'today_load') continue;
+    if (!row.route || row.route.trim().length === 0) continue;
+    const route = row.route.trim();
+    const existing = routeMap.get(route) ?? {
+      summary: {
+        route,
+        total: 0,
+        success: 0,
+        failure: 0,
+        availabilityPct: null,
+        p95Ms: null,
+      },
+      successDurations: [],
+    };
+    existing.summary.total += 1;
+    if (row.status === 'success') {
+      existing.summary.success += 1;
+      existing.successDurations.push(row.duration_ms);
+    } else {
+      existing.summary.failure += 1;
+    }
+    routeMap.set(route, existing);
+  }
+
+  const routeLatency = Array.from(routeMap.values())
+    .map(({ summary, successDurations }) => {
+      const availability =
+        summary.total > 0 ? Number(((summary.success / summary.total) * 100).toFixed(3)) : null;
+      return {
+        ...summary,
+        availabilityPct: availability,
+        p95Ms: computeP95(successDurations),
+      };
+    })
+    .sort((a, b) => {
+      if (a.p95Ms === null && b.p95Ms === null) return b.total - a.total;
+      if (a.p95Ms === null) return 1;
+      if (b.p95Ms === null) return -1;
+      return b.p95Ms - a.p95Ms;
+    })
+    .slice(0, 8);
+
   return {
     generatedAt: new Date().toISOString(),
     windowHours,
@@ -226,5 +288,6 @@ export async function fetchOpsFlowSloSnapshot(
     to: to.toISOString(),
     migrationApplied: true,
     flows: summaries,
+    routeLatency,
   };
 }

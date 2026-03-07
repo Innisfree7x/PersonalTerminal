@@ -55,6 +55,12 @@ type TrajectoryMomentumResponse = {
   };
 };
 
+type TodayTrajectorySnapshotResponse = {
+  generatedAt: string;
+  overview: TrajectoryBriefOverview;
+  momentum: TrajectoryMomentumResponse['momentum'];
+};
+
 function hasWelcomedUser(): boolean {
   if (typeof window === 'undefined') return true;
   try {
@@ -167,30 +173,19 @@ export default function TodayPage() {
     refetchOnReconnect: false,
   });
 
-  const { data: trajectoryOverview, isFetched: isTrajectoryOverviewFetched } = useQuery<TrajectoryBriefOverview>({
-    queryKey: ['trajectory', 'overview', 'briefing'],
+  const {
+    data: trajectorySnapshot,
+    isFetched: isTrajectorySnapshotFetched,
+  } = useQuery<TodayTrajectorySnapshotResponse>({
+    queryKey: ['trajectory', 'today-morning'],
     queryFn: async () => {
-      const response = await fetch('/api/trajectory/overview');
+      const response = await fetch('/api/trajectory/morning');
       if (!response.ok) {
-        throw new Error('Failed to fetch trajectory overview');
+        throw new Error('Failed to fetch trajectory morning snapshot');
       }
       return response.json();
     },
     staleTime: 30 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  });
-
-  const { data: momentumData } = useQuery<TrajectoryMomentumResponse>({
-    queryKey: ['trajectory', 'momentum'],
-    queryFn: async () => {
-      const response = await fetch('/api/trajectory/momentum');
-      if (!response.ok) {
-        throw new Error('Failed to fetch trajectory momentum');
-      }
-      return response.json();
-    },
-    staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
@@ -222,8 +217,8 @@ export default function TodayPage() {
 
   const stats = nextTasksData?.stats;
   const studyProgress = nextTasksData?.studyProgress || [];
-  const trajectoryBriefing = buildTrajectoryMorningBriefing(trajectoryOverview);
-  const momentum = momentumData?.momentum ?? null;
+  const trajectoryBriefing = buildTrajectoryMorningBriefing(trajectorySnapshot?.overview);
+  const momentum = trajectorySnapshot?.momentum ?? null;
   const trajectoryBriefingHref = trajectoryBriefing
     ? `/trajectory?goalId=${encodeURIComponent(trajectoryBriefing.goalId)}&source=morning_briefing`
     : '/trajectory?source=morning_briefing';
@@ -236,7 +231,7 @@ export default function TodayPage() {
   }, [stats?.nextExam?.daysUntilExam]);
 
   useEffect(() => {
-    if (!isTrajectoryOverviewFetched) return;
+    if (!isTrajectorySnapshotFetched) return;
     if (typeof window === 'undefined') return;
     const today = getTodayKey();
     const alreadySent = window.localStorage.getItem(STORAGE_KEYS.todayMorningCheckinDate) === today;
@@ -249,7 +244,7 @@ export default function TodayPage() {
       ...(trajectoryBriefing?.title ? { title: trajectoryBriefing.title } : {}),
     });
     window.localStorage.setItem(STORAGE_KEYS.todayMorningCheckinDate, today);
-  }, [isTrajectoryOverviewFetched, trajectoryBriefing]);
+  }, [isTrajectorySnapshotFetched, trajectoryBriefing]);
 
   useEffect(() => {
     if (!momentum || momentum.trend !== 'up') return;

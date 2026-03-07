@@ -3,6 +3,7 @@ import { updateApplication, deleteApplication } from '@/lib/supabase/application
 import { createApplicationSchema } from '@/lib/schemas/application.schema';
 import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError } from '@/lib/api/server-errors';
+import { enforceTrustedMutationOrigin } from '@/lib/api/csrf';
 
 /**
  * PATCH /api/applications/[id] - Update an existing application
@@ -11,6 +12,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const originViolation = enforceTrustedMutationOrigin(request);
+  if (originViolation) return originViolation;
+
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
@@ -36,9 +40,12 @@ export async function PATCH(
  * DELETE /api/applications/[id] - Delete an application
  */
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const originViolation = enforceTrustedMutationOrigin(request);
+  if (originViolation) return originViolation;
+
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 

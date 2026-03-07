@@ -9,6 +9,7 @@ import {
 import type { CreateCourseInput } from '@/lib/schemas/course.schema';
 import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError, apiErrorResponse } from '@/lib/api/server-errors';
+import { enforceTrustedMutationOrigin } from '@/lib/api/csrf';
 
 /**
  * GET /api/courses/[id] - Get a single course with exercises
@@ -67,6 +68,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const originViolation = enforceTrustedMutationOrigin(request);
+  if (originViolation) return originViolation;
+
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
@@ -100,9 +104,12 @@ export async function PATCH(
  * DELETE /api/courses/[id] - Delete a course
  */
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const originViolation = enforceTrustedMutationOrigin(request);
+  if (originViolation) return originViolation;
+
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
