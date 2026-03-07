@@ -49,6 +49,10 @@ export async function updateProfileAction(input: {
   onboardingCompleted?: boolean;
   demoDataIds?: DemoDataIds | null;
   emailNotifications?: boolean;
+  trajectoryStatusShown?: {
+    status: 'on_track' | 'tight' | 'at_risk';
+    shownAt?: string;
+  };
 }): Promise<UserProfile> {
   const user = await requireAuth();
   const supabase = createClient();
@@ -69,6 +73,17 @@ export async function updateProfileAction(input: {
       : {}),
     ...(input.emailNotifications !== undefined
       ? { email_notifications: input.emailNotifications }
+      : {}),
+    ...(input.trajectoryStatusShown !== undefined
+      ? {
+          trajectory_status_last: input.trajectoryStatusShown.status,
+          trajectory_status_last_seen_at:
+            input.trajectoryStatusShown.shownAt ?? new Date().toISOString(),
+          trajectory_status_shown_at:
+            user.user_metadata?.trajectory_status_shown_at ??
+            input.trajectoryStatusShown.shownAt ??
+            new Date().toISOString(),
+        }
       : {}),
   };
 

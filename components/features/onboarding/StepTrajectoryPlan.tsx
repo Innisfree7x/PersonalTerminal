@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { trackOnboardingEvent } from '@/app/onboarding/analytics';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import { updateProfileAction } from '@/app/actions/profile';
 
 export type TrajectoryRiskStatus = 'on_track' | 'tight' | 'at_risk';
 
@@ -161,6 +162,11 @@ export function StepTrajectoryPlan({
       };
 
       setSummary(nextSummary);
+      void updateProfileAction({
+        trajectoryStatusShown: { status: nextSummary.status },
+      }).catch(() => {
+        // Non-blocking metadata enrichment for ops analytics.
+      });
       trackOnboardingEvent('trajectory_status_shown', { status: nextSummary.status });
       if (nextSummary.status === 'on_track') {
         play('trajectory-on-track');

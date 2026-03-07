@@ -1,6 +1,7 @@
 'use server';
 
 import { requireAuth } from '@/lib/auth/server';
+import { createAdminClient } from '@/lib/auth/admin';
 import { isAdminUser } from '@/lib/auth/authorization';
 import {
   acknowledgeMonitoringIncident,
@@ -27,12 +28,119 @@ function assertAdmin() {
   });
 }
 
+interface ActivationMetricsSnapshot {
+  available: boolean;
+  usersWithTrajectoryGoalTotal: number;
+  usersWithTrajectoryGoalLast7d: number;
+  avgMinutesSignupToTrajectoryStatusShown: number | null;
+  avgSampleSize: number;
+  waitlistSegments: Array<{ segment: string; users: number }>;
+  reasonIfUnavailable?: string;
+}
+
+type OpsAuthUser = {
+  created_at?: string;
+  user_metadata?: Record<string, unknown> | null;
+};
+
+async function listAllUsersForOps(): Promise<OpsAuthUser[]> {
+  const admin = createAdminClient();
+  const users: OpsAuthUser[] = [];
+  let page = 1;
+  const perPage = 200;
+  while (page <= 50) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
+    if (error) throw error;
+    const batch = data?.users ?? [];
+    users.push(...batch);
+    if (batch.length < perPage) break;
+    page += 1;
+  }
+  return users;
+}
+
+async function fetchActivationMetricsSnapshot(): Promise<ActivationMetricsSnapshot> {
+  try {
+    const admin = createAdminClient();
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    const [{ data: goalsData, error: goalsError }, users] = await Promise.all([
+      admin.from('trajectory_goals').select('user_id, created_at'),
+      listAllUsersForOps(),
+    ]);
+
+    if (goalsError) {
+      throw goalsError;
+    }
+
+    const uniqueGoalUsers = new Set<string>();
+    const uniqueGoalUsersLast7d = new Set<string>();
+    for (const row of goalsData ?? []) {
+      uniqueGoalUsers.add(row.user_id);
+      const createdAt = new Date(row.created_at);
+      if (!Number.isNaN(createdAt.getTime()) && createdAt >= sevenDaysAgo) {
+        uniqueGoalUsersLast7d.add(row.user_id);
+      }
+    }
+
+    const waitlistSegmentsMap = new Map<string, number>();
+    const signupToStatusMinutes: number[] = [];
+    for (const user of users) {
+      const metadata = user.user_metadata ?? {};
+      const segmentRaw = metadata.waitlist_segment;
+      const segment = typeof segmentRaw === 'string' && segmentRaw.trim().length > 0 ? segmentRaw.trim() : 'unknown';
+      waitlistSegmentsMap.set(segment, (waitlistSegmentsMap.get(segment) ?? 0) + 1);
+
+      const statusShownRaw = metadata.trajectory_status_shown_at;
+      const createdAtRaw = user.created_at;
+      if (typeof statusShownRaw !== 'string' || typeof createdAtRaw !== 'string') continue;
+      const signupAt = new Date(createdAtRaw);
+      const statusShownAt = new Date(statusShownRaw);
+      if (Number.isNaN(signupAt.getTime()) || Number.isNaN(statusShownAt.getTime())) continue;
+      const deltaMinutes = (statusShownAt.getTime() - signupAt.getTime()) / 60000;
+      if (deltaMinutes >= 0) signupToStatusMinutes.push(deltaMinutes);
+    }
+
+    const avgMinutesSignupToTrajectoryStatusShown =
+      signupToStatusMinutes.length > 0
+        ? signupToStatusMinutes.reduce((sum, minutes) => sum + minutes, 0) / signupToStatusMinutes.length
+        : null;
+
+    const waitlistSegments = Array.from(waitlistSegmentsMap.entries())
+      .map(([segment, usersCount]) => ({ segment, users: usersCount }))
+      .sort((a, b) => b.users - a.users)
+      .slice(0, 8);
+
+    return {
+      available: true,
+      usersWithTrajectoryGoalTotal: uniqueGoalUsers.size,
+      usersWithTrajectoryGoalLast7d: uniqueGoalUsersLast7d.size,
+      avgMinutesSignupToTrajectoryStatusShown,
+      avgSampleSize: signupToStatusMinutes.length,
+      waitlistSegments,
+    };
+  } catch (error) {
+    return {
+      available: false,
+      usersWithTrajectoryGoalTotal: 0,
+      usersWithTrajectoryGoalLast7d: 0,
+      avgMinutesSignupToTrajectoryStatusShown: null,
+      avgSampleSize: 0,
+      waitlistSegments: [],
+      reasonIfUnavailable: error instanceof Error ? error.message : 'unknown error',
+    };
+  }
+}
+
 export async function fetchMonitoringHealthAction(
   options?: { auditView?: boolean }
 ): Promise<MonitoringHealthSnapshot> {
   const user = await assertAdmin();
 
-  const flowSlo = await fetchOpsFlowSloSnapshot({ windowHours: 24 * 7 });
+  const [flowSlo, activationMetrics] = await Promise.all([
+    fetchOpsFlowSloSnapshot({ windowHours: 24 * 7 }),
+    fetchActivationMetricsSnapshot(),
+  ]);
 
   if (!isMonitoringEnabled()) {
     return {
@@ -42,6 +150,7 @@ export async function fetchMonitoringHealthAction(
       auditLogMigrationApplied: false,
       recentAdminAuditLogs: [],
       flowSlo,
+      activationMetrics,
     };
   }
 
@@ -61,6 +170,7 @@ export async function fetchMonitoringHealthAction(
     auditLogMigrationApplied: migrationApplied,
     recentAdminAuditLogs,
     flowSlo,
+    activationMetrics,
   };
 }
 

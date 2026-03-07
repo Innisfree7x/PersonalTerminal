@@ -1,6 +1,6 @@
 # Phase 19 Execution Contract — Momentum + Sound
 
-Status: Active execution contract  
+Status: Implemented  
 Date: 2026-03-06  
 Owner: Core agent
 
@@ -37,7 +37,7 @@ Both must happen in the same session window (<= 30 minutes) for "Aha reached".
 ### A. Momentum
 
 - `/api/trajectory/momentum` returns deterministic score (0-100), trend and delta.
-- `/today` renders momentum card with:
+- `/today` renders compact strategic rail with momentum context:
   - score
   - week-over-week delta
   - status distribution (`on_track`, `tight`, `at_risk`)
@@ -107,3 +107,6 @@ Ops dashboard must expose:
 
 Release dependency:
 - Ops visibility above must go live in the same rollout as Momentum Score (no defer).
+
+Implementation detail:
+- `trajectory_status_shown` timestamp is mirrored to user metadata key `trajectory_status_shown_at` during onboarding trajectory planning for deterministic ops aggregation.

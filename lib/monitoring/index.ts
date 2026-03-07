@@ -35,6 +35,15 @@ export interface MonitoringHealthSnapshot {
   auditLogMigrationApplied?: boolean;
   recentAdminAuditLogs?: AdminAuditLogRecord[];
   flowSlo?: OpsFlowSloSnapshot;
+  activationMetrics?: {
+    available: boolean;
+    usersWithTrajectoryGoalTotal: number;
+    usersWithTrajectoryGoalLast7d: number;
+    avgMinutesSignupToTrajectoryStatusShown: number | null;
+    avgSampleSize: number;
+    waitlistSegments: Array<{ segment: string; users: number }>;
+    reasonIfUnavailable?: string;
+  };
 }
 
 function truncate(value: string, max = 4000): string {

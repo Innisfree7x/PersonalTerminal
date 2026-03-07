@@ -197,6 +197,78 @@ export default function OpsHealthClient() {
             )}
           </div>
 
+          <div className="card-surface rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <div className="text-sm font-semibold text-text-primary">Trajectory Activation Snapshot</div>
+                <div className="text-xs text-text-tertiary mt-1">
+                  Goal adoption, signup-to-status latency and waitlist segment mix
+                </div>
+              </div>
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                  data.activationMetrics?.available
+                    ? 'bg-success/15 text-success border border-success/30'
+                    : 'bg-warning/15 text-warning border border-warning/30'
+                }`}
+              >
+                {data.activationMetrics?.available ? 'Live' : 'Unavailable'}
+              </span>
+            </div>
+
+            {data.activationMetrics?.available ? (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <div className="rounded-lg border border-border bg-surface/60 px-3 py-2">
+                    <div className="text-[10px] uppercase tracking-wide text-text-tertiary">Users with goal (total)</div>
+                    <div className="mt-1 text-xl font-bold text-text-primary">{data.activationMetrics.usersWithTrajectoryGoalTotal}</div>
+                  </div>
+                  <div className="rounded-lg border border-border bg-surface/60 px-3 py-2">
+                    <div className="text-[10px] uppercase tracking-wide text-text-tertiary">Users with goal (7d)</div>
+                    <div className="mt-1 text-xl font-bold text-text-primary">{data.activationMetrics.usersWithTrajectoryGoalLast7d}</div>
+                  </div>
+                  <div className="rounded-lg border border-border bg-surface/60 px-3 py-2">
+                    <div className="text-[10px] uppercase tracking-wide text-text-tertiary">Avg signup → status shown</div>
+                    <div className="mt-1 text-xl font-bold text-text-primary">
+                      {data.activationMetrics.avgMinutesSignupToTrajectoryStatusShown === null
+                        ? 'n/a'
+                        : `${data.activationMetrics.avgMinutesSignupToTrajectoryStatusShown.toFixed(1)}m`}
+                    </div>
+                    <div className="mt-1 text-[11px] text-text-tertiary">
+                      sample {data.activationMetrics.avgSampleSize}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-border bg-surface/60 px-3 py-2">
+                  <div className="text-[10px] uppercase tracking-wide text-text-tertiary mb-1">Waitlist segments</div>
+                  {data.activationMetrics.waitlistSegments.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {data.activationMetrics.waitlistSegments.map((entry) => (
+                        <span
+                          key={entry.segment}
+                          className="inline-flex items-center gap-1 rounded-full border border-border bg-background/50 px-2 py-0.5 text-[11px] text-text-secondary"
+                        >
+                          <span className="font-medium text-text-primary">{entry.segment}</span>
+                          <span className="text-text-tertiary">{entry.users}</span>
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-text-tertiary">No waitlist segment data yet.</div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="text-sm text-text-tertiary">
+                Activation metrics unavailable
+                {data.activationMetrics?.reasonIfUnavailable
+                  ? ` (${data.activationMetrics.reasonIfUnavailable})`
+                  : '.'}
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="card-surface rounded-xl p-4">
               <div className="text-xs text-text-tertiary">Incidents</div>
