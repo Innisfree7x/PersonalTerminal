@@ -377,12 +377,11 @@ export default function TodayPage() {
 
           {momentum ? (
             <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="rounded-full border border-white/10 bg-background/50 px-2.5 py-1 text-text-tertiary">
-                Momentum
+              {/* Score — label + number combined */}
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 font-semibold text-text-primary">
+                Momentum · {momentum.score}
               </span>
-              <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 font-semibold text-text-primary">
-                {momentum.score}
-              </span>
+              {/* Delta — compact, no "vs last week" */}
               <span
                 className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 font-medium ${
                   momentum.delta > 0
@@ -393,32 +392,38 @@ export default function TodayPage() {
                 }`}
               >
                 {momentum.delta > 0 ? (
-                  <TrendingUp className="h-3.5 w-3.5" />
+                  <TrendingUp className="h-3 w-3" />
                 ) : momentum.delta < 0 ? (
-                  <TrendingDown className="h-3.5 w-3.5" />
+                  <TrendingDown className="h-3 w-3" />
                 ) : (
-                  <Minus className="h-3.5 w-3.5" />
+                  <Minus className="h-3 w-3" />
                 )}
-                {momentum.delta > 0 ? `+${momentum.delta}` : momentum.delta} vs last week
+                {momentum.delta > 0 ? `+${momentum.delta}` : momentum.delta}
               </span>
               {!showWelcome ? (
                 <>
-                  <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-emerald-300">
-                    On track {momentum.stats.onTrack}
-                  </span>
-                  <span className="rounded-full border border-amber-300/20 bg-amber-500/10 px-2.5 py-1 text-amber-300">
-                    Tight {momentum.stats.tight}
-                  </span>
-                  <span className="rounded-full border border-red-400/20 bg-red-500/10 px-2.5 py-1 text-red-400">
-                    At risk {momentum.stats.atRisk}
-                  </span>
-                  <span className="rounded-full border border-white/10 bg-background/40 px-2.5 py-1 text-text-secondary">
-                    Focus load {momentum.stats.last7DaysHours.toFixed(1)}h / {momentum.stats.plannedHoursPerWeek}h
+                  {/* Most critical status only — not all three */}
+                  {momentum.stats.atRisk > 0 ? (
+                    <span className="rounded-full border border-red-400/20 bg-red-500/10 px-2.5 py-1 text-red-400">
+                      {momentum.stats.atRisk} at risk
+                    </span>
+                  ) : momentum.stats.tight > 0 ? (
+                    <span className="rounded-full border border-amber-300/20 bg-amber-500/10 px-2.5 py-1 text-amber-300">
+                      {momentum.stats.tight} tight
+                    </span>
+                  ) : (
+                    <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-emerald-300">
+                      {momentum.stats.onTrack} on track
+                    </span>
+                  )}
+                  {/* Focus load */}
+                  <span className="rounded-full border border-white/10 bg-background/40 px-2.5 py-1 text-text-tertiary">
+                    {momentum.stats.last7DaysHours.toFixed(1)}h / {momentum.stats.plannedHoursPerWeek}h
                   </span>
                 </>
               ) : (
                 <span className="rounded-full border border-white/10 bg-background/35 px-2.5 py-1 text-text-tertiary">
-                  Detail breakdown unlocks after your first guided day.
+                  Detail unlocks after first active day.
                 </span>
               )}
             </div>

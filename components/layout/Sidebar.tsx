@@ -283,7 +283,7 @@ export default function Sidebar() {
 
                   <div
                     className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all overflow-hidden ${isActive
-                        ? 'bg-primary/[0.13] text-primary'
+                        ? 'bg-primary/[0.07] text-primary'
                         : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
                       } ${isCollapsed ? 'justify-center' : ''}`}
                   >
