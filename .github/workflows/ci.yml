@@ -11,6 +11,13 @@ jobs:
   quality:
     name: Quality Checks
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      TENANT_A_EMAIL: ${{ secrets.TENANT_A_EMAIL }}
+      TENANT_A_PASSWORD: ${{ secrets.TENANT_A_PASSWORD }}
+      TENANT_B_EMAIL: ${{ secrets.TENANT_B_EMAIL }}
+      TENANT_B_PASSWORD: ${{ secrets.TENANT_B_PASSWORD }}
 
     steps:
       - name: Checkout
@@ -35,6 +42,52 @@ jobs:
 
       - name: Unit tests
         run: npm run test:unit
+
+      - name: Gate tenant isolation check by secrets
+        id: tenant_gate
+        run: |
+          trim() { printf '%s' "$1" | tr -d '\r\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'; }
+
+          TRIMMED_URL="$(trim "${NEXT_PUBLIC_SUPABASE_URL}")"
+          TRIMMED_ANON="$(trim "${NEXT_PUBLIC_SUPABASE_ANON_KEY}")"
+          TRIMMED_A_EMAIL="$(trim "${TENANT_A_EMAIL}")"
+          TRIMMED_A_PASSWORD="$(trim "${TENANT_A_PASSWORD}")"
+          TRIMMED_B_EMAIL="$(trim "${TENANT_B_EMAIL}")"
+          TRIMMED_B_PASSWORD="$(trim "${TENANT_B_PASSWORD}")"
+
+          MISSING=""
+          [ -z "${TRIMMED_URL}" ] && MISSING="${MISSING} NEXT_PUBLIC_SUPABASE_URL"
+          [ -z "${TRIMMED_ANON}" ] && MISSING="${MISSING} NEXT_PUBLIC_SUPABASE_ANON_KEY"
+          [ -z "${TRIMMED_A_EMAIL}" ] && MISSING="${MISSING} TENANT_A_EMAIL"
+          [ -z "${TRIMMED_A_PASSWORD}" ] && MISSING="${MISSING} TENANT_A_PASSWORD"
+          [ -z "${TRIMMED_B_EMAIL}" ] && MISSING="${MISSING} TENANT_B_EMAIL"
+          [ -z "${TRIMMED_B_PASSWORD}" ] && MISSING="${MISSING} TENANT_B_PASSWORD"
+
+          if [ -n "${MISSING}" ]; then
+            echo "run_tenant=false" >> "$GITHUB_OUTPUT"
+            echo "Tenant isolation secrets missing:${MISSING}"
+            if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+              echo "::error title=Tenant Isolation Gate::Missing tenant isolation secrets on main:${MISSING}"
+              exit 1
+            fi
+            echo "Skipping tenant isolation check on non-main branch."
+            exit 0
+          fi
+
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=${TRIMMED_URL}"
+            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${TRIMMED_ANON}"
+            echo "TENANT_A_EMAIL=${TRIMMED_A_EMAIL}"
+            echo "TENANT_A_PASSWORD=${TRIMMED_A_PASSWORD}"
+            echo "TENANT_B_EMAIL=${TRIMMED_B_EMAIL}"
+            echo "TENANT_B_PASSWORD=${TRIMMED_B_PASSWORD}"
+          } >> "$GITHUB_ENV"
+
+          echo "run_tenant=true" >> "$GITHUB_OUTPUT"
+
+      - name: Tenant isolation check
+        if: steps.tenant_gate.outputs.run_tenant == 'true'
+        run: npm run test:tenant-isolation
 
       - name: AI eval suite
         run: npm run test:evals

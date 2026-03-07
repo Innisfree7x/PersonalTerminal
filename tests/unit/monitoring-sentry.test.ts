@@ -6,6 +6,17 @@ describe('monitoring sentry transport', () => {
     const parsed = parseSentryDsn('https://publicKey@example.ingest.sentry.io/123456');
     expect(parsed).toEqual({
       origin: 'https://example.ingest.sentry.io',
+      pathPrefix: '',
+      projectId: '123456',
+      publicKey: 'publicKey',
+    });
+  });
+
+  it('parses DSN with path prefix', () => {
+    const parsed = parseSentryDsn('https://publicKey@example.ingest.sentry.io/sentry/project/123456');
+    expect(parsed).toEqual({
+      origin: 'https://example.ingest.sentry.io',
+      pathPrefix: '/sentry/project',
       projectId: '123456',
       publicKey: 'publicKey',
     });

@@ -3,6 +3,7 @@ import type { MonitoringPayload } from '@/lib/monitoring';
 
 interface ParsedDsn {
   origin: string;
+  pathPrefix: string;
   projectId: string;
   publicKey: string;
 }
@@ -10,10 +11,13 @@ interface ParsedDsn {
 export function parseSentryDsn(dsn: string): ParsedDsn | null {
   try {
     const url = new URL(dsn);
-    const projectId = url.pathname.replace(/\//g, '').trim();
+    const segments = url.pathname.split('/').filter(Boolean);
+    const projectId = segments.at(-1)?.trim() ?? '';
+    const pathPrefix = segments.length > 1 ? `/${segments.slice(0, -1).join('/')}` : '';
     if (!projectId || !url.username) return null;
     return {
       origin: url.origin,
+      pathPrefix,
       projectId,
       publicKey: url.username,
     };
@@ -79,7 +83,7 @@ export async function captureWithSentry(payload: Required<MonitoringPayload>): P
   const envelope = buildSentryEnvelope(payload, dsn);
   if (!envelope) return;
 
-  const endpoint = `${parsed.origin}/api/${parsed.projectId}/envelope/`;
+  const endpoint = `${parsed.origin}${parsed.pathPrefix}/api/${parsed.projectId}/envelope/`;
   try {
     await fetch(endpoint, {
       method: 'POST',
