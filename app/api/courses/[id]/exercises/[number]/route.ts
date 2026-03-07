@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { toggleExerciseCompletion } from '@/lib/supabase/courses';
 import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError, apiErrorResponse } from '@/lib/api/server-errors';
+import { enforceTrustedMutationOrigin } from '@/lib/api/csrf';
 
 /**
  * PATCH /api/courses/[id]/exercises/[number] - Toggle exercise completion
@@ -10,6 +11,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string; number: string } }
 ) {
+  const originViolation = enforceTrustedMutationOrigin(request);
+  if (originViolation) return originViolation;
+
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 

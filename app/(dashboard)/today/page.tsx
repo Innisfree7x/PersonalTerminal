@@ -270,7 +270,7 @@ export default function TodayPage() {
   }, [momentum, play]);
 
   return (
-    <div className="space-y-6" data-testid="today-page-root">
+    <div className="space-y-7" data-testid="today-page-root">
       {/* First-visit welcome orientation */}
       <AnimatePresence>
         {showWelcome && (
@@ -314,7 +314,7 @@ export default function TodayPage() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.16 }}
-        className="card-surface relative overflow-hidden p-3.5"
+        className="card-surface relative overflow-hidden p-4"
       >
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
         <div className="flex flex-col gap-2.5">
@@ -454,31 +454,33 @@ export default function TodayPage() {
         </div>
       </motion.div>
 
-      <CommandBar
-        tasksToday={stats?.tasksToday ?? 0}
-        tasksCompleted={stats?.tasksCompleted ?? 0}
-        exercisesCompleted={stats?.exercisesThisWeek ?? 0}
-        exercisesTotal={stats?.exercisesTotal ?? 0}
-        nextExam={
-          stats?.nextExam && typeof stats.nextExam.daysUntilExam === 'number'
-            ? { name: stats.nextExam.name, daysUntilExam: stats.nextExam.daysUntilExam }
-            : null
-        }
-        goalsDueSoon={stats?.goalsDueSoon ?? 0}
-        interviewsUpcoming={stats?.interviewsUpcoming ?? 0}
-        executionScore={nextTasksData?.executionScore ?? 0}
-        nextBestAction={nextTasksData?.nextBestAction ?? null}
-        alternatives={nextTasksData?.nextBestAlternatives ?? []}
-        riskSignals={nextTasksData?.riskSignals ?? []}
-        onChanged={() => {
-          queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
-          queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
-          queryClient.invalidateQueries({ queryKey: ['courses'] });
-        }}
-      />
+      <div className="mt-5">
+        <CommandBar
+          tasksToday={stats?.tasksToday ?? 0}
+          tasksCompleted={stats?.tasksCompleted ?? 0}
+          exercisesCompleted={stats?.exercisesThisWeek ?? 0}
+          exercisesTotal={stats?.exercisesTotal ?? 0}
+          nextExam={
+            stats?.nextExam && typeof stats.nextExam.daysUntilExam === 'number'
+              ? { name: stats.nextExam.name, daysUntilExam: stats.nextExam.daysUntilExam }
+              : null
+          }
+          goalsDueSoon={stats?.goalsDueSoon ?? 0}
+          interviewsUpcoming={stats?.interviewsUpcoming ?? 0}
+          executionScore={nextTasksData?.executionScore ?? 0}
+          nextBestAction={nextTasksData?.nextBestAction ?? null}
+          alternatives={nextTasksData?.nextBestAlternatives ?? []}
+          riskSignals={nextTasksData?.riskSignals ?? []}
+          onChanged={() => {
+            queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
+            queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
+            queryClient.invalidateQueries({ queryKey: ['courses'] });
+          }}
+        />
+      </div>
 
       {/* MAIN 3-COLUMN GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-3 lg:gap-6">
         {/* LEFT - Tasks (with homework integration) */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}

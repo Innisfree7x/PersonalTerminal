@@ -420,18 +420,17 @@
 
   .dashboard-sidebar-surface {
     background:
-      radial-gradient(95% 58% at 14% -14%, rgb(var(--primary) / 0.12), transparent 62%),
-      radial-gradient(90% 52% at 86% -10%, rgb(var(--primary-secondary) / 0.08), transparent 64%),
-      linear-gradient(180deg, rgb(var(--background) / 0.76), rgb(var(--background) / 0.9));
-    border-color: rgb(var(--border) / 0.72);
+      radial-gradient(85% 48% at 16% -16%, rgb(var(--primary) / 0.1), transparent 62%),
+      linear-gradient(180deg, rgb(7 7 10 / 0.92), rgb(9 10 16 / 0.95));
+    border-color: rgb(255 255 255 / 0.07);
     box-shadow:
-      inset -1px 0 0 rgb(255 255 255 / 0.03),
-      10px 0 36px rgb(0 0 0 / 0.18);
+      inset -1px 0 0 rgb(255 255 255 / 0.05),
+      10px 0 34px rgb(0 0 0 / 0.24);
   }
   @media (prefers-reduced-motion: no-preference) {
     .dashboard-sidebar-surface {
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
     }
   }
 

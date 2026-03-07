@@ -5,9 +5,14 @@ import type { Database } from '@/lib/supabase/types';
 import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError } from '@/lib/api/server-errors';
 import { createApiTraceContext, withApiTraceHeaders } from '@/lib/api/observability';
+import { applyPrivateSWRPolicy } from '@/lib/api/responsePolicy';
+import { enforceTrustedMutationOrigin } from '@/lib/api/csrf';
 
 type DailyTaskInsert = Database['public']['Tables']['daily_tasks']['Insert'];
-type DailyTaskRow = Database['public']['Tables']['daily_tasks']['Row'];
+type DailyTaskRow = Pick<
+  Database['public']['Tables']['daily_tasks']['Row'],
+  'id' | 'date' | 'title' | 'completed' | 'source' | 'source_id' | 'time_estimate' | 'created_at'
+>;
 
 function toDailyTaskResponse(task: DailyTaskRow) {
   return {
@@ -38,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('daily_tasks')
-      .select('*')
+      .select('id, date, title, completed, source, source_id, time_estimate, created_at')
       .eq('user_id', user.id)
       .eq('date', date)
       .order('completed', { ascending: true })
@@ -48,7 +53,10 @@ export async function GET(request: NextRequest) {
       throw new Error(`Failed to fetch daily tasks: ${error.message}`);
     }
 
-    const response = NextResponse.json((data || []).map(toDailyTaskResponse));
+    const response = applyPrivateSWRPolicy(NextResponse.json((data || []).map(toDailyTaskResponse)), {
+      maxAgeSeconds: 10,
+      staleWhileRevalidateSeconds: 30,
+    });
     return withApiTraceHeaders(response, trace, { metricName: 'daily_tasks_get' });
   } catch (error) {
     const response = handleRouteError(error, 'Failed to fetch daily tasks', 'Error fetching daily tasks');
@@ -60,6 +68,9 @@ export async function GET(request: NextRequest) {
  * POST /api/daily-tasks - Create a new daily task
  */
 export async function POST(request: NextRequest) {
+  const originViolation = enforceTrustedMutationOrigin(request);
+  if (originViolation) return originViolation;
+
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 

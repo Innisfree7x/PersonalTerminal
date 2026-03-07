@@ -177,20 +177,24 @@ export default function ScheduleColumn({
 
   if (isConnected === false) {
     return (
-      <div className="card-surface p-8 text-center">
-        <div className="mb-4 flex justify-center">
-          <div className="p-4 rounded-2xl bg-primary/[0.08] border border-primary/20">
-            <Calendar className="w-8 h-8 text-primary" />
+      <div className="card-surface p-5">
+        <div className="flex flex-col items-center justify-center gap-3 py-8 px-4 text-center">
+          <div className="h-10 w-10 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center">
+            <Calendar className="h-5 w-5 text-zinc-500" />
           </div>
+          <div>
+            <p className="text-sm font-medium text-zinc-300">Kalender verbinden</p>
+            <p className="mt-0.5 text-xs text-zinc-500">Google Calendar synchronisieren</p>
+          </div>
+          <button
+            type="button"
+            onClick={onConnect}
+            className="inline-flex items-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.04] px-4 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
+          >
+            <Calendar className="h-3.5 w-3.5" />
+            Verbinden
+          </button>
         </div>
-        <h3 className="text-lg font-semibold text-text-primary mb-2">Connect Calendar</h3>
-        <p className="text-sm text-text-secondary mb-6">
-          Sync with Google Calendar to see your schedule
-        </p>
-        <Button onClick={onConnect} variant="primary">
-          <Calendar className="w-4 h-4 mr-2" />
-          Connect Google Calendar
-        </Button>
       </div>
     );
   }

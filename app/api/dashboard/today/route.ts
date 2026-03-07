@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchGoals } from '@/lib/supabase/goals';
-import { fetchApplications } from '@/lib/supabase/applications';
-import { startOfDay, endOfDay, addDays, differenceInDays } from 'date-fns';
+import { createClient } from '@/lib/auth/server';
+import { addDays, differenceInDays, startOfDay } from 'date-fns';
 import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError } from '@/lib/api/server-errors';
 import { createApiTraceContext, withApiTraceHeaders } from '@/lib/api/observability';
+import { applyPrivateSWRPolicy } from '@/lib/api/responsePolicy';
 
 interface TodayPriorities {
   goalsDueToday: Array<{
@@ -39,62 +39,94 @@ export async function GET(request: NextRequest) {
   if (errorResponse) return withApiTraceHeaders(errorResponse, trace, { metricName: 'dash_today' });
 
   try {
+    const supabase = createClient();
     const today = new Date();
     const todayStart = startOfDay(today);
-    const todayEnd = endOfDay(today);
     const threeDaysFromNow = addDays(today, 3);
     const sevenDaysAgo = addDays(today, -7);
+    const todayIso = todayStart.toISOString().split('T')[0] ?? '';
+    const threeDaysIso = startOfDay(threeDaysFromNow).toISOString().split('T')[0] ?? todayIso;
+    const sevenDaysAgoIso = startOfDay(sevenDaysAgo).toISOString().split('T')[0] ?? todayIso;
 
-    // Fetch goals due today
-    const { goals: allGoals } = await fetchGoals({ userId: user.id });
-    const goalsDueToday = allGoals
-      .filter((goal: any) => {
-        const goalDate = startOfDay(goal.targetDate);
-        return goalDate >= todayStart && goalDate <= todayEnd;
-      })
-      .map((goal: any) => ({
-        id: goal.id,
-        title: goal.title,
-        category: goal.category,
-        metrics: goal.metrics,
-        targetDate: goal.targetDate.toISOString(),
-      }));
+    const [
+      { data: goalsDueTodayRows, error: goalsError },
+      { data: upcomingInterviewsRows, error: interviewsError },
+      { data: pendingFollowUpsRows, error: followUpsError },
+    ] = await Promise.all([
+      supabase
+        .from('goals')
+        .select('id, title, category, metrics_current, metrics_target, metrics_unit, target_date')
+        .eq('user_id', user.id)
+        .eq('target_date', todayIso)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('job_applications')
+        .select('id, company, position, interview_date')
+        .eq('user_id', user.id)
+        .not('interview_date', 'is', null)
+        .gte('interview_date', todayIso)
+        .lte('interview_date', threeDaysIso)
+        .order('interview_date', { ascending: true }),
+      supabase
+        .from('job_applications')
+        .select('id, company, position, application_date')
+        .eq('user_id', user.id)
+        .eq('status', 'applied')
+        .lt('application_date', sevenDaysAgoIso)
+        .order('application_date', { ascending: true })
+        .limit(25),
+    ]);
 
-    // Fetch upcoming interviews (next 3 days)
-    const { applications: allApplications } = await fetchApplications({ userId: user.id });
-    const upcomingInterviews = allApplications
-      .filter((app: any) => {
-        if (!app.interviewDate) return false;
-        const interviewDate = startOfDay(app.interviewDate);
-        return interviewDate >= todayStart && interviewDate <= startOfDay(threeDaysFromNow);
-      })
-      .map((app: any) => {
-        const interviewDate = app.interviewDate as Date;
+    if (goalsError) {
+      throw new Error(`Failed to fetch dashboard goals due today: ${goalsError.message}`);
+    }
+    if (interviewsError) {
+      throw new Error(`Failed to fetch dashboard upcoming interviews: ${interviewsError.message}`);
+    }
+    if (followUpsError) {
+      throw new Error(`Failed to fetch dashboard pending follow-ups: ${followUpsError.message}`);
+    }
+
+    const goalsDueToday = (goalsDueTodayRows ?? []).map((goal) => ({
+      id: goal.id,
+      title: goal.title,
+      category: goal.category,
+      ...(goal.metrics_current !== null && goal.metrics_target !== null && goal.metrics_unit
+        ? {
+            metrics: {
+              current: goal.metrics_current,
+              target: goal.metrics_target,
+              unit: goal.metrics_unit,
+            },
+          }
+        : {}),
+      targetDate: new Date(goal.target_date).toISOString(),
+    }));
+
+    const upcomingInterviews = (upcomingInterviewsRows ?? [])
+      .map((app) => {
+        if (!app.interview_date) return null;
+        const interviewDate = startOfDay(new Date(app.interview_date));
         return {
           id: app.id,
           company: app.company,
           position: app.position,
           interviewDate: interviewDate.toISOString(),
-          daysUntil: differenceInDays(startOfDay(interviewDate), todayStart),
+          daysUntil: differenceInDays(interviewDate, todayStart),
         };
       })
-      .sort((a: any, b: any) => a.daysUntil - b.daysUntil);
+      .filter((item): item is NonNullable<typeof item> => item !== null)
+      .sort((a, b) => a.daysUntil - b.daysUntil);
 
-    // Fetch pending follow-ups (applied >7 days ago, status='applied')
-    const pendingFollowUps = allApplications
-      .filter((app: any) => {
-        if (app.status !== 'applied') return false;
-        const appDate = startOfDay(app.applicationDate);
-        return appDate < startOfDay(sevenDaysAgo);
-      })
-      .map((app: any) => ({
+    const pendingFollowUps = (pendingFollowUpsRows ?? [])
+      .map((app) => ({
         id: app.id,
         company: app.company,
         position: app.position,
-        applicationDate: app.applicationDate.toISOString(),
-        daysSince: differenceInDays(todayStart, startOfDay(app.applicationDate)),
+        applicationDate: new Date(app.application_date).toISOString(),
+        daysSince: differenceInDays(todayStart, startOfDay(new Date(app.application_date))),
       }))
-      .sort((a: any, b: any) => b.daysSince - a.daysSince);
+      .sort((a, b) => b.daysSince - a.daysSince);
 
     const priorities: TodayPriorities = {
       goalsDueToday,
@@ -102,7 +134,10 @@ export async function GET(request: NextRequest) {
       pendingFollowUps,
     };
 
-    const response = NextResponse.json(priorities);
+    const response = applyPrivateSWRPolicy(NextResponse.json(priorities), {
+      maxAgeSeconds: 20,
+      staleWhileRevalidateSeconds: 60,
+    });
     return withApiTraceHeaders(response, trace, { metricName: 'dash_today' });
   } catch (error) {
     const response = handleRouteError(

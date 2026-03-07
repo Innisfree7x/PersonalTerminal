@@ -4,6 +4,7 @@ import { handleRouteError } from '@/lib/api/server-errors';
 import { getDashboardNextTasks } from '@/lib/dashboard/queries';
 import { recordFlowMetric } from '@/lib/ops/flowMetrics';
 import { createApiTraceContext, withApiTraceHeaders } from '@/lib/api/observability';
+import { applyPrivateSWRPolicy } from '@/lib/api/responsePolicy';
 
 /**
  * GET /api/dashboard/next-tasks - Returns actionable next tasks
@@ -31,10 +32,13 @@ export async function GET(_request: NextRequest) {
       },
     });
 
-    const response = NextResponse.json(result, {
+    const response = applyPrivateSWRPolicy(NextResponse.json(result, {
       headers: {
         'Server-Timing': `query_build;dur=${result.meta.queryDurationMs}`,
       },
+    }), {
+      maxAgeSeconds: 15,
+      staleWhileRevalidateSeconds: 45,
     });
     return withApiTraceHeaders(response, trace, { metricName: 'nexttasks' });
   } catch (error) {

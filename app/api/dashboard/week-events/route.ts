@@ -3,6 +3,7 @@ import { createClient } from '@/lib/auth/server';
 import { startOfWeek, addDays, format } from 'date-fns';
 import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError } from '@/lib/api/server-errors';
+import { applyPrivateSWRPolicy } from '@/lib/api/responsePolicy';
 
 /**
  * GET /api/dashboard/week-events
@@ -22,7 +23,10 @@ export async function GET(request: Request) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const weekOffset = parseInt(searchParams.get('offset') || '0');
+    const weekOffsetRaw = Number.parseInt(searchParams.get('offset') ?? '0', 10);
+    const weekOffset = Number.isFinite(weekOffsetRaw)
+      ? Math.max(-52, Math.min(52, weekOffsetRaw))
+      : 0;
 
     const supabase = createClient();
 
@@ -89,11 +93,14 @@ export async function GET(request: Request) {
       };
     });
 
-    return NextResponse.json({
+    return applyPrivateSWRPolicy(NextResponse.json({
       events,
       weekStart: firstDay.toISOString(),
       weekEnd: lastDay.toISOString(),
       totalEvents: Object.values(eventCounts).reduce((sum, count) => sum + count, 0),
+    }), {
+      maxAgeSeconds: 30,
+      staleWhileRevalidateSeconds: 90,
     });
 
   } catch (error) {

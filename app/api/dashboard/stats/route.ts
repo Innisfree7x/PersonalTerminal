@@ -3,6 +3,7 @@ import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError } from '@/lib/api/server-errors';
 import { getDashboardStats } from '@/lib/dashboard/queries';
 import { createApiTraceContext, withApiTraceHeaders } from '@/lib/api/observability';
+import { applyPrivateSWRPolicy } from '@/lib/api/responsePolicy';
 
 /**
  * GET /api/dashboard/stats - Fetch dashboard statistics
@@ -14,7 +15,10 @@ export async function GET(request: NextRequest) {
 
   try {
     const stats = await getDashboardStats(user.id);
-    const response = NextResponse.json(stats);
+    const response = applyPrivateSWRPolicy(NextResponse.json(stats), {
+      maxAgeSeconds: 20,
+      staleWhileRevalidateSeconds: 60,
+    });
     return withApiTraceHeaders(response, trace, { metricName: 'dash_stats' });
   } catch (error) {
     const response = handleRouteError(error, 'Failed to fetch stats', 'Error fetching dashboard stats');

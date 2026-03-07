@@ -3,6 +3,7 @@ import { createClient } from '@/lib/auth/server';
 import type { Database } from '@/lib/supabase/types';
 import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError, apiErrorResponse } from '@/lib/api/server-errors';
+import { enforceTrustedMutationOrigin } from '@/lib/api/csrf';
 
 type DailyTaskUpdate = Database['public']['Tables']['daily_tasks']['Update'];
 type DailyTaskRow = Database['public']['Tables']['daily_tasks']['Row'];
@@ -27,6 +28,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const originViolation = enforceTrustedMutationOrigin(request);
+  if (originViolation) return originViolation;
+
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
@@ -79,9 +83,12 @@ export async function PATCH(
  * DELETE /api/daily-tasks/[id] - Delete a daily task
  */
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const originViolation = enforceTrustedMutationOrigin(request);
+  if (originViolation) return originViolation;
+
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 

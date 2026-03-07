@@ -171,7 +171,9 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
     { data: goalsData, error: goalsError },
     { data: applicationsData, error: applicationsError },
     { data: coursesData, error: coursesError },
-    { data: exercisesData, error: exercisesError },
+    { count: totalExercisesCount, error: totalExercisesError },
+    { count: completedExercisesCount, error: completedExercisesError },
+    { count: weekCompletedCount, error: weekCompletedError },
   ] = await Promise.all([
     supabase
       .from('goals')
@@ -187,8 +189,20 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
       .eq('user_id', userId),
     supabase
       .from('exercise_progress')
-      .select('id, completed, completed_at')
+      .select('id', { count: 'exact', head: true })
       .eq('user_id', userId),
+    supabase
+      .from('exercise_progress')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('completed', true),
+    supabase
+      .from('exercise_progress')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('completed', true)
+      .gte('completed_at', weekStart.toISOString())
+      .lte('completed_at', today.toISOString()),
   ]);
 
   if (goalsError) {
@@ -200,8 +214,14 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
   if (coursesError) {
     throw new Error(`Failed to fetch dashboard courses: ${coursesError.message}`);
   }
-  if (exercisesError) {
-    throw new Error(`Failed to fetch dashboard exercises: ${exercisesError.message}`);
+  if (totalExercisesError) {
+    throw new Error(`Failed to fetch dashboard total exercises count: ${totalExercisesError.message}`);
+  }
+  if (completedExercisesError) {
+    throw new Error(`Failed to fetch dashboard completed exercises count: ${completedExercisesError.message}`);
+  }
+  if (weekCompletedError) {
+    throw new Error(`Failed to fetch dashboard week-completed exercises count: ${weekCompletedError.message}`);
   }
 
   const allGoals = (goalsData as DashboardGoalRecord[] | null ?? []).map(toGoalModel);
@@ -280,15 +300,9 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
   else if (hour >= 14 && hour < 17) focusTime = 'Afternoon focus - good for meetings';
   else if (hour >= 20 && hour < 23) focusTime = 'Evening - time for side projects';
 
-  const weekStartDate = startOfWeek(today, { weekStartsOn: 1 });
-  const weekCompletedExercises = (exercisesData || []).filter((ex) => {
-    if (!ex.completed || !ex.completed_at) return false;
-    const completedDate = new Date(ex.completed_at);
-    return completedDate >= weekStartDate && completedDate <= today;
-  }).length;
-
-  const totalExercises = (exercisesData || []).length;
-  const completedExercises = (exercisesData || []).filter((ex) => ex.completed).length;
+  const weekCompletedExercises = weekCompletedCount ?? 0;
+  const totalExercises = totalExercisesCount ?? 0;
+  const completedExercises = completedExercisesCount ?? 0;
   const semesterPercent = totalExercises > 0 ? Math.round((completedExercises / totalExercises) * 100) : 0;
 
   let nextExamCourse: { courseName: string; daysUntil: number } | undefined;
