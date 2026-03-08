@@ -283,8 +283,8 @@ export default function Sidebar() {
 
                   <div
                     className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all overflow-hidden ${isActive
-                        ? 'bg-primary/[0.07] text-primary'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
+                        ? 'border border-primary/25 bg-primary/[0.14] text-primary shadow-[0_0_18px_rgb(var(--primary)/0.14)]'
+                        : 'border border-transparent text-text-secondary hover:text-text-primary hover:bg-surface-hover/70 hover:border-border/70'
                       } ${isCollapsed ? 'justify-center' : ''}`}
                   >
                     {/* Active item subtle inner glow */}
@@ -327,8 +327,8 @@ export default function Sidebar() {
             >
               <div
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${pathname === '/settings'
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
+                    ? 'border border-primary/25 bg-primary/[0.14] text-primary shadow-[0_0_14px_rgb(var(--primary)/0.12)]'
+                    : 'border border-transparent text-text-secondary hover:text-text-primary hover:bg-surface-hover/70 hover:border-border/70'
                   } ${isCollapsed ? 'justify-center' : ''}`}
               >
                 <Settings className={`w-4 h-4 flex-shrink-0 ${pathname === '/settings' ? 'text-primary' : ''}`} />

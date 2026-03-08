@@ -485,7 +485,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
 
                 {/* Command list */}
                 <Command.List className="max-h-[360px] overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-                  <Command.Empty className="flex flex-col items-center gap-2 py-10 text-center text-sm text-zinc-500">
+                  <Command.Empty className="flex flex-col items-center gap-2 py-10 text-center text-sm text-text-tertiary">
                     <Search className="h-7 w-7 opacity-20" />
                     <span>Keine Ergebnisse.</span>
                   </Command.Empty>
@@ -493,7 +493,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                   {/* Navigation */}
                   <Command.Group
                     heading="Navigation"
-                    className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600"
+                    className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary"
                   >
                     {navigationCommands.map((cmd) => {
                       const Icon = cmd.icon;
@@ -502,9 +502,9 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                           key={cmd.id}
                           value={`${cmd.label} ${cmd.keywords.join(' ')}`}
                           onSelect={() => handleSelect(cmd)}
-                          className="command-item mb-0.5 flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 pl-3.5 text-sm font-medium text-zinc-300 transition-colors aria-selected:bg-primary/[0.12] aria-selected:text-zinc-100"
+                          className="command-item mb-0.5 flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 pl-3.5 text-sm font-medium text-text-secondary transition-colors aria-selected:border-primary/30 aria-selected:bg-primary/[0.2] aria-selected:text-text-primary"
                         >
-                          <Icon className="command-item-icon h-4 w-4 flex-shrink-0 text-zinc-500" />
+                          <Icon className="command-item-icon h-4 w-4 flex-shrink-0" />
                           <span className="flex-1">{cmd.label}</span>
                         </Command.Item>
                       );
@@ -514,7 +514,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                   {/* Themes */}
                   <Command.Group
                     heading="Themes"
-                    className="mt-1 px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600"
+                    className="mt-1 px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary"
                   >
                     {themeCommands.map((cmd) => {
                       const Icon = cmd.icon;
@@ -524,12 +524,12 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                           key={cmd.id}
                           value={`${cmd.label} ${cmd.keywords.join(' ')}`}
                           onSelect={() => handleSelect(cmd)}
-                          className="command-item mb-0.5 flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 pl-3.5 text-sm font-medium text-zinc-300 transition-colors aria-selected:bg-primary/[0.12] aria-selected:text-zinc-100"
+                          className="command-item mb-0.5 flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 pl-3.5 text-sm font-medium text-text-secondary transition-colors aria-selected:border-primary/30 aria-selected:bg-primary/[0.2] aria-selected:text-text-primary"
                         >
-                          <Icon className="command-item-icon h-4 w-4 flex-shrink-0 text-zinc-500" />
+                          <Icon className="command-item-icon h-4 w-4 flex-shrink-0" />
                           <span className="flex-1">{cmd.label}</span>
                           {isActive && (
-                            <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-zinc-400">
+                            <span className="rounded-full border border-primary/25 bg-primary/15 px-2 py-0.5 text-[10px] text-primary">
                               Aktiv
                             </span>
                           )}
@@ -542,7 +542,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                   {focusCommands.length > 0 && (
                     <Command.Group
                       heading="Focus Timer"
-                      className="mt-1 px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600"
+                      className="mt-1 px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary"
                     >
                       {focusCommands.map((cmd) => {
                         const Icon = cmd.icon;
@@ -551,12 +551,12 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                             key={cmd.id}
                             value={`${cmd.label} ${cmd.keywords.join(' ')}`}
                             onSelect={() => handleSelect(cmd)}
-                            className="command-item mb-0.5 flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 pl-3.5 text-sm font-medium text-zinc-300 transition-colors aria-selected:bg-primary/[0.12] aria-selected:text-zinc-100"
+                            className="command-item mb-0.5 flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 pl-3.5 text-sm font-medium text-text-secondary transition-colors aria-selected:border-primary/30 aria-selected:bg-primary/[0.2] aria-selected:text-text-primary"
                           >
-                            <Icon className="command-item-icon h-4 w-4 flex-shrink-0 text-zinc-500" />
+                            <Icon className="command-item-icon h-4 w-4 flex-shrink-0" />
                             <span className="flex-1">{cmd.label}</span>
                             {'shortcut' in cmd && cmd.shortcut && (
-                              <kbd className="rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[10px] text-zinc-500">
+                              <kbd className="rounded border border-border bg-surface-hover px-1.5 py-0.5 text-[10px] text-text-tertiary">
                                 {cmd.shortcut}
                               </kbd>
                             )}
@@ -569,7 +569,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                   {/* Quick Actions */}
                   <Command.Group
                     heading="Quick Actions"
-                    className="mt-1 px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600"
+                    className="mt-1 px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary"
                   >
                     {quickActions.map((cmd) => {
                       const Icon = cmd.icon;
@@ -578,12 +578,12 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                           key={cmd.id}
                           value={`${cmd.label} ${cmd.keywords.join(' ')}`}
                           onSelect={() => handleSelect(cmd)}
-                          className="command-item mb-0.5 flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 pl-3.5 text-sm font-medium text-zinc-300 transition-colors aria-selected:bg-primary/[0.12] aria-selected:text-zinc-100"
+                          className="command-item mb-0.5 flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 pl-3.5 text-sm font-medium text-text-secondary transition-colors aria-selected:border-primary/30 aria-selected:bg-primary/[0.2] aria-selected:text-text-primary"
                         >
-                          <Icon className="command-item-icon h-4 w-4 flex-shrink-0 text-zinc-500" />
+                          <Icon className="command-item-icon h-4 w-4 flex-shrink-0" />
                           <span className="flex-1">{cmd.label}</span>
                           {cmd.shortcut && (
-                            <kbd className="rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[10px] text-zinc-500">
+                            <kbd className="rounded border border-border bg-surface-hover px-1.5 py-0.5 text-[10px] text-text-tertiary">
                               ⌘{cmd.shortcut}
                             </kbd>
                           )}
@@ -594,14 +594,14 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                 </Command.List>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between border-t border-white/[0.06] bg-white/[0.01] px-4 py-2.5">
-                  <div className="flex items-center gap-4 text-[10px] text-zinc-600">
+                <div className="flex items-center justify-between border-t border-border/70 bg-surface/35 px-4 py-2.5">
+                  <div className="flex items-center gap-4 text-[10px] text-text-tertiary">
                     <span className="flex items-center gap-1">
-                      <kbd className="rounded border border-white/10 bg-white/[0.04] px-1 py-0.5 text-[9px]">↑↓</kbd>
+                      <kbd className="rounded border border-border bg-surface-hover px-1 py-0.5 text-[9px]">↑↓</kbd>
                       Navigieren
                     </span>
                     <span className="flex items-center gap-1">
-                      <kbd className="rounded border border-white/10 bg-white/[0.04] px-1 py-0.5 text-[9px]">↵</kbd>
+                      <kbd className="rounded border border-border bg-surface-hover px-1 py-0.5 text-[9px]">↵</kbd>
                       Ausführen
                     </span>
                     {isIntentMode && (
@@ -611,7 +611,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 text-[10px] text-zinc-600">
+                  <div className="flex items-center gap-1 text-[10px] text-text-tertiary">
                     <Zap className="h-3 w-3" />
                     INNIS Command
                   </div>
