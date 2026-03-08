@@ -4,6 +4,7 @@ import type { CalendarEvent } from '@/lib/types/calendar';
 import { format, startOfWeek, addWeeks, subWeeks, isSameDay, getWeek } from 'date-fns';
 import { useMemo, useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import {
   checkGoogleCalendarConnectionAction,
   disconnectGoogleCalendarAction,
@@ -100,6 +101,7 @@ const ghostEventClassMap: Record<TrajectoryGhostEvent['kind'], string> = {
 };
 
 export default function CalendarPage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [selectedWeek, setSelectedWeek] = useState<Date>(() => getWeekStart(new Date()));
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
@@ -179,7 +181,7 @@ export default function CalendarPage() {
       }
       return response.json() as Promise<CalendarTrajectoryOverviewResponse>;
     },
-    enabled: isConnected === true,
+    enabled: isConnected === true && showTrajectoryGhostEvents,
     staleTime: 20 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -239,6 +241,10 @@ export default function CalendarPage() {
       windows: trajectoryOverview.windows,
     });
   }, [showTrajectoryGhostEvents, trajectoryOverview, weekDays]);
+  const totalGhostEvents = useMemo(
+    () => Object.values(groupedGhostEvents).reduce((sum, dayEvents) => sum + dayEvents.length, 0),
+    [groupedGhostEvents]
+  );
 
   // Calculate week info for display
   const weekNumber = getWeek(selectedWeek, { weekStartsOn: 1 });
@@ -262,6 +268,14 @@ export default function CalendarPage() {
   }, [success]);
 
   const dayNamesShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  const handleOpenGhostEvent = (ghostEvent: TrajectoryGhostEvent) => {
+    const params = new URLSearchParams();
+    if (ghostEvent.goalId) params.set('goalId', ghostEvent.goalId);
+    if (ghostEvent.windowId) params.set('windowId', ghostEvent.windowId);
+    const suffix = params.toString();
+    router.push(suffix ? `/trajectory?${suffix}` : '/trajectory');
+  };
 
   return (
     <div className="space-y-6">
@@ -349,6 +363,25 @@ export default function CalendarPage() {
       {success && (
         <div className="rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">
           {success}
+        </div>
+      )}
+
+      {/* Ghost Legend */}
+      {isConnected === true && showTrajectoryGhostEvents && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-surface px-4 py-3 text-xs text-text-secondary">
+          <span className="font-semibold text-text-primary">Legend</span>
+          <span className="rounded-full border border-info/40 bg-info/10 px-2 py-1 text-info">
+            ◌ Trajectory Milestone
+          </span>
+          <span className="rounded-full border border-warning/40 bg-warning/10 px-2 py-1 text-warning">
+            ◌ Prep Block
+          </span>
+          <span className="rounded-full border border-success/40 bg-success/10 px-2 py-1 text-success">
+            ◌ Opportunity Window
+          </span>
+          <span className="ml-auto rounded-full border border-border px-2 py-1 text-text-secondary">
+            {totalGhostEvents} ghost events this week
+          </span>
         </div>
       )}
 
@@ -474,9 +507,11 @@ export default function CalendarPage() {
                           })}
 
                           {dayGhostEvents.map((ghostEvent) => (
-                            <div
+                            <button
                               key={ghostEvent.id}
-                              className={`rounded border border-dashed p-2 text-[11px] ${ghostEventClassMap[ghostEvent.kind] ?? 'border-primary/40 bg-primary/10 text-primary'} opacity-90`}
+                              type="button"
+                              onClick={() => handleOpenGhostEvent(ghostEvent)}
+                              className={`w-full rounded border border-dashed p-2 text-left text-[11px] transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 ${ghostEventClassMap[ghostEvent.kind] ?? 'border-primary/40 bg-primary/10 text-primary'} opacity-90`}
                               title={`${ghostEvent.title} · ${ghostEvent.subtitle}`}
                             >
                               <div className="mb-0.5 flex items-center justify-between gap-2">
@@ -487,8 +522,10 @@ export default function CalendarPage() {
                                   trajectory
                                 </span>
                               </div>
-                              <div className="truncate text-[10px] opacity-80">{ghostEvent.subtitle}</div>
-                            </div>
+                              <div className="truncate text-[10px] opacity-80">
+                                {ghostEvent.subtitle} · open
+                              </div>
+                            </button>
                           ))}
                         </>
                       )}

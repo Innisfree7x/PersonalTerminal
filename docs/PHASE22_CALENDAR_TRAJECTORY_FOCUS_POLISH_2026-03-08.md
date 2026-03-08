@@ -37,6 +37,12 @@ Diese Welle setzt drei UX-Polish-Features um:
     - `Show/Hide Trajectory Ghosts`
   - Persistenz:
     - `STORAGE_KEYS.calendarShowTrajectoryGhostEvents`
+  - Iteration 2:
+    - Trajectory-Overview-Query wird nur noch geladen, wenn Ghost-Events sichtbar sind (`enabled: isConnected && showTrajectoryGhostEvents`).
+    - Legend-Zeile ergänzt (Milestone / Prep Block / Window + Wochenanzahl).
+    - Ghost-Events sind klickbar und deep-linken direkt in Trajectory:
+      - `/trajectory?goalId=...`
+      - `/trajectory?windowId=...`
 
 - Datei: `lib/storage/keys.ts`
   - neuer Key:
@@ -75,10 +81,16 @@ Diese Welle setzt drei UX-Polish-Features um:
 - Neu:
   - `tests/unit/trajectory-ghost-events.test.ts`
   - `tests/unit/trajectory-status-transition.test.ts`
+  - `tests/unit/focus-transition.test.ts`
 
 - Abdeckung:
   - Ghost-Event-Mapping (Milestone/Block/Window + out-of-range/archived cases)
+  - Ghost-Event-IDs für Deep-Link-Ziele (`goalId`, `windowId`)
   - Status-Change-Detection inkl. Cooldown und Initial-State
+  - Focus-Transition Verhalten:
+    - Reduced-motion Fallback
+    - Overlay-Lifecycle
+    - In-flight Guard bei Doppel-Klick
 
 ## Verifikation
 
@@ -103,6 +115,6 @@ Ausgeführt:
 
 ## Nächste sinnvolle Schritte
 
-1. Ghost-Event-Legende im Calendar-Header (Google vs Trajectory) ergänzen.
-2. Optionaler Jump von Ghost-Milestone direkt auf `/trajectory?goalId=...`.
-3. E2E-Test für `/today -> /focus` Transition + Smoke-Test für Ghost-Render.
+1. E2E-Test für `/today -> /focus` Transition + Smoke-Test für Ghost-Render.
+2. Optional: kleine Hover-Quick-Actions im Calendar (z. B. "Open goal").
+3. Optional: Month-View Ghost-Strategie (verdichten statt Tages-Wiederholung).

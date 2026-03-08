@@ -34,6 +34,8 @@ export interface TrajectoryGhostEvent {
   kind: TrajectoryGhostEventKind;
   title: string;
   subtitle: string;
+  goalId?: string;
+  windowId?: string;
   status?: TrajectoryRiskStatus;
   confidence?: TrajectoryWindowConfidence;
 }
@@ -85,6 +87,7 @@ export function buildTrajectoryGhostEventsForWeek(
       kind: 'milestone',
       title: goal.title,
       subtitle: `Milestone due ${format(due, 'dd MMM')}`,
+      goalId: goal.id,
     });
   }
 
@@ -100,6 +103,7 @@ export function buildTrajectoryGhostEventsForWeek(
         kind: 'prep_block',
         title: block.title,
         subtitle: `Prep block · ${format(blockStart, 'dd MMM')} → ${format(blockEnd, 'dd MMM')}`,
+        goalId: block.goalId,
         status: block.status,
       });
     }
@@ -117,6 +121,7 @@ export function buildTrajectoryGhostEventsForWeek(
         kind: 'window',
         title: windowEntry.title,
         subtitle: `Opportunity window`,
+        windowId: windowEntry.id,
         confidence: windowEntry.confidence,
       });
     }

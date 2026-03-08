@@ -40,9 +40,18 @@ describe('buildTrajectoryGhostEventsForWeek', () => {
       ],
     });
 
-    expect(result['2026-03-05']?.some((event) => event.kind === 'milestone')).toBe(true);
-    expect(result['2026-03-03']?.some((event) => event.kind === 'prep_block')).toBe(true);
-    expect(result['2026-03-07']?.some((event) => event.kind === 'window')).toBe(true);
+    const milestoneEvent = result['2026-03-05']?.find((event) => event.kind === 'milestone');
+    const prepEvent = result['2026-03-03']?.find((event) => event.kind === 'prep_block');
+    const windowEvent = result['2026-03-07']?.find((event) => event.kind === 'window');
+
+    expect(milestoneEvent).toBeDefined();
+    expect(milestoneEvent?.goalId).toBe('goal-1');
+
+    expect(prepEvent).toBeDefined();
+    expect(prepEvent?.goalId).toBe('goal-1');
+
+    expect(windowEvent).toBeDefined();
+    expect(windowEvent?.windowId).toBe('window-1');
   });
 
   it('ignores non-active goals and out-of-range entries', () => {
