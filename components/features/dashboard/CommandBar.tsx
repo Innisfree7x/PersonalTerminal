@@ -69,7 +69,7 @@ function RailChip({ label, tone, pulse = false }: { label: string; tone: ChipTon
     info:    'border-sky-500/35 bg-sky-500/10 text-sky-300',
   };
   const pulseColor: Record<ChipTone, string> = {
-    muted:   'bg-zinc-400',
+    muted:   'bg-text-tertiary',
     danger:  'bg-red-400',
     warning: 'bg-amber-400',
     success: 'bg-emerald-400',

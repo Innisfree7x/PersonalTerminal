@@ -371,7 +371,7 @@ export default function TodayPage() {
                     ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
                     : momentum.delta < 0
                       ? 'border-red-400/30 bg-red-500/10 text-red-300'
-                      : 'border-white/12 bg-background/40 text-text-tertiary'
+                      : 'border-border/80 bg-surface/55 text-text-tertiary'
                 }`}
               >
                 {momentum.delta > 0 ? <TrendingUp className="h-3 w-3" /> : momentum.delta < 0 ? <TrendingDown className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
@@ -394,7 +394,7 @@ export default function TodayPage() {
                 Focus load {momentum.stats.last7DaysHours.toFixed(1)}h / {momentum.stats.plannedHoursPerWeek}h
               </span>
               {trajectoryBriefing ? (
-                <span className="rounded-full border border-white/12 bg-background/38 px-2 py-0.5 text-text-tertiary">
+                <span className="rounded-full border border-border/80 bg-surface/55 px-2 py-0.5 text-text-tertiary">
                   Prep starts {trajectoryBriefing.startDateLabel}
                 </span>
               ) : null}
@@ -421,7 +421,7 @@ export default function TodayPage() {
                 <button
                   type="button"
                   onClick={dismissWeeklyCheckin}
-                  className="inline-flex items-center rounded-md border border-white/12 bg-white/[0.03] px-2 py-1 text-xs text-text-tertiary transition-colors hover:bg-white/[0.08]"
+                  className="inline-flex items-center rounded-md border border-border bg-surface/45 px-2 py-1 text-xs text-text-tertiary transition-colors hover:bg-surface-hover/70"
                 >
                   Later
                 </button>

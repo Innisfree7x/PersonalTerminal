@@ -33,7 +33,7 @@ function HeaderClock() {
   }, []);
 
   return (
-    <div className="hidden md:flex items-center gap-3 px-4 py-1.5 rounded-lg bg-surface/50 border border-border relative overflow-hidden">
+    <div className="hidden md:flex items-center gap-3 rounded-lg border border-primary/24 bg-surface/70 px-4 py-1.5 relative overflow-hidden shadow-[0_0_0_1px_rgb(var(--primary)/0.05)]">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/28 to-transparent" />
       <div className="flex flex-col">
         <span className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary" suppressHydrationWarning>
@@ -74,7 +74,8 @@ export default function Header() {
   const currentTitle = routeTitles[pathname] || 'Dashboard';
 
   return (
-    <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
+    <header className="sticky top-0 z-30 border-b border-border/80 bg-background/82 backdrop-blur-xl">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent" />
       <div className="flex items-center justify-between h-16 px-6">
         {/* Left: Page Title + Date & Time */}
         <div className="flex items-center gap-6">
@@ -106,14 +107,14 @@ export default function Header() {
         <div className="flex items-center gap-2">
           {/* Search / Command Palette Trigger */}
           <motion.button
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface border border-border text-text-tertiary hover:text-text-primary hover:border-primary transition-colors"
+            className="flex items-center gap-2 rounded-lg border border-border/80 bg-surface/65 px-3 py-1.5 text-text-tertiary transition-colors hover:border-primary/35 hover:bg-primary/[0.08] hover:text-text-primary"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={openCommandPalette}
           >
             <Search className="w-4 h-4" />
             <span className="hidden sm:inline text-xs">Search</span>
-            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] bg-surface-hover border border-border">
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-surface-hover px-1.5 py-0.5 text-[10px]">
               <Command className="w-2.5 h-2.5" />
               K
             </kbd>
@@ -144,7 +145,7 @@ export default function Header() {
 
           {/* Quick Add Button */}
           <motion.button
-            className="p-2 rounded-lg bg-primary text-white hover:bg-primary-hover transition-colors shadow-glow"
+            className="rounded-lg border border-primary/28 bg-primary/[0.2] p-2 text-primary transition-colors shadow-[0_0_16px_rgb(var(--primary)/0.2)] hover:bg-primary/[0.28]"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={openCommandPalette}
@@ -156,7 +157,7 @@ export default function Header() {
           {/* Notifications */}
           <div className="relative">
             <motion.button
-              className="p-2 rounded-lg bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-primary transition-colors relative"
+              className="relative rounded-lg border border-border/80 bg-surface/65 p-2 text-text-secondary transition-colors hover:border-primary/35 hover:bg-primary/[0.08] hover:text-text-primary"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setNotificationsOpen(!notificationsOpen)}
@@ -170,7 +171,7 @@ export default function Header() {
 
             {/* Notification Dropdown (placeholder) */}
             {notificationsOpen && (
-              <div className="absolute top-full right-0 mt-2 w-80 bg-surface border border-border rounded-lg shadow-lg p-3">
+              <div className="absolute top-full right-0 mt-2 w-80 card-surface dashboard-premium-card-soft rounded-lg p-3">
                 <div className="text-xs text-text-tertiary text-center py-4">
                   No new notifications
                 </div>
