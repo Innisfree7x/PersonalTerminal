@@ -52,6 +52,10 @@ function toCanonicalGoogleCallback(raw: string | undefined | null): {
   return { redirectUri: canonical, normalized };
 }
 
+function isCallbackPath(pathname: string): boolean {
+  return /\/+api\/auth\/google\/callback\/?$/i.test(pathname);
+}
+
 export function resolveGoogleOAuthRedirectUri(options: {
   requestUrl: string;
   cookieRedirectUri?: string | null | undefined;
@@ -66,6 +70,19 @@ export function resolveGoogleOAuthRedirectUri(options: {
   ];
 
   for (const candidate of candidates) {
+    if (candidate.source === 'configured') {
+      const configured = parseHttpUrl(candidate.value);
+      // If the configured URI already points at callback (even with double slashes),
+      // keep it exact to prevent Google redirect_uri mismatch with strict string compare.
+      if (configured && isCallbackPath(configured.pathname)) {
+        return {
+          redirectUri: configured.toString(),
+          source: candidate.source,
+          normalized: false,
+        };
+      }
+    }
+
     const resolved = toCanonicalGoogleCallback(candidate.value);
     if (resolved) {
       return {

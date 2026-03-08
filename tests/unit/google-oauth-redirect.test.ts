@@ -25,6 +25,20 @@ describe('google oauth redirect resolution', () => {
     expect(result.source).toBe('site_url');
   });
 
+  it('keeps configured callback uri exact when already pointed to callback path', () => {
+    const result = resolveGoogleOAuthRedirectUri({
+      requestUrl: 'https://innis.ai/api/auth/google',
+      configuredRedirectUri: 'https://personal-terminal-green.vercel.app//api/auth/google/callback',
+      siteUrl: 'https://prod.innis.ai',
+    });
+
+    expect(result.redirectUri).toBe(
+      'https://personal-terminal-green.vercel.app//api/auth/google/callback'
+    );
+    expect(result.source).toBe('configured');
+    expect(result.normalized).toBe(false);
+  });
+
   it('ignores dashboard urls and falls back to request origin when needed', () => {
     const result = resolveGoogleOAuthRedirectUri({
       requestUrl: 'https://preview.innis.ai/api/auth/google',
