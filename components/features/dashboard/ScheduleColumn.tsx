@@ -177,19 +177,19 @@ export default function ScheduleColumn({
 
   if (isConnected === false) {
     return (
-      <div className="card-surface p-5">
+      <div className="card-surface dashboard-premium-card-soft p-5">
         <div className="flex flex-col items-center justify-center gap-3 py-8 px-4 text-center">
-          <div className="h-10 w-10 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center">
-            <Calendar className="h-5 w-5 text-zinc-500" />
+          <div className="h-10 w-10 rounded-xl bg-primary/[0.12] border border-primary/20 flex items-center justify-center">
+            <Calendar className="h-5 w-5 text-primary/80" />
           </div>
           <div>
-            <p className="text-sm font-medium text-zinc-300">Kalender verbinden</p>
-            <p className="mt-0.5 text-xs text-zinc-500">Google Calendar synchronisieren</p>
+            <p className="text-sm font-medium text-text-primary">Kalender verbinden</p>
+            <p className="mt-0.5 text-xs text-text-secondary">Google Calendar synchronisieren</p>
           </div>
           <button
             type="button"
             onClick={onConnect}
-            className="inline-flex items-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.04] px-4 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
+            className="inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/[0.12] px-4 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/[0.2]"
           >
             <Calendar className="h-3.5 w-3.5" />
             Verbinden
@@ -201,7 +201,7 @@ export default function ScheduleColumn({
 
   if (isLoading) {
     return (
-      <div className="card-surface p-8 text-center">
+      <div className="card-surface dashboard-premium-card-soft p-8 text-center">
         <div className="animate-spin inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full mb-4" />
         <p className="text-sm text-text-tertiary">Loading schedule...</p>
       </div>
@@ -209,7 +209,7 @@ export default function ScheduleColumn({
   }
 
   return (
-    <div className="card-surface p-6">
+    <div className="card-surface dashboard-premium-card-soft p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">

@@ -46,7 +46,7 @@ export default function StudyProgress({ courses }: StudyProgressProps) {
 
   if (courses.length === 0) {
     return (
-      <div className="card-surface rounded-xl p-4">
+      <div className="card-surface dashboard-premium-card-soft rounded-xl p-4">
         <div className="flex items-center gap-2 mb-3">
           <GraduationCap className="w-5 h-5 text-university-accent" />
           <h3 className="text-base font-semibold text-text-primary">Lernfortschritt</h3>
@@ -65,7 +65,7 @@ export default function StudyProgress({ courses }: StudyProgressProps) {
   }
 
   return (
-    <div className="card-surface rounded-xl p-4">
+    <div className="card-surface dashboard-premium-card-soft rounded-xl p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <GraduationCap className="w-5 h-5 text-university-accent" />

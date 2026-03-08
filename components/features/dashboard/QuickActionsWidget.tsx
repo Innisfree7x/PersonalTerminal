@@ -26,10 +26,10 @@ const QuickActionsWidget = memo(function QuickActionsWidget({ isLoading = false 
 
   if (isLoading) {
     return (
-      <div className="card-surface rounded-xl p-5">
+      <div className="card-surface dashboard-premium-card-soft rounded-xl p-5">
         <div className="mb-4 flex items-center gap-2">
-          <Plus className="h-4 w-4 text-zinc-500" />
-          <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">Quick Actions</h3>
+          <Plus className="h-4 w-4 text-primary/75" />
+          <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-text-tertiary">Quick Actions</h3>
         </div>
         <div className="space-y-3">
           <Skeleton className="h-12 rounded-xl" />
@@ -44,10 +44,10 @@ const QuickActionsWidget = memo(function QuickActionsWidget({ isLoading = false 
   }
 
   return (
-    <div className="card-surface rounded-xl p-5 space-y-3">
+    <div className="card-surface dashboard-premium-card-soft rounded-xl p-5 space-y-3">
       <div className="flex items-center gap-2">
-        <Plus className="h-4 w-4 text-zinc-500" />
-        <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">Quick Actions</h3>
+        <Plus className="h-4 w-4 text-primary/75" />
+        <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-text-tertiary">Quick Actions</h3>
       </div>
 
       <motion.button
@@ -68,7 +68,7 @@ const QuickActionsWidget = memo(function QuickActionsWidget({ isLoading = false 
             <motion.button
               key={action.label}
               onClick={() => handleAction(action.href)}
-              className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-white/[0.07] bg-white/[0.03] text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-zinc-200"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-border/80 bg-surface-hover/45 text-text-secondary transition-colors hover:border-primary/30 hover:bg-primary/[0.08] hover:text-text-primary"
               whileTap={{ scale: 0.97 }}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}

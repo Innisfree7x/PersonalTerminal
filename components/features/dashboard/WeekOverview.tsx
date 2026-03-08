@@ -101,7 +101,7 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
   }, []);
 
   return (
-    <div className="card-surface rounded-xl p-4">
+    <div className="card-surface dashboard-premium-card-soft rounded-xl p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">

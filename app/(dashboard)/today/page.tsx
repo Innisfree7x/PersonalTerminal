@@ -265,7 +265,7 @@ export default function TodayPage() {
   }, [momentum, play]);
 
   return (
-    <div className="space-y-7" data-testid="today-page-root">
+    <div className="space-y-6" data-testid="today-page-root">
       {/* First-visit welcome orientation */}
       <AnimatePresence>
         {showWelcome && (
@@ -309,118 +309,95 @@ export default function TodayPage() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.16 }}
-        className="card-surface relative overflow-hidden p-4"
+        className="card-surface dashboard-premium-card relative overflow-hidden p-3"
       >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-        <div className="flex flex-col gap-2.5">
-          {trajectoryBriefing ? (
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-text-secondary">
+        <div className="pointer-events-none absolute inset-y-2 left-0 w-1 rounded-r-full bg-primary/75 shadow-[0_0_12px_rgb(var(--primary)/0.45)]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/45 to-transparent" />
+        <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 bg-primary/[0.16] text-primary shadow-[0_0_12px_rgb(var(--primary)/0.2)]">
+                <Sparkles className="h-3.5 w-3.5" />
+              </span>
+              <p className="truncate text-[13px] text-text-secondary">
                 <span className="font-semibold text-text-primary">Morning briefing:</span>{' '}
-                {trajectoryBriefing.title} · {trajectoryBriefing.daysUntil}d until deadline ·{' '}
-                <span
-                  className={
-                    trajectoryBriefing.status === 'on_track'
-                      ? 'text-emerald-400'
-                      : trajectoryBriefing.status === 'tight'
-                        ? 'text-amber-300'
-                        : 'text-red-400'
-                  }
-                >
-                  {trajectoryBriefing.statusLabel}
-                </span>
-                {' · '}
-                prep starts {trajectoryBriefing.startDateLabel}
+                {trajectoryBriefing ? (
+                  <>
+                    <span className="font-semibold text-text-primary">{trajectoryBriefing.title}</span>
+                    {' · '}
+                    {trajectoryBriefing.daysUntil}d until deadline
+                    {' · '}
+                    <span
+                      className={
+                        trajectoryBriefing.status === 'on_track'
+                          ? 'text-emerald-400'
+                          : trajectoryBriefing.status === 'tight'
+                            ? 'text-amber-300'
+                            : 'text-red-400'
+                      }
+                    >
+                      {trajectoryBriefing.statusLabel}
+                    </span>
+                  </>
+                ) : (
+                  <span>No active trajectory milestone yet.</span>
+                )}
               </p>
-              <Link
-                href={trajectoryBriefingHref}
-                onClick={() => {
-                  void trackAppEvent('trajectory_briefing_opened', {
-                    source: 'today_morning_briefing',
-                    route: '/today',
-                    trajectory_goal_id: trajectoryBriefing.goalId,
-                    status: trajectoryBriefing.status,
-                  });
-                }}
-                className="inline-flex items-center text-xs font-medium text-primary hover:text-primary-hover transition-colors"
-              >
-                Open linked trajectory →
-              </Link>
             </div>
-          ) : (
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-text-secondary">
-                <span className="font-semibold text-text-primary">Morning briefing:</span>{' '}
-                No active trajectory milestone yet.
-              </p>
-              <Link
-                href={trajectoryBriefingHref}
-                onClick={() => {
-                  void trackAppEvent('trajectory_briefing_opened', {
-                    source: 'today_morning_briefing',
-                    route: '/today',
-                  });
-                }}
-                className="inline-flex items-center text-xs font-medium text-primary hover:text-primary-hover transition-colors"
-              >
-                Set up trajectory →
-              </Link>
-            </div>
-          )}
-
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            <Link
+              href={trajectoryBriefingHref}
+              onClick={() => {
+                void trackAppEvent('trajectory_briefing_opened', {
+                  source: 'today_morning_briefing',
+                  route: '/today',
+                  ...(trajectoryBriefing?.goalId ? { trajectory_goal_id: trajectoryBriefing.goalId } : {}),
+                  ...(trajectoryBriefing?.status ? { status: trajectoryBriefing.status } : {}),
+                });
+              }}
+              className="inline-flex items-center text-xs font-semibold text-primary hover:text-primary-hover transition-colors sm:ml-2"
+            >
+              {trajectoryBriefing ? 'Open linked trajectory →' : 'Set up trajectory →'}
+            </Link>
+          </div>
 
           {momentum ? (
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              {/* Score — label + number combined */}
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 font-semibold text-text-primary">
-                Momentum · {momentum.score}
+            <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+              <span className="inline-flex items-center gap-1 rounded-full border border-primary/32 bg-primary/12 px-2.5 py-0.5 font-semibold text-text-primary">
+                Momentum {momentum.score}
               </span>
-              {/* Delta — compact, no "vs last week" */}
               <span
-                className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 font-medium ${
+                className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-medium ${
                   momentum.delta > 0
-                    ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-400'
+                    ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
                     : momentum.delta < 0
-                      ? 'border-red-400/30 bg-red-500/10 text-red-400'
-                      : 'border-white/10 bg-background/40 text-text-tertiary'
+                      ? 'border-red-400/30 bg-red-500/10 text-red-300'
+                      : 'border-white/12 bg-background/40 text-text-tertiary'
                 }`}
               >
-                {momentum.delta > 0 ? (
-                  <TrendingUp className="h-3 w-3" />
-                ) : momentum.delta < 0 ? (
-                  <TrendingDown className="h-3 w-3" />
-                ) : (
-                  <Minus className="h-3 w-3" />
-                )}
+                {momentum.delta > 0 ? <TrendingUp className="h-3 w-3" /> : momentum.delta < 0 ? <TrendingDown className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
                 {momentum.delta > 0 ? `+${momentum.delta}` : momentum.delta}
               </span>
-              {!showWelcome ? (
-                <>
-                  {/* Most critical status only — not all three */}
-                  {momentum.stats.atRisk > 0 ? (
-                    <span className="rounded-full border border-red-400/20 bg-red-500/10 px-2.5 py-1 text-red-400">
-                      {momentum.stats.atRisk} at risk
-                    </span>
-                  ) : momentum.stats.tight > 0 ? (
-                    <span className="rounded-full border border-amber-300/20 bg-amber-500/10 px-2.5 py-1 text-amber-300">
-                      {momentum.stats.tight} tight
-                    </span>
-                  ) : (
-                    <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-emerald-300">
-                      {momentum.stats.onTrack} on track
-                    </span>
-                  )}
-                  {/* Focus load */}
-                  <span className="rounded-full border border-white/10 bg-background/40 px-2.5 py-1 text-text-tertiary">
-                    {momentum.stats.last7DaysHours.toFixed(1)}h / {momentum.stats.plannedHoursPerWeek}h
-                  </span>
-                </>
+              {momentum.stats.atRisk > 0 ? (
+                <span className="rounded-full border border-red-400/20 bg-red-500/10 px-2 py-0.5 text-red-300">
+                  At risk {momentum.stats.atRisk}
+                </span>
+              ) : momentum.stats.tight > 0 ? (
+                <span className="rounded-full border border-amber-300/20 bg-amber-500/10 px-2 py-0.5 text-amber-300">
+                  Tight {momentum.stats.tight}
+                </span>
               ) : (
-                <span className="rounded-full border border-white/10 bg-background/35 px-2.5 py-1 text-text-tertiary">
-                  Detail unlocks after first active day.
+                <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
+                  On track {momentum.stats.onTrack}
                 </span>
               )}
+              <span className="rounded-full border border-primary/18 bg-primary/8 px-2 py-0.5 text-text-tertiary">
+                Focus load {momentum.stats.last7DaysHours.toFixed(1)}h / {momentum.stats.plannedHoursPerWeek}h
+              </span>
+              {trajectoryBriefing ? (
+                <span className="rounded-full border border-white/12 bg-background/38 px-2 py-0.5 text-text-tertiary">
+                  Prep starts {trajectoryBriefing.startDateLabel}
+                </span>
+              ) : null}
             </div>
           ) : (
             <p className="text-xs text-text-secondary">
@@ -429,22 +406,22 @@ export default function TodayPage() {
           )}
 
           {showWeeklyCheckin && (
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-primary/22 bg-primary/[0.08] px-2.5 py-1.5">
               <p className="text-xs text-text-secondary">
-                Weekly check-in: verify timeline risks and lock this week&apos;s next move.
+                Weekly check-in: verify risks and lock this week&apos;s next move.
               </p>
-              <div className="flex items-center gap-2">
+              <div className="ml-auto flex items-center gap-1.5">
                 <Link
                   href="/trajectory?source=weekly_checkin"
                   onClick={dismissWeeklyCheckin}
-                  className="inline-flex items-center rounded-md border border-primary/35 bg-primary/12 px-2.5 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+                  className="inline-flex items-center rounded-md border border-primary/35 bg-primary/14 px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/24"
                 >
-                  Review now
+                  Review
                 </Link>
                 <button
                   type="button"
                   onClick={dismissWeeklyCheckin}
-                  className="inline-flex items-center rounded-md border border-white/12 bg-white/[0.02] px-2.5 py-1 text-xs text-text-tertiary transition-colors hover:bg-white/[0.06]"
+                  className="inline-flex items-center rounded-md border border-white/12 bg-white/[0.03] px-2 py-1 text-xs text-text-tertiary transition-colors hover:bg-white/[0.08]"
                 >
                   Later
                 </button>

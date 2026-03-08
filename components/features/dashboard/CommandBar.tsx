@@ -62,7 +62,7 @@ function PulseDot({ className }: { className: string }) {
 
 function RailChip({ label, tone, pulse = false }: { label: string; tone: ChipTone; pulse?: boolean }) {
   const toneClasses: Record<ChipTone, string> = {
-    muted:   'border-white/[0.1] bg-white/[0.04] text-text-tertiary',
+    muted:   'border-border/80 bg-surface-hover/60 text-text-tertiary',
     danger:  'border-red-500/35 bg-red-500/10 text-red-300',
     warning: 'border-amber-500/35 bg-amber-500/10 text-amber-300',
     success: 'border-emerald-500/35 bg-emerald-500/10 text-emerald-300',
@@ -126,7 +126,7 @@ function StatChip({
 }) {
   const c = TONE[tone];
   return (
-    <div className="group relative flex min-w-[140px] flex-1 items-center gap-2.5 overflow-hidden px-4 py-3.5 transition-all duration-200 hover:bg-white/[0.04]">
+    <div className="group relative flex min-w-[140px] flex-1 items-center gap-2.5 overflow-hidden px-4 py-3.5 transition-all duration-200 hover:bg-primary/[0.08]">
       <div className={`absolute inset-y-2.5 left-0 w-0.5 rounded-r-full transition-all duration-200 ${c.stripe} group-hover:shadow-[0_0_6px_1px] group-hover:shadow-current`} />
       <Icon className={`h-3.5 w-3.5 flex-shrink-0 ${c.icon}`} />
       <div className="min-w-0">
@@ -401,10 +401,10 @@ export default function CommandBar({
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-zinc-950/80 shadow-2xl motion-safe:backdrop-blur-md"
+      className="card-surface dashboard-premium-card-soft relative overflow-hidden rounded-xl border shadow-2xl motion-safe:backdrop-blur-md"
     >
       {/* Top inset highlight */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.18] to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
       {/* Bottom 4-color gradient line */}
       <div
         className="absolute inset-x-0 bottom-0 h-px"
