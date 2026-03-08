@@ -265,7 +265,7 @@ export default function TodayPage() {
   }, [momentum, play]);
 
   return (
-    <div className="space-y-6" data-testid="today-page-root">
+    <div className="space-y-5" data-testid="today-page-root">
       {/* First-visit welcome orientation */}
       <AnimatePresence>
         {showWelcome && (
@@ -309,7 +309,7 @@ export default function TodayPage() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.16 }}
-        className="card-surface dashboard-premium-card relative overflow-hidden p-3"
+        className="card-surface dashboard-premium-card relative overflow-hidden p-2.5"
       >
         <div className="pointer-events-none absolute inset-y-2 left-0 w-1 rounded-r-full bg-primary/75 shadow-[0_0_12px_rgb(var(--primary)/0.45)]" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/45 to-transparent" />
@@ -319,7 +319,7 @@ export default function TodayPage() {
               <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 bg-primary/[0.16] text-primary shadow-[0_0_12px_rgb(var(--primary)/0.2)]">
                 <Sparkles className="h-3.5 w-3.5" />
               </span>
-              <p className="truncate text-[13px] text-text-secondary">
+              <p className="truncate text-[12.5px] leading-snug text-text-secondary">
                 <span className="font-semibold text-text-primary">Morning briefing:</span>{' '}
                 {trajectoryBriefing ? (
                   <>
@@ -354,19 +354,19 @@ export default function TodayPage() {
                   ...(trajectoryBriefing?.status ? { status: trajectoryBriefing.status } : {}),
                 });
               }}
-              className="inline-flex items-center text-xs font-semibold text-primary hover:text-primary-hover transition-colors sm:ml-2"
+              className="inline-flex items-center text-[11px] font-semibold tracking-[0.02em] text-primary hover:text-primary-hover transition-colors sm:ml-2"
             >
               {trajectoryBriefing ? 'Open linked trajectory →' : 'Set up trajectory →'}
             </Link>
           </div>
 
           {momentum ? (
-            <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-              <span className="inline-flex items-center gap-1 rounded-full border border-primary/32 bg-primary/12 px-2.5 py-0.5 font-semibold text-text-primary">
+            <div className="flex flex-wrap items-center gap-1 text-[10.5px]">
+              <span className="inline-flex items-center gap-1 rounded-full border border-primary/32 bg-primary/12 px-2.5 py-0.5 font-semibold tabular-nums text-text-primary">
                 Momentum {momentum.score}
               </span>
               <span
-                className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-medium ${
+                className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-medium tabular-nums ${
                   momentum.delta > 0
                     ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
                     : momentum.delta < 0
@@ -378,19 +378,19 @@ export default function TodayPage() {
                 {momentum.delta > 0 ? `+${momentum.delta}` : momentum.delta}
               </span>
               {momentum.stats.atRisk > 0 ? (
-                <span className="rounded-full border border-red-400/20 bg-red-500/10 px-2 py-0.5 text-red-300">
+                <span className="rounded-full border border-red-400/20 bg-red-500/10 px-2 py-0.5 tabular-nums text-red-300">
                   At risk {momentum.stats.atRisk}
                 </span>
               ) : momentum.stats.tight > 0 ? (
-                <span className="rounded-full border border-amber-300/20 bg-amber-500/10 px-2 py-0.5 text-amber-300">
+                <span className="rounded-full border border-amber-300/20 bg-amber-500/10 px-2 py-0.5 tabular-nums text-amber-300">
                   Tight {momentum.stats.tight}
                 </span>
               ) : (
-                <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
+                <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2 py-0.5 tabular-nums text-emerald-300">
                   On track {momentum.stats.onTrack}
                 </span>
               )}
-              <span className="rounded-full border border-primary/18 bg-primary/8 px-2 py-0.5 text-text-tertiary">
+              <span className="rounded-full border border-primary/18 bg-primary/8 px-2 py-0.5 tabular-nums text-text-tertiary">
                 Focus load {momentum.stats.last7DaysHours.toFixed(1)}h / {momentum.stats.plannedHoursPerWeek}h
               </span>
               {trajectoryBriefing ? (
@@ -406,22 +406,22 @@ export default function TodayPage() {
           )}
 
           {showWeeklyCheckin && (
-            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-primary/22 bg-primary/[0.08] px-2.5 py-1.5">
-              <p className="text-xs text-text-secondary">
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-primary/22 bg-primary/[0.08] px-2.5 py-1">
+              <p className="text-[11px] text-text-secondary">
                 Weekly check-in: verify risks and lock this week&apos;s next move.
               </p>
               <div className="ml-auto flex items-center gap-1.5">
                 <Link
                   href="/trajectory?source=weekly_checkin"
                   onClick={dismissWeeklyCheckin}
-                  className="inline-flex items-center rounded-md border border-primary/35 bg-primary/14 px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/24"
+                  className="inline-flex items-center rounded-md border border-primary/35 bg-primary/14 px-2 py-1 text-[11px] font-medium text-primary transition-colors hover:bg-primary/24"
                 >
                   Review
                 </Link>
                 <button
                   type="button"
                   onClick={dismissWeeklyCheckin}
-                  className="inline-flex items-center rounded-md border border-border bg-surface/45 px-2 py-1 text-xs text-text-tertiary transition-colors hover:bg-surface-hover/70"
+                  className="inline-flex items-center rounded-md border border-border bg-surface/45 px-2 py-1 text-[11px] text-text-tertiary transition-colors hover:bg-surface-hover/70"
                 >
                   Later
                 </button>

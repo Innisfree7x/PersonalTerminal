@@ -126,18 +126,18 @@ function StatChip({
 }) {
   const c = TONE[tone];
   return (
-    <div className="group relative flex min-w-[140px] flex-1 items-center gap-2.5 overflow-hidden px-4 py-3.5 transition-all duration-200 hover:bg-primary/[0.08]">
+    <div className="group relative flex min-w-[140px] flex-1 items-center gap-2.5 overflow-hidden px-4 py-3 transition-all duration-200 hover:bg-primary/[0.08]">
       <div className={`absolute inset-y-2.5 left-0 w-0.5 rounded-r-full transition-all duration-200 ${c.stripe} group-hover:shadow-[0_0_6px_1px] group-hover:shadow-current`} />
       <Icon className={`h-3.5 w-3.5 flex-shrink-0 ${c.icon}`} />
       <div className="min-w-0">
         <div className="flex items-baseline gap-1 leading-none">
-          <span className={`text-xl font-bold tabular-nums ${c.value}`}>
+          <span className={`text-[1.35rem] font-bold tabular-nums ${c.value}`}>
             <AnimatedCounter to={value} />
           </span>
-          {meta && <span className="text-xs text-text-tertiary/55">{meta}</span>}
+          {meta && <span className="text-[11px] text-text-tertiary/60">{meta}</span>}
         </div>
         <div className="mt-0.5 flex items-center gap-1.5">
-          <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-text-tertiary/55">{label}</span>
+          <span className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-text-tertiary/60">{label}</span>
           {chip}
         </div>
       </div>
@@ -272,7 +272,7 @@ function ActionSection({ nextBestAction, alternatives, riskSignals, onChanged }:
   });
 
   return (
-    <div className="flex min-w-[240px] flex-shrink-0 items-center gap-2 px-4">
+    <div className="flex min-w-[220px] flex-shrink-0 items-center gap-2 px-3.5">
       <Zap className="h-3.5 w-3.5 flex-shrink-0 text-primary" />
       {activeCandidate ? (
         <>
@@ -281,16 +281,16 @@ function ActionSection({ nextBestAction, alternatives, riskSignals, onChanged }:
               key={activeCandidate.id}
               initial={{ opacity: 0, x: 6 }}
               animate={{ opacity: 1, x: 0 }}
-              className="truncate text-sm font-medium leading-none text-text-primary"
+              className="truncate text-[13px] font-medium leading-none text-text-primary"
             >
               {activeCandidate.title}
             </motion.p>
             <div className="mt-0.5 flex items-center gap-1.5">
-              <span className="font-mono text-[9px] uppercase tracking-wider text-text-tertiary/55">
+              <span className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-text-tertiary/60">
                 {activeCandidate.urgencyLabel}
               </span>
               {topRisk && (
-                <span className="font-mono text-[9px] uppercase text-warning">
+                <span className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-warning">
                   · {topRisk.severity}
                 </span>
               )}
@@ -299,7 +299,7 @@ function ActionSection({ nextBestAction, alternatives, riskSignals, onChanged }:
           <button
             onClick={handleDoNow}
             disabled={isPending}
-            className="flex shrink-0 items-center gap-1 rounded-lg border border-primary/30 bg-primary/15 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/25 disabled:opacity-50"
+            className="flex shrink-0 items-center gap-1 rounded-lg border border-primary/30 bg-primary/15 px-2.5 py-1.5 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/25 disabled:opacity-50"
           >
             <ArrowRight className="h-3 w-3" /> Do now
           </button>

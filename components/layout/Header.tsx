@@ -76,11 +76,11 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-border/80 bg-background/82 backdrop-blur-xl">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent" />
-      <div className="flex items-center justify-between h-16 px-6">
+      <div className="flex items-center justify-between h-[62px] px-6">
         {/* Left: Page Title + Date & Time */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
-            <h1 className="text-lg font-semibold text-text-primary">
+            <h1 className="text-[1.06rem] font-semibold tracking-tight text-text-primary">
               {currentTitle}
             </h1>
             
@@ -113,7 +113,7 @@ export default function Header() {
             onClick={openCommandPalette}
           >
             <Search className="w-4 h-4" />
-            <span className="hidden sm:inline text-xs">Search</span>
+            <span className="hidden sm:inline text-[11px] font-medium">Search</span>
             <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-surface-hover px-1.5 py-0.5 text-[10px]">
               <Command className="w-2.5 h-2.5" />
               K
