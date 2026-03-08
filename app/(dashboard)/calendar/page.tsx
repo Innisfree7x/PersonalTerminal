@@ -9,6 +9,11 @@ import {
   disconnectGoogleCalendarAction,
   fetchWeekCalendarEventsAction,
 } from '@/app/actions/calendar';
+import {
+  buildTrajectoryGhostEventsForWeek,
+  type TrajectoryGhostEvent,
+} from '@/lib/calendar/trajectoryGhostEvents';
+import { STORAGE_KEYS } from '@/lib/storage/keys';
 
 /**
  * Get Monday of the week for a given date
@@ -57,12 +62,50 @@ function groupEventsByDay(events: CalendarEvent[]): Record<string, CalendarEvent
   return groups;
 }
 
+interface CalendarTrajectoryGoal {
+  id: string;
+  title: string;
+  dueDate: string;
+  status: 'active' | 'done' | 'archived';
+}
+
+interface CalendarTrajectoryWindow {
+  id: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  confidence: 'low' | 'medium' | 'high';
+}
+
+interface CalendarTrajectoryGeneratedBlock {
+  goalId: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  status: 'on_track' | 'tight' | 'at_risk';
+}
+
+interface CalendarTrajectoryOverviewResponse {
+  goals: CalendarTrajectoryGoal[];
+  windows: CalendarTrajectoryWindow[];
+  computed: {
+    generatedBlocks: CalendarTrajectoryGeneratedBlock[];
+  };
+}
+
+const ghostEventClassMap: Record<TrajectoryGhostEvent['kind'], string> = {
+  milestone: 'border-success/45 bg-success/10 text-success',
+  prep_block: 'border-warning/45 bg-warning/10 text-warning',
+  window: 'border-info/45 bg-info/10 text-info',
+};
+
 export default function CalendarPage() {
   const queryClient = useQueryClient();
   const [selectedWeek, setSelectedWeek] = useState<Date>(() => getWeekStart(new Date()));
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showTrajectoryGhostEvents, setShowTrajectoryGhostEvents] = useState(true);
 
   // Check URL params for error/success messages
   useEffect(() => {
@@ -89,6 +132,21 @@ export default function CalendarPage() {
     checkGoogleCalendarConnectionAction().then(setIsConnected);
   }, []);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const raw = window.localStorage.getItem(STORAGE_KEYS.calendarShowTrajectoryGhostEvents);
+    if (raw === null) return;
+    setShowTrajectoryGhostEvents(raw !== '0');
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(
+      STORAGE_KEYS.calendarShowTrajectoryGhostEvents,
+      showTrajectoryGhostEvents ? '1' : '0'
+    );
+  }, [showTrajectoryGhostEvents]);
+
   const weekDays = useMemo(() => getWeekDays(selectedWeek), [selectedWeek]);
   const today = new Date();
 
@@ -110,6 +168,22 @@ export default function CalendarPage() {
     enabled: isConnected === true,
     retry: false,
     refetchOnWindowFocus: false,
+  });
+
+  const { data: trajectoryOverview } = useQuery<CalendarTrajectoryOverviewResponse>({
+    queryKey: ['trajectory', 'calendar-overview'],
+    queryFn: async () => {
+      const response = await fetch('/api/trajectory/overview');
+      if (!response.ok) {
+        throw new Error('Failed to fetch trajectory overview');
+      }
+      return response.json() as Promise<CalendarTrajectoryOverviewResponse>;
+    },
+    enabled: isConnected === true,
+    staleTime: 20 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: false,
   });
 
   // Disconnect mutation
@@ -155,6 +229,16 @@ export default function CalendarPage() {
   };
 
   const groupedEvents = useMemo(() => groupEventsByDay(events), [events]);
+  const groupedGhostEvents = useMemo(() => {
+    if (!showTrajectoryGhostEvents) return {};
+    if (!trajectoryOverview) return {};
+    return buildTrajectoryGhostEventsForWeek({
+      weekDays,
+      goals: trajectoryOverview.goals,
+      generatedBlocks: trajectoryOverview.computed.generatedBlocks,
+      windows: trajectoryOverview.windows,
+    });
+  }, [showTrajectoryGhostEvents, trajectoryOverview, weekDays]);
 
   // Calculate week info for display
   const weekNumber = getWeek(selectedWeek, { weekStartsOn: 1 });
@@ -185,6 +269,18 @@ export default function CalendarPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Calendar</h1>
         <div className="flex items-center gap-3">
+          {isConnected === true && (
+            <button
+              onClick={() => setShowTrajectoryGhostEvents((current) => !current)}
+              className={`px-4 py-2 text-sm rounded-lg border transition-colors ${
+                showTrajectoryGhostEvents
+                  ? 'border-info/40 bg-info/10 text-info'
+                  : 'border-border bg-surface text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              {showTrajectoryGhostEvents ? 'Hide Trajectory Ghosts' : 'Show Trajectory Ghosts'}
+            </button>
+          )}
           {isConnected === true && (
             <>
               <button
@@ -303,6 +399,7 @@ export default function CalendarPage() {
               {weekDays.map((day, index) => {
                 const dayKey = format(day, 'yyyy-MM-dd');
                 const dayEvents = groupedEvents[dayKey] || [];
+                const dayGhostEvents = groupedGhostEvents[dayKey] || [];
                 const isToday = isSameDay(day, today);
 
                 return (
@@ -335,45 +432,65 @@ export default function CalendarPage() {
 
                     {/* Events List */}
                     <div className="space-y-1.5">
-                      {dayEvents.length === 0 ? (
+                      {dayEvents.length === 0 && dayGhostEvents.length === 0 ? (
                         <p className="text-xs text-gray-400 dark:text-gray-500">No events</p>
                       ) : (
-                        dayEvents.map((event) => {
-                          const eventTypeConfig: Record<
-                            CalendarEvent['type'],
-                            { icon: string; color: string; bgColor: string }
-                          > = {
-                            meeting: {
-                              icon: '📅',
-                              color: 'text-blue-700 dark:text-blue-400',
-                              bgColor: 'bg-blue-100 dark:bg-blue-900/30',
-                            },
-                            task: {
-                              icon: '✓',
-                              color: 'text-purple-700 dark:text-purple-400',
-                              bgColor: 'bg-purple-100 dark:bg-purple-900/30',
-                            },
-                            break: {
-                              icon: '☕',
-                              color: 'text-green-700 dark:text-green-400',
-                              bgColor: 'bg-green-100 dark:bg-green-900/30',
-                            },
-                          };
-                          const config = eventTypeConfig[event.type];
+                        <>
+                          {dayEvents.map((event) => {
+                            const eventTypeConfig: Record<
+                              CalendarEvent['type'],
+                              { icon: string; color: string; bgColor: string }
+                            > = {
+                              meeting: {
+                                icon: '📅',
+                                color: 'text-blue-700 dark:text-blue-400',
+                                bgColor: 'bg-blue-100 dark:bg-blue-900/30',
+                              },
+                              task: {
+                                icon: '✓',
+                                color: 'text-purple-700 dark:text-purple-400',
+                                bgColor: 'bg-purple-100 dark:bg-purple-900/30',
+                              },
+                              break: {
+                                icon: '☕',
+                                color: 'text-green-700 dark:text-green-400',
+                                bgColor: 'bg-green-100 dark:bg-green-900/30',
+                              },
+                            };
+                            const config = eventTypeConfig[event.type];
 
-                          return (
-                            <div
-                              key={event.id}
-                              className={`rounded p-2 text-xs border ${config.bgColor} ${config.color} border-current/20 hover:opacity-80 transition-opacity cursor-pointer`}
-                              title={event.title}
-                            >
-                              <div className="font-medium truncate mb-0.5">
-                                <span className="mr-1">{config.icon}</span>
-                                {format(event.startTime, 'HH:mm')} {event.title}
+                            return (
+                              <div
+                                key={event.id}
+                                className={`rounded p-2 text-xs border ${config.bgColor} ${config.color} border-current/20 hover:opacity-80 transition-opacity cursor-pointer`}
+                                title={event.title}
+                              >
+                                <div className="font-medium truncate mb-0.5">
+                                  <span className="mr-1">{config.icon}</span>
+                                  {format(event.startTime, 'HH:mm')} {event.title}
+                                </div>
                               </div>
+                            );
+                          })}
+
+                          {dayGhostEvents.map((ghostEvent) => (
+                            <div
+                              key={ghostEvent.id}
+                              className={`rounded border border-dashed p-2 text-[11px] ${ghostEventClassMap[ghostEvent.kind] ?? 'border-primary/40 bg-primary/10 text-primary'} opacity-90`}
+                              title={`${ghostEvent.title} · ${ghostEvent.subtitle}`}
+                            >
+                              <div className="mb-0.5 flex items-center justify-between gap-2">
+                                <span className="font-semibold truncate">
+                                  ◌ {ghostEvent.title}
+                                </span>
+                                <span className="text-[9px] uppercase tracking-wide opacity-80">
+                                  trajectory
+                                </span>
+                              </div>
+                              <div className="truncate text-[10px] opacity-80">{ghostEvent.subtitle}</div>
                             </div>
-                          );
-                        })
+                          ))}
+                        </>
                       )}
                     </div>
                   </div>
@@ -388,6 +505,7 @@ export default function CalendarPage() {
       {isConnected === true &&
         !isLoading &&
         events.length === 0 &&
+        Object.values(groupedGhostEvents).flat().length === 0 &&
         Object.keys(groupedEvents).length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500 dark:text-gray-400">No events scheduled this week</p>

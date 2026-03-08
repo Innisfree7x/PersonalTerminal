@@ -9,6 +9,7 @@ export const STORAGE_KEYS = {
   focusTimerSession: 'innis:focus-timer:session:v1',
   focusTimerSettings: 'innis:focus-timer:settings:v1',
   focusScreenVisualPrefs: 'innis:focus-screen:visual-prefs:v1',
+  calendarShowTrajectoryGhostEvents: 'innis:calendar:show-trajectory-ghost-events:v1',
   nbaDismissed: 'innis:nba:dismissed:v1',
   todayDoneSignalDate: 'innis:today:done-signal-date:v1',
   todayMorningCheckinDate: 'innis:today:morning-checkin-date:v1',

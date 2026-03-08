@@ -38,6 +38,7 @@ import {
 } from '@/lib/hooks/useCommandActions';
 import { parseCommand, type ParsedIntent } from '@/lib/command/parser';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import { navigateToFocusWithTransition } from '@/lib/navigation/focusTransition';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -184,7 +185,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       id: 'nav-focus',
       label: 'Focus Mode',
       icon: Timer,
-      action: () => router.push('/focus'),
+      action: () => navigateToFocusWithTransition(router),
       keywords: ['focus', 'deep work', 'zen', 'study mode', 'timer screen'],
     },
     {

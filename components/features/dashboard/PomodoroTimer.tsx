@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { SkeletonCircle, Skeleton } from '@/components/ui';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import { trackAppEvent } from '@/lib/analytics/client';
+import { navigateToFocusWithTransition } from '@/lib/navigation/focusTransition';
 
 const DURATIONS = [25, 50, 90] as const;
 
@@ -85,7 +86,7 @@ const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: Pomodor
     if (status === 'idle') {
       startTimer({ duration: selectedDuration, label: 'Focus Mode' });
     }
-    router.push('/focus');
+    navigateToFocusWithTransition(router);
   };
 
   if (isLoading) {

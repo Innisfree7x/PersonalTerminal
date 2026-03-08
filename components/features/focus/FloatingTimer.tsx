@@ -6,6 +6,7 @@ import { Play, Pause, Square, SkipForward, Timer, ChevronDown, ChevronUp, Flame,
 import { useRouter } from 'next/navigation';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import type { FocusSessionCategory } from '@/lib/schemas/focusSession.schema';
+import { navigateToFocusWithTransition } from '@/lib/navigation/focusTransition';
 
 const DURATION_PRESETS = [
   { label: '25m', minutes: 25 },
@@ -98,7 +99,7 @@ const FloatingTimer = memo(function FloatingTimer() {
       startTimer(opts);
       setInputLabel('');
     }
-    router.push('/focus');
+    navigateToFocusWithTransition(router);
   };
 
   // Minimized pill

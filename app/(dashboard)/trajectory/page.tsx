@@ -28,6 +28,7 @@ import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { buildTimelineRuler } from '@/lib/trajectory/timeline';
+import { detectGoalStatusTransitions } from '@/lib/trajectory/statusTransition';
 import { cn } from '@/lib/utils';
 import { useAppSound } from '@/lib/hooks/useAppSound';
 
@@ -229,12 +230,19 @@ function monthsToWeeks(months: number): number {
   return Math.max(0, Math.round(normalizedMonths * 4.345));
 }
 
+const GOAL_STATUS_PULSE_DURATION_MS = 1_800;
+const GOAL_STATUS_PULSE_COOLDOWN_MS = 10_000;
+
 export default function TrajectoryPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { play } = useAppSound();
   const previousOverallStatusRef = useRef<RiskStatus | null>(null);
+  const previousGoalStatusRef = useRef<Record<string, RiskStatus>>({});
+  const goalStatusPulseCooldownRef = useRef<Record<string, number>>({});
+  const goalStatusPulseTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const shareCardRef = useRef<HTMLDivElement>(null);
+  const [goalStatusPulseIds, setGoalStatusPulseIds] = useState<string[]>([]);
 
   const handleExport = async () => {
     if (!shareCardRef.current) return;
@@ -364,6 +372,15 @@ export default function TrajectoryPage() {
   }, [overallStatus, play]);
 
   useEffect(() => {
+    return () => {
+      for (const timer of Object.values(goalStatusPulseTimersRef.current)) {
+        clearTimeout(timer);
+      }
+      goalStatusPulseTimersRef.current = {};
+    };
+  }, []);
+
+  useEffect(() => {
     if (generatedBlocks.length === 0) {
       setSelectedGoalId('');
       return;
@@ -469,6 +486,48 @@ export default function TrajectoryPage() {
     for (const block of generatedBlocks) map.set(block.goalId, block.status);
     return map;
   }, [generatedBlocks]);
+
+  useEffect(() => {
+    if (goals.length === 0) {
+      previousGoalStatusRef.current = {};
+      return;
+    }
+
+    const currentByGoal: Record<string, RiskStatus> = {};
+    for (const goal of goals) {
+      currentByGoal[goal.id] = riskByGoal.get(goal.id) ?? 'on_track';
+    }
+
+    if (Object.keys(previousGoalStatusRef.current).length === 0) {
+      previousGoalStatusRef.current = currentByGoal;
+      return;
+    }
+
+    const transition = detectGoalStatusTransitions({
+      previousByGoal: previousGoalStatusRef.current,
+      currentByGoal,
+      lastPulseByGoal: goalStatusPulseCooldownRef.current,
+      nowMs: Date.now(),
+      cooldownMs: GOAL_STATUS_PULSE_COOLDOWN_MS,
+    });
+
+    previousGoalStatusRef.current = currentByGoal;
+    goalStatusPulseCooldownRef.current = transition.nextLastPulseByGoal;
+    if (transition.changedGoalIds.length === 0) return;
+
+    setGoalStatusPulseIds((current) =>
+      Array.from(new Set([...current, ...transition.changedGoalIds]))
+    );
+
+    for (const goalId of transition.changedGoalIds) {
+      const existingTimer = goalStatusPulseTimersRef.current[goalId];
+      if (existingTimer) clearTimeout(existingTimer);
+      goalStatusPulseTimersRef.current[goalId] = setTimeout(() => {
+        setGoalStatusPulseIds((current) => current.filter((id) => id !== goalId));
+        delete goalStatusPulseTimersRef.current[goalId];
+      }, GOAL_STATUS_PULSE_DURATION_MS);
+    }
+  }, [goals, riskByGoal]);
 
   const committedBlockKey = useMemo(() => {
     const keys = new Set<string>();
@@ -1014,6 +1073,7 @@ export default function TrajectoryPage() {
                   {showMilestones ? goals.map((goal) => {
                     const risk = riskByGoal.get(goal.id) ?? 'on_track';
                     const isSelected = goal.id === selectedGoalId;
+                    const isStatusPulsing = goalStatusPulseIds.includes(goal.id);
                     const left = toPercent(goal.dueDate);
 
                     return (
@@ -1022,6 +1082,7 @@ export default function TrajectoryPage() {
                           className={cn(
                             'h-[170px] rounded-full transition-all',
                             isSelected ? 'w-[3px] shadow-[0_0_14px_rgba(250,240,230,0.35)]' : 'w-[2px]',
+                            isStatusPulsing && 'animate-pulse shadow-[0_0_16px_rgba(250,240,230,0.45)]',
                             risk === 'at_risk' ? 'bg-error' : risk === 'tight' ? 'bg-warning' : 'bg-success'
                           )}
                         />
@@ -1389,12 +1450,14 @@ export default function TrajectoryPage() {
                 goals.map((goal) => {
                   const risk = riskByGoal.get(goal.id);
                   const isSelected = goal.id === selectedGoalId;
+                  const isStatusPulsing = goalStatusPulseIds.includes(goal.id);
                   return (
                   <div
                     key={goal.id}
                     className={cn(
                       'rounded-lg border bg-background/50 px-3 py-2 transition-colors',
-                      isSelected ? 'border-primary/45 bg-primary/10' : 'border-border hover:border-primary/30'
+                      isSelected ? 'border-primary/45 bg-primary/10' : 'border-border hover:border-primary/30',
+                      isStatusPulsing && 'animate-pulse border-primary/55 shadow-[0_0_0_1px_rgba(250,240,230,0.25)]'
                     )}
                   >
                       <div className="flex items-start justify-between gap-3">
