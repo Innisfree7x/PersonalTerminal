@@ -62,7 +62,7 @@ function PulseDot({ className }: { className: string }) {
 
 function RailChip({ label, tone, pulse = false }: { label: string; tone: ChipTone; pulse?: boolean }) {
   const toneClasses: Record<ChipTone, string> = {
-    muted:   'border-border/80 bg-surface-hover/60 text-text-tertiary',
+    muted:   'border-border/95 bg-surface/78 text-text-secondary',
     danger:  'border-red-500/35 bg-red-500/10 text-red-300',
     warning: 'border-amber-500/35 bg-amber-500/10 text-amber-300',
     success: 'border-emerald-500/35 bg-emerald-500/10 text-emerald-300',
@@ -134,10 +134,10 @@ function StatChip({
           <span className={`text-[1.35rem] font-bold tabular-nums ${c.value}`}>
             <AnimatedCounter to={value} />
           </span>
-          {meta && <span className="text-[11px] text-text-tertiary/60">{meta}</span>}
+          {meta && <span className="text-[11px] text-text-secondary/80">{meta}</span>}
         </div>
         <div className="mt-0.5 flex items-center gap-1.5">
-          <span className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-text-tertiary/60">{label}</span>
+          <span className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-text-secondary/70">{label}</span>
           {chip}
         </div>
       </div>
@@ -286,7 +286,7 @@ function ActionSection({ nextBestAction, alternatives, riskSignals, onChanged }:
               {activeCandidate.title}
             </motion.p>
             <div className="mt-0.5 flex items-center gap-1.5">
-              <span className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-text-tertiary/60">
+              <span className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-text-secondary/70">
                 {activeCandidate.urgencyLabel}
               </span>
               {topRisk && (
@@ -307,7 +307,7 @@ function ActionSection({ nextBestAction, alternatives, riskSignals, onChanged }:
             onClick={handlePlanLater}
             disabled={isPending}
             title="Plan tomorrow"
-            className="shrink-0 rounded-lg p-1.5 text-text-tertiary transition-colors hover:bg-surface-hover hover:text-text-primary"
+            className="shrink-0 rounded-lg p-1.5 text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary"
           >
             <CalendarClock className="h-3.5 w-3.5" />
           </button>
@@ -315,7 +315,7 @@ function ActionSection({ nextBestAction, alternatives, riskSignals, onChanged }:
             onClick={handleDrop}
             disabled={isPending}
             title="Drop"
-            className="shrink-0 rounded-lg p-1.5 text-text-tertiary transition-colors hover:bg-error/10 hover:text-error"
+            className="shrink-0 rounded-lg p-1.5 text-text-secondary transition-colors hover:bg-error/10 hover:text-error"
           >
             <XCircle className="h-3.5 w-3.5" />
           </button>

@@ -290,9 +290,9 @@ export default function TodayPage() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.16 }}
-        className="card-surface dashboard-premium-card relative overflow-hidden p-2.5"
+        className="card-surface dashboard-premium-card relative overflow-hidden p-3"
       >
-        <div className="pointer-events-none absolute inset-y-2 left-0 w-1 rounded-r-full bg-primary/75 shadow-[0_0_12px_rgb(var(--primary)/0.45)]" />
+        <div className="pointer-events-none absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-primary/80 shadow-[0_0_14px_rgb(var(--primary)/0.48)]" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/45 to-transparent" />
         <div className="flex flex-col gap-1.5">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -300,7 +300,7 @@ export default function TodayPage() {
               <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 bg-primary/[0.16] text-primary shadow-[0_0_12px_rgb(var(--primary)/0.2)]">
                 <Sparkles className="h-3.5 w-3.5" />
               </span>
-              <p className="truncate text-[12.5px] leading-snug text-text-secondary">
+              <p className="truncate text-sm leading-snug text-[rgb(var(--text-primary)/0.9)]">
                 <span className="font-semibold text-text-primary">Morning briefing:</span>{' '}
                 {trajectoryBriefing ? (
                   <>
@@ -335,15 +335,15 @@ export default function TodayPage() {
                   ...(trajectoryBriefing?.status ? { status: trajectoryBriefing.status } : {}),
                 });
               }}
-              className="inline-flex items-center text-[11px] font-semibold tracking-[0.02em] text-primary hover:text-primary-hover transition-colors sm:ml-2"
+              className="inline-flex items-center text-[11.5px] font-semibold tracking-[0.02em] text-primary hover:text-primary-hover transition-colors sm:ml-2"
             >
               {trajectoryBriefing ? 'Open linked trajectory →' : 'Set up trajectory →'}
             </Link>
           </div>
 
           {momentum ? (
-            <div className="flex flex-wrap items-center gap-1 text-[10.5px]">
-              <span className="inline-flex items-center gap-1 rounded-full border border-primary/32 bg-primary/12 px-2.5 py-0.5 font-semibold tabular-nums text-text-primary">
+            <div className="flex flex-wrap items-center gap-1.5 text-[11.5px]">
+              <span className="inline-flex items-center gap-1 rounded-full border border-primary/34 bg-primary/14 px-2.5 py-0.5 font-semibold tabular-nums text-text-primary">
                 Momentum {momentum.score}
               </span>
               <span
@@ -371,11 +371,11 @@ export default function TodayPage() {
                   On track {momentum.stats.onTrack}
                 </span>
               )}
-              <span className="rounded-full border border-primary/18 bg-primary/8 px-2 py-0.5 tabular-nums text-text-tertiary">
+              <span className="rounded-full border border-primary/24 bg-primary/10 px-2 py-0.5 tabular-nums text-text-secondary">
                 Focus load {momentum.stats.last7DaysHours.toFixed(1)}h / {momentum.stats.plannedHoursPerWeek}h
               </span>
               {trajectoryBriefing ? (
-                <span className="rounded-full border border-border/80 bg-surface/55 px-2 py-0.5 text-text-tertiary">
+                <span className="rounded-full border border-border/95 bg-surface/70 px-2 py-0.5 text-text-secondary">
                   Prep starts {trajectoryBriefing.startDateLabel}
                 </span>
               ) : null}

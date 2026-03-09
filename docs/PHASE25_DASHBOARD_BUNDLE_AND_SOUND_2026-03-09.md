@@ -67,3 +67,23 @@ Lokal ausgeführt:
 - Besserer Session-End Sound (akustisch hochwertiger, weniger scharf).
 - `/today` reduziert weitere redundante Datenwege durch Week-Events im bestehenden Next-Tasks-Bundle.
 - WeekOverview bleibt funktional für Week-Navigation ohne Regression.
+
+## Nachtrag: Theme Readability Pass (alle Themes)
+
+Zusätzlich umgesetzt für bessere Lesbarkeit in Gold/Platinum/Sapphire/Copper/Amethyst und Core-Themes:
+
+- Dateien:
+  - `app/globals.css`
+  - `app/(dashboard)/today/page.tsx`
+  - `components/features/dashboard/CommandBar.tsx`
+
+- Änderungen:
+  - Dashboard-Surfaces (`.card-surface`, `.dashboard-premium-card`, `.dashboard-premium-card-soft`) weniger "schwarz", stärkeres Theme-Tinting, klarere Border-Kontraste.
+  - Morning-Briefing typografisch verdichtet und lesbarer gemacht (größere Grundschrift, stärkere Badge-Kontraste, bessere sekundäre Texte).
+  - CommandBar Micro-Typografie kontrastreicher (`meta`/`labels`/muted chips).
+
+Verifikation (erneut):
+
+- `npm run type-check` ✅
+- `npm run lint` ✅
+- `npm run build` ✅

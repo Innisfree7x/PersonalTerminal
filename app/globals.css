@@ -374,10 +374,10 @@
   .card-surface {
     @apply rounded-lg border;
     background:
-      radial-gradient(120% 180% at -8% -44%, rgb(var(--primary) / 0.14), transparent 46%),
-      radial-gradient(120% 160% at 112% -36%, rgb(var(--info) / 0.1), transparent 54%),
-      linear-gradient(180deg, rgb(var(--surface) / 0.8), rgb(var(--surface) / 0.58) 52%, rgb(var(--background) / 0.68));
-    border-color: rgb(255 255 255 / 0.14);
+      radial-gradient(120% 180% at -8% -44%, rgb(var(--primary) / 0.18), transparent 46%),
+      radial-gradient(120% 160% at 112% -36%, rgb(var(--info) / 0.14), transparent 54%),
+      linear-gradient(180deg, rgb(var(--surface) / 0.92), rgb(var(--surface-hover) / 0.72) 56%, rgb(var(--background) / 0.6));
+    border-color: rgb(255 255 255 / 0.16);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.1),
       inset 0 -1px 0 rgb(255 255 255 / 0.03),
@@ -394,10 +394,10 @@
   .card-surface-hover {
     @apply rounded-lg border transition-colors hover:border-primary/30;
     background:
-      radial-gradient(120% 180% at -8% -44%, rgb(var(--primary) / 0.14), transparent 46%),
-      radial-gradient(120% 160% at 112% -36%, rgb(var(--info) / 0.1), transparent 54%),
-      linear-gradient(180deg, rgb(var(--surface) / 0.8), rgb(var(--surface) / 0.58) 52%, rgb(var(--background) / 0.68));
-    border-color: rgb(255 255 255 / 0.14);
+      radial-gradient(120% 180% at -8% -44%, rgb(var(--primary) / 0.18), transparent 46%),
+      radial-gradient(120% 160% at 112% -36%, rgb(var(--info) / 0.14), transparent 54%),
+      linear-gradient(180deg, rgb(var(--surface) / 0.92), rgb(var(--surface-hover) / 0.72) 56%, rgb(var(--background) / 0.6));
+    border-color: rgb(255 255 255 / 0.16);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.1),
       inset 0 -1px 0 rgb(255 255 255 / 0.03),
@@ -420,10 +420,10 @@
 
   .dashboard-premium-card {
     background:
-      radial-gradient(110% 170% at -10% -42%, rgb(var(--primary) / 0.2), transparent 44%),
-      radial-gradient(90% 120% at 108% -34%, rgb(var(--primary-secondary) / 0.14), transparent 56%),
-      linear-gradient(180deg, rgb(var(--surface) / 0.88), rgb(var(--surface) / 0.68) 55%, rgb(var(--background) / 0.74));
-    border-color: rgb(var(--primary) / 0.26);
+      radial-gradient(110% 170% at -10% -42%, rgb(var(--primary) / 0.24), transparent 44%),
+      radial-gradient(90% 120% at 108% -34%, rgb(var(--primary-secondary) / 0.18), transparent 56%),
+      linear-gradient(180deg, rgb(var(--surface) / 0.94), rgb(var(--surface-hover) / 0.76) 55%, rgb(var(--background) / 0.64));
+    border-color: rgb(var(--primary) / 0.32);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.1),
       inset 0 -1px 0 rgb(255 255 255 / 0.04),
@@ -434,10 +434,10 @@
 
   .dashboard-premium-card-soft {
     background:
-      radial-gradient(110% 140% at -12% -42%, rgb(var(--primary) / 0.2), transparent 52%),
-      radial-gradient(90% 120% at 106% -34%, rgb(var(--primary-secondary) / 0.12), transparent 58%),
-      linear-gradient(180deg, rgb(var(--surface) / 0.82), rgb(var(--background) / 0.7));
-    border-color: rgb(var(--primary) / 0.24);
+      radial-gradient(110% 140% at -12% -42%, rgb(var(--primary) / 0.24), transparent 52%),
+      radial-gradient(90% 120% at 106% -34%, rgb(var(--primary-secondary) / 0.16), transparent 58%),
+      linear-gradient(180deg, rgb(var(--surface) / 0.9), rgb(var(--surface-hover) / 0.74) 62%, rgb(var(--background) / 0.62));
+    border-color: rgb(var(--primary) / 0.3);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.08),
       0 0 0 1px rgb(var(--primary) / 0.05);
