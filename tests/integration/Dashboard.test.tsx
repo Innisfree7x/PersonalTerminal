@@ -111,7 +111,7 @@ describe('Dashboard Integration', () => {
     );
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/api/dashboard/next-tasks?include=trajectory_morning');
+      expect(global.fetch).toHaveBeenCalledWith('/api/dashboard/next-tasks?include=trajectory_morning,week_events');
     });
   });
 });

@@ -78,7 +78,7 @@ const EVENT_GAIN: Record<SoundEvent, number> = {
   swoosh: 0.8,
   click: 0.45, // click is quieter by design
   'task-completed': 0.9,
-  'focus-end': 0.65,
+  'focus-end': 0.52,
   'momentum-up': 0.8,
   'trajectory-on-track': 0.7,
   'trajectory-at-risk': 0.5,
@@ -229,21 +229,32 @@ function synthClick(ctx: AudioContext, gain: number): void {
 
 function synthFocusEnd(ctx: AudioContext, gain: number): void {
   const now = ctx.currentTime;
-  const osc = ctx.createOscillator();
-  const amp = ctx.createGain();
+  const notes = [523.25, 659.25, 783.99]; // C5 -> E5 -> G5 (sanfter Abschluss-Chime)
 
-  osc.type = 'triangle';
-  osc.frequency.setValueAtTime(440, now);
-  osc.frequency.exponentialRampToValueAtTime(360, now + 0.32);
+  notes.forEach((freq, index) => {
+    const start = now + index * 0.095;
+    const osc = ctx.createOscillator();
+    const amp = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
 
-  amp.gain.setValueAtTime(0, now);
-  amp.gain.linearRampToValueAtTime(gain, now + 0.04);
-  amp.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, start);
+    osc.frequency.exponentialRampToValueAtTime(freq * 1.008, start + 0.24);
 
-  osc.connect(amp);
-  amp.connect(ctx.destination);
-  osc.start(now);
-  osc.stop(now + 0.4);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(3200, start);
+    filter.Q.value = 0.8;
+
+    amp.gain.setValueAtTime(0.0001, start);
+    amp.gain.exponentialRampToValueAtTime(gain * (0.72 - index * 0.1), start + 0.02);
+    amp.gain.exponentialRampToValueAtTime(0.0001, start + 0.28);
+
+    osc.connect(filter);
+    filter.connect(amp);
+    amp.connect(ctx.destination);
+    osc.start(start);
+    osc.stop(start + 0.3);
+  });
 }
 
 function synthMomentumUp(ctx: AudioContext, gain: number): void {
@@ -352,6 +363,9 @@ export function resolveSampleSrcForEvent(
   }
   if (event === 'click') {
     return '/sounds/teams-click.mp3';
+  }
+  if (event === 'focus-end') {
+    return '/sounds/teams-default.mp3';
   }
 
   return null;

@@ -2,13 +2,17 @@
 
 import { requireAuth } from '@/lib/auth/server';
 import { createClient } from '@/lib/auth/server';
-import { addDays, format, startOfWeek } from 'date-fns';
+import { format } from 'date-fns';
 import {
   getDashboardNextTasks,
   getDashboardStats,
   type DashboardNextTasksResponse,
   type DashboardStats,
 } from '@/lib/dashboard/queries';
+import {
+  getDashboardWeekEvents,
+  type DashboardWeekEventsPayload,
+} from '@/lib/dashboard/weekEvents';
 
 export async function fetchDashboardStatsAction(): Promise<DashboardStats> {
   const user = await requireAuth();
@@ -95,79 +99,11 @@ export async function fetchDashboardFocusTimeAction(
   };
 }
 
-export interface DashboardWeekEvent {
-  date: string;
-  count: number;
-  type: 'none' | 'low' | 'medium' | 'high';
-}
-
-export interface DashboardWeekEventsResponse {
-  events: DashboardWeekEvent[];
-  weekStart: string;
-  weekEnd: string;
-  totalEvents: number;
-}
+export type DashboardWeekEventsResponse = DashboardWeekEventsPayload;
 
 export async function fetchDashboardWeekEventsAction(
   offset = 0
 ): Promise<DashboardWeekEventsResponse> {
   const user = await requireAuth();
-  const supabase = createClient();
-
-  const weekStart = addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), offset * 7);
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-  const firstDay = weekDays[0];
-  const lastDay = weekDays[6];
-  if (!firstDay || !lastDay) {
-    throw new Error('Failed to calculate week range');
-  }
-
-  const weekStartStr = format(firstDay, 'yyyy-MM-dd');
-  const weekEndStr = format(lastDay, 'yyyy-MM-dd');
-
-  const { data: tasks, error } = await supabase
-    .from('daily_tasks')
-    .select('date')
-    .eq('user_id', user.id)
-    .gte('date', weekStartStr)
-    .lte('date', weekEndStr);
-
-  if (error) {
-    throw new Error(`Failed to fetch week events: ${error.message}`);
-  }
-
-  const eventCounts: Record<string, number> = {};
-  weekDays.forEach((day) => {
-    eventCounts[format(day, 'yyyy-MM-dd')] = 0;
-  });
-
-  tasks?.forEach((task) => {
-    if (task.date in eventCounts) {
-      const count = eventCounts[task.date];
-      if (count !== undefined) {
-        eventCounts[task.date] = count + 1;
-      }
-    }
-  });
-
-  const events = weekDays.map((day) => {
-    const dateStr = format(day, 'yyyy-MM-dd');
-    const count = eventCounts[dateStr] || 0;
-    let type: 'none' | 'low' | 'medium' | 'high' = 'none';
-    if (count === 1) type = 'low';
-    else if (count === 2) type = 'medium';
-    else if (count >= 3) type = 'high';
-    return {
-      date: day.toISOString(),
-      count,
-      type,
-    };
-  });
-
-  return {
-    events,
-    weekStart: firstDay.toISOString(),
-    weekEnd: lastDay.toISOString(),
-    totalEvents: Object.values(eventCounts).reduce((sum, count) => sum + count, 0),
-  };
+  return getDashboardWeekEvents(user.id, offset);
 }

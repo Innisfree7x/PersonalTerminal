@@ -2,6 +2,7 @@ import { addDays, differenceInDays, endOfWeek, startOfDay, startOfWeek, subDays 
 import { createClient } from '@/lib/auth/server';
 import { fetchCoursesWithExercises } from '@/lib/supabase/courses';
 import type { TrajectoryMorningSnapshotPayload } from '@/lib/trajectory/morningSnapshot';
+import type { DashboardWeekEventsPayload } from '@/lib/dashboard/weekEvents';
 import {
   computeDailyExecutionScore,
   pickNextBestAction,
@@ -104,6 +105,7 @@ export interface DashboardNextTasksResponse {
   };
   stats: DashboardTaskStats;
   trajectoryMorning?: TrajectoryMorningSnapshotPayload;
+  weekEvents?: DashboardWeekEventsPayload;
 }
 
 interface DashboardDailyTask {

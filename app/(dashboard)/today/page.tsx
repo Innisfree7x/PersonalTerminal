@@ -1,7 +1,7 @@
 'use client';
 
 import type { CalendarEvent } from '@/lib/types/calendar';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -152,7 +152,7 @@ export default function TodayPage() {
   const { data: nextTasksData, isFetched: isNextTasksFetched } = useQuery<DashboardNextTasksResponse>({
     queryKey: ['dashboard', 'next-tasks', 'today-bundle'],
     queryFn: async () => {
-      const response = await fetch('/api/dashboard/next-tasks?include=trajectory_morning');
+      const response = await fetch('/api/dashboard/next-tasks?include=trajectory_morning,week_events');
       if (!response.ok) throw new Error('Failed to fetch next tasks');
       return response.json();
     },
@@ -189,6 +189,14 @@ export default function TodayPage() {
   const stats = nextTasksData?.stats;
   const studyProgress = nextTasksData?.studyProgress || [];
   const trajectorySnapshot = nextTasksData?.trajectoryMorning;
+  const prefetchedWeekEvents = useMemo(
+    () =>
+      nextTasksData?.weekEvents?.events.map((event) => ({
+        ...event,
+        date: new Date(event.date),
+      })),
+    [nextTasksData?.weekEvents?.events]
+  );
   const trajectoryBriefing = buildTrajectoryMorningBriefing(trajectorySnapshot?.overview);
   const momentum = trajectorySnapshot?.momentum ?? null;
   const trajectoryBriefingHref = trajectoryBriefing
@@ -497,7 +505,7 @@ export default function TodayPage() {
             <StudyProgress courses={studyProgress} />
 
             {/* Week Overview */}
-            <WeekOverview />
+            <WeekOverview {...(prefetchedWeekEvents ? { events: prefetchedWeekEvents } : {})} />
           </ErrorBoundary>
         </motion.div>
       </div>

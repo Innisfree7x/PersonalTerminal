@@ -42,10 +42,12 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
   const [events, setEvents] = useState<DayEvent[]>(propEvents || []);
   const [isLoading, setIsLoading] = useState(propIsLoading);
 
-  // Fetch week events from API if not provided via props
+  // Use prefetched current-week events from parent bundle; fetch only for other weeks.
   useEffect(() => {
-    if (propEvents && propEvents.length > 0) {
+    const canUsePrefetchedCurrentWeek = weekOffset === 0 && propEvents && propEvents.length > 0;
+    if (canUsePrefetchedCurrentWeek) {
       setEvents(propEvents);
+      setIsLoading(false);
       return;
     }
 
@@ -53,7 +55,7 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
       try {
         setIsLoading(true);
         const data = await fetchDashboardWeekEventsAction(weekOffset);
-        const parsedEvents = data.events.map((event: any) => ({
+        const parsedEvents = data.events.map((event) => ({
           ...event,
           date: new Date(event.date),
         }));

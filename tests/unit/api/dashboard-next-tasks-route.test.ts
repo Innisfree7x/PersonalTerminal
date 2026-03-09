@@ -13,6 +13,10 @@ vi.mock('@/lib/trajectory/morningSnapshot', () => ({
   buildTrajectoryMorningSnapshot: vi.fn(),
 }));
 
+vi.mock('@/lib/dashboard/weekEvents', () => ({
+  getDashboardWeekEvents: vi.fn(),
+}));
+
 vi.mock('@/lib/ops/flowMetrics', () => ({
   recordFlowMetric: vi.fn().mockResolvedValue(undefined),
 }));
@@ -20,11 +24,13 @@ vi.mock('@/lib/ops/flowMetrics', () => ({
 import { requireApiAuth } from '@/lib/api/auth';
 import { getDashboardNextTasks } from '@/lib/dashboard/queries';
 import { buildTrajectoryMorningSnapshot } from '@/lib/trajectory/morningSnapshot';
+import { getDashboardWeekEvents } from '@/lib/dashboard/weekEvents';
 import { GET } from '@/app/api/dashboard/next-tasks/route';
 
 const mockedRequireApiAuth = vi.mocked(requireApiAuth);
 const mockedGetDashboardNextTasks = vi.mocked(getDashboardNextTasks);
 const mockedBuildTrajectoryMorningSnapshot = vi.mocked(buildTrajectoryMorningSnapshot);
+const mockedGetDashboardWeekEvents = vi.mocked(getDashboardWeekEvents);
 
 function authSuccess() {
   return { user: { id: 'user-1' } as any, errorResponse: null };
@@ -86,8 +92,10 @@ describe('dashboard next-tasks route', () => {
     const response = await GET(new NextRequest('http://localhost:3000/api/dashboard/next-tasks'));
     expect(response.status).toBe(200);
     expect(mockedBuildTrajectoryMorningSnapshot).not.toHaveBeenCalled();
+    expect(mockedGetDashboardWeekEvents).not.toHaveBeenCalled();
     expect(response.headers.get('Server-Timing')).toContain('query_build;dur=12');
     expect(response.headers.get('Server-Timing')).not.toContain('traj_build');
+    expect(response.headers.get('Server-Timing')).not.toContain('week_build');
 
     const body = await response.json();
     expect(body.trajectoryMorning).toBeUndefined();
@@ -146,5 +154,62 @@ describe('dashboard next-tasks route', () => {
     const body = await response.json();
     expect(body.trajectoryMorning.momentum.score).toBe(55);
     expect(body.trajectoryMorning.generatedAt).toBe('2026-03-09T00:00:00.000Z');
+    expect(body.weekEvents).toBeUndefined();
+  });
+
+  it('includes week events when include=week_events is requested', async () => {
+    mockedRequireApiAuth.mockResolvedValue(authSuccess() as any);
+    mockedGetDashboardNextTasks.mockResolvedValue(makeBasePayload() as any);
+    mockedGetDashboardWeekEvents.mockResolvedValue({
+      events: [
+        { date: '2026-03-09T00:00:00.000Z', count: 2, type: 'medium' },
+      ],
+      weekStart: '2026-03-09T00:00:00.000Z',
+      weekEnd: '2026-03-15T00:00:00.000Z',
+      totalEvents: 2,
+    } as any);
+
+    const response = await GET(
+      new NextRequest('http://localhost:3000/api/dashboard/next-tasks?include=week_events')
+    );
+    expect(response.status).toBe(200);
+    expect(mockedBuildTrajectoryMorningSnapshot).not.toHaveBeenCalled();
+    expect(mockedGetDashboardWeekEvents).toHaveBeenCalledWith('user-1', 0);
+    expect(response.headers.get('Server-Timing')).toContain('week_build;dur=');
+
+    const body = await response.json();
+    expect(body.weekEvents.totalEvents).toBe(2);
+    expect(body.trajectoryMorning).toBeUndefined();
+  });
+
+  it('supports comma-separated include values', async () => {
+    mockedRequireApiAuth.mockResolvedValue(authSuccess() as any);
+    mockedGetDashboardNextTasks.mockResolvedValue(makeBasePayload() as any);
+    mockedBuildTrajectoryMorningSnapshot.mockResolvedValue({
+      payload: { generatedAt: '2026-03-09T00:00:00.000Z' },
+      meta: {
+        queryDurationMs: 9,
+        goalCount: 1,
+        generatedBlocks: 1,
+      },
+    } as any);
+    mockedGetDashboardWeekEvents.mockResolvedValue({
+      events: [],
+      weekStart: '2026-03-09T00:00:00.000Z',
+      weekEnd: '2026-03-15T00:00:00.000Z',
+      totalEvents: 0,
+    } as any);
+
+    const response = await GET(
+      new NextRequest('http://localhost:3000/api/dashboard/next-tasks?include=trajectory_morning,week_events')
+    );
+
+    expect(response.status).toBe(200);
+    expect(mockedBuildTrajectoryMorningSnapshot).toHaveBeenCalledWith('user-1');
+    expect(mockedGetDashboardWeekEvents).toHaveBeenCalledWith('user-1', 0);
+
+    const body = await response.json();
+    expect(body.trajectoryMorning.generatedAt).toBe('2026-03-09T00:00:00.000Z');
+    expect(body.weekEvents.totalEvents).toBe(0);
   });
 });
