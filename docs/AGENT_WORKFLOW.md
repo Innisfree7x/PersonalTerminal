@@ -6,6 +6,24 @@ Status: Active
 ## Ziel
 Mit drei parallel arbeitenden Agents schneller liefern, ohne Qualitaetsverlust, Merge-Chaos oder regressions.
 
+## Verbindlicher Qualitaetsmassstab (INNIS)
+Diese Regeln sind nicht optional. Jeder Agent arbeitet danach:
+
+1. Kein "vibe coding":
+   - keine unklaren Schnellschuesse ohne klaren technischen Grund.
+   - jede relevante Aenderung braucht eine begruendete Zielwirkung (UX, Performance, Reliability oder Security).
+2. Premium statt "nur funktioniert":
+   - UI muss intentional, lesbar und theme-konsistent sein.
+   - keine harten Fremdfarben, wenn Design-Tokens vorhanden sind.
+3. Regressionen sind Blocker:
+   - keine stillen Verschlechterungen in bestehenden Flows.
+   - wenn ein Flow schlechter wird, wird nicht gemerged.
+4. Wave-Disziplin:
+   - immer nur klarer Scope pro Wave.
+   - erst verifizieren, dann naechste Wave starten.
+5. Abschluss nur mit Audit:
+   - code + UX + tests + docs gemeinsam finalisieren.
+
 ## Rollenmodell
 Verwendet immer genau diese Rollen:
 
@@ -56,6 +74,24 @@ Ein Cycle hat 3 Phasen:
 3. 10 min integration:
    - Agent C validiert, merge/rework Entscheidung.
 
+## Wave Execution Protocol (Pflicht)
+Jede Wave wird in exakt dieser Reihenfolge abgearbeitet:
+
+1. Scope lock:
+   - klare in/out Grenzen
+   - user-visible Ziel
+2. Umsetzung:
+   - minimal-risk, kein unnoetiger Umbau
+3. Verifikation:
+   - type-check, lint, targeted tests
+   - bei UI-Aenderung: manuelle Sichtpruefung auf betroffenen Screens
+4. Audit:
+   - kurze Findings-Liste (P0/P1/P2)
+   - bekannte Risiken explizit nennen
+5. Dokumentation:
+   - phase/wave doc + context update
+6. Erst dann merge/push.
+
 ## Handoff Standard
 Jeder Agent liefert am Zyklusende:
 
@@ -91,12 +127,50 @@ Vor Push:
 - `npm run type-check`
 - `npm run lint`
 - betroffene tests
+- keine offensichtliche UI-Regression auf den betroffenen Seiten
+- keine ungenutzten neuen helper/types ohne realen Einsatz
 
 Vor Release:
 
 - blocker e2e flows gruen
 - keine offenen `TODO` fuer security/data-loss
 - docs updated (`phase`, `runbook`, `context`)
+- kritische flows manuell geprueft (`/today`, `/trajectory`, `/calendar`, auth/connect wenn betroffen)
+
+## UI Standard (verbindlich fuer Agent B und Core bei UI-Touch)
+
+1. Theme-Konsistenz:
+   - Komponenten muessen in allen aktiven Themes lesbar bleiben.
+   - Kontraste fuer primary/secondary/meta Texte gezielt pruefen.
+2. Informationsdichte:
+   - weniger visuelles Rauschen, klarer Scan-Pfad.
+   - "above the fold" priorisieren.
+3. Interaktionsklarheit:
+   - CTAs eindeutig; keine toten oder irrefuehrenden Elemente.
+4. Kein Token-Drift:
+   - bevorzugt Design-Tokens statt hardcoded Farbwerte.
+
+## Core Standard (verbindlich fuer Agent A)
+
+1. Single Source of Truth:
+   - geteilte Logik extrahieren statt duplizieren.
+2. API-Verhalten:
+   - klare Fallbacks, keine stillen Fehlerpfade.
+3. Performance:
+   - redundante fetches und key collisions aktiv vermeiden.
+4. Reliability:
+   - edge cases absichern (null/optional/storage/auth/env).
+
+## QA Standard (verbindlich fuer Agent C)
+
+1. Findings zuerst:
+   - Review-Ergebnis immer mit P0/P1/P2 starten.
+2. Kein false green:
+   - Gate nur grün wenn relevante Checks wirklich gelaufen sind.
+3. Snapshot-Drift beachten:
+   - bei parallelen Agents geaenderte Dateien aktiv gegenpruefen.
+4. Release-Freigabe:
+   - klare GO/NO-GO Entscheidung mit Grund.
 
 ## Integration Governance (verbindlich)
 Diese Regeln gelten immer, auch unter Zeitdruck:

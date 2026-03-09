@@ -9,6 +9,30 @@
 
 Das ist die Arbeitsteilung die funktioniert. Wenn du sie umdrehst oder vermischst, verlierst du Zeit und Qualität.
 
+## 2026 Standard Update (verbindlich)
+
+Ab jetzt gilt fuer INNIS zusaetzlich:
+
+1. **No-Vibe-Rule**
+   - Jede Aenderung braucht klare Begruendung und messbaren Effekt.
+   - "Sieht besser aus" ohne Akzeptanzkriterium reicht nicht.
+
+2. **Wave-first Delivery**
+   - Kleine, klare Waves statt unkontrollierter Sammelaenderungen.
+   - Reihenfolge: Scope -> Build -> Verify -> Audit -> Doc -> Merge.
+
+3. **Premium-UI als Produktstandard**
+   - Theme-Konsistenz, Lesbarkeit, Signalstaerke und Informationsdichte sind Pflicht.
+   - Keine regressions auf bereits gute Screens.
+
+4. **Quality Gate ohne Ausnahmen**
+   - type-check + lint + betroffene tests + manuelle Flow-Pruefung.
+   - Bei roten CI/Deploys gilt Incident-Freeze fuer Feature-Arbeit.
+
+5. **Findings before summary**
+   - Reviews starten mit P0/P1/P2 Findings.
+   - Danach erst Zusammenfassung und naechste Schritte.
+
 ---
 
 ## 1. Projekt aufsetzen — bevor du eine Zeile Code schreibst
