@@ -1,6 +1,6 @@
 # Phase 25 — Today Bundle + Focus-End Sound (2026-03-09)
 
-Status: Implemented  
+Status: Closed  
 Scope: Wave 25 Start (`/today` Query-Bundle Erweiterung + Session-End Sound-Qualität)
 
 ## Ziel
@@ -114,3 +114,34 @@ Feinjustierung ohne Farbänderungen, nur Rhythmus und Lesbarkeit:
   - Vertikaler Rhythmus auf `/today` komprimiert (`mt/gap/space-y`), dadurch ruhigeres Layout.
   - Morning-Briefing Schriftgrade responsiv nachgeschärft (mobile/desktop).
   - CommandBar-Zahlen/Label typografisch balanciert (besserer Scan, weniger visuelles Rauschen).
+
+## Nachtrag 4: Sidebar + Header Micro-Polish
+
+Low-risk UX-Polish für Konsistenz und Präzision:
+
+- Dateien:
+  - `components/layout/Sidebar.tsx`
+  - `components/layout/Header.tsx`
+
+- Sidebar:
+  - konsistentere Item-Höhen und Icon-Größen
+  - sauberere Top-Section-Abstände
+  - stärkere Focus-States für Collapse/Expand/Signout/Mobile Toggle
+
+- Header:
+  - konsistente Control-Höhen (`h-9`) für Search/Timer/Actions
+  - bessere Tastatur-Focus-Ringe auf allen Header-Buttons
+  - Notification-Dropdown schließt jetzt bei Outside-Click
+
+## Phase 25 Abschluss
+
+Erfüllt:
+
+- ✅ Session-End-Sound Qualität verbessert
+- ✅ Today Query-Bundle erweitert (`trajectory_morning,week_events`)
+- ✅ Week-Events zentralisiert (API + Actions Shared Query)
+- ✅ Theme-Readability (alle Themes) verbessert
+- ✅ Gold/Platinum Premium-Finetuning
+- ✅ Today Spacing/Type-Polish
+- ✅ Sidebar/Header Micro-Polish
+- ✅ Tests / Type-Check / Lint / Build grün

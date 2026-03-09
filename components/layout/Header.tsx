@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Search, Bell, Plus, Command } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCommandPalette } from '@/components/shared/CommandPaletteProvider';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import { format } from 'date-fns';
@@ -50,6 +50,7 @@ function HeaderClock() {
 export default function Header() {
   const pathname = usePathname();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const notificationsRef = useRef<HTMLDivElement | null>(null);
   const { open: openCommandPalette } = useCommandPalette();
   const { status: timerStatus, timeLeft: timerTimeLeft, sessionType, setIsExpanded: setTimerExpanded } = useFocusTimer();
   
@@ -73,10 +74,22 @@ export default function Header() {
 
   const currentTitle = routeTitles[pathname] || 'Dashboard';
 
+  useEffect(() => {
+    if (!notificationsOpen) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (!notificationsRef.current) return;
+      if (!notificationsRef.current.contains(event.target as Node)) {
+        setNotificationsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, [notificationsOpen]);
+
   return (
     <header className="sticky top-0 z-30 border-b border-border/80 bg-background/82 backdrop-blur-xl">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent" />
-      <div className="flex items-center justify-between h-[62px] px-6">
+      <div className="flex h-16 items-center justify-between px-6">
         {/* Left: Page Title + Date & Time */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
@@ -107,7 +120,7 @@ export default function Header() {
         <div className="flex items-center gap-2">
           {/* Search / Command Palette Trigger */}
           <motion.button
-            className="flex items-center gap-2 rounded-lg border border-border/80 bg-surface/65 px-3 py-1.5 text-text-tertiary transition-colors hover:border-primary/35 hover:bg-primary/[0.08] hover:text-text-primary"
+            className="flex h-9 items-center gap-2 rounded-lg border border-border/80 bg-surface/65 px-3 text-text-secondary transition-colors hover:border-primary/35 hover:bg-primary/[0.08] hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={openCommandPalette}
@@ -123,7 +136,7 @@ export default function Header() {
           {/* Timer Indicator */}
           {timerStatus !== 'idle' && (
             <motion.button
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-mono font-medium transition-colors ${
+              className={`flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-mono font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                 sessionType === 'break'
                   ? 'bg-success/10 border-success/30 text-success'
                   : 'bg-primary/10 border-primary/30 text-primary'
@@ -145,7 +158,7 @@ export default function Header() {
 
           {/* Quick Add Button */}
           <motion.button
-            className="rounded-lg border border-primary/28 bg-primary/[0.2] p-2 text-primary transition-colors shadow-[0_0_16px_rgb(var(--primary)/0.2)] hover:bg-primary/[0.28]"
+            className="rounded-lg border border-primary/28 bg-primary/[0.2] p-2 text-primary transition-colors shadow-[0_0_16px_rgb(var(--primary)/0.2)] hover:bg-primary/[0.28] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={openCommandPalette}
@@ -155,9 +168,9 @@ export default function Header() {
           </motion.button>
 
           {/* Notifications */}
-          <div className="relative">
+          <div ref={notificationsRef} className="relative">
             <motion.button
-              className="relative rounded-lg border border-border/80 bg-surface/65 p-2 text-text-secondary transition-colors hover:border-primary/35 hover:bg-primary/[0.08] hover:text-text-primary"
+              className="relative rounded-lg border border-border/80 bg-surface/65 p-2 text-text-secondary transition-colors hover:border-primary/35 hover:bg-primary/[0.08] hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setNotificationsOpen(!notificationsOpen)}
