@@ -87,3 +87,18 @@ Verifikation (erneut):
 - `npm run type-check` ✅
 - `npm run lint` ✅
 - `npm run build` ✅
+
+## Nachtrag 2: Gold/Platinum Feintuning
+
+Gezielt für Premium-Themes umgesetzt, damit der Gold-Look stärker zur Geltung kommt und Platinum nicht zu dunkel wirkt:
+
+- Datei: `app/globals.css`
+- Änderungen:
+  - `gold`: `text-secondary`/`text-tertiary` angehoben für bessere Lesbarkeit.
+  - `platinum`: `text-secondary`/`text-tertiary` angehoben.
+  - Theme-spezifische Glass-Overrides für:
+    - `.card-surface`
+    - `.card-surface-hover`
+    - `.dashboard-premium-card-soft`
+    - `.dashboard-premium-card`
+  - Ziel: weniger Black-Crush, mehr Premium-Tint, klarere Kontraste auf Widgets und Briefing-Karten.

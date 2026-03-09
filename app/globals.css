@@ -165,9 +165,9 @@
   /* #262626 */
   --text-primary: 250 240 230;
   /* #faf0e6 (Linen/Off-white) */
-  --text-secondary: 212 212 216;
+  --text-secondary: 224 224 229;
   /* #d4d4d8 */
-  --text-tertiary: 161 161 170;
+  --text-tertiary: 178 178 188;
   /* #a1a1aa */
   --border: 63 63 70;
   /* #3f3f46 */
@@ -188,8 +188,8 @@
   --surface: 19 24 33;
   --surface-hover: 30 38 50;
   --text-primary: 241 245 249;
-  --text-secondary: 184 198 216;
-  --text-tertiary: 123 139 162;
+  --text-secondary: 202 214 230;
+  --text-tertiary: 148 164 186;
   --border: 58 70 92;
   --border-secondary: 39 49 67;
   --primary: 148 163 184;
@@ -460,6 +460,63 @@
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
     }
+  }
+
+  /* Gold/Platinum need slightly stronger glass layers to avoid black crush. */
+  [data-theme='gold'] .card-surface,
+  [data-theme='gold'] .card-surface-hover,
+  [data-theme='gold'] .dashboard-premium-card-soft {
+    background:
+      radial-gradient(115% 145% at -8% -44%, rgb(234 179 8 / 0.24), transparent 50%),
+      radial-gradient(94% 122% at 108% -34%, rgb(245 158 11 / 0.18), transparent 58%),
+      linear-gradient(180deg, rgb(34 30 27 / 0.92), rgb(29 26 24 / 0.78) 58%, rgb(18 17 17 / 0.72));
+    border-color: rgb(250 240 230 / 0.2);
+    box-shadow:
+      inset 0 1px 0 rgb(250 240 230 / 0.14),
+      0 0 0 1px rgb(234 179 8 / 0.12),
+      0 14px 34px rgb(0 0 0 / 0.28),
+      0 0 24px rgb(234 179 8 / 0.1);
+  }
+
+  [data-theme='gold'] .dashboard-premium-card {
+    background:
+      radial-gradient(120% 156% at -10% -42%, rgb(234 179 8 / 0.3), transparent 46%),
+      radial-gradient(96% 126% at 108% -34%, rgb(245 158 11 / 0.22), transparent 58%),
+      linear-gradient(180deg, rgb(41 35 31 / 0.96), rgb(34 30 27 / 0.82) 56%, rgb(20 18 18 / 0.74));
+    border-color: rgb(234 179 8 / 0.4);
+    box-shadow:
+      inset 0 1px 0 rgb(250 240 230 / 0.18),
+      0 0 0 1px rgb(234 179 8 / 0.16),
+      0 16px 40px rgb(0 0 0 / 0.3),
+      0 0 30px rgb(245 158 11 / 0.14);
+  }
+
+  [data-theme='platinum'] .card-surface,
+  [data-theme='platinum'] .card-surface-hover,
+  [data-theme='platinum'] .dashboard-premium-card-soft {
+    background:
+      radial-gradient(114% 144% at -10% -42%, rgb(148 163 184 / 0.22), transparent 52%),
+      radial-gradient(98% 126% at 108% -34%, rgb(56 189 248 / 0.18), transparent 58%),
+      linear-gradient(180deg, rgb(27 36 50 / 0.94), rgb(24 31 43 / 0.8) 58%, rgb(13 18 26 / 0.72));
+    border-color: rgb(226 232 240 / 0.2);
+    box-shadow:
+      inset 0 1px 0 rgb(241 245 249 / 0.14),
+      0 0 0 1px rgb(148 163 184 / 0.12),
+      0 14px 34px rgb(0 0 0 / 0.3),
+      0 0 24px rgb(56 189 248 / 0.1);
+  }
+
+  [data-theme='platinum'] .dashboard-premium-card {
+    background:
+      radial-gradient(118% 154% at -10% -42%, rgb(148 163 184 / 0.28), transparent 46%),
+      radial-gradient(100% 126% at 108% -34%, rgb(56 189 248 / 0.22), transparent 58%),
+      linear-gradient(180deg, rgb(33 43 58 / 0.96), rgb(27 36 50 / 0.82) 56%, rgb(14 20 30 / 0.74));
+    border-color: rgb(148 163 184 / 0.4);
+    box-shadow:
+      inset 0 1px 0 rgb(241 245 249 / 0.18),
+      0 0 0 1px rgb(148 163 184 / 0.16),
+      0 16px 40px rgb(0 0 0 / 0.32),
+      0 0 28px rgb(56 189 248 / 0.14);
   }
 
   .command-item {
