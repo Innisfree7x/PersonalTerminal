@@ -246,7 +246,7 @@ export default function TodayPage() {
   }, [momentum, play]);
 
   return (
-    <div className="space-y-5" data-testid="today-page-root">
+    <div className="space-y-4 md:space-y-5" data-testid="today-page-root">
       {/* First-visit welcome orientation */}
       <AnimatePresence>
         {showWelcome && (
@@ -290,7 +290,7 @@ export default function TodayPage() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.16 }}
-        className="card-surface dashboard-premium-card relative overflow-hidden p-3"
+        className="card-surface dashboard-premium-card relative overflow-hidden p-3 sm:p-3.5"
       >
         <div className="pointer-events-none absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-primary/80 shadow-[0_0_14px_rgb(var(--primary)/0.48)]" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/45 to-transparent" />
@@ -300,7 +300,7 @@ export default function TodayPage() {
               <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 bg-primary/[0.16] text-primary shadow-[0_0_12px_rgb(var(--primary)/0.2)]">
                 <Sparkles className="h-3.5 w-3.5" />
               </span>
-              <p className="truncate text-sm leading-snug text-[rgb(var(--text-primary)/0.9)]">
+              <p className="truncate text-[13px] leading-[1.3] sm:text-sm text-[rgb(var(--text-primary)/0.9)]">
                 <span className="font-semibold text-text-primary">Morning briefing:</span>{' '}
                 {trajectoryBriefing ? (
                   <>
@@ -335,14 +335,14 @@ export default function TodayPage() {
                   ...(trajectoryBriefing?.status ? { status: trajectoryBriefing.status } : {}),
                 });
               }}
-              className="inline-flex items-center text-[11.5px] font-semibold tracking-[0.02em] text-primary hover:text-primary-hover transition-colors sm:ml-2"
+              className="inline-flex items-center text-[11px] sm:text-[11.5px] font-semibold tracking-[0.02em] text-primary hover:text-primary-hover transition-colors sm:ml-2"
             >
               {trajectoryBriefing ? 'Open linked trajectory →' : 'Set up trajectory →'}
             </Link>
           </div>
 
           {momentum ? (
-            <div className="flex flex-wrap items-center gap-1.5 text-[11.5px]">
+            <div className="flex flex-wrap items-center gap-1.5 text-[10.5px] sm:text-[11.5px]">
               <span className="inline-flex items-center gap-1 rounded-full border border-primary/34 bg-primary/14 px-2.5 py-0.5 font-semibold tabular-nums text-text-primary">
                 Momentum {momentum.score}
               </span>
@@ -412,7 +412,7 @@ export default function TodayPage() {
         </div>
       </motion.div>
 
-      <div className="mt-5">
+      <div className="mt-4">
         <CommandBar
           tasksToday={stats?.tasksToday ?? 0}
           tasksCompleted={stats?.tasksCompleted ?? 0}
@@ -438,13 +438,13 @@ export default function TodayPage() {
       </div>
 
       {/* MAIN 3-COLUMN GRID */}
-      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-3 lg:gap-6">
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
         {/* LEFT - Tasks (with homework integration) */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.12 }}
-          className="space-y-6"
+          className="space-y-5"
         >
           <ErrorBoundary fallbackTitle="Tasks Error">
             <FocusTasks
@@ -454,7 +454,7 @@ export default function TodayPage() {
                 interviews: nextTasksData?.interviews ?? [],
               }}
             />
-            <div className="mt-6">
+            <div className="mt-5">
               <UpcomingDeadlines
                 goals={nextTasksData?.goals || []}
                 interviews={nextTasksData?.interviews || []}
@@ -469,7 +469,7 @@ export default function TodayPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.12 }}
-          className="space-y-6"
+          className="space-y-5"
         >
           <ErrorBoundary fallbackTitle="Schedule Error">
             <ScheduleColumn
@@ -495,7 +495,7 @@ export default function TodayPage() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.12 }}
-          className="space-y-6"
+          className="space-y-5"
         >
           <ErrorBoundary fallbackTitle="Widgets Error">
             {/* Quick Actions */}

@@ -102,3 +102,15 @@ Gezielt für Premium-Themes umgesetzt, damit der Gold-Look stärker zur Geltung 
     - `.dashboard-premium-card-soft`
     - `.dashboard-premium-card`
   - Ziel: weniger Black-Crush, mehr Premium-Tint, klarere Kontraste auf Widgets und Briefing-Karten.
+
+## Nachtrag 3: Today Spacing + Type Scale (Low-Risk Polish)
+
+Feinjustierung ohne Farbänderungen, nur Rhythmus und Lesbarkeit:
+
+- Dateien:
+  - `app/(dashboard)/today/page.tsx`
+  - `components/features/dashboard/CommandBar.tsx`
+- Änderungen:
+  - Vertikaler Rhythmus auf `/today` komprimiert (`mt/gap/space-y`), dadurch ruhigeres Layout.
+  - Morning-Briefing Schriftgrade responsiv nachgeschärft (mobile/desktop).
+  - CommandBar-Zahlen/Label typografisch balanciert (besserer Scan, weniger visuelles Rauschen).

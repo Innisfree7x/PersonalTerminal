@@ -131,13 +131,13 @@ function StatChip({
       <Icon className={`h-3.5 w-3.5 flex-shrink-0 ${c.icon}`} />
       <div className="min-w-0">
         <div className="flex items-baseline gap-1 leading-none">
-          <span className={`text-[1.35rem] font-bold tabular-nums ${c.value}`}>
+          <span className={`text-[1.25rem] sm:text-[1.35rem] font-bold tabular-nums ${c.value}`}>
             <AnimatedCounter to={value} />
           </span>
           {meta && <span className="text-[11px] text-text-secondary/80">{meta}</span>}
         </div>
         <div className="mt-0.5 flex items-center gap-1.5">
-          <span className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-text-secondary/70">{label}</span>
+          <span className="font-mono text-[9px] uppercase tracking-[0.11em] text-text-secondary/75">{label}</span>
           {chip}
         </div>
       </div>
@@ -286,7 +286,7 @@ function ActionSection({ nextBestAction, alternatives, riskSignals, onChanged }:
               {activeCandidate.title}
             </motion.p>
             <div className="mt-0.5 flex items-center gap-1.5">
-              <span className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-text-secondary/70">
+              <span className="font-mono text-[9px] uppercase tracking-[0.11em] text-text-secondary/75">
                 {activeCandidate.urgencyLabel}
               </span>
               {topRisk && (
