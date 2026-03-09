@@ -27,7 +27,7 @@ import {
 } from '@/app/actions/calendar';
 import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
-import { buildTrajectoryMorningBriefing, type TrajectoryBriefOverview } from '@/lib/dashboard/trajectoryBriefing';
+import { buildTrajectoryMorningBriefing } from '@/lib/dashboard/trajectoryBriefing';
 import { trackAppEvent } from '@/lib/analytics/client';
 import { useAppSound } from '@/lib/hooks/useAppSound';
 import { STORAGE_KEYS } from '@/lib/storage/keys';
@@ -35,31 +35,6 @@ import { getTodayKey } from '@/lib/dashboard/nbaDismissals';
 
 const WELCOME_KEY = 'innis_welcomed_v1';
 const LAST_MOMENTUM_SCORE_KEY = 'innis:last-momentum-score:v1';
-
-type TrajectoryMomentumResponse = {
-  generatedAt: string;
-  momentum: {
-    score: number;
-    delta: number;
-    trend: 'up' | 'flat' | 'down';
-    stats: {
-      onTrack: number;
-      tight: number;
-      atRisk: number;
-      activeGoals: number;
-      plannedHoursPerWeek: number;
-      last7DaysHours: number;
-      previous7DaysHours: number;
-      capacityRatio: number;
-    };
-  };
-};
-
-type TodayTrajectorySnapshotResponse = {
-  generatedAt: string;
-  overview: TrajectoryBriefOverview;
-  momentum: TrajectoryMomentumResponse['momentum'];
-};
 
 function hasWelcomedUser(): boolean {
   if (typeof window === 'undefined') return true;
@@ -103,9 +78,16 @@ export default function TodayPage() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const thisWeek = getIsoWeekKey(new Date());
-    const seenWeek = window.localStorage.getItem(STORAGE_KEYS.weeklyCheckinWeekKey);
-    setShowWeeklyCheckin(seenWeek !== thisWeek);
+    try {
+      const thisWeek = getIsoWeekKey(new Date());
+      const seenWeek =
+        typeof window.localStorage?.getItem === 'function'
+          ? window.localStorage.getItem(STORAGE_KEYS.weeklyCheckinWeekKey)
+          : null;
+      setShowWeeklyCheckin(seenWeek !== thisWeek);
+    } catch {
+      setShowWeeklyCheckin(true);
+    }
   }, []);
 
   const dismissWelcome = () => {
@@ -115,7 +97,13 @@ export default function TodayPage() {
 
   const dismissWeeklyCheckin = () => {
     if (typeof window === 'undefined') return;
-    window.localStorage.setItem(STORAGE_KEYS.weeklyCheckinWeekKey, getIsoWeekKey(new Date()));
+    try {
+      if (typeof window.localStorage?.setItem === 'function') {
+        window.localStorage.setItem(STORAGE_KEYS.weeklyCheckinWeekKey, getIsoWeekKey(new Date()));
+      }
+    } catch {
+      // Ignore storage errors in restricted environments/tests.
+    }
     setShowWeeklyCheckin(false);
   };
 
@@ -161,31 +149,14 @@ export default function TodayPage() {
   });
 
   // Fetch next-tasks data (powers stats, study progress, deadlines)
-  const { data: nextTasksData } = useQuery<DashboardNextTasksResponse>({
+  const { data: nextTasksData, isFetched: isNextTasksFetched } = useQuery<DashboardNextTasksResponse>({
     queryKey: ['dashboard', 'next-tasks'],
     queryFn: async () => {
-      const response = await fetch('/api/dashboard/next-tasks');
+      const response = await fetch('/api/dashboard/next-tasks?include=trajectory_morning');
       if (!response.ok) throw new Error('Failed to fetch next tasks');
       return response.json();
     },
     staleTime: 15 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  });
-
-  const {
-    data: trajectorySnapshot,
-    isFetched: isTrajectorySnapshotFetched,
-  } = useQuery<TodayTrajectorySnapshotResponse>({
-    queryKey: ['trajectory', 'today-morning'],
-    queryFn: async () => {
-      const response = await fetch('/api/trajectory/morning');
-      if (!response.ok) {
-        throw new Error('Failed to fetch trajectory morning snapshot');
-      }
-      return response.json();
-    },
-    staleTime: 30 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
@@ -217,6 +188,7 @@ export default function TodayPage() {
 
   const stats = nextTasksData?.stats;
   const studyProgress = nextTasksData?.studyProgress || [];
+  const trajectorySnapshot = nextTasksData?.trajectoryMorning;
   const trajectoryBriefing = buildTrajectoryMorningBriefing(trajectorySnapshot?.overview);
   const momentum = trajectorySnapshot?.momentum ?? null;
   const trajectoryBriefingHref = trajectoryBriefing
@@ -231,7 +203,8 @@ export default function TodayPage() {
   }, [stats?.nextExam?.daysUntilExam]);
 
   useEffect(() => {
-    if (!isTrajectorySnapshotFetched) return;
+    if (!isNextTasksFetched) return;
+    if (!trajectorySnapshot) return;
     if (typeof window === 'undefined') return;
     const today = getTodayKey();
     const alreadySent = window.localStorage.getItem(STORAGE_KEYS.todayMorningCheckinDate) === today;
@@ -244,7 +217,7 @@ export default function TodayPage() {
       ...(trajectoryBriefing?.title ? { title: trajectoryBriefing.title } : {}),
     });
     window.localStorage.setItem(STORAGE_KEYS.todayMorningCheckinDate, today);
-  }, [isTrajectorySnapshotFetched, trajectoryBriefing]);
+  }, [isNextTasksFetched, trajectoryBriefing, trajectorySnapshot]);
 
   useEffect(() => {
     if (!momentum || momentum.trend !== 'up') return;

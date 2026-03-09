@@ -1,6 +1,7 @@
 import { addDays, differenceInDays, endOfWeek, startOfDay, startOfWeek, subDays } from 'date-fns';
 import { createClient } from '@/lib/auth/server';
 import { fetchCoursesWithExercises } from '@/lib/supabase/courses';
+import type { TrajectoryMorningSnapshotPayload } from '@/lib/trajectory/morningSnapshot';
 import {
   computeDailyExecutionScore,
   pickNextBestAction,
@@ -102,6 +103,7 @@ export interface DashboardNextTasksResponse {
     queryDurationMs: number;
   };
   stats: DashboardTaskStats;
+  trajectoryMorning?: TrajectoryMorningSnapshotPayload;
 }
 
 interface DashboardDailyTask {

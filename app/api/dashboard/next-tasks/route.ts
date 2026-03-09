@@ -5,13 +5,15 @@ import { getDashboardNextTasks } from '@/lib/dashboard/queries';
 import { recordFlowMetric } from '@/lib/ops/flowMetrics';
 import { createApiTraceContext, withApiTraceHeaders } from '@/lib/api/observability';
 import { applyPrivateSWRPolicy } from '@/lib/api/responsePolicy';
+import { buildTrajectoryMorningSnapshot } from '@/lib/trajectory/morningSnapshot';
 
 /**
  * GET /api/dashboard/next-tasks - Returns actionable next tasks
  */
-export async function GET(_request: NextRequest) {
-  const trace = createApiTraceContext(_request, '/api/dashboard/next-tasks');
+export async function GET(request: NextRequest) {
+  const trace = createApiTraceContext(request, '/api/dashboard/next-tasks');
   const startedAt = trace.startedAt;
+  const includeTrajectoryMorning = request.nextUrl.searchParams.get('include') === 'trajectory_morning';
   const emitFlowMetric = (payload: Parameters<typeof recordFlowMetric>[0]) => {
     void recordFlowMetric(payload).catch(() => {});
   };
@@ -21,8 +23,21 @@ export async function GET(_request: NextRequest) {
   }
 
   try {
-    const result = await getDashboardNextTasks(user.id);
+    const [result, morningSnapshot] = await Promise.all([
+      getDashboardNextTasks(user.id),
+      includeTrajectoryMorning ? buildTrajectoryMorningSnapshot(user.id) : Promise.resolve(null),
+    ]);
+
+    const payload = includeTrajectoryMorning && morningSnapshot
+      ? { ...result, trajectoryMorning: morningSnapshot.payload }
+      : result;
+
     const durationMs = Date.now() - startedAt;
+    const serverTimingEntries = [`query_build;dur=${result.meta.queryDurationMs}`];
+    if (morningSnapshot) {
+      serverTimingEntries.push(`traj_build;dur=${morningSnapshot.meta.queryDurationMs}`);
+    }
+
     emitFlowMetric({
       flow: 'today_load',
       status: 'success',
@@ -34,12 +49,19 @@ export async function GET(_request: NextRequest) {
         queryDurationMs: result.meta.queryDurationMs,
         nextBestAlternatives: result.nextBestAlternatives.length,
         riskSignals: result.riskSignals.length,
+        includeTrajectoryMorning,
+        ...(morningSnapshot
+          ? {
+              trajectoryGoalCount: morningSnapshot.meta.goalCount,
+              trajectoryQueryDurationMs: morningSnapshot.meta.queryDurationMs,
+            }
+          : {}),
       },
     });
 
-    const response = applyPrivateSWRPolicy(NextResponse.json(result, {
+    const response = applyPrivateSWRPolicy(NextResponse.json(payload, {
       headers: {
-        'Server-Timing': `query_build;dur=${result.meta.queryDurationMs}`,
+        'Server-Timing': serverTimingEntries.join(', '),
       },
     }), {
       maxAgeSeconds: 15,

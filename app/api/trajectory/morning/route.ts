@@ -3,15 +3,8 @@ import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError } from '@/lib/api/server-errors';
 import { createApiTraceContext, withApiTraceHeaders } from '@/lib/api/observability';
 import { applyPrivateSWRPolicy } from '@/lib/api/responsePolicy';
-import {
-  getOrCreateTrajectorySettings,
-  listTrajectoryBlocks,
-  listTrajectoryGoals,
-} from '@/lib/supabase/trajectory';
-import { fetchFocusAnalytics } from '@/lib/supabase/focusSessions';
-import { computeTrajectoryPlan } from '@/lib/trajectory/planner';
-import { computeMomentumScore } from '@/lib/trajectory/momentum';
 import { recordFlowMetric } from '@/lib/ops/flowMetrics';
+import { buildTrajectoryMorningSnapshot } from '@/lib/trajectory/morningSnapshot';
 
 export async function GET(request: NextRequest) {
   const trace = createApiTraceContext(request, '/api/trajectory/morning');
@@ -22,69 +15,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const [settings, goals, blocks, focusSessions] = await Promise.all([
-      getOrCreateTrajectorySettings(user.id),
-      listTrajectoryGoals(user.id),
-      listTrajectoryBlocks(user.id),
-      fetchFocusAnalytics(user.id, 14),
-    ]);
-
-    const computed = computeTrajectoryPlan({
-      goals: goals.map((goal) => ({
-        id: goal.id,
-        title: goal.title,
-        dueDate: goal.dueDate,
-        effortHours: goal.effortHours,
-        bufferWeeks: goal.bufferWeeks,
-        status: goal.status,
-      })),
-      existingBlocks: blocks.map((block) => ({
-        goalId: block.goalId,
-        startDate: block.startDate,
-        endDate: block.endDate,
-        weeklyHours: block.weeklyHours,
-        status: block.status,
-      })),
-      capacityHoursPerWeek: settings.hoursPerWeek,
-    });
-
-    const momentum = computeMomentumScore({
-      plannedHoursPerWeek: settings.hoursPerWeek,
-      activeGoals: goals.map((goal) => ({
-        bufferWeeks: goal.bufferWeeks,
-        status: goal.status,
-      })),
-      generatedBlocks: computed.generatedBlocks.map((block) => ({
-        status: block.status,
-      })),
-      focusSessions: focusSessions.map((session) => ({
-        startedAt: session.started_at,
-        durationSeconds: session.duration_seconds,
-        completed: session.completed,
-        sessionType: session.session_type,
-      })),
-    });
+    const snapshot = await buildTrajectoryMorningSnapshot(user.id);
 
     const response = applyPrivateSWRPolicy(
-      NextResponse.json({
-        generatedAt: new Date().toISOString(),
-        overview: {
-          goals: goals.map((goal) => ({
-            id: goal.id,
-            title: goal.title,
-            dueDate: goal.dueDate,
-            status: goal.status,
-          })),
-          computed: {
-            generatedBlocks: computed.generatedBlocks.map((block) => ({
-              goalId: block.goalId,
-              startDate: block.startDate,
-              status: block.status,
-            })),
-          },
-        },
-        momentum,
-      }),
+      NextResponse.json(snapshot.payload),
       {
         maxAgeSeconds: 20,
         staleWhileRevalidateSeconds: 60,
@@ -99,8 +33,9 @@ export async function GET(request: NextRequest) {
       route: '/api/trajectory/morning',
       requestId: trace.requestId,
       context: {
-        goalCount: goals.length,
-        generatedBlocks: computed.generatedBlocks.length,
+        goalCount: snapshot.meta.goalCount,
+        generatedBlocks: snapshot.meta.generatedBlocks,
+        queryDurationMs: snapshot.meta.queryDurationMs,
       },
     }).catch(() => {});
 
