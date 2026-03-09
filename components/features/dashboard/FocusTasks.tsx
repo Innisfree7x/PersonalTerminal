@@ -14,6 +14,7 @@ import { useListNavigation } from '@/lib/hooks/useListNavigation';
 import { subscribePingAction, type PingAction } from '@/lib/hotkeys/ping';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 import toast from 'react-hot-toast';
+import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 
 interface DailyTask {
   id: string;
@@ -53,6 +54,10 @@ interface NextInterview {
   daysUntil: number;
 }
 
+interface FocusTasksProps {
+  nextTasksData?: Pick<DashboardNextTasksResponse, 'homeworks' | 'goals' | 'interviews'>;
+}
+
 async function fetchDailyTasks(date: string): Promise<DailyTask[]> {
   const response = await fetch(`/api/daily-tasks?date=${date}`);
   if (!response.ok) throw new Error('Failed to fetch tasks');
@@ -77,7 +82,7 @@ async function createDailyTaskViaApi(
   return response.json() as Promise<DailyTask>;
 }
 
-export default function FocusTasks() {
+export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: FocusTasksProps) {
   const queryClient = useQueryClient();
   const { play } = useAppSound();
   const today = new Date().toISOString().split('T')[0] ?? '';
@@ -98,15 +103,17 @@ export default function FocusTasks() {
     staleTime: 30 * 1000,
   });
 
-  const { data: nextTasksData } = useQuery({
+  const { data: fetchedNextTasksData } = useQuery({
     queryKey: ['dashboard', 'next-tasks'],
     queryFn: async () => {
       const response = await fetch('/api/dashboard/next-tasks');
       if (!response.ok) throw new Error('Failed to fetch next tasks');
       return response.json();
     },
+    enabled: !prefetchedNextTasksData,
     staleTime: 15 * 1000,
   });
+  const nextTasksData = prefetchedNextTasksData ?? fetchedNextTasksData;
 
   const createMutation = useMutation({
     mutationFn: createDailyTaskViaApi,

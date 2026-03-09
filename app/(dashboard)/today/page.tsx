@@ -150,7 +150,7 @@ export default function TodayPage() {
 
   // Fetch next-tasks data (powers stats, study progress, deadlines)
   const { data: nextTasksData, isFetched: isNextTasksFetched } = useQuery<DashboardNextTasksResponse>({
-    queryKey: ['dashboard', 'next-tasks'],
+    queryKey: ['dashboard', 'next-tasks', 'today-bundle'],
     queryFn: async () => {
       const response = await fetch('/api/dashboard/next-tasks?include=trajectory_morning');
       if (!response.ok) throw new Error('Failed to fetch next tasks');
@@ -439,7 +439,13 @@ export default function TodayPage() {
           className="space-y-6"
         >
           <ErrorBoundary fallbackTitle="Tasks Error">
-            <FocusTasks />
+            <FocusTasks
+              nextTasksData={{
+                homeworks: nextTasksData?.homeworks ?? [],
+                goals: nextTasksData?.goals ?? [],
+                interviews: nextTasksData?.interviews ?? [],
+              }}
+            />
             <div className="mt-6">
               <UpcomingDeadlines
                 goals={nextTasksData?.goals || []}
