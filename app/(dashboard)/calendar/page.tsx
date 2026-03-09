@@ -281,7 +281,7 @@ export default function CalendarPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Calendar</h1>
+        <h1 className="text-3xl font-bold text-text-primary">Calendar</h1>
         <div className="flex items-center gap-3">
           {isConnected === true && (
             <button
@@ -289,7 +289,7 @@ export default function CalendarPage() {
               className={`px-4 py-2 text-sm rounded-lg border transition-colors ${
                 showTrajectoryGhostEvents
                   ? 'border-info/40 bg-info/10 text-info'
-                  : 'border-border bg-surface text-text-secondary hover:text-text-primary'
+                  : 'border-border bg-surface/70 text-text-secondary hover:bg-surface-hover/70 hover:text-text-primary'
               }`}
             >
               {showTrajectoryGhostEvents ? 'Hide Trajectory Ghosts' : 'Show Trajectory Ghosts'}
@@ -300,14 +300,14 @@ export default function CalendarPage() {
               <button
                 onClick={handleRefresh}
                 disabled={isLoading}
-                className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-sm rounded-lg border border-border bg-surface/70 text-text-secondary hover:bg-surface-hover/70 hover:text-text-primary transition-colors disabled:opacity-50"
               >
                 {isLoading ? 'Refreshing...' : 'Refresh'}
               </button>
               <button
                 onClick={handleDisconnect}
                 disabled={disconnectMutation.isPending}
-                className="px-4 py-2 text-sm bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-sm rounded-lg border border-error/30 bg-error/10 text-error hover:bg-error/20 transition-colors disabled:opacity-50"
               >
                 {disconnectMutation.isPending ? 'Disconnecting...' : 'Disconnect'}
               </button>
@@ -316,7 +316,7 @@ export default function CalendarPage() {
           {isConnected === false && (
             <button
               onClick={handleConnect}
-              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 text-sm rounded-lg border border-primary/30 bg-primary/15 text-primary hover:bg-primary/25 transition-colors"
             >
               Connect Google Calendar
             </button>
@@ -325,10 +325,10 @@ export default function CalendarPage() {
       </div>
 
       {/* Week Navigation */}
-      <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+      <div className="card-surface dashboard-premium-card-soft flex items-center justify-between rounded-lg p-4">
         <button
           onClick={handlePreviousWeek}
-          className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+          className="px-4 py-2 text-sm rounded-lg border border-border bg-surface/70 text-text-secondary hover:bg-surface-hover/70 hover:text-text-primary transition-colors"
         >
           ← Previous Week
         </button>
@@ -336,18 +336,18 @@ export default function CalendarPage() {
         <div className="flex items-center gap-4">
           <button
             onClick={handleToday}
-            className="px-4 py-2 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+            className="px-4 py-2 text-sm rounded-lg border border-primary/30 bg-primary/12 text-primary hover:bg-primary/20 transition-colors"
           >
             Today
           </button>
-          <div className="text-lg font-semibold text-gray-900 dark:text-gray-100 text-center">
+          <div className="text-lg font-semibold text-text-primary text-center">
             Week {weekNumber}, {weekYear}
           </div>
         </div>
 
         <button
           onClick={handleNextWeek}
-          className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+          className="px-4 py-2 text-sm rounded-lg border border-border bg-surface/70 text-text-secondary hover:bg-surface-hover/70 hover:text-text-primary transition-colors"
         >
           Next Week →
         </button>
@@ -387,17 +387,17 @@ export default function CalendarPage() {
 
       {/* Not Connected State */}
       {isConnected === false && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 px-6 py-8 text-center dark:border-blue-900/50 dark:bg-blue-900/20">
+        <div className="card-surface dashboard-premium-card-soft rounded-lg border px-6 py-8 text-center">
           <div className="text-4xl mb-4">📅</div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          <h2 className="text-xl font-semibold text-text-primary mb-2">
             Connect Google Calendar
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-text-secondary mb-4">
             Connect your Google Calendar to see your weekly schedule.
           </p>
           <button
             onClick={handleConnect}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-6 py-2 rounded-lg border border-primary/30 bg-primary/15 text-primary hover:bg-primary/25 transition-colors"
           >
             Connect Google Calendar
           </button>
@@ -406,7 +406,7 @@ export default function CalendarPage() {
 
       {/* Loading State */}
       {isConnected === true && isLoading && (
-        <div className="text-center py-12 text-gray-600 dark:text-gray-400">
+        <div className="text-center py-12 text-text-secondary">
           Loading events...
         </div>
       )}
@@ -439,24 +439,24 @@ export default function CalendarPage() {
                   <div
                     key={dayKey}
                     className={`rounded-lg border-2 p-4 min-h-[200px] ${isToday
-                        ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700'
-                        : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                        ? 'border-primary/45 bg-primary/[0.08]'
+                        : 'border-border bg-surface/40'
                       }`}
                   >
                     {/* Day Header */}
                     <div className="mb-3">
                       <div
                         className={`text-xs font-medium uppercase mb-1 ${isToday
-                            ? 'text-blue-700 dark:text-blue-300'
-                            : 'text-gray-500 dark:text-gray-400'
+                            ? 'text-primary'
+                            : 'text-text-tertiary'
                           }`}
                       >
                         {dayNamesShort[index]}
                       </div>
                       <div
                         className={`text-lg font-semibold ${isToday
-                            ? 'text-blue-900 dark:text-blue-100'
-                            : 'text-gray-900 dark:text-gray-100'
+                            ? 'text-text-primary'
+                            : 'text-text-primary'
                           }`}
                       >
                         {format(day, 'd')}
@@ -466,7 +466,7 @@ export default function CalendarPage() {
                     {/* Events List */}
                     <div className="space-y-1.5">
                       {dayEvents.length === 0 && dayGhostEvents.length === 0 ? (
-                        <p className="text-xs text-gray-400 dark:text-gray-500">No events</p>
+                        <p className="text-xs text-text-tertiary">No events</p>
                       ) : (
                         <>
                           {dayEvents.map((event) => {
@@ -476,18 +476,18 @@ export default function CalendarPage() {
                             > = {
                               meeting: {
                                 icon: '📅',
-                                color: 'text-blue-700 dark:text-blue-400',
-                                bgColor: 'bg-blue-100 dark:bg-blue-900/30',
+                                color: 'text-info',
+                                bgColor: 'bg-info/10',
                               },
                               task: {
                                 icon: '✓',
-                                color: 'text-purple-700 dark:text-purple-400',
-                                bgColor: 'bg-purple-100 dark:bg-purple-900/30',
+                                color: 'text-primary',
+                                bgColor: 'bg-primary/12',
                               },
                               break: {
                                 icon: '☕',
-                                color: 'text-green-700 dark:text-green-400',
-                                bgColor: 'bg-green-100 dark:bg-green-900/30',
+                                color: 'text-success',
+                                bgColor: 'bg-success/10',
                               },
                             };
                             const config = eventTypeConfig[event.type];
@@ -545,7 +545,7 @@ export default function CalendarPage() {
         Object.values(groupedGhostEvents).flat().length === 0 &&
         Object.keys(groupedEvents).length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">No events scheduled this week</p>
+            <p className="text-text-secondary">No events scheduled this week</p>
           </div>
         )}
     </div>

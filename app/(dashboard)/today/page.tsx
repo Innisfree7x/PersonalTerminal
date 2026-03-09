@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { X, Sparkles, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { X, Sparkles, TrendingUp, TrendingDown, Minus, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import FocusTasks from '@/components/features/dashboard/FocusTasks';
@@ -32,6 +32,7 @@ import { trackAppEvent } from '@/lib/analytics/client';
 import { useAppSound } from '@/lib/hooks/useAppSound';
 import { STORAGE_KEYS } from '@/lib/storage/keys';
 import { getTodayKey } from '@/lib/dashboard/nbaDismissals';
+import { getRiskStatusTone } from '@/lib/design-system/statusTone';
 
 const WELCOME_KEY = 'innis_welcomed_v1';
 const LAST_MOMENTUM_SCORE_KEY = 'innis:last-momentum-score:v1';
@@ -202,6 +203,14 @@ export default function TodayPage() {
   const trajectoryBriefingHref = trajectoryBriefing
     ? `/trajectory?goalId=${encodeURIComponent(trajectoryBriefing.goalId)}&source=morning_briefing`
     : '/trajectory?source=morning_briefing';
+  const tasksTodayCount = stats?.tasksToday ?? 0;
+  const tasksCompletedCount = stats?.tasksCompleted ?? 0;
+  const allDoneToday = tasksTodayCount > 0 && tasksCompletedCount >= tasksTodayCount;
+  const taskCompletionPct =
+    tasksTodayCount > 0
+      ? Math.min(100, Math.round((tasksCompletedCount / tasksTodayCount) * 100))
+      : 0;
+  const trajectoryTone = trajectoryBriefing ? getRiskStatusTone(trajectoryBriefing.status) : null;
 
   useEffect(() => {
     const days = stats?.nextExam?.daysUntilExam;
@@ -290,17 +299,17 @@ export default function TodayPage() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.16 }}
-        className="card-surface dashboard-premium-card relative overflow-hidden p-3 sm:p-3.5"
+        className="card-surface dashboard-premium-card relative overflow-hidden p-2.5"
       >
         <div className="pointer-events-none absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-primary/80 shadow-[0_0_14px_rgb(var(--primary)/0.48)]" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/45 to-transparent" />
-        <div className="flex flex-col gap-1.5">
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-center gap-2">
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 bg-primary/[0.16] text-primary shadow-[0_0_12px_rgb(var(--primary)/0.2)]">
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <span className="inline-flex h-6.5 w-6.5 items-center justify-center rounded-md border border-primary/30 bg-primary/[0.16] text-primary shadow-[0_0_12px_rgb(var(--primary)/0.2)]">
                 <Sparkles className="h-3.5 w-3.5" />
               </span>
-              <p className="truncate text-[13px] leading-[1.3] sm:text-sm text-[rgb(var(--text-primary)/0.9)]">
+              <p className="truncate text-[12.5px] leading-[1.25] sm:text-[13px] text-[rgb(var(--text-primary)/0.92)]">
                 <span className="font-semibold text-text-primary">Morning briefing:</span>{' '}
                 {trajectoryBriefing ? (
                   <>
@@ -309,13 +318,7 @@ export default function TodayPage() {
                     {trajectoryBriefing.daysUntil}d until deadline
                     {' · '}
                     <span
-                      className={
-                        trajectoryBriefing.status === 'on_track'
-                          ? 'text-emerald-400'
-                          : trajectoryBriefing.status === 'tight'
-                            ? 'text-amber-300'
-                            : 'text-red-400'
-                      }
+                      className={trajectoryTone ? trajectoryTone.text : 'text-text-secondary'}
                     >
                       {trajectoryBriefing.statusLabel}
                     </span>
@@ -335,74 +338,102 @@ export default function TodayPage() {
                   ...(trajectoryBriefing?.status ? { status: trajectoryBriefing.status } : {}),
                 });
               }}
-              className="inline-flex items-center text-[11px] sm:text-[11.5px] font-semibold tracking-[0.02em] text-primary hover:text-primary-hover transition-colors sm:ml-2"
+              className="inline-flex items-center rounded-full border border-primary/24 bg-primary/[0.08] px-2.5 py-1 text-[10.5px] sm:text-[11px] font-semibold tracking-[0.02em] text-primary hover:border-primary/38 hover:bg-primary/[0.14] hover:text-primary-hover transition-colors"
             >
               {trajectoryBriefing ? 'Open linked trajectory →' : 'Set up trajectory →'}
             </Link>
           </div>
 
-          {momentum ? (
-            <div className="flex flex-wrap items-center gap-1.5 text-[10.5px] sm:text-[11.5px]">
-              <span className="inline-flex items-center gap-1 rounded-full border border-primary/34 bg-primary/14 px-2.5 py-0.5 font-semibold tabular-nums text-text-primary">
-                Momentum {momentum.score}
+          <div className="flex flex-wrap items-center gap-1.5 text-[10.5px] sm:text-[11px]">
+            {momentum ? (
+              <>
+                <span className="inline-flex items-center gap-1 rounded-full border border-primary/34 bg-primary/14 px-2.5 py-0.5 font-semibold tabular-nums text-text-primary">
+                  Momentum {momentum.score}
+                </span>
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-medium tabular-nums ${
+                    momentum.delta > 0
+                      ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
+                      : momentum.delta < 0
+                        ? 'border-red-400/30 bg-red-500/10 text-red-300'
+                        : 'border-border/80 bg-surface/55 text-text-tertiary'
+                  }`}
+                >
+                  {momentum.delta > 0 ? <TrendingUp className="h-3 w-3" /> : momentum.delta < 0 ? <TrendingDown className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
+                  {momentum.delta > 0 ? `+${momentum.delta}` : momentum.delta} vs last week
+                </span>
+                {momentum.stats.atRisk > 0 ? (
+                  <span className="rounded-full border border-red-400/20 bg-red-500/10 px-2 py-0.5 tabular-nums text-red-300">
+                    At risk {momentum.stats.atRisk}
+                  </span>
+                ) : momentum.stats.tight > 0 ? (
+                  <span className="rounded-full border border-amber-300/20 bg-amber-500/10 px-2 py-0.5 tabular-nums text-amber-300">
+                    Tight {momentum.stats.tight}
+                  </span>
+                ) : (
+                  <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2 py-0.5 tabular-nums text-emerald-300">
+                    On track {momentum.stats.onTrack}
+                  </span>
+                )}
+                <span className="rounded-full border border-primary/24 bg-primary/10 px-2 py-0.5 tabular-nums text-text-secondary">
+                  Focus load {momentum.stats.last7DaysHours.toFixed(1)}h / {momentum.stats.plannedHoursPerWeek}h
+                </span>
+              </>
+            ) : (
+              <span className="rounded-full border border-border/85 bg-surface/55 px-2 py-0.5 text-text-secondary">
+                Momentum activates after your first active trajectory milestone.
               </span>
-              <span
-                className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-medium tabular-nums ${
-                  momentum.delta > 0
-                    ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
-                    : momentum.delta < 0
-                      ? 'border-red-400/30 bg-red-500/10 text-red-300'
-                      : 'border-border/80 bg-surface/55 text-text-tertiary'
-                }`}
-              >
-                {momentum.delta > 0 ? <TrendingUp className="h-3 w-3" /> : momentum.delta < 0 ? <TrendingDown className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
-                {momentum.delta > 0 ? `+${momentum.delta}` : momentum.delta}
+            )}
+
+            {trajectoryBriefing ? (
+              <span className="rounded-full border border-border/95 bg-surface/70 px-2 py-0.5 text-text-secondary">
+                Prep starts {trajectoryBriefing.startDateLabel}
               </span>
-              {momentum.stats.atRisk > 0 ? (
-                <span className="rounded-full border border-red-400/20 bg-red-500/10 px-2 py-0.5 tabular-nums text-red-300">
-                  At risk {momentum.stats.atRisk}
-                </span>
-              ) : momentum.stats.tight > 0 ? (
-                <span className="rounded-full border border-amber-300/20 bg-amber-500/10 px-2 py-0.5 tabular-nums text-amber-300">
-                  Tight {momentum.stats.tight}
-                </span>
-              ) : (
-                <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2 py-0.5 tabular-nums text-emerald-300">
-                  On track {momentum.stats.onTrack}
-                </span>
-              )}
-              <span className="rounded-full border border-primary/24 bg-primary/10 px-2 py-0.5 tabular-nums text-text-secondary">
-                Focus load {momentum.stats.last7DaysHours.toFixed(1)}h / {momentum.stats.plannedHoursPerWeek}h
+            ) : null}
+            {allDoneToday ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/25 bg-emerald-500/12 px-2 py-0.5 font-medium text-emerald-300">
+                <CheckCircle2 className="h-3 w-3" />
+                Done for today ({tasksCompletedCount}/{tasksTodayCount})
               </span>
-              {trajectoryBriefing ? (
-                <span className="rounded-full border border-border/95 bg-surface/70 px-2 py-0.5 text-text-secondary">
-                  Prep starts {trajectoryBriefing.startDateLabel}
-                </span>
-              ) : null}
+            ) : tasksTodayCount > 0 ? (
+              <span className="rounded-full border border-border/85 bg-surface/55 px-2 py-0.5 text-text-secondary tabular-nums">
+                {tasksCompletedCount}/{tasksTodayCount} tasks done
+              </span>
+            ) : null}
+          </div>
+
+          {tasksTodayCount > 0 ? (
+            <div className="rounded-md border border-primary/15 bg-primary/[0.06] px-2 py-1.5">
+              <div className="mb-1 flex items-center justify-between text-[10px] text-text-secondary">
+                <span>Today execution</span>
+                <span className="tabular-nums">{taskCompletionPct}%</span>
+              </div>
+              <div className="h-1 overflow-hidden rounded-full bg-white/[0.08]">
+                <div
+                  className="h-full rounded-full bg-primary/75 transition-all"
+                  style={{ width: `${taskCompletionPct}%` }}
+                />
+              </div>
             </div>
-          ) : (
-            <p className="text-xs text-text-secondary">
-              Momentum activates after your first active trajectory milestone.
-            </p>
-          )}
+          ) : null}
 
           {showWeeklyCheckin && (
-            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-primary/22 bg-primary/[0.08] px-2.5 py-1">
-              <p className="text-[11px] text-text-secondary">
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-primary/20 bg-primary/[0.07] px-2.5 py-1">
+              <p className="text-[10.5px] text-text-secondary">
                 Weekly check-in: verify risks and lock this week&apos;s next move.
               </p>
               <div className="ml-auto flex items-center gap-1.5">
                 <Link
                   href="/trajectory?source=weekly_checkin"
                   onClick={dismissWeeklyCheckin}
-                  className="inline-flex items-center rounded-md border border-primary/35 bg-primary/14 px-2 py-1 text-[11px] font-medium text-primary transition-colors hover:bg-primary/24"
+                  className="inline-flex items-center rounded-md border border-primary/35 bg-primary/14 px-2 py-1 text-[10.5px] font-medium text-primary transition-colors hover:bg-primary/24"
                 >
-                  Review
+                  Review now
                 </Link>
                 <button
                   type="button"
                   onClick={dismissWeeklyCheckin}
-                  className="inline-flex items-center rounded-md border border-border bg-surface/45 px-2 py-1 text-[11px] text-text-tertiary transition-colors hover:bg-surface-hover/70"
+                  className="inline-flex items-center rounded-md border border-border bg-surface/45 px-2 py-1 text-[10.5px] text-text-tertiary transition-colors hover:bg-surface-hover/70"
                 >
                   Later
                 </button>

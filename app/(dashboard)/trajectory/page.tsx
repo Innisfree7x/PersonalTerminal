@@ -31,13 +31,17 @@ import { buildTimelineRuler } from '@/lib/trajectory/timeline';
 import { detectGoalStatusTransitions } from '@/lib/trajectory/statusTransition';
 import { cn } from '@/lib/utils';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import {
+  getRiskStatusLabel,
+  getRiskStatusTone,
+  type RiskStatus,
+} from '@/lib/design-system/statusTone';
 
 type GoalCategory = 'thesis' | 'gmat' | 'master_app' | 'internship' | 'other';
 type GoalStatus = 'active' | 'done' | 'archived';
 type WindowType = 'internship' | 'master_cycle' | 'exam_period' | 'other';
 type WindowConfidence = 'low' | 'medium' | 'high';
 type BlockStatus = 'planned' | 'in_progress' | 'done' | 'skipped';
-type RiskStatus = 'on_track' | 'tight' | 'at_risk';
 
 interface TrajectorySettings {
   id: string;
@@ -233,6 +237,12 @@ function monthsToWeeks(months: number): number {
 const GOAL_STATUS_PULSE_DURATION_MS = 1_800;
 const GOAL_STATUS_PULSE_COOLDOWN_MS = 10_000;
 
+function getTimelineRiskClasses(status: RiskStatus): string {
+  if (status === 'at_risk') return 'border-error/50 bg-error/25';
+  if (status === 'tight') return 'border-warning/50 bg-warning/25';
+  return 'border-success/50 bg-success/20';
+}
+
 export default function TrajectoryPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -352,6 +362,14 @@ export default function TrajectoryPage() {
     if (computed.summary.tight > 0) return 'tight';
     return 'on_track';
   }, [computed?.summary]);
+  const riskSummaryCards = useMemo(
+    () => [
+      { status: 'on_track' as const, value: computed?.summary.onTrack ?? 0 },
+      { status: 'tight' as const, value: computed?.summary.tight ?? 0 },
+      { status: 'at_risk' as const, value: computed?.summary.atRisk ?? 0 },
+    ],
+    [computed?.summary.atRisk, computed?.summary.onTrack, computed?.summary.tight]
+  );
 
   useEffect(() => {
     const previous = previousOverallStatusRef.current;
@@ -416,10 +434,32 @@ export default function TrajectoryPage() {
     });
   }, [windows, deepLinkedWindowId]);
 
+  const effectiveCapacity = planData?.simulation.effectiveCapacityHoursPerWeek ?? overview?.settings.hoursPerWeek ?? 8;
+  const baselineHoursPerWeek = overview?.settings.hoursPerWeek ?? 8;
+
   const selectedBlock = useMemo(
     () => generatedBlocks.find((block) => block.goalId === selectedGoalId) ?? null,
     [generatedBlocks, selectedGoalId]
   );
+  const selectedGoal = useMemo(
+    () => goals.find((goal) => goal.id === selectedGoalId) ?? null,
+    [goals, selectedGoalId]
+  );
+  const selectedGoalSimulationWeeks = useMemo(() => {
+    if (!selectedGoal) return null;
+    return Math.max(1, Math.ceil(selectedGoal.effortHours / Math.max(1, effectiveCapacity)));
+  }, [effectiveCapacity, selectedGoal]);
+  const selectedGoalBaselineWeeks = useMemo(() => {
+    if (!selectedGoal) return null;
+    return Math.max(
+      1,
+      Math.ceil(selectedGoal.effortHours / Math.max(1, baselineHoursPerWeek))
+    );
+  }, [baselineHoursPerWeek, selectedGoal]);
+  const selectedGoalWeeksDelta = useMemo(() => {
+    if (selectedGoalSimulationWeeks === null || selectedGoalBaselineWeeks === null) return null;
+    return selectedGoalSimulationWeeks - selectedGoalBaselineWeeks;
+  }, [selectedGoalBaselineWeeks, selectedGoalSimulationWeeks]);
 
   const isSimulationDirty =
     overview &&
@@ -430,7 +470,6 @@ export default function TrajectoryPage() {
     horizonMonthsDraft !== null &&
     horizonMonthsDraft !== overview.settings.horizonMonths;
 
-  const effectiveCapacity = planData?.simulation.effectiveCapacityHoursPerWeek ?? overview?.settings.hoursPerWeek ?? 8;
   const timelineStart = useMemo(() => startOfDay(new Date()), []);
   const timelineHorizonMonths = horizonMonthsDraft ?? overview?.settings.horizonMonths ?? 24;
   const timelineEnd = useMemo(
@@ -764,7 +803,7 @@ export default function TrajectoryPage() {
             </div>
           </div>
 
-          <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_220px_220px_auto] lg:items-end">
+          <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_220px_220px_220px] lg:items-end">
             <div className="rounded-xl border border-border bg-surface/80 p-3">
               <div className="mb-2 flex items-center justify-between">
                 <span className="text-xs uppercase tracking-wider text-text-tertiary">Simulation Capacity</span>
@@ -778,6 +817,27 @@ export default function TrajectoryPage() {
                 onChange={(event) => setSimulationHours(Number(event.target.value))}
                 className="w-full accent-[rgb(var(--primary))]"
               />
+              {selectedGoal && selectedGoalSimulationWeeks !== null && selectedGoalBaselineWeeks !== null ? (
+                <p className="mt-2 text-[11px] text-text-secondary">
+                  <span className="font-semibold text-text-primary">{selectedGoal.title}</span>: {selectedGoalSimulationWeeks}w prep
+                  at {effectiveCapacity}h/w
+                  {selectedGoalWeeksDelta !== null && selectedGoalWeeksDelta !== 0 ? (
+                    <span className={cn(
+                      'ml-1 font-medium',
+                      selectedGoalWeeksDelta > 0 ? 'text-error' : 'text-success'
+                    )}>
+                      ({selectedGoalWeeksDelta > 0 ? `+${selectedGoalWeeksDelta}` : selectedGoalWeeksDelta}w vs baseline)
+                    </span>
+                  ) : (
+                    <span className="ml-1 text-text-tertiary">(same as baseline)</span>
+                  )}
+                  .
+                </p>
+              ) : (
+                <p className="mt-2 text-[11px] text-text-tertiary">
+                  Lower capacity starts prep earlier and can move milestones from on track to tight/at risk.
+                </p>
+              )}
             </div>
 
             <Input
@@ -835,24 +895,26 @@ export default function TrajectoryPage() {
               </select>
             </label>
 
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => saveBaselineMutation.mutate()}
-              loading={saveBaselineMutation.isPending}
-              leftIcon={<Save className="h-4 w-4" />}
-              disabled={!isSimulationDirty && !isHorizonDirty}
-            >
-              Save as baseline
-            </Button>
+            <div className="lg:col-span-4 flex flex-wrap items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => saveBaselineMutation.mutate()}
+                loading={saveBaselineMutation.isPending}
+                leftIcon={<Save className="h-4 w-4" />}
+                disabled={!isSimulationDirty && !isHorizonDirty}
+              >
+                Save as baseline
+              </Button>
 
-            <button
-              onClick={handleExport}
-              className="inline-flex items-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 hover:bg-white/[0.08] transition-colors"
-            >
-              <Share2 className="h-3.5 w-3.5" />
-              Als Bild exportieren
-            </button>
+              <button
+                onClick={handleExport}
+                className="inline-flex items-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 hover:bg-white/[0.08] transition-colors"
+              >
+                <Share2 className="h-3.5 w-3.5" />
+                Export image
+              </button>
+            </div>
           </div>
         </div>
       </motion.div>
@@ -1055,11 +1117,7 @@ export default function TrajectoryPage() {
                         key={key}
                         className={cn(
                           'absolute h-7 rounded-md border px-2 text-[11px] font-semibold leading-7 text-white/90 transition-all',
-                          block.status === 'at_risk'
-                            ? 'border-error/50 bg-error/25'
-                            : block.status === 'tight'
-                              ? 'border-warning/50 bg-warning/25'
-                              : 'border-success/50 bg-success/20',
+                          getTimelineRiskClasses(block.status),
                           isSelected && 'ring-1 ring-primary/55 shadow-[0_0_0_1px_rgba(250,240,230,0.25)]'
                         )}
                         style={{ left: `${frame.left}%`, width: `${frame.width}%`, top: `${topOffset}px`, zIndex: isSelected ? 20 : 10 }}
@@ -1368,18 +1426,17 @@ export default function TrajectoryPage() {
             </h2>
 
             <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-xl border border-success/30 bg-success/10 px-2.5 py-2">
-                <div className="text-[10px] uppercase tracking-wider text-success/80">On Track</div>
-                <div className="mt-1 text-xl font-bold text-success">{computed.summary.onTrack}</div>
-              </div>
-              <div className="rounded-xl border border-warning/30 bg-warning/10 px-2.5 py-2">
-                <div className="text-[10px] uppercase tracking-wider text-warning/80">Tight</div>
-                <div className="mt-1 text-xl font-bold text-warning">{computed.summary.tight}</div>
-              </div>
-              <div className="rounded-xl border border-error/30 bg-error/10 px-2.5 py-2">
-                <div className="text-[10px] uppercase tracking-wider text-error/80">At Risk</div>
-                <div className="mt-1 text-xl font-bold text-error">{computed.summary.atRisk}</div>
-              </div>
+              {riskSummaryCards.map((entry) => {
+                const tone = getRiskStatusTone(entry.status);
+                return (
+                  <div key={entry.status} className={cn('rounded-xl border px-2.5 py-2', tone.surface, tone.border)}>
+                    <div className={cn('text-[10px] uppercase tracking-wider', tone.text)}>
+                      {getRiskStatusLabel(entry.status)}
+                    </div>
+                    <div className={cn('mt-1 text-xl font-bold', tone.text)}>{entry.value}</div>
+                  </div>
+                );
+              })}
             </div>
 
             <div className="mt-3 space-y-2">
@@ -1481,12 +1538,14 @@ export default function TrajectoryPage() {
                             focus
                           </button>
                           {risk && (
-                            <Badge
-                              size="sm"
-                              variant={risk === 'at_risk' ? 'error' : risk === 'tight' ? 'warning' : 'success'}
+                            <span
+                              className={cn(
+                                'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em]',
+                                getRiskStatusTone(risk).badge
+                              )}
                             >
-                              {risk.replace('_', ' ')}
-                            </Badge>
+                              {getRiskStatusLabel(risk)}
+                            </span>
                           )}
                           <button
                             onClick={() => deleteGoalMutation.mutate(goal.id)}

@@ -1,7 +1,14 @@
 # Context Canon (Single Source of Truth)
 
-Stand: 2026-03-07 (post Phase-19 momentum/sound/design hardening)  
+Stand: 2026-03-09 (post Wave-22 bis Wave-26 hardening/polish)  
 Status: Active
+
+## Neu seit 2026-03-09 (hoch priorisiert)
+- `docs/PHASE26_FEATURE_OPTIMIZATION_WAVE1_5_2026-03-09.md` (Wave-1-5 Feature-Optimierung: shared status tones, today/trajectory/calendar/career polish)
+- `docs/PHASE25_DASHBOARD_BUNDLE_AND_SOUND_2026-03-09.md` (Today-Bundle + Sound + Theme-Readability)
+- `docs/PHASE24_TODAY_QUERY_DEDUPE_2026-03-09.md` (Query-Dedupe + Key-Klarheit)
+- `docs/PHASE23_TODAY_CRITICAL_PATH_BUNDLE_2026-03-09.md` (Morning-Snapshot + API-Bundle)
+- `docs/PHASE22_CALENDAR_TRAJECTORY_FOCUS_POLISH_2026-03-08.md` (Calendar/Trajectory/Focus UX-Polish)
 
 ## Zweck
 Dieses Dokument definiert verbindlich, welche Quellen für aktuelle Entscheidungen genutzt werden sollen.  
@@ -34,6 +41,11 @@ Wenn zwei Dokumente widersprüchlich sind, gilt immer diese Prioritätsliste.
 24. Historische Phase-Dokumente (nur Referenz, nicht normativ)
 
 ## Aktive Dokumente
+- `docs/PHASE26_FEATURE_OPTIMIZATION_WAVE1_5_2026-03-09.md` (abgeschlossene Wave-1-5 Feature-Optimierung inkl. Audit)
+- `docs/PHASE25_DASHBOARD_BUNDLE_AND_SOUND_2026-03-09.md` (Today-Bundle + Sound + Theme/Readability-Pass)
+- `docs/PHASE24_TODAY_QUERY_DEDUPE_2026-03-09.md` (Today Next-Tasks Dedupe + Query-Key-Separation)
+- `docs/PHASE23_TODAY_CRITICAL_PATH_BUNDLE_2026-03-09.md` (Morning-Snapshot Bundle + API-Refactor)
+- `docs/PHASE22_CALENDAR_TRAJECTORY_FOCUS_POLISH_2026-03-08.md` (Calendar Ghost Events + Focus/Trajectory Polish)
 - `docs/PHASE17_BLOCK3_ACTIVATION_AND_BRIDGE.md` (Onboarding/Today/Trajectory Bridge inkl. Deep-Link- und Analytics-Contract)
 - `docs/PHASE18_ACTIVATION_CONVERSION_WAVES.md` (Activation/Conversion Wave-Umsetzung inkl. shared risk model und risk-to-action bridge)
 - `docs/PHASE20_ARCH_UX_RETENTION_HARDENING_2026-03-07.md` (Storage-Key-Konsolidierung, Done-for-Today, Weekly-Check-in, Typ-Cleanup)

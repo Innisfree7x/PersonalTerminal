@@ -79,7 +79,7 @@ export default function ApplicationStats({ applications }: ApplicationStatsProps
       className="space-y-3"
     >
       {/* Pipeline Score Strip */}
-      <div className="card-surface rounded-xl px-4 py-3 flex items-center gap-4">
+      <div className="card-surface dashboard-premium-card-soft rounded-xl px-4 py-2.5 flex items-center gap-4">
         <div className="flex items-center gap-2 shrink-0">
           <span className="text-[10px] uppercase tracking-[0.12em] text-zinc-500">Pipeline</span>
           <span className="text-sm font-bold text-text-primary font-mono">{pipeline.score}</span>
@@ -105,24 +105,24 @@ export default function ApplicationStats({ applications }: ApplicationStatsProps
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 + index * 0.05 }}
-            className={`relative overflow-hidden bg-gradient-to-br ${stat.gradient} backdrop-blur-sm border ${stat.borderColor} rounded-lg p-6 group`}
+            className={`relative overflow-hidden bg-gradient-to-br ${stat.gradient} backdrop-blur-sm border ${stat.borderColor} rounded-lg p-4 group`}
             whileHover={{ y: -2 }}
           >
             {/* Animated background glow */}
             <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
 
             <div className="relative z-10">
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex items-start justify-between mb-3">
                 <div className={`p-2 rounded-lg ${stat.gradient} border ${stat.borderColor}`}>
-                  <Icon className={`w-5 h-5 ${stat.color}`} />
+                  <Icon className={`h-[18px] w-[18px] ${stat.color}`} />
                 </div>
               </div>
 
               <div>
-                <div className={`text-3xl font-bold ${stat.color} mb-1`}>
+                <div className={`text-2xl font-bold ${stat.color} mb-0.5`}>
                   {stat.value}
                 </div>
-                <div className="text-sm text-text-tertiary">
+                <div className="text-xs text-text-tertiary">
                   {stat.label}
                 </div>
               </div>
