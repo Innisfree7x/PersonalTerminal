@@ -97,6 +97,18 @@ function toDateInputValue(date: Date): string {
   return date.toISOString().split('T')[0] ?? '';
 }
 
+function clampScoreValue(raw: string): number {
+  const value = Number(raw);
+  if (Number.isNaN(value)) return 1;
+  return Math.max(1, Math.min(10, Math.round(value)));
+}
+
+function clampWeeksValue(raw: string): number {
+  const value = Number(raw);
+  if (Number.isNaN(value)) return 1;
+  return Math.max(1, Math.min(104, Math.round(value)));
+}
+
 function statusVariant(status: StrategyDecisionStatus): 'success' | 'warning' | 'default' {
   if (status === 'committed') return 'success';
   if (status === 'draft') return 'warning';
@@ -588,25 +600,82 @@ export default function StrategyPage() {
                 <div className="mt-4 rounded-xl border border-border/70 bg-surface/30 p-3">
                   <h4 className="mb-2 text-sm font-semibold text-text-primary">Neue Option</h4>
                   <div className="grid gap-2 md:grid-cols-2">
-                    <Input value={optionTitle} onChange={(event) => setOptionTitle(event.target.value)} placeholder="z.B. GMAT im Q1" />
                     <Input
+                      label="Option Titel"
+                      description="Was ist die konkrete Option?"
+                      value={optionTitle}
+                      onChange={(event) => setOptionTitle(event.target.value)}
+                      placeholder="z.B. GMAT im Q1"
+                    />
+                    <Input
+                      label="Time to Value (Wochen)"
+                      description="Wann liefert die Option realen Output?"
                       value={timeToValueWeeks}
                       type="number"
                       min={1}
                       max={104}
-                      onChange={(event) => setTimeToValueWeeks(Number(event.target.value || 1))}
-                      placeholder="Time to value (Wochen)"
+                      onChange={(event) => setTimeToValueWeeks(clampWeeksValue(event.target.value))}
                     />
                   </div>
                   <div className="mt-2">
-                    <Textarea value={optionSummary} onChange={(event) => setOptionSummary(event.target.value)} rows={2} placeholder="Warum ist diese Option stark?" />
+                    <Textarea
+                      label="Option Summary"
+                      description="Kurz begründen, warum diese Option strategisch sinnvoll ist."
+                      value={optionSummary}
+                      onChange={(event) => setOptionSummary(event.target.value)}
+                      rows={2}
+                      placeholder="Warum ist diese Option stark?"
+                    />
                   </div>
-                  <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3">
-                    <Input type="number" min={1} max={10} value={impactPotential} onChange={(event) => setImpactPotential(Number(event.target.value || 1))} placeholder="Impact (1-10)" />
-                    <Input type="number" min={1} max={10} value={confidenceLevel} onChange={(event) => setConfidenceLevel(Number(event.target.value || 1))} placeholder="Confidence (1-10)" />
-                    <Input type="number" min={1} max={10} value={strategicFit} onChange={(event) => setStrategicFit(Number(event.target.value || 1))} placeholder="Fit (1-10)" />
-                    <Input type="number" min={1} max={10} value={effortCost} onChange={(event) => setEffortCost(Number(event.target.value || 1))} placeholder="Effort cost (1-10)" />
-                    <Input type="number" min={1} max={10} value={downsideRisk} onChange={(event) => setDownsideRisk(Number(event.target.value || 1))} placeholder="Risk (1-10)" />
+                  <div className="mt-2 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-[11px] text-text-tertiary">
+                    Scoring-Skala: <span className="text-text-secondary">1 = niedrig</span> · <span className="text-text-secondary">10 = hoch</span>
+                  </div>
+                  <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+                    <Input
+                      type="number"
+                      min={1}
+                      max={10}
+                      label="Impact Potential (+)"
+                      description="1 = kaum Hebel · 10 = maximaler Hebel"
+                      value={impactPotential}
+                      onChange={(event) => setImpactPotential(clampScoreValue(event.target.value))}
+                    />
+                    <Input
+                      type="number"
+                      min={1}
+                      max={10}
+                      label="Confidence Level (+)"
+                      description="1 = sehr unsicher · 10 = sehr sicher"
+                      value={confidenceLevel}
+                      onChange={(event) => setConfidenceLevel(clampScoreValue(event.target.value))}
+                    />
+                    <Input
+                      type="number"
+                      min={1}
+                      max={10}
+                      label="Strategic Fit (+)"
+                      description="1 = passt kaum · 10 = passt perfekt"
+                      value={strategicFit}
+                      onChange={(event) => setStrategicFit(clampScoreValue(event.target.value))}
+                    />
+                    <Input
+                      type="number"
+                      min={1}
+                      max={10}
+                      label="Effort Cost (−)"
+                      description="1 = geringer Aufwand · 10 = sehr hoher Aufwand"
+                      value={effortCost}
+                      onChange={(event) => setEffortCost(clampScoreValue(event.target.value))}
+                    />
+                    <Input
+                      type="number"
+                      min={1}
+                      max={10}
+                      label="Downside Risk (−)"
+                      description="1 = geringes Risiko · 10 = hohes Risiko"
+                      value={downsideRisk}
+                      onChange={(event) => setDownsideRisk(clampScoreValue(event.target.value))}
+                    />
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-2">
                     <Input
