@@ -100,24 +100,39 @@ describe('strategy commit api', () => {
     mockedMarkStrategyDecisionCommitted.mockResolvedValue({ id: 'decision-1', status: 'committed' } as any);
     mockedCreateStrategyDecisionCommit.mockResolvedValue({ id: 'commit-1' } as any);
 
-    const insertSingle = vi.fn().mockResolvedValue({
-      data: {
-        id: 'task-1',
-        date: '2026-03-10',
-        title: 'Strategy: Option A',
-        completed: false,
-        source: 'strategy',
-        source_id: 'strategy:decision-1:00000000-0000-0000-0000-000000000001:2026-03-10',
-        time_estimate: '45m',
-        created_at: '2026-03-10T00:00:00.000Z',
-      },
-      error: null,
-    });
+    const insertSingle = vi
+      .fn()
+      .mockResolvedValueOnce({
+        data: {
+          id: 'task-1',
+          date: '2026-03-10',
+          title: 'Strategy: Option A',
+          completed: false,
+          source: 'strategy',
+          source_id: 'strategy:decision-1:00000000-0000-0000-0000-000000000001:2026-03-10',
+          time_estimate: '45m',
+          created_at: '2026-03-10T00:00:00.000Z',
+        },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: {
+          id: 'task-2',
+          date: '2026-03-11',
+          title: 'Follow-up: nächster Schritt für Decision A',
+          completed: false,
+          source: 'strategy_follow_up',
+          source_id: 'strategy-followup:decision-1:00000000-0000-0000-0000-000000000001:2026-03-11',
+          time_estimate: '20m',
+          created_at: '2026-03-10T00:00:01.000Z',
+        },
+        error: null,
+      });
 
     const dailyTaskQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      maybeSingle: vi.fn().mockResolvedValueOnce({ data: null, error: null }).mockResolvedValueOnce({ data: null, error: null }),
       insert: vi.fn().mockReturnValue({
         select: vi.fn().mockReturnValue({
           single: insertSingle,
@@ -136,6 +151,9 @@ describe('strategy commit api', () => {
           optionId: '00000000-0000-0000-0000-000000000001',
           taskDate: '2026-03-10',
           timeEstimate: '45m',
+          followUpEnabled: true,
+          followUpDate: '2026-03-11',
+          followUpTitle: 'Follow-up: nächster Schritt für Decision A',
         }),
         headers: { 'Content-Type': 'application/json' },
       }),
@@ -146,6 +164,7 @@ describe('strategy commit api', () => {
     const payload = await response.json();
     expect(payload.skippedExistingTask).toBe(false);
     expect(payload.task.title).toContain('Strategy');
+    expect(payload.followUpTask.title).toContain('Follow-up');
     expect(mockedCreateStrategyDecisionCommit).toHaveBeenCalled();
   });
 });

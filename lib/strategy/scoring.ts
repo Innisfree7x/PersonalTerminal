@@ -25,12 +25,35 @@ export interface StrategyOptionScoreResult {
   breakdown: StrategyOptionScoreBreakdown;
 }
 
-const IMPACT_WEIGHT = 4.0;
-const CONFIDENCE_WEIGHT = 2.0;
-const FIT_WEIGHT = 2.5;
-const EFFORT_WEIGHT = 1.9;
-const RISK_WEIGHT = 1.6;
-const SPEED_MAX_PENALTY = 10;
+export type StrategyScoreMode = 'standard' | 'deadline';
+
+interface StrategyScoreWeights {
+  impactWeight: number;
+  confidenceWeight: number;
+  fitWeight: number;
+  effortWeight: number;
+  riskWeight: number;
+  speedMaxPenalty: number;
+}
+
+const STANDARD_WEIGHTS: StrategyScoreWeights = {
+  impactWeight: 4.0,
+  confidenceWeight: 2.0,
+  fitWeight: 2.5,
+  effortWeight: 1.9,
+  riskWeight: 1.6,
+  speedMaxPenalty: 10,
+};
+
+const DEADLINE_WEIGHTS: StrategyScoreWeights = {
+  impactWeight: 3.7,
+  confidenceWeight: 1.8,
+  fitWeight: 2.4,
+  effortWeight: 2.2,
+  riskWeight: 2.1,
+  speedMaxPenalty: 16,
+};
+
 const SCORE_BASELINE = 28;
 const SPEED_WEEKS_CAP = 52;
 
@@ -39,15 +62,23 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 export function computeStrategyOptionScore(option: StrategyOptionScoreInput): StrategyOptionScoreResult {
+  return computeStrategyOptionScoreWithMode(option, 'standard');
+}
+
+export function computeStrategyOptionScoreWithMode(
+  option: StrategyOptionScoreInput,
+  mode: StrategyScoreMode
+): StrategyOptionScoreResult {
   const normalizedWeeks = clamp(option.timeToValueWeeks, 1, SPEED_WEEKS_CAP);
+  const weights = mode === 'deadline' ? DEADLINE_WEIGHTS : STANDARD_WEIGHTS;
 
   const breakdown: StrategyOptionScoreBreakdown = {
-    impact: option.impactPotential * IMPACT_WEIGHT,
-    confidence: option.confidenceLevel * CONFIDENCE_WEIGHT,
-    fit: option.strategicFit * FIT_WEIGHT,
-    effortPenalty: option.effortCost * EFFORT_WEIGHT,
-    riskPenalty: option.downsideRisk * RISK_WEIGHT,
-    speedPenalty: (normalizedWeeks / SPEED_WEEKS_CAP) * SPEED_MAX_PENALTY,
+    impact: option.impactPotential * weights.impactWeight,
+    confidence: option.confidenceLevel * weights.confidenceWeight,
+    fit: option.strategicFit * weights.fitWeight,
+    effortPenalty: option.effortCost * weights.effortWeight,
+    riskPenalty: option.downsideRisk * weights.riskWeight,
+    speedPenalty: (normalizedWeeks / SPEED_WEEKS_CAP) * weights.speedMaxPenalty,
   };
 
   const positive = breakdown.impact + breakdown.confidence + breakdown.fit;
@@ -74,9 +105,9 @@ export interface StrategyScoreResult {
   winner: StrategyOptionScoreResult | null;
 }
 
-export function scoreStrategyOptions(options: StrategyOptionScoreInput[]): StrategyScoreResult {
+export function scoreStrategyOptions(options: StrategyOptionScoreInput[], mode: StrategyScoreMode = 'standard'): StrategyScoreResult {
   const scoredOptions = options
-    .map((option) => computeStrategyOptionScore(option))
+    .map((option) => computeStrategyOptionScoreWithMode(option, mode))
     .sort((a, b) => b.total - a.total);
 
   return {

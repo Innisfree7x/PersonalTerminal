@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeStrategyOptionScore, scoreStrategyOptions } from '@/lib/strategy/scoring';
+import { computeStrategyOptionScore, computeStrategyOptionScoreWithMode, scoreStrategyOptions } from '@/lib/strategy/scoring';
 
 describe('strategy scoring', () => {
   it('computes deterministic total and sub-scores', () => {
@@ -47,5 +47,38 @@ describe('strategy scoring', () => {
 
     expect(scored.winner?.optionId).toBe('opt-high');
     expect(scored.scoredOptions[0]?.total).toBeGreaterThan(scored.scoredOptions[1]?.total ?? 0);
+  });
+
+  it('deadline mode penalizes slow options harder than standard mode', () => {
+    const standard = computeStrategyOptionScoreWithMode(
+      {
+        id: 'slow-opt',
+        title: 'Slow option',
+        impactPotential: 8,
+        confidenceLevel: 7,
+        strategicFit: 8,
+        effortCost: 4,
+        downsideRisk: 3,
+        timeToValueWeeks: 24,
+      },
+      'standard'
+    );
+
+    const deadline = computeStrategyOptionScoreWithMode(
+      {
+        id: 'slow-opt',
+        title: 'Slow option',
+        impactPotential: 8,
+        confidenceLevel: 7,
+        strategicFit: 8,
+        effortCost: 4,
+        downsideRisk: 3,
+        timeToValueWeeks: 24,
+      },
+      'deadline'
+    );
+
+    expect(deadline.total).toBeLessThan(standard.total);
+    expect(deadline.breakdown.speedPenalty).toBeGreaterThan(standard.breakdown.speedPenalty);
   });
 });

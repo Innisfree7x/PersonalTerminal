@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError } from '@/lib/api/server-errors';
+import { scoreStrategyDecisionSchema } from '@/lib/schemas/strategy.schema';
 import {
   getStrategyDecisionById,
   listStrategyOptionsByDecision,
@@ -14,11 +15,14 @@ interface Params {
   };
 }
 
-export async function POST(_request: NextRequest, { params }: Params) {
+export async function POST(request: NextRequest, { params }: Params) {
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
+    const body = await request.json().catch(() => ({}));
+    const { scoreMode } = scoreStrategyDecisionSchema.parse(body);
+
     const decision = await getStrategyDecisionById(user.id, params.id);
     if (!decision) {
       return NextResponse.json({ error: { code: 'NOT_FOUND', message: 'Strategy decision not found' } }, { status: 404 });
@@ -42,7 +46,8 @@ export async function POST(_request: NextRequest, { params }: Params) {
         effortCost: option.effortCost,
         downsideRisk: option.downsideRisk,
         timeToValueWeeks: option.timeToValueWeeks,
-      }))
+      })),
+      scoreMode
     );
 
     const persisted = await updateStrategyDecisionScore(user.id, params.id, winner?.total ?? 0, winner?.optionId ?? null);
@@ -51,6 +56,7 @@ export async function POST(_request: NextRequest, { params }: Params) {
       decision: persisted,
       winner,
       scoredOptions,
+      scoreMode,
     });
   } catch (error) {
     return handleRouteError(error, 'Failed to score strategy decision', 'Error scoring strategy decision');

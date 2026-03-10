@@ -89,13 +89,21 @@ describe('strategy score api', () => {
     ] as any);
     mockedUpdateStrategyDecisionScore.mockResolvedValue({ id: 'decision-1' } as any);
 
-    const response = await POST(new NextRequest('http://localhost:3000/api/strategy/decisions/1/score', { method: 'POST' }), {
-      params: { id: 'decision-1' },
-    });
+    const response = await POST(
+      new NextRequest('http://localhost:3000/api/strategy/decisions/1/score', {
+        method: 'POST',
+        body: JSON.stringify({ scoreMode: 'deadline' }),
+        headers: { 'Content-Type': 'application/json' },
+      }),
+      {
+        params: { id: 'decision-1' },
+      }
+    );
 
     expect(response.status).toBe(200);
     const payload = await response.json();
     expect(payload.winner.optionId).toBe('opt-1');
+    expect(payload.scoreMode).toBe('deadline');
     expect(payload.scoredOptions).toHaveLength(2);
     expect(mockedUpdateStrategyDecisionScore).toHaveBeenCalledWith(
       'user-123',

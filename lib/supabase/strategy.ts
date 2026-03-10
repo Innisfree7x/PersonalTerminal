@@ -60,6 +60,7 @@ export interface StrategyDecisionCommitRecord {
 export interface StrategyDecisionBundle extends StrategyDecisionRecord {
   options: StrategyOptionRecord[];
   latestCommit: StrategyDecisionCommitRecord | null;
+  recentCommits: StrategyDecisionCommitRecord[];
 }
 
 function toDecisionRecord(row: StrategyDecisionRow): StrategyDecisionRecord {
@@ -139,10 +140,16 @@ export async function listStrategyDecisionBundles(userId: string): Promise<Strat
   }
 
   const latestCommitByDecision = new Map<string, StrategyDecisionCommitRecord>();
+  const recentCommitsByDecision = new Map<string, StrategyDecisionCommitRecord[]>();
   for (const row of commitsResult.data ?? []) {
     const commit = toCommitRecord(row);
     if (!latestCommitByDecision.has(commit.decisionId)) {
       latestCommitByDecision.set(commit.decisionId, commit);
+    }
+    const list = recentCommitsByDecision.get(commit.decisionId) ?? [];
+    if (list.length < 5) {
+      list.push(commit);
+      recentCommitsByDecision.set(commit.decisionId, list);
     }
   }
 
@@ -152,6 +159,7 @@ export async function listStrategyDecisionBundles(userId: string): Promise<Strat
       ...decision,
       options: optionsByDecision.get(decision.id) ?? [],
       latestCommit: latestCommitByDecision.get(decision.id) ?? null,
+      recentCommits: recentCommitsByDecision.get(decision.id) ?? [],
     };
   });
 }

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
-import { computeStrategyOptionScore, scoreStrategyOptions } from '@/lib/strategy/scoring';
+import { computeStrategyOptionScoreWithMode, scoreStrategyOptions, type StrategyScoreMode } from '@/lib/strategy/scoring';
 
 type StrategyDecisionStatus = 'draft' | 'committed' | 'archived';
 
@@ -32,6 +32,7 @@ interface StrategyCommit {
   optionId: string;
   createdAt: string;
   note: string | null;
+  taskSourceKey?: string;
 }
 
 interface StrategyDecision {
@@ -47,6 +48,7 @@ interface StrategyDecision {
   updatedAt: string;
   options: StrategyOption[];
   latestCommit: StrategyCommit | null;
+  recentCommits?: StrategyCommit[];
 }
 
 interface DecisionsResponse {
@@ -71,6 +73,7 @@ interface ScoreResponse {
       speedPenalty: number;
     };
   }>;
+  scoreMode?: StrategyScoreMode;
 }
 
 const EMPTY_DECISIONS: StrategyDecision[] = [];
@@ -113,6 +116,21 @@ function statusVariant(status: StrategyDecisionStatus): 'success' | 'warning' | 
   if (status === 'committed') return 'success';
   if (status === 'draft') return 'warning';
   return 'default';
+}
+
+function formatCommitTimestamp(iso: string): string {
+  return new Intl.DateTimeFormat('de-DE', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(iso));
+}
+
+function addDaysToDateInput(isoDate: string, days: number): string {
+  const date = new Date(`${isoDate}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().split('T')[0] ?? isoDate;
 }
 
 function describeScoreBand(value: number, tone: 'positive' | 'negative'): string {
@@ -185,6 +203,62 @@ function ScoreInputCard({ label, description, value, onChange, tone, weightLabel
   );
 }
 
+type StrategyPreset = {
+  id: 'conservative' | 'balanced' | 'aggressive';
+  label: string;
+  description: string;
+  values: {
+    impactPotential: number;
+    confidenceLevel: number;
+    strategicFit: number;
+    effortCost: number;
+    downsideRisk: number;
+    timeToValueWeeks: number;
+  };
+};
+
+const STRATEGY_PRESETS: StrategyPreset[] = [
+  {
+    id: 'conservative',
+    label: 'Conservative',
+    description: 'Risikoarm, eher sichere Optionen',
+    values: {
+      impactPotential: 6,
+      confidenceLevel: 8,
+      strategicFit: 7,
+      effortCost: 4,
+      downsideRisk: 3,
+      timeToValueWeeks: 8,
+    },
+  },
+  {
+    id: 'balanced',
+    label: 'Balanced',
+    description: 'Standardprofil für normale Trade-offs',
+    values: {
+      impactPotential: 7,
+      confidenceLevel: 6,
+      strategicFit: 7,
+      effortCost: 5,
+      downsideRisk: 4,
+      timeToValueWeeks: 6,
+    },
+  },
+  {
+    id: 'aggressive',
+    label: 'Aggressive',
+    description: 'Maximaler Hebel bei höherem Risiko',
+    values: {
+      impactPotential: 9,
+      confidenceLevel: 5,
+      strategicFit: 8,
+      effortCost: 7,
+      downsideRisk: 6,
+      timeToValueWeeks: 4,
+    },
+  },
+];
+
 export default function StrategyPage() {
   const queryClient = useQueryClient();
   const [selectedDecisionId, setSelectedDecisionId] = useState<string>('');
@@ -204,8 +278,11 @@ export default function StrategyPage() {
   const [effortCost, setEffortCost] = useState(5);
   const [downsideRisk, setDownsideRisk] = useState(4);
   const [timeToValueWeeks, setTimeToValueWeeks] = useState(6);
+  const [activePreset, setActivePreset] = useState<StrategyPreset['id']>('balanced');
+  const [scoreMode, setScoreMode] = useState<StrategyScoreMode>('standard');
 
   const [commitNote, setCommitNote] = useState('');
+  const [followUpEnabled, setFollowUpEnabled] = useState(true);
 
   const { data, isLoading } = useQuery({
     queryKey: ['strategy', 'decisions'],
@@ -259,7 +336,8 @@ export default function StrategyPage() {
         effortCost: option.effortCost,
         downsideRisk: option.downsideRisk,
         timeToValueWeeks: option.timeToValueWeeks,
-      }))
+      })),
+      scoreMode
     );
 
     return {
@@ -271,7 +349,7 @@ export default function StrategyPage() {
         : null,
       scoredOptions: result.scoredOptions,
     };
-  }, [selectedDecision]);
+  }, [selectedDecision, scoreMode]);
 
   const scoreByOptionId = useMemo(() => {
     const map = new Map<string, ScoreResponse['scoredOptions'][number]>();
@@ -281,17 +359,20 @@ export default function StrategyPage() {
 
   const draftOptionScore = useMemo(
     () =>
-      computeStrategyOptionScore({
-        id: 'draft',
-        title: optionTitle.trim() || 'Neue Option',
-        impactPotential,
-        confidenceLevel,
-        strategicFit,
-        effortCost,
-        downsideRisk,
-        timeToValueWeeks,
-      }),
-    [optionTitle, impactPotential, confidenceLevel, strategicFit, effortCost, downsideRisk, timeToValueWeeks]
+      computeStrategyOptionScoreWithMode(
+        {
+          id: 'draft',
+          title: optionTitle.trim() || 'Neue Option',
+          impactPotential,
+          confidenceLevel,
+          strategicFit,
+          effortCost,
+          downsideRisk,
+          timeToValueWeeks,
+        },
+        scoreMode
+      ),
+    [optionTitle, impactPotential, confidenceLevel, strategicFit, effortCost, downsideRisk, timeToValueWeeks, scoreMode]
   );
 
   const winnerInsight = useMemo(() => {
@@ -327,6 +408,34 @@ export default function StrategyPage() {
       drivers: deltas.length ? deltas : ['Vorsprung ist knapp und verteilt sich auf mehrere Faktoren.'],
     };
   }, [localScore.scoredOptions, localScore.winner]);
+
+  const optionsForRender = useMemo(() => {
+    if (!selectedDecision) return [];
+
+    return [...selectedDecision.options].sort((a, b) => {
+      const scoreA = scoreByOptionId.get(a.id)?.total ?? -1;
+      const scoreB = scoreByOptionId.get(b.id)?.total ?? -1;
+      if (scoreA === scoreB) return a.createdAt.localeCompare(b.createdAt);
+      return scoreB - scoreA;
+    });
+  }, [selectedDecision, scoreByOptionId]);
+
+  const applyPreset = (presetId: StrategyPreset['id']) => {
+    const preset = STRATEGY_PRESETS.find((entry) => entry.id === presetId);
+    if (!preset) return;
+    setActivePreset(preset.id);
+    setImpactPotential(preset.values.impactPotential);
+    setConfidenceLevel(preset.values.confidenceLevel);
+    setStrategicFit(preset.values.strategicFit);
+    setEffortCost(preset.values.effortCost);
+    setDownsideRisk(preset.values.downsideRisk);
+    setTimeToValueWeeks(preset.values.timeToValueWeeks);
+  };
+
+  const optionTitleById = useMemo(() => {
+    if (!selectedDecision) return new Map<string, string>();
+    return new Map(selectedDecision.options.map((option) => [option.id, option.title]));
+  }, [selectedDecision]);
 
   const createDecisionMutation = useMutation({
     mutationFn: (payload: { title: string; context: string | null; targetDate: string | null }) =>
@@ -421,6 +530,7 @@ export default function StrategyPage() {
     mutationFn: (decisionId: string) =>
       apiRequest<ScoreResponse>(`/api/strategy/decisions/${decisionId}/score`, {
         method: 'POST',
+        body: JSON.stringify({ scoreMode }),
       }),
     onSuccess: () => {
       toast.success('Score aktualisiert');
@@ -433,11 +543,16 @@ export default function StrategyPage() {
     mutationFn: (payload: { decisionId: string; optionId: string; note: string | null }) =>
       apiRequest<{ skippedExistingTask: boolean }>(`/api/strategy/decisions/${payload.decisionId}/commit`, {
         method: 'POST',
+        // Commit enthält optional direkt den Follow-up Schritt für den nächsten Tag.
         body: JSON.stringify({
           optionId: payload.optionId,
+          scoreMode,
           note: payload.note,
           taskTitle: selectedDecision ? `Strategie-Commit: ${selectedDecision.title}` : null,
           timeEstimate: '45m',
+          followUpEnabled,
+          followUpDate: followUpEnabled ? addDaysToDateInput(new Date().toISOString().split('T')[0] ?? '', 1) : null,
+          followUpTitle: followUpEnabled ? `Follow-up: nächster Schritt für ${selectedDecision?.title ?? 'Strategy'}` : null,
         }),
       }),
     onSuccess: (response) => {
@@ -653,6 +768,43 @@ export default function StrategyPage() {
                   ) : null}
                 </div>
 
+                <div className="mb-3 rounded-xl border border-border/70 bg-surface/35 p-2">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold text-text-primary">Scoring Lens</p>
+                    <span className="text-[11px] text-text-tertiary">
+                      {scoreMode === 'deadline' ? 'Deadline dominiert (Risiko/Tempo strenger)' : 'Standard-Balance'}
+                    </span>
+                  </div>
+                  <div className="grid gap-2 md:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={() => setScoreMode('standard')}
+                      className={cn(
+                        'rounded-lg border px-3 py-2 text-left transition-colors',
+                        scoreMode === 'standard'
+                          ? 'border-primary/45 bg-primary/[0.12]'
+                          : 'border-border/70 bg-surface/40 hover:border-primary/30 hover:bg-primary/[0.08]'
+                      )}
+                    >
+                      <p className="text-xs font-semibold text-text-primary">Standard</p>
+                      <p className="mt-0.5 text-[11px] text-text-secondary">Normale Trade-off Bewertung</p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setScoreMode('deadline')}
+                      className={cn(
+                        'rounded-lg border px-3 py-2 text-left transition-colors',
+                        scoreMode === 'deadline'
+                          ? 'border-primary/45 bg-primary/[0.12]'
+                          : 'border-border/70 bg-surface/40 hover:border-primary/30 hover:bg-primary/[0.08]'
+                      )}
+                    >
+                      <p className="text-xs font-semibold text-text-primary">Deadline Pressure</p>
+                      <p className="mt-0.5 text-[11px] text-text-secondary">Zeit + Risiko werden höher gewichtet</p>
+                    </button>
+                  </div>
+                </div>
+
                 {winnerInsight ? (
                   <div className="mb-3 rounded-xl border border-primary/25 bg-primary/[0.08] px-3 py-2">
                     <p className="text-xs font-semibold text-text-primary">
@@ -673,9 +825,11 @@ export default function StrategyPage() {
                 ) : null}
 
                 <div className="grid gap-3 lg:grid-cols-2">
-                  {selectedDecision.options.map((option) => {
+                  {optionsForRender.map((option, index) => {
                     const score = scoreByOptionId.get(option.id);
                     const isWinner = localScore.winner?.optionId === option.id;
+                    const winnerTotal = localScore.winner?.total ?? null;
+                    const gap = score && winnerTotal !== null ? winnerTotal - score.total : null;
                     return (
                       <article
                         key={option.id}
@@ -686,7 +840,12 @@ export default function StrategyPage() {
                       >
                         <div className="mb-2 flex items-start justify-between gap-2">
                           <div>
-                            <p className="text-sm font-semibold text-text-primary">{option.title}</p>
+                            <div className="mb-1 flex items-center gap-2">
+                              <span className="rounded-md border border-white/15 bg-black/20 px-1.5 py-0.5 text-[10px] font-semibold text-text-secondary">
+                                #{index + 1}
+                              </span>
+                              <p className="text-sm font-semibold text-text-primary">{option.title}</p>
+                            </div>
                             {option.summary ? <p className="mt-0.5 text-xs text-text-secondary line-clamp-2">{option.summary}</p> : null}
                           </div>
                           <div className="text-right">
@@ -696,14 +855,30 @@ export default function StrategyPage() {
                         </div>
 
                         {score ? (
-                          <div className="grid grid-cols-3 gap-1 text-[11px]">
-                            <div className="rounded-md border border-emerald-500/25 bg-emerald-500/10 px-2 py-1 text-emerald-300">Impact +{score.breakdown.impact}</div>
-                            <div className="rounded-md border border-cyan-500/25 bg-cyan-500/10 px-2 py-1 text-cyan-300">Fit +{score.breakdown.fit}</div>
-                            <div className="rounded-md border border-sky-500/25 bg-sky-500/10 px-2 py-1 text-sky-300">Conf +{score.breakdown.confidence}</div>
-                            <div className="rounded-md border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-amber-300">Effort -{score.breakdown.effortPenalty}</div>
-                            <div className="rounded-md border border-red-500/25 bg-red-500/10 px-2 py-1 text-red-300">Risk -{score.breakdown.riskPenalty}</div>
-                            <div className="rounded-md border border-violet-500/25 bg-violet-500/10 px-2 py-1 text-violet-300">Speed -{score.breakdown.speedPenalty}</div>
-                          </div>
+                          <>
+                            <div className="grid grid-cols-3 gap-1 text-[11px]">
+                              <div className="rounded-md border border-emerald-500/25 bg-emerald-500/10 px-2 py-1 text-emerald-300">Impact +{score.breakdown.impact}</div>
+                              <div className="rounded-md border border-cyan-500/25 bg-cyan-500/10 px-2 py-1 text-cyan-300">Fit +{score.breakdown.fit}</div>
+                              <div className="rounded-md border border-sky-500/25 bg-sky-500/10 px-2 py-1 text-sky-300">Conf +{score.breakdown.confidence}</div>
+                              <div className="rounded-md border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-amber-300">Effort -{score.breakdown.effortPenalty}</div>
+                              <div className="rounded-md border border-red-500/25 bg-red-500/10 px-2 py-1 text-red-300">Risk -{score.breakdown.riskPenalty}</div>
+                              <div className="rounded-md border border-violet-500/25 bg-violet-500/10 px-2 py-1 text-violet-300">Speed -{score.breakdown.speedPenalty}</div>
+                            </div>
+                            {!isWinner && gap !== null ? (
+                              <div className="mt-2 rounded-md border border-white/10 bg-black/20 px-2 py-1.5">
+                                <div className="mb-1 flex items-center justify-between text-[11px] text-text-secondary">
+                                  <span>Gap zum Winner</span>
+                                  <span>−{gap} pts</span>
+                                </div>
+                                <div className="h-1.5 rounded-full bg-white/10">
+                                  <div
+                                    className="h-1.5 rounded-full bg-primary/70"
+                                    style={{ width: `${Math.max(6, Math.min(100, (score.total / Math.max(1, winnerTotal ?? 100)) * 100))}%` }}
+                                  />
+                                </div>
+                              </div>
+                            ) : null}
+                          </>
                         ) : null}
 
                         <div className="mt-3 flex items-center justify-between gap-2">
@@ -766,12 +941,51 @@ export default function StrategyPage() {
                     />
                   </div>
                   <div className="mt-2 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-[11px] text-text-tertiary">
-                    Scoring-Logik: <span className="text-emerald-300">Impact (+) ×4</span>,{' '}
-                    <span className="text-cyan-300">Confidence (+) ×2</span>,{' '}
-                    <span className="text-sky-300">Fit (+) ×2.5</span>,{' '}
-                    <span className="text-amber-300">Effort (−) ×1.9</span>,{' '}
-                    <span className="text-red-300">Risk (−) ×1.6</span>,{' '}
-                    <span className="text-violet-300">Speed-Strafe aus Wochen</span> · Baseline 28
+                    {scoreMode === 'deadline' ? (
+                      <>
+                        Deadline-Logik: <span className="text-emerald-300">Impact (+) ×3.7</span>,{' '}
+                        <span className="text-cyan-300">Confidence (+) ×1.8</span>,{' '}
+                        <span className="text-sky-300">Fit (+) ×2.4</span>,{' '}
+                        <span className="text-amber-300">Effort (−) ×2.2</span>,{' '}
+                        <span className="text-red-300">Risk (−) ×2.1</span>,{' '}
+                        <span className="text-violet-300">Speed-Strafe max 16</span> · Baseline 28
+                      </>
+                    ) : (
+                      <>
+                        Standard-Logik: <span className="text-emerald-300">Impact (+) ×4</span>,{' '}
+                        <span className="text-cyan-300">Confidence (+) ×2</span>,{' '}
+                        <span className="text-sky-300">Fit (+) ×2.5</span>,{' '}
+                        <span className="text-amber-300">Effort (−) ×1.9</span>,{' '}
+                        <span className="text-red-300">Risk (−) ×1.6</span>,{' '}
+                        <span className="text-violet-300">Speed-Strafe max 10</span> · Baseline 28
+                      </>
+                    )}
+                  </div>
+                  <div className="mt-2 rounded-lg border border-border/70 bg-surface/35 p-2">
+                    <div className="mb-2 flex items-center justify-between">
+                      <p className="text-xs font-semibold text-text-primary">Scoring Presets</p>
+                      <span className="text-[11px] text-text-tertiary">
+                        aktiv: {STRATEGY_PRESETS.find((entry) => entry.id === activePreset)?.label}
+                      </span>
+                    </div>
+                    <div className="grid gap-2 md:grid-cols-3">
+                      {STRATEGY_PRESETS.map((preset) => (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => applyPreset(preset.id)}
+                          className={cn(
+                            'rounded-lg border px-3 py-2 text-left transition-colors',
+                            preset.id === activePreset
+                              ? 'border-primary/45 bg-primary/[0.12]'
+                              : 'border-border/70 bg-surface/40 hover:border-primary/30 hover:bg-primary/[0.08]'
+                          )}
+                        >
+                          <p className="text-xs font-semibold text-text-primary">{preset.label}</p>
+                          <p className="mt-0.5 text-[11px] text-text-secondary">{preset.description}</p>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                   <div className="mt-2 rounded-lg border border-primary/25 bg-primary/[0.08] px-3 py-2">
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -850,10 +1064,45 @@ export default function StrategyPage() {
                       placeholder="Optionale Commit-Notiz"
                       className="max-w-[320px]"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setFollowUpEnabled((current) => !current)}
+                      className={cn(
+                        'rounded-md border px-3 py-2 text-xs transition-colors',
+                        followUpEnabled
+                          ? 'border-emerald-500/35 bg-emerald-500/15 text-emerald-300'
+                          : 'border-border/70 bg-surface/35 text-text-secondary hover:border-primary/30'
+                      )}
+                    >
+                      Follow-up Task {followUpEnabled ? 'AN' : 'AUS'}
+                    </button>
                     <Button onClick={handleCreateOption} loading={createOptionMutation.isPending} leftIcon={<Plus className="h-4 w-4" />}>
                       Option hinzufügen
                     </Button>
                   </div>
+                </div>
+
+                <div className="mt-4 rounded-xl border border-border/70 bg-surface/30 p-3">
+                  <h4 className="mb-2 text-sm font-semibold text-text-primary">Decision Replay</h4>
+                  {!selectedDecision.recentCommits || selectedDecision.recentCommits.length === 0 ? (
+                    <p className="text-xs text-text-tertiary">Noch keine Commits für diese Decision.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {selectedDecision.recentCommits.slice(0, 5).map((commit, idx) => (
+                        <div key={commit.id} className="rounded-lg border border-white/10 bg-black/20 px-3 py-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-xs font-semibold text-text-primary">
+                              #{idx + 1} · {optionTitleById.get(commit.optionId) ?? 'Option'}
+                            </p>
+                            <span className="text-[11px] text-text-tertiary">{formatCommitTimestamp(commit.createdAt)}</span>
+                          </div>
+                          <p className="mt-1 text-[11px] text-text-secondary">
+                            {commit.note?.trim() ? commit.note : 'Keine Commit-Notiz hinterlegt.'}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </section>
             </>

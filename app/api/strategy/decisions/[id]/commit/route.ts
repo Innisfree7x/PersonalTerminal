@@ -47,6 +47,12 @@ function toDailyTaskResponse(task: DailyTaskRow) {
   };
 }
 
+function plusDays(isoDate: string, days: number): string {
+  const date = new Date(`${isoDate}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().split('T')[0] ?? isoDate;
+}
+
 export async function POST(request: NextRequest, { params }: Params) {
   const originViolation = enforceTrustedMutationOrigin(request);
   if (originViolation) return originViolation;
@@ -87,7 +93,8 @@ export async function POST(request: NextRequest, { params }: Params) {
         effortCost: item.effortCost,
         downsideRisk: item.downsideRisk,
         timeToValueWeeks: item.timeToValueWeeks,
-      }))
+      })),
+      parsed.scoreMode
     );
 
     const selectedScore = scored.scoredOptions.find((entry) => entry.optionId === option.id);
@@ -144,13 +151,66 @@ export async function POST(request: NextRequest, { params }: Params) {
       skippedExistingTask = true;
     }
 
+    let followUpTaskPayload: DailyTaskRow | null = null;
+    let skippedExistingFollowUpTask = false;
+
+    if (parsed.followUpEnabled) {
+      const followUpDate = parsed.followUpDate ?? plusDays(taskDate, 1);
+      const followUpSourceKey = `strategy-followup:${decision.id}:${option.id}:${followUpDate}`;
+
+      const { data: existingFollowUpTask, error: existingFollowUpTaskError } = await supabase
+        .from('daily_tasks')
+        .select('id, date, title, completed, source, source_id, time_estimate, created_at')
+        .eq('user_id', user.id)
+        .eq('date', followUpDate)
+        .eq('source', 'strategy_follow_up')
+        .eq('source_id', followUpSourceKey)
+        .maybeSingle();
+
+      if (existingFollowUpTaskError) {
+        throw new Error(`Failed to verify strategy follow-up idempotency: ${existingFollowUpTaskError.message}`);
+      }
+
+      if (!existingFollowUpTask) {
+        const followUpInsert: DailyTaskInsert = {
+          user_id: user.id,
+          date: followUpDate,
+          title: parsed.followUpTitle?.trim().length
+            ? parsed.followUpTitle.trim()
+            : `Follow-up: Next step zu ${option.title}`,
+          completed: false,
+          source: 'strategy_follow_up',
+          source_id: followUpSourceKey,
+          time_estimate: '20m',
+        };
+
+        const { data: createdFollowUpTask, error: createFollowUpTaskError } = await supabase
+          .from('daily_tasks')
+          .insert(followUpInsert)
+          .select('id, date, title, completed, source, source_id, time_estimate, created_at')
+          .single();
+
+        if (createFollowUpTaskError) {
+          throw new Error(`Failed to create strategy follow-up task: ${createFollowUpTaskError.message}`);
+        }
+
+        followUpTaskPayload = createdFollowUpTask as DailyTaskRow;
+      } else {
+        skippedExistingFollowUpTask = true;
+        followUpTaskPayload = existingFollowUpTask as DailyTaskRow;
+      }
+    }
+
     return NextResponse.json({
       decision: committedDecision,
       commit,
       selectedScore,
       winner: scored.winner,
+      scoreMode: parsed.scoreMode,
       skippedExistingTask,
+      skippedExistingFollowUpTask,
       task: taskPayload ? toDailyTaskResponse(taskPayload) : null,
+      followUpTask: followUpTaskPayload ? toDailyTaskResponse(followUpTaskPayload) : null,
     });
   } catch (error) {
     return handleRouteError(error, 'Failed to commit strategy decision', 'Error committing strategy decision');

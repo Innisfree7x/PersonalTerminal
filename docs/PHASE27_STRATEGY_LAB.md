@@ -54,3 +54,33 @@ In Supabase SQL Editor ausführen.
 - KI-gestützte Empfehlung
 - Shared/Collaborative Decision Boards
 - automatische externe Datenanreicherung
+
+---
+
+## V1.1 Midnight Extension (implementiert)
+
+### 1) Deadline Pressure Lens
+- Neuer Score-Modus: `standard` vs `deadline`
+- `deadline` gewichtet Risiko/Aufwand/Tempo strenger
+- Verfügbar in UI und API:
+  - `POST /api/strategy/decisions/[id]/score` mit `scoreMode`
+  - `POST /api/strategy/decisions/[id]/commit` mit `scoreMode`
+
+### 2) Post-Commit Follow-up Task
+- Optionaler Follow-up beim Commit:
+  - `followUpEnabled`, `followUpDate`, `followUpTitle`
+- Erzeugt idempotent einen zweiten Today-Task:
+  - `source='strategy_follow_up'`
+  - dedupe key: `strategy-followup:<decisionId>:<optionId>:<date>`
+
+### 3) Decision Replay
+- API liefert pro Decision die letzten Commits (`recentCommits`, max 5)
+- UI zeigt kompakte Historie:
+  - gewählte Option
+  - Zeitstempel
+  - Commit-Notiz
+
+### 4) Scoring UX Context
+- Presets: `Conservative`, `Balanced`, `Aggressive`
+- Live-Score-Vorschau beim Erfassen neuer Optionen
+- Winner-Rationale + Gap zum Runner-up

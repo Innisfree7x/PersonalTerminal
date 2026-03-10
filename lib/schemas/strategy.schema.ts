@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const strategyDecisionStatusValues = ['draft', 'committed', 'archived'] as const;
+export const strategyScoreModeValues = ['standard', 'deadline'] as const;
 
 export const strategyDateSchema = z.preprocess(
   (arg) => {
@@ -43,11 +44,19 @@ export const updateStrategyOptionSchema = createStrategyOptionSchema
 
 export const commitStrategyDecisionSchema = z.object({
   optionId: z.string().uuid(),
+  scoreMode: z.enum(strategyScoreModeValues).default('standard'),
   taskDate: strategyDateSchema.optional(),
   note: z.string().max(400).optional().nullable(),
   taskTitle: z.string().max(220).optional().nullable(),
   timeEstimate: z.string().max(32).optional().nullable(),
   snoozeUntil: strategyDateSchema.optional().nullable(),
+  followUpEnabled: z.boolean().optional().default(false),
+  followUpDate: strategyDateSchema.optional().nullable(),
+  followUpTitle: z.string().max(220).optional().nullable(),
+});
+
+export const scoreStrategyDecisionSchema = z.object({
+  scoreMode: z.enum(strategyScoreModeValues).optional().default('standard'),
 });
 
 export type CreateStrategyDecisionInput = z.infer<typeof createStrategyDecisionSchema>;

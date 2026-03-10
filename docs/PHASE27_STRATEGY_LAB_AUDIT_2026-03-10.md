@@ -36,7 +36,21 @@ GO (Code/Build/Test) — unter Voraussetzung, dass die DB-Migration angewendet w
 ## Restrisiken / Follow-ups
 1. Keine E2E-Abdeckung für vollständigen UI-Flow (`/strategy` erstellen → score → commit).
 2. Kein Undo-Flow für Commit-Task in V1 (Task kann manuell in `/today` löschen).
-3. Scoring-Weights sind statisch; künftige Version kann profil- oder use-case-spezifische Presets erhalten.
+3. Decision Replay zeigt aktuell die letzten 5 Commits; keine Vollhistorie/Filter in V1.1.
+
+## V1.1 Zusatz-Audit (Midnight Extension)
+- Deadline Lens (`standard`/`deadline`) in Score- und Commit-API integriert.
+- Optionaler Post-Commit Follow-up Task idempotent eingeführt.
+- Decision Replay (recent commits) im Bundle + UI sichtbar.
+- Strategy-Tests erweitert:
+  - `tests/unit/strategy-scoring.test.ts`
+  - `tests/unit/api/strategy-score.test.ts`
+  - `tests/unit/api/strategy-commit.test.ts`
+
+Verifikation V1.1:
+- `npm run type-check` ✅
+- `npm run lint` ✅
+- `npm run test -- --run tests/unit/strategy-scoring.test.ts tests/unit/api/strategy-score.test.ts tests/unit/api/strategy-commit.test.ts` ✅
 
 ## Externe Voraussetzung
 - SQL Migration ausführen: `docs/migrations/2026-03-10_strategy_lab_v1.sql`
