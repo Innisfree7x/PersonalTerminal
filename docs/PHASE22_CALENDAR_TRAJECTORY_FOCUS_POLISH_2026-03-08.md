@@ -118,3 +118,17 @@ Ausgeführt:
 1. E2E-Test für `/today -> /focus` Transition + Smoke-Test für Ghost-Render.
 2. Optional: kleine Hover-Quick-Actions im Calendar (z. B. "Open goal").
 3. Optional: Month-View Ghost-Strategie (verdichten statt Tages-Wiederholung).
+
+## Governance Compliance (Agent Standard 2026-03-10)
+
+Diese Phase ist auf den verbindlichen Agent-Standard ausgerichtet:
+
+- `docs/AGENT_WORKFLOW.md`
+- `docs/AGENT_TASK_TEMPLATE.md`
+- `docs/AI_COLLABORATION_PLAYBOOK.md`
+
+Folgeregeln fuer weitere Iterationen auf diesem Scope:
+
+1. Visual-Polish nur token-konsistent (kein harter Farb-Drift).
+2. Bei UI-Aenderungen Pflicht auf manuellen Regression-Check (Calendar, Focus, Trajectory).
+3. Jede Folge-Wave braucht klaren in/out Scope und separaten Audit-Abschnitt.

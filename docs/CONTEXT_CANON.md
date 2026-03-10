@@ -4,6 +4,7 @@ Stand: 2026-03-09 (post Wave-22 bis Wave-26 hardening/polish)
 Status: Active
 
 ## Neu seit 2026-03-09 (hoch priorisiert)
+- `docs/AGENT_STANDARD_COMPLIANCE_2026-03-10.md` (Compliance-Abgleich aktiver Wave-Doks mit Agent-Standard)
 - `docs/PHASE26_FEATURE_OPTIMIZATION_WAVE1_5_2026-03-09.md` (Wave-1-5 Feature-Optimierung: shared status tones, today/trajectory/calendar/career polish)
 - `docs/PHASE25_DASHBOARD_BUNDLE_AND_SOUND_2026-03-09.md` (Today-Bundle + Sound + Theme-Readability)
 - `docs/PHASE24_TODAY_QUERY_DEDUPE_2026-03-09.md` (Query-Dedupe + Key-Klarheit)
@@ -41,6 +42,7 @@ Wenn zwei Dokumente widersprüchlich sind, gilt immer diese Prioritätsliste.
 24. Historische Phase-Dokumente (nur Referenz, nicht normativ)
 
 ## Aktive Dokumente
+- `docs/AGENT_STANDARD_COMPLIANCE_2026-03-10.md` (aktueller Compliance-Report fuer Agent-Standard in aktiven Wellen)
 - `docs/PHASE26_FEATURE_OPTIMIZATION_WAVE1_5_2026-03-09.md` (abgeschlossene Wave-1-5 Feature-Optimierung inkl. Audit)
 - `docs/PHASE25_DASHBOARD_BUNDLE_AND_SOUND_2026-03-09.md` (Today-Bundle + Sound + Theme/Readability-Pass)
 - `docs/PHASE24_TODAY_QUERY_DEDUPE_2026-03-09.md` (Today Next-Tasks Dedupe + Query-Key-Separation)

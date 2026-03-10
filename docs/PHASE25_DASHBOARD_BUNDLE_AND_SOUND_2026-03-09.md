@@ -145,3 +145,17 @@ Erfüllt:
 - ✅ Today Spacing/Type-Polish
 - ✅ Sidebar/Header Micro-Polish
 - ✅ Tests / Type-Check / Lint / Build grün
+
+## Governance Compliance (Agent Standard 2026-03-10)
+
+Standard-Referenzen fuer alle Folgeaenderungen in diesem Scope:
+
+- `docs/AGENT_WORKFLOW.md`
+- `docs/AGENT_TASK_TEMPLATE.md`
+- `docs/AI_COLLABORATION_PLAYBOOK.md`
+
+Verbindliche Folge-Regeln:
+
+1. Sound-Aenderungen nur mit klarer UX-Begruendung und Preview-Verifikation.
+2. Theme-Readability-Aenderungen muessen mindestens Gold/Platinum + Core abdecken.
+3. Bundle-Erweiterungen (`include=...`) nur mit Route-Test und Integrations-Assertion.

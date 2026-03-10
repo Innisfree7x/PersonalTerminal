@@ -41,3 +41,17 @@ Das führte zu unnötigem Netzwerk-Overhead und potenziellem QueryFn-Key-Drift.
 - Ein doppelter `/api/dashboard/next-tasks`-Call auf `/today` wurde eliminiert.
 - Query-Key-Semantik ist sauber getrennt (bundled vs. core).
 - Keine UI-Regression, keine Route-Verhaltensänderung für User.
+
+## Governance Compliance (Agent Standard 2026-03-10)
+
+Diese Welle folgt den verbindlichen Agent-Dokumenten:
+
+- `docs/AGENT_WORKFLOW.md`
+- `docs/AGENT_TASK_TEMPLATE.md`
+- `docs/AI_COLLABORATION_PLAYBOOK.md`
+
+Folgeregeln:
+
+1. Keine neuen Fetch-Wege ohne Dedupe-Pruefung gegen bestehende Queries.
+2. Query-Key-Aenderungen muessen in Integration-Tests gespiegelt sein.
+3. Audit-Handoff immer mit Findings -> GO/NO-GO.

@@ -183,3 +183,18 @@ Ausgeführt:
 1. p95/p99 Messung pro Route in Ops-Dashboard weiter ausbauen (Filter/Sort nach Route, ggf. Zeitfenstervergleich).
 2. Optional: edge-cache für read-only marketing endpoints und prefetch budget tuning auf `/today`.
 3. Optional: RLS-Isolation zusätzlich als E2E-Matrix mit zwei echten Test-Usern in CI absichern (neben den bestehenden Unit-Tests).
+
+## Governance Compliance (Agent Standard 2026-03-10)
+
+Diese Phase ist im Nachgang auf den verbindlichen Agent-Standard gemappt:
+
+- Execution- und Rollenregeln: `docs/AGENT_WORKFLOW.md`
+- Task- und Audit-Template: `docs/AGENT_TASK_TEMPLATE.md`
+- Collaboration/Quality-Prinzipien: `docs/AI_COLLABORATION_PLAYBOOK.md`
+
+Verbindliche Interpretation fuer Folgearbeit auf diesem Scope:
+
+1. Keine Scope-Ausweitung ohne neue Wave.
+2. Findings zuerst (P0/P1/P2), danach Summary.
+3. GO/NO-GO-Entscheidung mit expliziter Begruendung.
+4. Merge nur nach Type/Lint/Build + betroffenen Tests.

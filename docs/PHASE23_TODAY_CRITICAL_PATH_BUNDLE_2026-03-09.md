@@ -82,3 +82,17 @@ Aktualisiert:
 - `/today` lädt den Trajectory-Morning-Block jetzt ohne extra API-Request.
 - Morning-Logik ist zentralisiert, dadurch weniger Drift-Risiko zwischen Routes.
 - Testabdeckung für Bundle-Verhalten + Snapshot-Aufbau ist vorhanden.
+
+## Governance Compliance (Agent Standard 2026-03-10)
+
+Gemappt auf die verbindlichen Agent-Regeln:
+
+- `docs/AGENT_WORKFLOW.md`
+- `docs/AGENT_TASK_TEMPLATE.md`
+- `docs/AI_COLLABORATION_PLAYBOOK.md`
+
+Operational Guardrails fuer Folgeaenderungen:
+
+1. Query-Bundles nur mit eindeutigen Query-Keys und dokumentierter Invalidation.
+2. Keine duplizierte Snapshot-Logik neben `buildTrajectoryMorningSnapshot(...)`.
+3. Jede Performance-Wave muss Server-Timing/Test-Impact explizit ausweisen.

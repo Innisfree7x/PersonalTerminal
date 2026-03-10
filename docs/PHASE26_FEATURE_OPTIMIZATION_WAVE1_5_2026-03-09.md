@@ -98,3 +98,17 @@ Ausgeführt:
 1. Theme-basierte Visual-Regression-Screenshots für `/today`, `/trajectory`, `/calendar`, `/career` ergänzen.
 2. Morning-Briefing-KPIs in `/analytics/ops` sichtbar machen (Aha-Moment- und Briefing-Klickrate).
 3. Query-Timing für `/calendar/week` in Server-Timing durchziehen, um p95 sichtbar zu halten.
+
+## Governance Compliance (Agent Standard 2026-03-10)
+
+Diese Phase ist explizit auf den verbindlichen Agent-Standard gemappt:
+
+- `docs/AGENT_WORKFLOW.md`
+- `docs/AGENT_TASK_TEMPLATE.md`
+- `docs/AI_COLLABORATION_PLAYBOOK.md`
+
+Spezifische Guardrails fuer Folge-Waves:
+
+1. Keine visuelle Iteration ohne Theme-Lesbarkeitscheck.
+2. Keine API/Query-Aenderung ohne Dedupe- und Key-Konsistenz-Pruefung.
+3. Abschluss nur mit Findings-Block (P0/P1/P2) und GO/NO-GO.
