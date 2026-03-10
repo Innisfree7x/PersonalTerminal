@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
-import { scoreStrategyOptions } from '@/lib/strategy/scoring';
+import { computeStrategyOptionScore, scoreStrategyOptions } from '@/lib/strategy/scoring';
 
 type StrategyDecisionStatus = 'draft' | 'committed' | 'archived';
 
@@ -115,6 +115,76 @@ function statusVariant(status: StrategyDecisionStatus): 'success' | 'warning' | 
   return 'default';
 }
 
+function describeScoreBand(value: number, tone: 'positive' | 'negative'): string {
+  if (tone === 'positive') {
+    if (value <= 3) return 'niedrig';
+    if (value <= 7) return 'mittel';
+    return 'hoch';
+  }
+  if (value <= 3) return 'gering';
+  if (value <= 7) return 'mittel';
+  return 'hoch';
+}
+
+interface ScoreInputCardProps {
+  label: string;
+  description: string;
+  value: number;
+  onChange: (value: number) => void;
+  tone: 'positive' | 'negative';
+  weightLabel: string;
+}
+
+function ScoreInputCard({ label, description, value, onChange, tone, weightLabel }: ScoreInputCardProps) {
+  const band = describeScoreBand(value, tone);
+  const cardToneClasses =
+    tone === 'positive'
+      ? 'border-emerald-500/25 bg-emerald-500/[0.06]'
+      : 'border-amber-500/25 bg-amber-500/[0.06]';
+  const chipToneClasses =
+    tone === 'positive'
+      ? 'border-emerald-500/35 bg-emerald-500/15 text-emerald-300'
+      : 'border-amber-500/35 bg-amber-500/15 text-amber-300';
+  const hint = tone === 'positive' ? 'Höher = stärkerer Plus-Beitrag' : 'Höher = stärkere Minus-Strafe';
+
+  return (
+    <div className={cn('rounded-lg border px-3 py-2', cardToneClasses)}>
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <p className="text-xs font-semibold text-text-primary">{label}</p>
+        <span className={cn('rounded-full border px-2 py-0.5 text-[10px] font-medium', chipToneClasses)}>
+          {value}/10 · {band}
+        </span>
+      </div>
+      <p className="text-[11px] text-text-tertiary">{description}</p>
+      <div className="mt-2 flex items-center gap-2">
+        <input
+          type="range"
+          min={1}
+          max={10}
+          step={1}
+          value={value}
+          onChange={(event) => onChange(clampScoreValue(event.target.value))}
+          className="h-1.5 w-full cursor-pointer accent-primary"
+        />
+        <Input
+          type="number"
+          min={1}
+          max={10}
+          value={value}
+          onChange={(event) => onChange(clampScoreValue(event.target.value))}
+          inputSize="sm"
+          className="w-[72px]"
+        />
+      </div>
+      <div className="mt-1 flex items-center justify-between text-[10px] text-text-tertiary">
+        <span>1</span>
+        <span>{hint}</span>
+        <span>10 · {weightLabel}</span>
+      </div>
+    </div>
+  );
+}
+
 export default function StrategyPage() {
   const queryClient = useQueryClient();
   const [selectedDecisionId, setSelectedDecisionId] = useState<string>('');
@@ -208,6 +278,55 @@ export default function StrategyPage() {
     for (const item of localScore.scoredOptions) map.set(item.optionId, item);
     return map;
   }, [localScore.scoredOptions]);
+
+  const draftOptionScore = useMemo(
+    () =>
+      computeStrategyOptionScore({
+        id: 'draft',
+        title: optionTitle.trim() || 'Neue Option',
+        impactPotential,
+        confidenceLevel,
+        strategicFit,
+        effortCost,
+        downsideRisk,
+        timeToValueWeeks,
+      }),
+    [optionTitle, impactPotential, confidenceLevel, strategicFit, effortCost, downsideRisk, timeToValueWeeks]
+  );
+
+  const winnerInsight = useMemo(() => {
+    if (!localScore.winner) return null;
+
+    const winner = localScore.scoredOptions.find((entry) => entry.optionId === localScore.winner?.optionId);
+    if (!winner) return null;
+    const runner = localScore.scoredOptions.find((entry) => entry.optionId !== winner.optionId) ?? null;
+
+    if (!runner) {
+      return {
+        winnerTitle: winner.title,
+        margin: winner.total,
+        drivers: ['Nur eine Option vorhanden. Vergleich entsteht ab Option 2.'],
+      };
+    }
+
+    const deltas = [
+      { label: 'Impact', delta: winner.breakdown.impact - runner.breakdown.impact },
+      { label: 'Strategic Fit', delta: winner.breakdown.fit - runner.breakdown.fit },
+      { label: 'Confidence', delta: winner.breakdown.confidence - runner.breakdown.confidence },
+      { label: 'Effort-Strafe', delta: runner.breakdown.effortPenalty - winner.breakdown.effortPenalty },
+      { label: 'Risk-Strafe', delta: runner.breakdown.riskPenalty - winner.breakdown.riskPenalty },
+      { label: 'Speed-Strafe', delta: runner.breakdown.speedPenalty - winner.breakdown.speedPenalty },
+    ]
+      .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+      .slice(0, 2)
+      .map((entry) => `${entry.label} ${entry.delta > 0 ? '+' : ''}${entry.delta}`);
+
+    return {
+      winnerTitle: winner.title,
+      margin: winner.total - runner.total,
+      drivers: deltas.length ? deltas : ['Vorsprung ist knapp und verteilt sich auf mehrere Faktoren.'],
+    };
+  }, [localScore.scoredOptions, localScore.winner]);
 
   const createDecisionMutation = useMutation({
     mutationFn: (payload: { title: string; context: string | null; targetDate: string | null }) =>
@@ -534,6 +653,25 @@ export default function StrategyPage() {
                   ) : null}
                 </div>
 
+                {winnerInsight ? (
+                  <div className="mb-3 rounded-xl border border-primary/25 bg-primary/[0.08] px-3 py-2">
+                    <p className="text-xs font-semibold text-text-primary">
+                      Warum gewinnt <span className="text-primary">{winnerInsight.winnerTitle}</span>?
+                    </p>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-text-secondary">
+                      <span className="rounded-md border border-white/15 bg-black/20 px-2 py-1">
+                        Vorsprung: {winnerInsight.margin > 0 ? '+' : ''}
+                        {winnerInsight.margin} Punkte
+                      </span>
+                      {winnerInsight.drivers.map((driver) => (
+                        <span key={driver} className="rounded-md border border-white/15 bg-black/20 px-2 py-1">
+                          {driver}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
                 <div className="grid gap-3 lg:grid-cols-2">
                   {selectedDecision.options.map((option) => {
                     const score = scoreByOptionId.get(option.id);
@@ -628,53 +766,81 @@ export default function StrategyPage() {
                     />
                   </div>
                   <div className="mt-2 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-[11px] text-text-tertiary">
-                    Scoring-Skala: <span className="text-text-secondary">1 = niedrig</span> · <span className="text-text-secondary">10 = hoch</span>
+                    Scoring-Logik: <span className="text-emerald-300">Impact (+) ×4</span>,{' '}
+                    <span className="text-cyan-300">Confidence (+) ×2</span>,{' '}
+                    <span className="text-sky-300">Fit (+) ×2.5</span>,{' '}
+                    <span className="text-amber-300">Effort (−) ×1.9</span>,{' '}
+                    <span className="text-red-300">Risk (−) ×1.6</span>,{' '}
+                    <span className="text-violet-300">Speed-Strafe aus Wochen</span> · Baseline 28
+                  </div>
+                  <div className="mt-2 rounded-lg border border-primary/25 bg-primary/[0.08] px-3 py-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-xs font-semibold text-text-primary">Live-Score Vorschau</p>
+                      <Badge variant="primary" size="sm">
+                        {draftOptionScore.total} pts
+                      </Badge>
+                    </div>
+                    <div className="mt-2 grid grid-cols-2 gap-1 text-[11px]">
+                      <div className="rounded-md border border-emerald-500/25 bg-emerald-500/10 px-2 py-1 text-emerald-300">
+                        Impact +{draftOptionScore.breakdown.impact}
+                      </div>
+                      <div className="rounded-md border border-cyan-500/25 bg-cyan-500/10 px-2 py-1 text-cyan-300">
+                        Conf +{draftOptionScore.breakdown.confidence}
+                      </div>
+                      <div className="rounded-md border border-sky-500/25 bg-sky-500/10 px-2 py-1 text-sky-300">
+                        Fit +{draftOptionScore.breakdown.fit}
+                      </div>
+                      <div className="rounded-md border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-amber-300">
+                        Effort -{draftOptionScore.breakdown.effortPenalty}
+                      </div>
+                      <div className="rounded-md border border-red-500/25 bg-red-500/10 px-2 py-1 text-red-300">
+                        Risk -{draftOptionScore.breakdown.riskPenalty}
+                      </div>
+                      <div className="rounded-md border border-violet-500/25 bg-violet-500/10 px-2 py-1 text-violet-300">
+                        Speed -{draftOptionScore.breakdown.speedPenalty}
+                      </div>
+                    </div>
                   </div>
                   <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-                    <Input
-                      type="number"
-                      min={1}
-                      max={10}
+                    <ScoreInputCard
                       label="Impact Potential (+)"
-                      description="1 = kaum Hebel · 10 = maximaler Hebel"
+                      description="Wie stark bewegt diese Option deine Gesamtlage?"
                       value={impactPotential}
-                      onChange={(event) => setImpactPotential(clampScoreValue(event.target.value))}
+                      onChange={setImpactPotential}
+                      tone="positive"
+                      weightLabel="×4.0"
                     />
-                    <Input
-                      type="number"
-                      min={1}
-                      max={10}
+                    <ScoreInputCard
                       label="Confidence Level (+)"
-                      description="1 = sehr unsicher · 10 = sehr sicher"
+                      description="Wie sicher bist du, dass die Option so funktioniert?"
                       value={confidenceLevel}
-                      onChange={(event) => setConfidenceLevel(clampScoreValue(event.target.value))}
+                      onChange={setConfidenceLevel}
+                      tone="positive"
+                      weightLabel="×2.0"
                     />
-                    <Input
-                      type="number"
-                      min={1}
-                      max={10}
+                    <ScoreInputCard
                       label="Strategic Fit (+)"
-                      description="1 = passt kaum · 10 = passt perfekt"
+                      description="Wie gut passt die Option zu deinem Zielpfad?"
                       value={strategicFit}
-                      onChange={(event) => setStrategicFit(clampScoreValue(event.target.value))}
+                      onChange={setStrategicFit}
+                      tone="positive"
+                      weightLabel="×2.5"
                     />
-                    <Input
-                      type="number"
-                      min={1}
-                      max={10}
+                    <ScoreInputCard
                       label="Effort Cost (−)"
-                      description="1 = geringer Aufwand · 10 = sehr hoher Aufwand"
+                      description="Wie viel Aufwand bindet diese Option realistisch?"
                       value={effortCost}
-                      onChange={(event) => setEffortCost(clampScoreValue(event.target.value))}
+                      onChange={setEffortCost}
+                      tone="negative"
+                      weightLabel="×1.9"
                     />
-                    <Input
-                      type="number"
-                      min={1}
-                      max={10}
+                    <ScoreInputCard
                       label="Downside Risk (−)"
-                      description="1 = geringes Risiko · 10 = hohes Risiko"
+                      description="Wie hoch ist das Risiko, dass es schiefgeht?"
                       value={downsideRisk}
-                      onChange={(event) => setDownsideRisk(clampScoreValue(event.target.value))}
+                      onChange={setDownsideRisk}
+                      tone="negative"
+                      weightLabel="×1.6"
                     />
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-2">
