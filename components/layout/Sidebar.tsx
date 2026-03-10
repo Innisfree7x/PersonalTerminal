@@ -13,6 +13,7 @@ import {
   Briefcase,
   BarChart3,
   Timer,
+  FlaskConical,
   Route,
   ShieldCheck,
   ChevronLeft,
@@ -34,7 +35,8 @@ const baseNavigation = [
   { name: 'University', href: '/university', icon: GraduationCap, shortcut: '4' },
   { name: 'Career', href: '/career', icon: Briefcase, shortcut: '5' },
   { name: 'Analytics', href: '/analytics', icon: BarChart3, shortcut: '6' },
-  { name: 'Trajectory', href: '/trajectory', icon: Route, shortcut: '7' },
+  { name: 'Strategy', href: '/strategy', icon: FlaskConical, shortcut: '7' },
+  { name: 'Trajectory', href: '/trajectory', icon: Route, shortcut: '8' },
   { name: 'Focus', href: '/focus', icon: Timer, shortcut: 'F' },
 ];
 
@@ -135,6 +137,15 @@ export default function Sidebar() {
         prefetchIfStale(['trajectory', 'overview'], 20 * 1000, async () => {
           const response = await fetch('/api/trajectory/overview');
           if (!response.ok) throw new Error('Failed to fetch trajectory overview');
+          return response.json();
+        });
+        return;
+      }
+
+      if (href === '/strategy') {
+        prefetchIfStale(['strategy', 'decisions'], 20 * 1000, async () => {
+          const response = await fetch('/api/strategy/decisions');
+          if (!response.ok) throw new Error('Failed to fetch strategy decisions');
           return response.json();
         });
       }

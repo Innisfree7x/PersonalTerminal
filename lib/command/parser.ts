@@ -46,6 +46,7 @@ const PAGE_MAP: Array<{ aliases: string[]; label: string; path: string }> = [
   { aliases: ['university', 'uni', 'kurse', 'universität', 'studium', 'vorlesungen'], label: 'University', path: '/university' },
   { aliases: ['calendar', 'kalender', 'termine', 'schedule'], label: 'Calendar', path: '/calendar' },
   { aliases: ['analytics', 'statistiken', 'statistik', 'stats', 'analyse'], label: 'Analytics', path: '/analytics' },
+  { aliases: ['strategy', 'strategie', 'lab', 'strategy lab', 'decision lab'], label: 'Strategy', path: '/strategy' },
   { aliases: ['focus', 'fokus', 'focus mode', 'deep focus', 'lernen'], label: 'Focus', path: '/focus' },
   { aliases: ['trajectory', 'trajektorie', 'timeline', 'roadmap', 'career timeline'], label: 'Trajectory', path: '/trajectory' },
   { aliases: ['settings', 'einstellungen', 'konto', 'preferences'], label: 'Settings', path: '/settings' },
@@ -269,11 +270,11 @@ export function parseCommand(raw: string): ParseResult | null {
 
     const page = resolvePage(rest);
     if (!page) {
-      return {
-        ok: false,
-        error: `"${rest}" nicht gefunden. Verfügbar: Dashboard, Goals, Career, University, Calendar, Analytics, Focus, Trajectory, Settings`,
-      };
-    }
+        return {
+          ok: false,
+          error: `"${rest}" nicht gefunden. Verfügbar: Dashboard, Goals, Career, University, Calendar, Analytics, Strategy, Focus, Trajectory, Settings`,
+        };
+      }
 
     return createSuccess({ kind: 'open-page', page: page.label, path: page.path }, `Öffne ${page.label}`);
   }

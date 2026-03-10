@@ -436,6 +436,149 @@ export interface Database {
           }
         ];
       };
+      strategy_decisions: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          context: string | null;
+          target_date: string | null;
+          status: 'draft' | 'committed' | 'archived';
+          last_score_total: number | null;
+          last_scored_at: string | null;
+          last_winner_option_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          context?: string | null;
+          target_date?: string | null;
+          status?: 'draft' | 'committed' | 'archived';
+          last_score_total?: number | null;
+          last_scored_at?: string | null;
+          last_winner_option_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          context?: string | null;
+          target_date?: string | null;
+          status?: 'draft' | 'committed' | 'archived';
+          last_score_total?: number | null;
+          last_scored_at?: string | null;
+          last_winner_option_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      strategy_options: {
+        Row: {
+          id: string;
+          user_id: string;
+          decision_id: string;
+          title: string;
+          summary: string | null;
+          impact_potential: number;
+          confidence_level: number;
+          strategic_fit: number;
+          effort_cost: number;
+          downside_risk: number;
+          time_to_value_weeks: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          decision_id: string;
+          title: string;
+          summary?: string | null;
+          impact_potential?: number;
+          confidence_level?: number;
+          strategic_fit?: number;
+          effort_cost?: number;
+          downside_risk?: number;
+          time_to_value_weeks?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          decision_id?: string;
+          title?: string;
+          summary?: string | null;
+          impact_potential?: number;
+          confidence_level?: number;
+          strategic_fit?: number;
+          effort_cost?: number;
+          downside_risk?: number;
+          time_to_value_weeks?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'strategy_options_decision_id_fkey';
+            columns: ['decision_id'];
+            referencedRelation: 'strategy_decisions';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      strategy_decision_commits: {
+        Row: {
+          id: string;
+          user_id: string;
+          decision_id: string;
+          option_id: string;
+          task_source_key: string;
+          note: string | null;
+          snooze_until: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          decision_id: string;
+          option_id: string;
+          task_source_key: string;
+          note?: string | null;
+          snooze_until?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          decision_id?: string;
+          option_id?: string;
+          task_source_key?: string;
+          note?: string | null;
+          snooze_until?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'strategy_decision_commits_decision_id_fkey';
+            columns: ['decision_id'];
+            referencedRelation: 'strategy_decisions';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'strategy_decision_commits_option_id_fkey';
+            columns: ['option_id'];
+            referencedRelation: 'strategy_options';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
       ops_flow_metrics: {
         Row: {
           id: string;
@@ -507,3 +650,6 @@ export type SupabaseExerciseProgress = Database['public']['Tables']['exercise_pr
 export type SupabaseFocusSession = Database['public']['Tables']['focus_sessions']['Row'];
 export type SupabaseAdminAuditLog = Database['public']['Tables']['admin_audit_logs']['Row'];
 export type SupabaseOpsFlowMetric = Database['public']['Tables']['ops_flow_metrics']['Row'];
+export type SupabaseStrategyDecision = Database['public']['Tables']['strategy_decisions']['Row'];
+export type SupabaseStrategyOption = Database['public']['Tables']['strategy_options']['Row'];
+export type SupabaseStrategyDecisionCommit = Database['public']['Tables']['strategy_decision_commits']['Row'];
