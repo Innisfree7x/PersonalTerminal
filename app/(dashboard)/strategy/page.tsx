@@ -603,7 +603,7 @@ export default function StrategyPage() {
 
   return (
     <div className="space-y-4 pb-2 md:space-y-5">
-      <section className="dashboard-premium-card relative overflow-hidden rounded-2xl border border-primary/26 bg-gradient-to-br from-primary/[0.12] via-surface/94 to-surface/88 p-4 shadow-[0_18px_48px_-30px_rgba(0,0,0,0.85)] sm:p-5">
+      <section className="dashboard-premium-card relative overflow-hidden rounded-2xl border border-primary/26 bg-gradient-to-br from-primary/[0.12] via-surface/94 to-surface/88 p-4 shadow-[0_18px_48px_-30px_rgba(0,0,0,0.85)] transition-all duration-300 hover:border-primary/34 hover:shadow-[0_22px_56px_-34px_rgba(0,0,0,0.9)] sm:p-5">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1000px_320px_at_6%_0%,rgba(255,95,76,0.2),transparent_56%),radial-gradient(700px_260px_at_96%_100%,rgba(250,176,64,0.14),transparent_60%)]" />
         <div className="relative flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
@@ -614,15 +614,15 @@ export default function StrategyPage() {
             </p>
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
-            <div className="rounded-lg border border-white/15 bg-black/25 px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+            <div className="rounded-lg border border-white/15 bg-black/25 px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-colors duration-200 hover:border-white/25">
               <p className="text-text-tertiary">Decisions</p>
               <p className="text-lg font-semibold tracking-tight text-text-primary">{decisions.length}</p>
             </div>
-            <div className="rounded-lg border border-white/15 bg-black/25 px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+            <div className="rounded-lg border border-white/15 bg-black/25 px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-colors duration-200 hover:border-white/25">
               <p className="text-text-tertiary">Active</p>
               <p className="text-lg font-semibold tracking-tight text-text-primary">{decisions.filter((d) => d.status !== 'archived').length}</p>
             </div>
-            <div className="rounded-lg border border-white/15 bg-black/25 px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+            <div className="rounded-lg border border-white/15 bg-black/25 px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-colors duration-200 hover:border-white/25">
               <p className="text-text-tertiary">Committed</p>
               <p className="text-lg font-semibold tracking-tight text-text-primary">{decisions.filter((d) => d.status === 'committed').length}</p>
             </div>
@@ -632,7 +632,7 @@ export default function StrategyPage() {
 
       <div className="grid gap-4 md:gap-5 xl:grid-cols-12">
         <aside className="space-y-4 xl:col-span-4">
-          <section className="dashboard-premium-card rounded-2xl border border-border/70 bg-gradient-to-b from-surface/[0.72] to-surface/[0.44] p-3 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)] sm:p-4">
+          <section className="dashboard-premium-card rounded-2xl border border-border/70 bg-gradient-to-b from-surface/[0.72] to-surface/[0.44] p-3 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)] transition-all duration-300 hover:border-primary/26 hover:shadow-[0_20px_44px_-34px_rgba(0,0,0,0.9)] sm:p-4">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-text-primary">Neue Decision</h2>
               <Sparkles className="h-4 w-4 text-primary" />
@@ -660,7 +660,7 @@ export default function StrategyPage() {
             </div>
           </section>
 
-          <section className="dashboard-premium-card rounded-2xl border border-border/70 bg-gradient-to-b from-surface/[0.68] to-surface/[0.4] p-3 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)]">
+          <section className="dashboard-premium-card rounded-2xl border border-border/70 bg-gradient-to-b from-surface/[0.68] to-surface/[0.4] p-3 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)] transition-all duration-300 hover:border-primary/26 hover:shadow-[0_20px_44px_-34px_rgba(0,0,0,0.9)]">
             <h2 className="mb-2 text-sm font-semibold text-text-primary">Decision Stack</h2>
             <div className="space-y-2">
               {isLoading ? (
@@ -673,10 +673,10 @@ export default function StrategyPage() {
                     key={decision.id}
                     onClick={() => setSelectedDecisionId(decision.id)}
                     className={cn(
-                      'w-full rounded-xl border px-3 py-2 text-left transition-colors',
+                      'w-full rounded-xl border px-3 py-2 text-left transition-all duration-200 ease-out motion-safe:hover:-translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45',
                       selectedDecisionId === decision.id
                         ? 'border-primary/40 bg-gradient-to-r from-primary/[0.18] to-primary/[0.06] shadow-[inset_2px_0_0_0_rgba(255,95,76,0.85)]'
-                        : 'border-border/70 bg-surface/40 hover:border-primary/25 hover:bg-primary/[0.08]'
+                        : 'border-border/70 bg-surface/40 hover:border-primary/25 hover:bg-primary/[0.08] hover:shadow-[0_10px_22px_-18px_rgba(255,95,76,0.6)]'
                     )}
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -705,7 +705,7 @@ export default function StrategyPage() {
             </div>
           ) : (
             <>
-              <section className="dashboard-premium-card rounded-2xl border border-border/70 bg-gradient-to-b from-surface/[0.72] to-surface/[0.42] p-3 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)] sm:p-4">
+              <section className="dashboard-premium-card rounded-2xl border border-border/70 bg-gradient-to-b from-surface/[0.72] to-surface/[0.42] p-3 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)] transition-all duration-300 hover:border-primary/26 hover:shadow-[0_20px_44px_-34px_rgba(0,0,0,0.9)] sm:p-4">
                 <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <h2 className="text-base font-semibold text-text-primary sm:text-lg">{selectedDecision.title}</h2>
                   <div className="flex items-center gap-2 self-start sm:self-auto">
@@ -759,7 +759,7 @@ export default function StrategyPage() {
                 </div>
               </section>
 
-              <section className="dashboard-premium-card rounded-2xl border border-border/70 bg-gradient-to-b from-surface/[0.72] to-surface/[0.42] p-3 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)] sm:p-4">
+              <section className="dashboard-premium-card rounded-2xl border border-border/70 bg-gradient-to-b from-surface/[0.72] to-surface/[0.42] p-3 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)] transition-all duration-300 hover:border-primary/26 hover:shadow-[0_20px_44px_-34px_rgba(0,0,0,0.9)] sm:p-4">
                 <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <h3 className="text-sm font-semibold text-text-primary">Optionen vergleichen</h3>
                   {localScore.winner ? (
@@ -781,7 +781,7 @@ export default function StrategyPage() {
                       type="button"
                       onClick={() => setScoreMode('standard')}
                       className={cn(
-                        'rounded-lg border px-3 py-2 text-left transition-colors',
+                        'rounded-lg border px-3 py-2 text-left transition-all duration-200 ease-out motion-safe:hover:-translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45',
                         scoreMode === 'standard'
                           ? 'border-primary/45 bg-primary/[0.12]'
                           : 'border-border/70 bg-surface/40 hover:border-primary/30 hover:bg-primary/[0.08]'
@@ -794,7 +794,7 @@ export default function StrategyPage() {
                       type="button"
                       onClick={() => setScoreMode('deadline')}
                       className={cn(
-                        'rounded-lg border px-3 py-2 text-left transition-colors',
+                        'rounded-lg border px-3 py-2 text-left transition-all duration-200 ease-out motion-safe:hover:-translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45',
                         scoreMode === 'deadline'
                           ? 'border-primary/45 bg-primary/[0.12]'
                           : 'border-border/70 bg-surface/40 hover:border-primary/30 hover:bg-primary/[0.08]'
@@ -835,7 +835,7 @@ export default function StrategyPage() {
                       <article
                         key={option.id}
                         className={cn(
-                          'rounded-xl border p-3',
+                          'rounded-xl border p-3 transition-all duration-200 ease-out motion-safe:hover:-translate-y-[1px] motion-safe:hover:shadow-[0_20px_36px_-30px_rgba(0,0,0,0.9)]',
                           isWinner
                             ? 'border-success/45 bg-gradient-to-br from-success/[0.16] via-success/[0.09] to-transparent'
                             : 'border-border/70 bg-gradient-to-b from-surface/55 to-surface/35'
@@ -913,7 +913,7 @@ export default function StrategyPage() {
                   })}
                 </div>
 
-                  <div className="mt-4 rounded-xl border border-border/70 bg-gradient-to-b from-surface/[0.58] to-surface/[0.32] p-3">
+                  <div className="mt-4 rounded-xl border border-border/70 bg-gradient-to-b from-surface/[0.58] to-surface/[0.32] p-3 transition-all duration-300 hover:border-primary/22">
                   <h4 className="mb-2 text-sm font-semibold text-text-primary">Neue Option</h4>
                   <div className="grid gap-2 md:grid-cols-2">
                     <Input
@@ -978,7 +978,7 @@ export default function StrategyPage() {
                           type="button"
                           onClick={() => applyPreset(preset.id)}
                           className={cn(
-                            'rounded-lg border px-3 py-2 text-left transition-colors',
+                            'rounded-lg border px-3 py-2 text-left transition-all duration-200 ease-out motion-safe:hover:-translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45',
                             preset.id === activePreset
                               ? 'border-primary/45 bg-primary/[0.12]'
                               : 'border-border/70 bg-surface/40 hover:border-primary/30 hover:bg-primary/[0.08]'
@@ -1071,7 +1071,7 @@ export default function StrategyPage() {
                       type="button"
                       onClick={() => setFollowUpEnabled((current) => !current)}
                       className={cn(
-                        'rounded-md border px-3 py-2 text-xs transition-colors',
+                        'rounded-md border px-3 py-2 text-xs transition-all duration-200 ease-out motion-safe:hover:-translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45',
                         followUpEnabled
                           ? 'border-emerald-500/35 bg-emerald-500/15 text-emerald-300'
                           : 'border-border/70 bg-surface/35 text-text-secondary hover:border-primary/30'
@@ -1085,14 +1085,14 @@ export default function StrategyPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 rounded-xl border border-border/70 bg-gradient-to-b from-surface/[0.58] to-surface/[0.32] p-3">
+                <div className="mt-4 rounded-xl border border-border/70 bg-gradient-to-b from-surface/[0.58] to-surface/[0.32] p-3 transition-all duration-300 hover:border-primary/22">
                   <h4 className="mb-2 text-sm font-semibold text-text-primary">Decision Replay</h4>
                   {!selectedDecision.recentCommits || selectedDecision.recentCommits.length === 0 ? (
                     <p className="text-xs text-text-tertiary">Noch keine Commits für diese Decision.</p>
                   ) : (
                     <div className="space-y-2">
                       {selectedDecision.recentCommits.slice(0, 5).map((commit, idx) => (
-                        <div key={commit.id} className="rounded-lg border border-white/15 bg-black/25 px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                        <div key={commit.id} className="rounded-lg border border-white/15 bg-black/25 px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors duration-200 hover:border-white/25">
                           <div className="flex items-center justify-between gap-2">
                             <p className="text-xs font-semibold text-text-primary">
                               #{idx + 1} · {optionTitleById.get(commit.optionId) ?? 'Option'}
