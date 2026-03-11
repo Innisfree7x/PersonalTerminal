@@ -602,18 +602,18 @@ export default function StrategyPage() {
   };
 
   return (
-    <div className="space-y-5 pb-2">
-      <section className="dashboard-premium-card relative overflow-hidden rounded-2xl border border-primary/26 bg-gradient-to-br from-primary/[0.12] via-surface/94 to-surface/88 p-5 shadow-[0_18px_48px_-30px_rgba(0,0,0,0.85)]">
+    <div className="space-y-4 pb-2 md:space-y-5">
+      <section className="dashboard-premium-card relative overflow-hidden rounded-2xl border border-primary/26 bg-gradient-to-br from-primary/[0.12] via-surface/94 to-surface/88 p-4 shadow-[0_18px_48px_-30px_rgba(0,0,0,0.85)] sm:p-5">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1000px_320px_at_6%_0%,rgba(255,95,76,0.2),transparent_56%),radial-gradient(700px_260px_at_96%_100%,rgba(250,176,64,0.14),transparent_60%)]" />
         <div className="relative flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-[11px] uppercase tracking-[0.24em] text-primary/80">Strategy Lab</p>
-            <h1 className="text-3xl font-semibold tracking-tight text-text-primary">Strategic Decision Engine</h1>
-            <p className="mt-1 text-sm text-text-secondary">
+            <h1 className="text-2xl font-semibold tracking-tight text-text-primary sm:text-3xl">Strategic Decision Engine</h1>
+            <p className="mt-1 text-sm leading-relaxed text-text-secondary">
               Vergleiche Optionen mit transparenten Subscores und committe den Gewinner direkt als Today-Task.
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-2 text-xs">
+          <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
             <div className="rounded-lg border border-white/15 bg-black/25 px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
               <p className="text-text-tertiary">Decisions</p>
               <p className="text-lg font-semibold tracking-tight text-text-primary">{decisions.length}</p>
@@ -630,9 +630,9 @@ export default function StrategyPage() {
         </div>
       </section>
 
-      <div className="grid gap-5 xl:grid-cols-12">
+      <div className="grid gap-4 md:gap-5 xl:grid-cols-12">
         <aside className="space-y-4 xl:col-span-4">
-          <section className="dashboard-premium-card rounded-2xl border border-border/70 bg-gradient-to-b from-surface/[0.72] to-surface/[0.44] p-4 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)]">
+          <section className="dashboard-premium-card rounded-2xl border border-border/70 bg-gradient-to-b from-surface/[0.72] to-surface/[0.44] p-3 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)] sm:p-4">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-text-primary">Neue Decision</h2>
               <Sparkles className="h-4 w-4 text-primary" />
@@ -705,10 +705,10 @@ export default function StrategyPage() {
             </div>
           ) : (
             <>
-              <section className="dashboard-premium-card rounded-2xl border border-border/70 bg-gradient-to-b from-surface/[0.72] to-surface/[0.42] p-4 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)]">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <h2 className="text-lg font-semibold text-text-primary">{selectedDecision.title}</h2>
-                  <div className="flex items-center gap-2">
+              <section className="dashboard-premium-card rounded-2xl border border-border/70 bg-gradient-to-b from-surface/[0.72] to-surface/[0.42] p-3 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)] sm:p-4">
+                <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <h2 className="text-base font-semibold text-text-primary sm:text-lg">{selectedDecision.title}</h2>
+                  <div className="flex items-center gap-2 self-start sm:self-auto">
                     <Button
                       variant="secondary"
                       size="sm"
@@ -759,8 +759,8 @@ export default function StrategyPage() {
                 </div>
               </section>
 
-              <section className="dashboard-premium-card rounded-2xl border border-border/70 bg-gradient-to-b from-surface/[0.72] to-surface/[0.42] p-4 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)]">
-                <div className="mb-3 flex items-center justify-between">
+              <section className="dashboard-premium-card rounded-2xl border border-border/70 bg-gradient-to-b from-surface/[0.72] to-surface/[0.42] p-3 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)] sm:p-4">
+                <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <h3 className="text-sm font-semibold text-text-primary">Optionen vergleichen</h3>
                   {localScore.winner ? (
                     <Badge variant="success" size="sm" dot>
@@ -825,7 +825,7 @@ export default function StrategyPage() {
                   </div>
                 ) : null}
 
-                <div className="grid gap-3 lg:grid-cols-2">
+                <div className="grid gap-2.5 lg:grid-cols-2">
                   {optionsForRender.map((option, index) => {
                     const score = scoreByOptionId.get(option.id);
                     const isWinner = localScore.winner?.optionId === option.id;
@@ -853,7 +853,7 @@ export default function StrategyPage() {
                           </div>
                           <div className="text-right">
                             <p className="text-xs uppercase tracking-wide text-text-tertiary">Score</p>
-                            <p className="text-2xl font-bold text-text-primary">{score?.total ?? '—'}</p>
+                            <p className="text-xl font-bold text-text-primary sm:text-2xl">{score?.total ?? '—'}</p>
                           </div>
                         </div>
 
@@ -884,7 +884,7 @@ export default function StrategyPage() {
                           </>
                         ) : null}
 
-                        <div className="mt-3 flex items-center justify-between gap-2">
+                        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                           <Button
                             size="sm"
                             variant="secondary"
@@ -1060,12 +1060,12 @@ export default function StrategyPage() {
                       weightLabel="×1.6"
                     />
                   </div>
-                  <div className="mt-3 flex items-center justify-between gap-2">
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <Input
                       value={commitNote}
                       onChange={(event) => setCommitNote(event.target.value)}
                       placeholder="Optionale Commit-Notiz"
-                      className="max-w-[320px]"
+                      className="w-full sm:max-w-[320px]"
                     />
                     <button
                       type="button"
