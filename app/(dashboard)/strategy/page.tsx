@@ -157,8 +157,8 @@ function ScoreInputCard({ label, description, value, onChange, tone, weightLabel
   const band = describeScoreBand(value, tone);
   const cardToneClasses =
     tone === 'positive'
-      ? 'border-emerald-500/25 bg-emerald-500/[0.06]'
-      : 'border-amber-500/25 bg-amber-500/[0.06]';
+      ? 'border-emerald-500/22 bg-gradient-to-br from-emerald-500/[0.12] via-emerald-500/[0.05] to-transparent'
+      : 'border-amber-500/22 bg-gradient-to-br from-amber-500/[0.12] via-amber-500/[0.05] to-transparent';
   const chipToneClasses =
     tone === 'positive'
       ? 'border-emerald-500/35 bg-emerald-500/15 text-emerald-300'
@@ -166,7 +166,7 @@ function ScoreInputCard({ label, description, value, onChange, tone, weightLabel
   const hint = tone === 'positive' ? 'Höher = stärkerer Plus-Beitrag' : 'Höher = stärkere Minus-Strafe';
 
   return (
-    <div className={cn('rounded-lg border px-3 py-2', cardToneClasses)}>
+    <div className={cn('rounded-xl border px-3 py-2 shadow-[0_8px_24px_-18px_rgba(0,0,0,0.75)] backdrop-blur-[1px]', cardToneClasses)}>
       <div className="mb-1 flex items-center justify-between gap-2">
         <p className="text-xs font-semibold text-text-primary">{label}</p>
         <span className={cn('rounded-full border px-2 py-0.5 text-[10px] font-medium', chipToneClasses)}>
@@ -602,9 +602,10 @@ export default function StrategyPage() {
   };
 
   return (
-    <div className="space-y-5">
-      <section className="dashboard-premium-card rounded-2xl border border-primary/22 bg-gradient-to-br from-primary/[0.09] via-surface/92 to-surface/88 p-5">
-        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+    <div className="space-y-5 pb-2">
+      <section className="dashboard-premium-card relative overflow-hidden rounded-2xl border border-primary/26 bg-gradient-to-br from-primary/[0.12] via-surface/94 to-surface/88 p-5 shadow-[0_18px_48px_-30px_rgba(0,0,0,0.85)]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1000px_320px_at_6%_0%,rgba(255,95,76,0.2),transparent_56%),radial-gradient(700px_260px_at_96%_100%,rgba(250,176,64,0.14),transparent_60%)]" />
+        <div className="relative flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-[11px] uppercase tracking-[0.24em] text-primary/80">Strategy Lab</p>
             <h1 className="text-3xl font-semibold tracking-tight text-text-primary">Strategic Decision Engine</h1>
@@ -613,17 +614,17 @@ export default function StrategyPage() {
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2 text-xs">
-            <div className="rounded-lg border border-white/10 bg-black/20 px-3 py-2">
+            <div className="rounded-lg border border-white/15 bg-black/25 px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
               <p className="text-text-tertiary">Decisions</p>
-              <p className="text-lg font-semibold text-text-primary">{decisions.length}</p>
+              <p className="text-lg font-semibold tracking-tight text-text-primary">{decisions.length}</p>
             </div>
-            <div className="rounded-lg border border-white/10 bg-black/20 px-3 py-2">
+            <div className="rounded-lg border border-white/15 bg-black/25 px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
               <p className="text-text-tertiary">Active</p>
-              <p className="text-lg font-semibold text-text-primary">{decisions.filter((d) => d.status !== 'archived').length}</p>
+              <p className="text-lg font-semibold tracking-tight text-text-primary">{decisions.filter((d) => d.status !== 'archived').length}</p>
             </div>
-            <div className="rounded-lg border border-white/10 bg-black/20 px-3 py-2">
+            <div className="rounded-lg border border-white/15 bg-black/25 px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
               <p className="text-text-tertiary">Committed</p>
-              <p className="text-lg font-semibold text-text-primary">{decisions.filter((d) => d.status === 'committed').length}</p>
+              <p className="text-lg font-semibold tracking-tight text-text-primary">{decisions.filter((d) => d.status === 'committed').length}</p>
             </div>
           </div>
         </div>
@@ -631,7 +632,7 @@ export default function StrategyPage() {
 
       <div className="grid gap-5 xl:grid-cols-12">
         <aside className="space-y-4 xl:col-span-4">
-          <section className="dashboard-premium-card rounded-2xl border border-border/70 p-4">
+          <section className="dashboard-premium-card rounded-2xl border border-border/70 bg-gradient-to-b from-surface/[0.72] to-surface/[0.44] p-4 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)]">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-text-primary">Neue Decision</h2>
               <Sparkles className="h-4 w-4 text-primary" />
@@ -659,7 +660,7 @@ export default function StrategyPage() {
             </div>
           </section>
 
-          <section className="dashboard-premium-card rounded-2xl border border-border/70 p-3">
+          <section className="dashboard-premium-card rounded-2xl border border-border/70 bg-gradient-to-b from-surface/[0.68] to-surface/[0.4] p-3 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)]">
             <h2 className="mb-2 text-sm font-semibold text-text-primary">Decision Stack</h2>
             <div className="space-y-2">
               {isLoading ? (
@@ -674,7 +675,7 @@ export default function StrategyPage() {
                     className={cn(
                       'w-full rounded-xl border px-3 py-2 text-left transition-colors',
                       selectedDecisionId === decision.id
-                        ? 'border-primary/40 bg-primary/[0.12]'
+                        ? 'border-primary/40 bg-gradient-to-r from-primary/[0.18] to-primary/[0.06] shadow-[inset_2px_0_0_0_rgba(255,95,76,0.85)]'
                         : 'border-border/70 bg-surface/40 hover:border-primary/25 hover:bg-primary/[0.08]'
                     )}
                   >
@@ -704,7 +705,7 @@ export default function StrategyPage() {
             </div>
           ) : (
             <>
-              <section className="dashboard-premium-card rounded-2xl border border-border/70 p-4">
+              <section className="dashboard-premium-card rounded-2xl border border-border/70 bg-gradient-to-b from-surface/[0.72] to-surface/[0.42] p-4 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)]">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <h2 className="text-lg font-semibold text-text-primary">{selectedDecision.title}</h2>
                   <div className="flex items-center gap-2">
@@ -758,7 +759,7 @@ export default function StrategyPage() {
                 </div>
               </section>
 
-              <section className="dashboard-premium-card rounded-2xl border border-border/70 p-4">
+              <section className="dashboard-premium-card rounded-2xl border border-border/70 bg-gradient-to-b from-surface/[0.72] to-surface/[0.42] p-4 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)]">
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-text-primary">Optionen vergleichen</h3>
                   {localScore.winner ? (
@@ -806,7 +807,7 @@ export default function StrategyPage() {
                 </div>
 
                 {winnerInsight ? (
-                  <div className="mb-3 rounded-xl border border-primary/25 bg-primary/[0.08] px-3 py-2">
+                  <div className="mb-3 rounded-xl border border-primary/30 bg-gradient-to-r from-primary/[0.16] to-primary/[0.05] px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
                     <p className="text-xs font-semibold text-text-primary">
                       Warum gewinnt <span className="text-primary">{winnerInsight.winnerTitle}</span>?
                     </p>
@@ -835,7 +836,9 @@ export default function StrategyPage() {
                         key={option.id}
                         className={cn(
                           'rounded-xl border p-3',
-                          isWinner ? 'border-success/45 bg-success/10' : 'border-border/70 bg-surface/40'
+                          isWinner
+                            ? 'border-success/45 bg-gradient-to-br from-success/[0.16] via-success/[0.09] to-transparent'
+                            : 'border-border/70 bg-gradient-to-b from-surface/55 to-surface/35'
                         )}
                       >
                         <div className="mb-2 flex items-start justify-between gap-2">
@@ -910,7 +913,7 @@ export default function StrategyPage() {
                   })}
                 </div>
 
-                <div className="mt-4 rounded-xl border border-border/70 bg-surface/30 p-3">
+                  <div className="mt-4 rounded-xl border border-border/70 bg-gradient-to-b from-surface/[0.58] to-surface/[0.32] p-3">
                   <h4 className="mb-2 text-sm font-semibold text-text-primary">Neue Option</h4>
                   <div className="grid gap-2 md:grid-cols-2">
                     <Input
@@ -940,7 +943,7 @@ export default function StrategyPage() {
                       placeholder="Warum ist diese Option stark?"
                     />
                   </div>
-                  <div className="mt-2 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-[11px] text-text-tertiary">
+                  <div className="mt-2 rounded-lg border border-white/15 bg-black/25 px-3 py-2 text-[11px] text-text-tertiary">
                     {scoreMode === 'deadline' ? (
                       <>
                         Deadline-Logik: <span className="text-emerald-300">Impact (+) ×3.7</span>,{' '}
@@ -961,7 +964,7 @@ export default function StrategyPage() {
                       </>
                     )}
                   </div>
-                  <div className="mt-2 rounded-lg border border-border/70 bg-surface/35 p-2">
+                  <div className="mt-2 rounded-lg border border-border/70 bg-gradient-to-r from-surface/[0.55] to-surface/[0.35] p-2">
                     <div className="mb-2 flex items-center justify-between">
                       <p className="text-xs font-semibold text-text-primary">Scoring Presets</p>
                       <span className="text-[11px] text-text-tertiary">
@@ -987,7 +990,7 @@ export default function StrategyPage() {
                       ))}
                     </div>
                   </div>
-                  <div className="mt-2 rounded-lg border border-primary/25 bg-primary/[0.08] px-3 py-2">
+                  <div className="mt-2 rounded-lg border border-primary/25 bg-gradient-to-r from-primary/[0.16] to-primary/[0.06] px-3 py-2">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="text-xs font-semibold text-text-primary">Live-Score Vorschau</p>
                       <Badge variant="primary" size="sm">
@@ -1082,14 +1085,14 @@ export default function StrategyPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 rounded-xl border border-border/70 bg-surface/30 p-3">
+                <div className="mt-4 rounded-xl border border-border/70 bg-gradient-to-b from-surface/[0.58] to-surface/[0.32] p-3">
                   <h4 className="mb-2 text-sm font-semibold text-text-primary">Decision Replay</h4>
                   {!selectedDecision.recentCommits || selectedDecision.recentCommits.length === 0 ? (
                     <p className="text-xs text-text-tertiary">Noch keine Commits für diese Decision.</p>
                   ) : (
                     <div className="space-y-2">
                       {selectedDecision.recentCommits.slice(0, 5).map((commit, idx) => (
-                        <div key={commit.id} className="rounded-lg border border-white/10 bg-black/20 px-3 py-2">
+                        <div key={commit.id} className="rounded-lg border border-white/15 bg-black/25 px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                           <div className="flex items-center justify-between gap-2">
                             <p className="text-xs font-semibold text-text-primary">
                               #{idx + 1} · {optionTitleById.get(commit.optionId) ?? 'Option'}
