@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     requestUrl: request.url,
     configuredRedirectUri,
     siteUrl,
+    preferRequestOrigin: true,
   });
   const redirectUri = redirectResolution.redirectUri;
 

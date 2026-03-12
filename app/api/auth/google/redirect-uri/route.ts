@@ -15,12 +15,24 @@ export async function GET(request: NextRequest) {
   const { errorResponse } = await requireApiAuth();
   if (errorResponse) return withApiTraceHeaders(errorResponse, trace, { metricName: 'oauth_redirect' });
 
+  const configuredRedirectUri = serverEnv.GOOGLE_REDIRECT_URI;
   const redirectResolution = resolveGoogleOAuthRedirectUri({
     requestUrl: request.url,
-    configuredRedirectUri: serverEnv.GOOGLE_REDIRECT_URI,
+    configuredRedirectUri,
     siteUrl: serverEnv.NEXT_PUBLIC_SITE_URL,
+    preferRequestOrigin: true,
   });
   const requestOrigin = new URL(request.url).origin;
+  let configuredOrigin: string | null = null;
+  if (configuredRedirectUri) {
+    try {
+      configuredOrigin = new URL(configuredRedirectUri).origin;
+    } catch {
+      configuredOrigin = null;
+    }
+  }
+  const configuredMatchesRequestOrigin =
+    configuredOrigin === null ? null : configuredOrigin === requestOrigin;
 
   const response = applyPrivateSWRPolicy(
     NextResponse.json({
@@ -28,6 +40,9 @@ export async function GET(request: NextRequest) {
       source: redirectResolution.source,
       normalized: redirectResolution.normalized,
       requestOrigin,
+      configuredRedirectUri: configuredRedirectUri || null,
+      configuredOrigin,
+      configuredMatchesRequestOrigin,
     }),
     {
       maxAgeSeconds: 60,
@@ -36,4 +51,3 @@ export async function GET(request: NextRequest) {
   );
   return withApiTraceHeaders(response, trace, { metricName: 'oauth_redirect' });
 }
-

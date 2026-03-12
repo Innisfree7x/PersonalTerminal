@@ -5,6 +5,7 @@ import { format, startOfWeek, addWeeks, subWeeks, isSameDay, getWeek } from 'dat
 import { useMemo, useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { parseOAuthCallbackParams } from '@/lib/hooks/useNotifications';
 import {
   checkGoogleCalendarConnectionAction,
   disconnectGoogleCalendarAction,
@@ -99,6 +100,9 @@ interface GoogleOAuthRedirectInfo {
   source: 'cookie' | 'configured' | 'site_url' | 'request_origin' | 'fallback';
   normalized: boolean;
   requestOrigin: string;
+  configuredRedirectUri: string | null;
+  configuredOrigin: string | null;
+  configuredMatchesRequestOrigin: boolean | null;
 }
 
 const ghostEventClassMap: Record<TrajectoryGhostEvent['kind'], string> = {
@@ -119,16 +123,15 @@ export default function CalendarPage() {
 
   // Check URL params for error/success messages
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const errorParam = params.get('error');
-    const successParam = params.get('success');
-
-    if (errorParam) {
-      setError('An error occurred during authentication.');
+    const messages = parseOAuthCallbackParams();
+    if (messages.error) {
+      setError(messages.error);
+      window.history.replaceState({}, '', '/calendar');
+      return;
     }
 
-    if (successParam === 'connected') {
-      setSuccess('Successfully connected to Google Calendar!');
+    if (messages.success) {
+      setSuccess(messages.success);
       window.history.replaceState({}, '', '/calendar');
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['calendar', 'week'] });
@@ -465,7 +468,18 @@ export default function CalendarPage() {
                     normalized
                   </span>
                 ) : null}
+                {oauthRedirectInfo.configuredMatchesRequestOrigin === false ? (
+                  <span className="rounded-full border border-error/35 bg-error/10 px-2 py-1 text-[11px] text-error">
+                    env origin mismatch
+                  </span>
+                ) : null}
               </div>
+              {oauthRedirectInfo.configuredMatchesRequestOrigin === false ? (
+                <p className="mt-3 text-xs text-error">
+                  GOOGLE_REDIRECT_URI origin ({oauthRedirectInfo.configuredOrigin}) weicht von der aktuellen App-Origin ({oauthRedirectInfo.requestOrigin}) ab.
+                  Das verursacht typischerweise <span className="font-semibold">redirect_uri_mismatch</span>.
+                </p>
+              ) : null}
             </div>
           ) : null}
         </div>

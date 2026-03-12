@@ -68,6 +68,30 @@ describe('google oauth redirect resolution', () => {
     expect(result.source).toBe('cookie');
   });
 
+  it('can prefer request origin to avoid stale configured origins', () => {
+    const result = resolveGoogleOAuthRedirectUri({
+      requestUrl: 'https://personal-terminal-green.vercel.app/api/auth/google',
+      configuredRedirectUri: 'https://old.innis.ai/api/auth/google/callback',
+      siteUrl: 'https://old.innis.ai',
+      preferRequestOrigin: true,
+    });
+
+    expect(result.redirectUri).toBe('https://personal-terminal-green.vercel.app/api/auth/google/callback');
+    expect(result.source).toBe('request_origin');
+  });
+
+  it('can prefer cookie callback URI for token exchange stability', () => {
+    const result = resolveGoogleOAuthRedirectUri({
+      requestUrl: 'https://personal-terminal-green.vercel.app/api/auth/google/callback',
+      cookieRedirectUri: 'https://personal-terminal-green.vercel.app/api/auth/google/callback',
+      configuredRedirectUri: 'https://old.innis.ai/api/auth/google/callback',
+      preferCookie: true,
+    });
+
+    expect(result.redirectUri).toBe('https://personal-terminal-green.vercel.app/api/auth/google/callback');
+    expect(result.source).toBe('cookie');
+  });
+
   it('falls back to localhost when all candidates are invalid', () => {
     const result = resolveGoogleOAuthRedirectUri({
       requestUrl: 'not-a-url',

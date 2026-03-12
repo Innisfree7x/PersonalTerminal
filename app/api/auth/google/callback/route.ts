@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
     cookieRedirectUri: request.cookies.get(OAUTH_REDIRECT_URI_COOKIE)?.value,
     configuredRedirectUri,
     siteUrl,
+    preferCookie: true,
   });
   const redirectUri = redirectResolution.redirectUri;
 

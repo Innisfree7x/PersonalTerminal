@@ -61,13 +61,31 @@ export function resolveGoogleOAuthRedirectUri(options: {
   cookieRedirectUri?: string | null | undefined;
   configuredRedirectUri?: string | null | undefined;
   siteUrl?: string | null | undefined;
+  preferCookie?: boolean;
+  preferRequestOrigin?: boolean;
 }): GoogleRedirectResolution {
-  const candidates: Array<{ value: string | null | undefined; source: GoogleRedirectSource }> = [
-    { value: options.configuredRedirectUri, source: 'configured' },
-    { value: options.siteUrl, source: 'site_url' },
-    { value: options.cookieRedirectUri, source: 'cookie' },
-    { value: options.requestUrl, source: 'request_origin' },
-  ];
+  const candidateValues: Record<GoogleRedirectSource, string | null | undefined> = {
+    configured: options.configuredRedirectUri,
+    site_url: options.siteUrl,
+    cookie: options.cookieRedirectUri,
+    request_origin: options.requestUrl,
+    fallback: null,
+  };
+
+  const candidateOrder: GoogleRedirectSource[] = ['configured', 'site_url', 'cookie', 'request_origin'];
+  if (options.preferCookie) {
+    const withoutCookie = candidateOrder.filter((source) => source !== 'cookie');
+    candidateOrder.splice(0, candidateOrder.length, 'cookie', ...withoutCookie);
+  }
+  if (options.preferRequestOrigin) {
+    const withoutRequestOrigin = candidateOrder.filter((source) => source !== 'request_origin');
+    candidateOrder.splice(0, candidateOrder.length, 'request_origin', ...withoutRequestOrigin);
+  }
+
+  const candidates = candidateOrder.map((source) => ({
+    source,
+    value: candidateValues[source],
+  }));
 
   for (const candidate of candidates) {
     if (candidate.source === 'configured') {
