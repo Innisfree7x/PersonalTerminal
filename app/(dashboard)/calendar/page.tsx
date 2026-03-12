@@ -120,6 +120,7 @@ export default function CalendarPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [showTrajectoryGhostEvents, setShowTrajectoryGhostEvents] = useState(true);
   const [isCopyingRedirect, setIsCopyingRedirect] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
 
   // Check URL params for error/success messages
   useEffect(() => {
@@ -316,6 +317,19 @@ export default function CalendarPage() {
     const suffix = params.toString();
     router.push(suffix ? `/trajectory?${suffix}` : '/trajectory');
   };
+
+  const eventTypeLabel: Record<CalendarEvent['type'], string> = {
+    meeting: 'Meeting',
+    task: 'Task',
+    break: 'Break',
+  };
+
+  const selectedEventDurationMinutes = selectedEvent
+    ? Math.max(
+        1,
+        Math.round((selectedEvent.endTime.getTime() - selectedEvent.startTime.getTime()) / 60000)
+      )
+    : null;
 
   return (
     <div className="space-y-6">
@@ -574,16 +588,18 @@ export default function CalendarPage() {
                             const config = eventTypeConfig[event.type];
 
                             return (
-                              <div
+                              <button
                                 key={event.id}
-                                className={`rounded p-2 text-xs border ${config.bgColor} ${config.color} border-current/20 hover:opacity-80 transition-opacity cursor-pointer`}
-                                title={event.title}
+                                type="button"
+                                onClick={() => setSelectedEvent(event)}
+                                className={`w-full rounded border p-2 text-left text-xs ${config.bgColor} ${config.color} border-current/20 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60`}
+                                title={`${event.title} · ${format(event.startTime, 'HH:mm')} - ${format(event.endTime, 'HH:mm')}`}
                               >
                                 <div className="font-medium truncate mb-0.5">
                                   <span className="mr-1">{config.icon}</span>
                                   {format(event.startTime, 'HH:mm')} {event.title}
                                 </div>
-                              </div>
+                              </button>
                             );
                           })}
 
@@ -629,6 +645,65 @@ export default function CalendarPage() {
             <p className="text-text-secondary">No events scheduled this week</p>
           </div>
         )}
+
+      {selectedEvent ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setSelectedEvent(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-xl border border-border bg-surface p-5 shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-text-tertiary">Kalendertermin</p>
+                <h3 className="mt-1 text-lg font-semibold text-text-primary">{selectedEvent.title}</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedEvent(null)}
+                className="rounded-md border border-border bg-surface-hover/60 px-2 py-1 text-xs text-text-secondary hover:text-text-primary"
+              >
+                Schließen
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 text-sm">
+              <div className="rounded-lg border border-border bg-background/40 p-3">
+                <p className="text-xs uppercase tracking-wide text-text-tertiary">Datum</p>
+                <p className="mt-1 text-text-primary">
+                  {format(selectedEvent.startTime, 'EEEE, dd.MM.yyyy')}
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-border bg-background/40 p-3">
+                <p className="text-xs uppercase tracking-wide text-text-tertiary">Zeitfenster</p>
+                <p className="mt-1 text-text-primary">
+                  {format(selectedEvent.startTime, 'HH:mm')} - {format(selectedEvent.endTime, 'HH:mm')}
+                  {selectedEventDurationMinutes !== null ? (
+                    <span className="text-text-tertiary"> · {selectedEventDurationMinutes} min</span>
+                  ) : null}
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-border bg-background/40 p-3">
+                <p className="text-xs uppercase tracking-wide text-text-tertiary">Typ</p>
+                <p className="mt-1 text-text-primary">{eventTypeLabel[selectedEvent.type]}</p>
+              </div>
+
+              <div className="rounded-lg border border-border bg-background/40 p-3">
+                <p className="text-xs uppercase tracking-wide text-text-tertiary">Beschreibung</p>
+                <p className="mt-1 whitespace-pre-wrap text-text-secondary">
+                  {selectedEvent.description?.trim() ? selectedEvent.description : 'Keine Beschreibung vorhanden.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
