@@ -94,6 +94,13 @@ interface CalendarTrajectoryOverviewResponse {
   };
 }
 
+interface GoogleOAuthRedirectInfo {
+  redirectUri: string;
+  source: 'cookie' | 'configured' | 'site_url' | 'request_origin' | 'fallback';
+  normalized: boolean;
+  requestOrigin: string;
+}
+
 const ghostEventClassMap: Record<TrajectoryGhostEvent['kind'], string> = {
   milestone: 'border-success/45 bg-success/10 text-success',
   prep_block: 'border-warning/45 bg-warning/10 text-warning',
@@ -108,6 +115,7 @@ export default function CalendarPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showTrajectoryGhostEvents, setShowTrajectoryGhostEvents] = useState(true);
+  const [isCopyingRedirect, setIsCopyingRedirect] = useState(false);
 
   // Check URL params for error/success messages
   useEffect(() => {
@@ -188,6 +196,22 @@ export default function CalendarPage() {
     retry: false,
   });
 
+  const { data: oauthRedirectInfo } = useQuery<GoogleOAuthRedirectInfo>({
+    queryKey: ['calendar', 'google-redirect-uri'],
+    queryFn: async () => {
+      const response = await fetch('/api/auth/google/redirect-uri');
+      if (!response.ok) {
+        throw new Error('Failed to resolve Google OAuth redirect URI');
+      }
+      return response.json() as Promise<GoogleOAuthRedirectInfo>;
+    },
+    enabled: isConnected === false,
+    staleTime: 60 * 1000,
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+
   // Disconnect mutation
   const disconnectMutation = useMutation({
     mutationFn: disconnectGoogleCalendarAction,
@@ -215,6 +239,19 @@ export default function CalendarPage() {
 
   const handleConnect = () => {
     window.location.href = '/api/auth/google';
+  };
+
+  const handleCopyRedirectUri = async () => {
+    if (!oauthRedirectInfo?.redirectUri || typeof navigator === 'undefined') return;
+    try {
+      setIsCopyingRedirect(true);
+      await navigator.clipboard.writeText(oauthRedirectInfo.redirectUri);
+      setSuccess('Redirect URI copied. Paste it into Google Cloud OAuth client.');
+    } catch {
+      setError('Could not copy redirect URI. Copy it manually from the field.');
+    } finally {
+      setIsCopyingRedirect(false);
+    }
   };
 
   const handleDisconnect = () => {
@@ -401,6 +438,36 @@ export default function CalendarPage() {
           >
             Connect Google Calendar
           </button>
+          {oauthRedirectInfo ? (
+            <div className="mt-5 rounded-lg border border-primary/20 bg-primary/[0.07] p-4 text-left">
+              <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                OAuth Redirect URI (Google Cloud)
+              </p>
+              <p className="mt-1 text-xs text-text-tertiary">
+                Add this exact URI in Google Cloud OAuth Client → Authorized redirect URIs.
+              </p>
+              <code className="mt-2 block overflow-x-auto rounded-md border border-border/70 bg-surface/80 px-3 py-2 font-mono text-[11px] text-text-primary">
+                {oauthRedirectInfo.redirectUri}
+              </code>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <button
+                  onClick={handleCopyRedirectUri}
+                  disabled={isCopyingRedirect}
+                  className="px-3 py-1.5 rounded-md border border-primary/30 bg-primary/12 text-xs text-primary hover:bg-primary/20 transition-colors disabled:opacity-60"
+                >
+                  {isCopyingRedirect ? 'Copying…' : 'Copy URI'}
+                </button>
+                <span className="rounded-full border border-border/70 bg-surface/60 px-2 py-1 text-[11px] text-text-secondary">
+                  source: {oauthRedirectInfo.source}
+                </span>
+                {oauthRedirectInfo.normalized ? (
+                  <span className="rounded-full border border-warning/30 bg-warning/10 px-2 py-1 text-[11px] text-warning">
+                    normalized
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </div>
       )}
 

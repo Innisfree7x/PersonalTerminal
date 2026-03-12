@@ -89,9 +89,20 @@ export async function GET(request: NextRequest) {
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text();
+      const lower = errorData.toLowerCase();
+      const errorCode = lower.includes('redirect_uri_mismatch')
+        ? 'redirect_uri_mismatch'
+        : lower.includes('invalid_grant')
+          ? 'invalid_grant'
+          : 'token_exchange_failed';
       console.error('Token exchange failed:', errorData);
       return NextResponse.redirect(
-        new URL('/today?error=token_exchange_failed', request.url)
+        new URL(
+          `/today?error=${encodeURIComponent(errorCode)}&oauth_source=${encodeURIComponent(
+            redirectResolution.source
+          )}`,
+          request.url
+        )
       );
     }
 

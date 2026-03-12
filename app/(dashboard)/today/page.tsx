@@ -4,18 +4,13 @@ import type { CalendarEvent } from '@/lib/types/calendar';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { X, Sparkles, TrendingUp, TrendingDown, Minus, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import FocusTasks from '@/components/features/dashboard/FocusTasks';
 import CommandBar from '@/components/features/dashboard/CommandBar';
-import ScheduleColumn from '@/components/features/dashboard/ScheduleColumn';
-import QuickActionsWidget from '@/components/features/dashboard/QuickActionsWidget';
-import StudyProgress from '@/components/features/dashboard/StudyProgress';
-import UpcomingDeadlines from '@/components/features/dashboard/UpcomingDeadlines';
-import WeekOverview from '@/components/features/dashboard/WeekOverview';
-import PomodoroTimer from '@/components/features/dashboard/PomodoroTimer';
 import {
   connectGoogleCalendar,
 } from '@/lib/api/calendar';
@@ -36,6 +31,39 @@ import { getRiskStatusTone } from '@/lib/design-system/statusTone';
 
 const WELCOME_KEY = 'innis_welcomed_v1';
 const LAST_MOMENTUM_SCORE_KEY = 'innis:last-momentum-score:v1';
+
+const widgetSkeleton = (
+  <div className="card-surface dashboard-premium-card-soft h-[160px] animate-pulse p-4">
+    <div className="h-4 w-28 rounded bg-white/10" />
+    <div className="mt-3 h-3 w-2/3 rounded bg-white/10" />
+    <div className="mt-2 h-3 w-1/2 rounded bg-white/10" />
+  </div>
+);
+
+const LazyScheduleColumn = dynamic(
+  () => import('@/components/features/dashboard/ScheduleColumn'),
+  { ssr: false, loading: () => widgetSkeleton }
+);
+const LazyQuickActionsWidget = dynamic(
+  () => import('@/components/features/dashboard/QuickActionsWidget'),
+  { ssr: false, loading: () => widgetSkeleton }
+);
+const LazyStudyProgress = dynamic(
+  () => import('@/components/features/dashboard/StudyProgress'),
+  { ssr: false, loading: () => widgetSkeleton }
+);
+const LazyUpcomingDeadlines = dynamic(
+  () => import('@/components/features/dashboard/UpcomingDeadlines'),
+  { ssr: false, loading: () => widgetSkeleton }
+);
+const LazyWeekOverview = dynamic(
+  () => import('@/components/features/dashboard/WeekOverview'),
+  { ssr: false, loading: () => widgetSkeleton }
+);
+const LazyPomodoroTimer = dynamic(
+  () => import('@/components/features/dashboard/PomodoroTimer'),
+  { ssr: false, loading: () => widgetSkeleton }
+);
 
 function hasWelcomedUser(): boolean {
   if (typeof window === 'undefined') return true;
@@ -486,7 +514,7 @@ export default function TodayPage() {
               }}
             />
             <div className="mt-5">
-              <UpcomingDeadlines
+              <LazyUpcomingDeadlines
                 goals={nextTasksData?.goals || []}
                 interviews={nextTasksData?.interviews || []}
                 exams={studyProgress}
@@ -503,7 +531,7 @@ export default function TodayPage() {
           className="space-y-5"
         >
           <ErrorBoundary fallbackTitle="Schedule Error">
-            <ScheduleColumn
+            <LazyScheduleColumn
               events={events}
               isConnected={isConnected}
               isLoading={isLoading}
@@ -517,7 +545,7 @@ export default function TodayPage() {
 
           {/* Pomodoro below schedule */}
           <ErrorBoundary fallbackTitle="Timer Error">
-            <PomodoroTimer />
+            <LazyPomodoroTimer />
           </ErrorBoundary>
         </motion.div>
 
@@ -530,13 +558,13 @@ export default function TodayPage() {
         >
           <ErrorBoundary fallbackTitle="Widgets Error">
             {/* Quick Actions */}
-            <QuickActionsWidget />
+            <LazyQuickActionsWidget />
 
             {/* Study Progress */}
-            <StudyProgress courses={studyProgress} />
+            <LazyStudyProgress courses={studyProgress} />
 
             {/* Week Overview */}
-            <WeekOverview {...(prefetchedWeekEvents ? { events: prefetchedWeekEvents } : {})} />
+            <LazyWeekOverview {...(prefetchedWeekEvents ? { events: prefetchedWeekEvents } : {})} />
           </ErrorBoundary>
         </motion.div>
       </div>

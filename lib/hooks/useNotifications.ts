@@ -106,6 +106,7 @@ export function parseOAuthCallbackParams(): {
   const params = new URLSearchParams(window.location.search);
   const errorParam = params.get('error');
   const successParam = params.get('success');
+  const oauthSource = params.get('oauth_source');
 
   let error: string | null = null;
   let success: string | null = null;
@@ -114,17 +115,27 @@ export function parseOAuthCallbackParams(): {
   if (errorParam) {
     error =
       errorParam === 'oauth_not_configured'
-        ? 'Google OAuth is not configured. Please check your environment variables.'
+        ? 'Google OAuth ist nicht vollständig konfiguriert. Prüfe Client ID, Secret und Redirect URI.'
+        : errorParam === 'redirect_uri_mismatch'
+        ? `Redirect URI mismatch. Öffne /calendar und übernimm die angezeigte URI exakt in Google Cloud.${oauthSource ? ` (source: ${oauthSource})` : ''}`
         : errorParam === 'token_exchange_failed'
-        ? 'Failed to exchange authorization code. Please try again.'
+        ? 'Token-Austausch mit Google fehlgeschlagen. Bitte erneut verbinden.'
+        : errorParam === 'invalid_grant'
+        ? 'Google hat den Authorization Code abgelehnt (invalid_grant). Starte die Verbindung erneut.'
+        : errorParam === 'invalid_oauth_state'
+        ? 'OAuth state validation fehlgeschlagen. Bitte erneut verbinden.'
         : errorParam === 'missing_code'
-        ? 'Authorization code missing. Please try again.'
-        : 'An error occurred during authentication.';
+        ? 'Autorisierungscode fehlt. Bitte erneut verbinden.'
+        : errorParam === 'access_denied'
+        ? 'Google-Zugriff wurde abgelehnt.'
+        : errorParam === 'oauth_callback_error'
+        ? 'OAuth-Callback fehlgeschlagen. Bitte erneut verbinden.'
+        : 'Bei der Authentifizierung ist ein Fehler aufgetreten.';
   }
 
   // Parse success parameter
   if (successParam === 'connected') {
-    success = 'Successfully connected to Google Calendar!';
+    success = 'Google Calendar wurde erfolgreich verbunden.';
   }
 
   return { error, success };
