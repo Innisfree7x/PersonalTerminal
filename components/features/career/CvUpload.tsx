@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { supabaseBrowser } from '@/lib/supabase/browserClient';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CvAnalyzeResult } from '@/lib/schemas/cv-analysis.schema';
 
 type ExtractResponse = { text: string };
@@ -13,7 +12,6 @@ type AnalyzeResponse = {
 };
 
 const MAX_BYTES = 4 * 1024 * 1024;
-const STORAGE_BUCKET = 'cv-uploads';
 const ACCEPTED_MIME = new Set([
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -63,8 +61,6 @@ export default function CvUpload({ externalFile = null, externalFileNonce = 0 }:
   const [analysisPersisted, setAnalysisPersisted] = useState<boolean>(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
-
-  const canUseSupabase = useMemo(() => !!supabaseBrowser, []);
 
   const pickFile = () => inputRef.current?.click();
 
@@ -132,30 +128,30 @@ export default function CvUpload({ externalFile = null, externalFileNonce = 0 }:
         setIsAnalyzing(false);
       }
 
-      // 2) Optional storage upload (non-blocking for extraction UX).
-      if (supabaseBrowser) {
-        const {
-          data: { user },
-        } = await supabaseBrowser.auth.getUser();
-        if (!user?.id) {
-          setUploadWarning('CV text extrahiert, aber Storage-Upload übersprungen: kein aktiver User.');
-          setProgress(100);
-          return;
-        }
-        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-        const path = `${user.id}/cv/${Date.now()}_${safeName}`;
+      // 2) Storage upload via authenticated server route (non-blocking for extraction UX).
+      try {
+        const uploadForm = new FormData();
+        uploadForm.append('file', file);
+        const uploadResponse = await fetch('/api/cv/upload', {
+          method: 'POST',
+          body: uploadForm,
+        });
 
-        const { error: uploadError } = await supabaseBrowser.storage
-          .from(STORAGE_BUCKET)
-          .upload(path, file, { upsert: false, contentType: file.type || 'application/octet-stream' });
-
-        if (uploadError) {
-          setUploadWarning(`CV text extrahiert, aber Storage-Upload fehlgeschlagen: ${uploadError.message}`);
+        if (!uploadResponse.ok) {
+          const message = await uploadResponse.text();
+          setUploadWarning(
+            `CV text extrahiert, aber Storage-Upload fehlgeschlagen: ${message || `HTTP ${uploadResponse.status}`}`
+          );
         } else {
-          setUploadedPath(path);
+          const payload = (await uploadResponse.json()) as { path?: string };
+          if (payload?.path) {
+            setUploadedPath(payload.path);
+          }
         }
-      } else {
-        setUploadWarning('CV text extrahiert. Supabase-Storage ist lokal nicht initialisiert.');
+      } catch (uploadErr) {
+        const message =
+          uploadErr instanceof Error ? uploadErr.message : 'Unbekannter Fehler beim Storage-Upload';
+        setUploadWarning(`CV text extrahiert, aber Storage-Upload fehlgeschlagen: ${message}`);
       }
 
       setProgress(100);
@@ -182,16 +178,6 @@ export default function CvUpload({ externalFile = null, externalFileNonce = 0 }:
 
   return (
     <div className="space-y-6">
-      {!canUseSupabase ? (
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800 dark:border-yellow-900/50 dark:bg-yellow-900/20 dark:text-yellow-200">
-          Supabase env not detected in the browser. Ensure you have
-          <code className="mx-1 rounded bg-yellow-100 px-1 py-0.5 dark:bg-yellow-900/40">
-            bloomberg-personal/.env.local
-          </code>
-          and restart <code className="mx-1 rounded bg-yellow-100 px-1 py-0.5 dark:bg-yellow-900/40">npm run dev</code>.
-        </div>
-      ) : null}
-
       {error ? (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300">
           {error}
