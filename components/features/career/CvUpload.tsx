@@ -134,8 +134,16 @@ export default function CvUpload({ externalFile = null, externalFileNonce = 0 }:
 
       // 2) Optional storage upload (non-blocking for extraction UX).
       if (supabaseBrowser) {
+        const {
+          data: { user },
+        } = await supabaseBrowser.auth.getUser();
+        if (!user?.id) {
+          setUploadWarning('CV text extrahiert, aber Storage-Upload übersprungen: kein aktiver User.');
+          setProgress(100);
+          return;
+        }
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-        const path = `cv/${Date.now()}_${safeName}`;
+        const path = `${user.id}/cv/${Date.now()}_${safeName}`;
 
         const { error: uploadError } = await supabaseBrowser.storage
           .from(STORAGE_BUCKET)
