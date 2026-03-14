@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type {
   DachLocation,
   OpportunitySearchInput,
@@ -22,6 +23,7 @@ interface OpportunitySourceItem {
   reasonPool: string[];
   gapPool: string[];
   jobUrl?: string;
+  description?: string;
 }
 
 interface AggregatedOpportunity {
@@ -37,13 +39,14 @@ interface AggregatedOpportunity {
   jobUrl: string | undefined;
   sourceLabels: string[];
   sourcePriorities: number[];
+  description: string;
 }
 
 interface OpportunitySourceProvider {
   key: string;
   label: string;
   priority: number;
-  search(query: string): Promise<OpportunitySourceItem[]>;
+  search(query: string, input: OpportunitySearchInput): Promise<OpportunitySourceItem[]>;
 }
 
 const SOURCE_ALPHA_DATA: OpportunitySourceItem[] = [
@@ -61,6 +64,7 @@ const SOURCE_ALPHA_DATA: OpportunitySourceItem[] = [
     reasonPool: ['Strong M&A exposure', 'Lean deal team setup', 'Relevant valuation workflow'],
     gapPool: ['More live deal references', 'Interview case speed'],
     jobUrl: 'https://example.com/jobs/ma-intern-frankfurt',
+    description: 'Intern role in M&A with valuation and execution support.',
   },
   {
     sourceKey: 'alpha_board',
@@ -76,6 +80,7 @@ const SOURCE_ALPHA_DATA: OpportunitySourceItem[] = [
     reasonPool: ['Due diligence process fit', 'Solid TS progression', 'Strong reporting match'],
     gapPool: ['Industry-specific accounting depth', 'Data-room quality checks'],
     jobUrl: 'https://example.com/jobs/ts-working-student-munich',
+    description: 'Working student role in due diligence and transaction support.',
   },
   {
     sourceKey: 'alpha_board',
@@ -91,6 +96,7 @@ const SOURCE_ALPHA_DATA: OpportunitySourceItem[] = [
     reasonPool: ['Accessible DACH entry route', 'Strong process discipline', 'Good lateral move potential'],
     gapPool: ['Less direct M&A execution', 'Slower transaction tempo'],
     jobUrl: 'https://example.com/jobs/audit-deals-vienna',
+    description: 'Audit and deals internship with transaction-adjacent projects.',
   },
 ];
 
@@ -109,6 +115,7 @@ const SOURCE_BETA_DATA: OpportunitySourceItem[] = [
     reasonPool: ['High ownership in intern role', 'Cross-border mandate exposure', 'Frequent model updates'],
     gapPool: ['Compressed deal timelines'],
     jobUrl: 'https://example.com/jobs/ma-intern-frankfurt-feed',
+    description: 'Direct exposure to cross-border M&A deals and modeling updates.',
   },
   {
     sourceKey: 'beta_feed',
@@ -124,6 +131,7 @@ const SOURCE_BETA_DATA: OpportunitySourceItem[] = [
     reasonPool: ['Broader corporate finance exposure', 'Good strategic toolkit', 'High client touch frequency'],
     gapPool: ['LBO modeling depth', 'Narrative deck polish'],
     jobUrl: 'https://example.com/jobs/corpfin-intern-zurich',
+    description: 'Corporate finance internship with client presentation work.',
   },
   {
     sourceKey: 'beta_feed',
@@ -139,6 +147,7 @@ const SOURCE_BETA_DATA: OpportunitySourceItem[] = [
     reasonPool: ['Direct TS workflow overlap', 'Diligence skill transfer', 'Good path toward M&A'],
     gapPool: ['Industry accounting edge cases', 'Speed under reporting pressure'],
     jobUrl: 'https://example.com/jobs/ts-fdd-hamburg',
+    description: 'FDD internship focused on transaction services and reporting.',
   },
 ];
 
@@ -157,6 +166,7 @@ const SOURCE_GAMMA_DATA: OpportunitySourceItem[] = [
     reasonPool: ['Execution-heavy off-cycle role', 'Small team learning velocity', 'Deal room ownership'],
     gapPool: ['Niche-sector depth', 'Formal process structure'],
     jobUrl: 'https://example.com/jobs/off-cycle-ma-zurich',
+    description: 'Off-cycle intern in lean M&A team with execution tasks.',
   },
   {
     sourceKey: 'gamma_network',
@@ -172,6 +182,7 @@ const SOURCE_GAMMA_DATA: OpportunitySourceItem[] = [
     reasonPool: ['Entry with immediate deal-adjacent tasks', 'Solid process quality standards'],
     gapPool: ['Lower transaction intensity'],
     jobUrl: 'https://example.com/jobs/audit-deals-vienna-network',
+    description: 'Entry role with process-heavy deal adjacent execution.',
   },
 ];
 
@@ -195,6 +206,20 @@ const STATIC_PROVIDERS: OpportunitySourceProvider[] = [
     search: async (query) => filterByQuery(SOURCE_GAMMA_DATA, query),
   },
 ];
+
+const ADZUNA_COUNTRY_MAP: Record<DachLocation, string> = {
+  DE: 'de',
+  AT: 'at',
+  CH: 'ch',
+};
+
+const LLM_OUTPUT_SCHEMA = z.object({
+  reasons: z.array(z.string().min(1)).min(1).max(3),
+  gaps: z.array(z.string().min(1)).min(1).max(2),
+});
+
+const LLM_EXPLANATION_CACHE = new Map<string, { reasons: string[]; gaps: string[]; expiresAt: number }>();
+const LLM_CACHE_TTL_MS = 1000 * 60 * 60;
 
 function normalizeToken(input: string): string {
   return input.toLowerCase().replace(/\s+/g, ' ').replace(/[^a-z0-9 ]/g, '').trim();
@@ -251,6 +276,7 @@ function mergeIntoAggregate(store: Map<string, AggregatedOpportunity>, item: Opp
       jobUrl: item.jobUrl,
       sourceLabels: [item.sourceLabel],
       sourcePriorities: [item.sourcePriority],
+      description: item.description ?? '',
     });
     return;
   }
@@ -269,9 +295,11 @@ function mergeIntoAggregate(store: Map<string, AggregatedOpportunity>, item: Opp
           country: item.country,
           track: item.track,
           jobUrl: item.jobUrl ?? existing.jobUrl,
+          description: item.description ?? existing.description,
         }
       : {
           jobUrl: existing.jobUrl ?? item.jobUrl,
+          description: existing.description || item.description || '',
         }),
     baseFit: Math.round((existing.baseFit + item.baseFit) / 2),
     reasonPool: uniqueStrings([...existing.reasonPool, ...item.reasonPool], 8),
@@ -322,8 +350,237 @@ function buildGaps(opportunity: AggregatedOpportunity, band: RadarBand): string[
   return uniqueStrings(['Erfahrungstiefe im Vergleich zum Markt', ...opportunity.gapPool], 2);
 }
 
-export async function searchRadarOpportunities(input: OpportunitySearchInput): Promise<{ items: OpportunitySearchItem[]; sourcesQueried: number }> {
-  const settled = await Promise.allSettled(STATIC_PROVIDERS.map((provider) => provider.search(input.query)));
+function inferTrack(text: string): RadarTrack {
+  const t = normalizeToken(text);
+  if (/(audit|wirtschaftsprüfung|ifrs|assurance)/.test(t)) return 'Audit';
+  if (/(transaction services|due diligence|fdd|ts )/.test(t)) return 'TS';
+  if (/(corporate finance|corpfin|capital markets|m&a financing)/.test(t)) return 'CorpFin';
+  return 'M&A';
+}
+
+function inferBaseFit(track: RadarTrack, text: string): number {
+  const t = normalizeToken(text);
+  let score = 55;
+  if (/(intern|internship|praktikum|werkstudent|working student)/.test(t)) score += 8;
+  if (/(m&a|merger|acquisition|deal)/.test(t) && track === 'M&A') score += 10;
+  if (/(due diligence|fdd|transaction services)/.test(t) && track === 'TS') score += 10;
+  if (/(corporate finance|valuation)/.test(t) && track === 'CorpFin') score += 9;
+  if (/(audit|ifrs|assurance)/.test(t) && track === 'Audit') score += 9;
+  return clampScore(score);
+}
+
+function inferReasonPool(track: RadarTrack, city: string, country: DachLocation): string[] {
+  return [
+    `Track-Fit auf ${track} im DACH-Markt`,
+    `Standort-Fit: ${locationLabel(city, country)}`,
+    'Praktikums-/Werkstudent-Route plausibel',
+  ];
+}
+
+function inferGapPool(track: RadarTrack): string[] {
+  if (track === 'M&A') return ['Case-Speed in Modellierung schärfen', 'Mehr belastbare Deal-Referenzen'];
+  if (track === 'TS') return ['Accounting edge cases vertiefen', 'Reporting unter Zeitdruck trainieren'];
+  if (track === 'CorpFin') return ['Valuation-Tiefe ausbauen', 'Pitch-Storyline präzisieren'];
+  return ['Transaktionsnähe im CV stärken', 'Mehr projektkonkrete Ergebnisse ergänzen'];
+}
+
+function deriveCity(area: unknown): string {
+  if (!Array.isArray(area)) return 'Unknown';
+  const filtered = area.filter((x): x is string => typeof x === 'string').filter(Boolean);
+  return filtered[filtered.length - 1] ?? filtered[0] ?? 'Unknown';
+}
+
+async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function buildAdzunaProvider(): OpportunitySourceProvider | null {
+  const appId = process.env.ADZUNA_APP_ID?.trim();
+  const appKey = process.env.ADZUNA_APP_KEY?.trim();
+  if (!appId || !appKey) return null;
+
+  return {
+    key: 'adzuna',
+    label: 'Adzuna',
+    priority: 4,
+    search: async (query, input) => {
+      const items: OpportunitySourceItem[] = [];
+      const what = query.trim() || 'internship finance';
+
+      for (const location of input.locations) {
+        const countryCode = ADZUNA_COUNTRY_MAP[location];
+        if (!countryCode) continue;
+        const url = new URL(`https://api.adzuna.com/v1/api/jobs/${countryCode}/search/1`);
+        url.searchParams.set('app_id', appId);
+        url.searchParams.set('app_key', appKey);
+        url.searchParams.set('what', what);
+        url.searchParams.set('results_per_page', '20');
+        url.searchParams.set('content-type', 'application/json');
+
+        try {
+          const response = await fetchWithTimeout(url.toString(), { method: 'GET', cache: 'no-store' }, 2800);
+          if (!response.ok) continue;
+          const payload = (await response.json()) as { results?: unknown[] };
+          const results = Array.isArray(payload.results) ? payload.results : [];
+
+          for (const raw of results) {
+            const job = raw as any;
+            const title = String(job?.title ?? '').trim();
+            const company = String(job?.company?.display_name ?? '').trim();
+            if (!title || !company) continue;
+
+            const normalized = normalizeToken(title);
+            const isStudentRole = /(intern|internship|praktikum|werkstudent|working student)/.test(normalized);
+            if (!isStudentRole) continue;
+
+            const description = String(job?.description ?? '').slice(0, 1200);
+            const track = inferTrack(`${title} ${description}`);
+            const city = deriveCity(job?.location?.area);
+            const baseFit = inferBaseFit(track, `${title} ${description}`);
+            const reasonPool = inferReasonPool(track, city, location);
+            const gapPool = inferGapPool(track);
+
+            items.push({
+              sourceKey: 'adzuna',
+              sourceLabel: 'Adzuna',
+              sourcePriority: 4,
+              externalId: String(job?.id ?? `${company}-${title}-${city}`),
+              title,
+              company,
+              city,
+              country: location,
+              track,
+              baseFit,
+              reasonPool,
+              gapPool,
+              jobUrl: typeof job?.redirect_url === 'string' ? job.redirect_url : undefined,
+              description,
+            });
+          }
+        } catch {
+          // ignore per-country source failures (fallback providers remain active)
+        }
+      }
+
+      return filterByQuery(items, query);
+    },
+  };
+}
+
+function buildProviders(): OpportunitySourceProvider[] {
+  const providers = [...STATIC_PROVIDERS];
+  const adzuna = buildAdzunaProvider();
+  if (adzuna) providers.unshift(adzuna);
+  return providers;
+}
+
+function llmCacheKey(item: OpportunitySearchItem, input: OpportunitySearchInput): string {
+  return `${input.priorityTrack}|${item.id}|${item.fitScore}|${item.band}`;
+}
+
+async function generateLlmReasonsAndGaps(
+  item: OpportunitySearchItem,
+  input: OpportunitySearchInput
+): Promise<{ reasons: string[]; gaps: string[] } | null> {
+  const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
+  if (!apiKey) return null;
+
+  const cacheKey = llmCacheKey(item, input);
+  const cached = LLM_EXPLANATION_CACHE.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return { reasons: cached.reasons, gaps: cached.gaps };
+  }
+
+  const prompt = [
+    'Du bist Career-Analyst fuer Finance-Praktika in DACH.',
+    'Gib NUR valides JSON zurueck: {"reasons":["..."],"gaps":["..."]}.',
+    'Regeln: reasons max 3, gaps max 2, konkrete Sprache, Deutsch, keine Floskeln.',
+    `Prioritaets-Track: ${input.priorityTrack}`,
+    `Job: ${item.title} @ ${item.company}, ${item.city}, ${item.country}`,
+    `Band: ${item.band}, Score: ${item.fitScore}`,
+    `Bekannte Gruende: ${item.topReasons.join(' | ')}`,
+    `Bekannte Gaps: ${item.topGaps.join(' | ')}`,
+  ].join('\n');
+
+  try {
+    const response = await fetchWithTimeout(
+      'https://api.anthropic.com/v1/messages',
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-3-5-haiku-latest',
+          max_tokens: 180,
+          temperature: 0.2,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      },
+      2200
+    );
+
+    if (!response.ok) return null;
+    const payload = (await response.json()) as {
+      content?: Array<{ type?: string; text?: string }>;
+    };
+    const text = payload.content?.find((p) => p.type === 'text')?.text ?? '';
+    const jsonStart = text.indexOf('{');
+    const jsonEnd = text.lastIndexOf('}');
+    if (jsonStart < 0 || jsonEnd <= jsonStart) return null;
+
+    const parsedJson = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+    const parsed = LLM_OUTPUT_SCHEMA.safeParse(parsedJson);
+    if (!parsed.success) return null;
+
+    const value = {
+      reasons: parsed.data.reasons,
+      gaps: parsed.data.gaps,
+      expiresAt: Date.now() + LLM_CACHE_TTL_MS,
+    };
+    LLM_EXPLANATION_CACHE.set(cacheKey, value);
+    return { reasons: value.reasons, gaps: value.gaps };
+  } catch {
+    return null;
+  }
+}
+
+async function attachLlmExplanations(
+  items: OpportunitySearchItem[],
+  input: OpportunitySearchInput
+): Promise<OpportunitySearchItem[]> {
+  if (!process.env.ANTHROPIC_API_KEY) return items;
+  if (items.length === 0) return items;
+
+  const topCount = Math.min(5, items.length);
+  const enrichedTop = await Promise.all(
+    items.slice(0, topCount).map(async (item) => {
+      const llm = await generateLlmReasonsAndGaps(item, input);
+      if (!llm) return item;
+      return {
+        ...item,
+        topReasons: llm.reasons,
+        topGaps: llm.gaps,
+      };
+    })
+  );
+
+  return [...enrichedTop, ...items.slice(topCount)];
+}
+
+export async function searchRadarOpportunities(
+  input: OpportunitySearchInput
+): Promise<{ items: OpportunitySearchItem[]; sourcesQueried: number }> {
+  const providers = buildProviders();
+  const settled = await Promise.allSettled(providers.map((provider) => provider.search(input.query, input)));
 
   const aggregated = new Map<string, AggregatedOpportunity>();
   let sourcesQueried = 0;
@@ -331,7 +588,7 @@ export async function searchRadarOpportunities(input: OpportunitySearchInput): P
   settled.forEach((result, index) => {
     if (result.status !== 'fulfilled') return;
     sourcesQueried += 1;
-    const provider = STATIC_PROVIDERS[index];
+    const provider = providers[index];
     if (!provider) return;
 
     result.value.forEach((raw) => {
@@ -343,7 +600,7 @@ export async function searchRadarOpportunities(input: OpportunitySearchInput): P
     });
   });
 
-  const items = Array.from(aggregated.values())
+  const scoredItems = Array.from(aggregated.values())
     .filter((item) => input.locations.includes(item.country))
     .map((item) => {
       const fitScore = computeFitScore(item, input);
@@ -368,5 +625,6 @@ export async function searchRadarOpportunities(input: OpportunitySearchInput): P
     .sort((a, b) => b.fitScore - a.fitScore)
     .slice(0, input.limit);
 
+  const items = await attachLlmExplanations(scoredItems, input);
   return { items, sourcesQueried };
 }

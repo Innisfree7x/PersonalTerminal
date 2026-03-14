@@ -101,6 +101,48 @@ export interface Database {
         };
         Relationships: [];
       };
+      career_cv_profiles: {
+        Row: {
+          id: string;
+          user_id: string;
+          cv_text: string;
+          cv_rank: number;
+          rank_tier: 'top' | 'strong' | 'developing' | 'early';
+          strengths: string[];
+          gaps: string[];
+          skills: string[];
+          target_tracks: string[];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          cv_text: string;
+          cv_rank: number;
+          rank_tier: 'top' | 'strong' | 'developing' | 'early';
+          strengths?: string[];
+          gaps?: string[];
+          skills?: string[];
+          target_tracks?: string[];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          cv_text?: string;
+          cv_rank?: number;
+          rank_tier?: 'top' | 'strong' | 'developing' | 'early';
+          strengths?: string[];
+          gaps?: string[];
+          skills?: string[];
+          target_tracks?: string[];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       daily_tasks: {
         Row: {
           id: string;

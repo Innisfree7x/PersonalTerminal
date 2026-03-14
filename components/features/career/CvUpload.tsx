@@ -2,8 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabaseBrowser } from '@/lib/supabase/browserClient';
+import type { CvAnalyzeResult } from '@/lib/schemas/cv-analysis.schema';
 
 type ExtractResponse = { text: string };
+type AnalyzeResponse = {
+  analysis: CvAnalyzeResult;
+  meta?: {
+    persisted?: boolean;
+  };
+};
 
 const MAX_BYTES = 4 * 1024 * 1024;
 const STORAGE_BUCKET = 'cv-uploads';
@@ -52,6 +59,10 @@ export default function CvUpload({ externalFile = null, externalFileNonce = 0 }:
   const [uploadWarning, setUploadWarning] = useState<string | null>(null);
   const [extractedText, setExtractedText] = useState<string>('');
   const [uploadedPath, setUploadedPath] = useState<string | null>(null);
+  const [analysis, setAnalysis] = useState<CvAnalyzeResult | null>(null);
+  const [analysisPersisted, setAnalysisPersisted] = useState<boolean>(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   const canUseSupabase = useMemo(() => !!supabaseBrowser, []);
 
@@ -60,6 +71,9 @@ export default function CvUpload({ externalFile = null, externalFileNonce = 0 }:
   const handleFile = useCallback(async (file: File): Promise<void> => {
     setError(null);
     setUploadWarning(null);
+    setAnalysisError(null);
+    setAnalysis(null);
+    setAnalysisPersisted(false);
     setProgress(0);
 
     const allowed = isAllowedFile(file);
@@ -85,7 +99,38 @@ export default function CvUpload({ externalFile = null, externalFileNonce = 0 }:
 
       const data = (await res.json()) as ExtractResponse;
       setProgress(70);
-      setExtractedText(data.text ?? '');
+      const nextText = data.text ?? '';
+      setExtractedText(nextText);
+
+      // 1.5) Analyze CV text (non-blocking for storage, but part of upload flow value).
+      setIsAnalyzing(true);
+      setProgress(82);
+      try {
+        const analyzeResponse = await fetch('/api/cv/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cvText: nextText,
+            targetTracks: ['M&A', 'TS'],
+          }),
+        });
+
+        if (!analyzeResponse.ok) {
+          const msg = await analyzeResponse.text();
+          throw new Error(msg || `Analyze failed (${analyzeResponse.status})`);
+        }
+
+        const analyzeData = (await analyzeResponse.json()) as AnalyzeResponse;
+        if (analyzeData.analysis) {
+          setAnalysis(analyzeData.analysis);
+          setAnalysisPersisted(Boolean(analyzeData.meta?.persisted));
+        }
+      } catch (analyzeErr) {
+        const message = analyzeErr instanceof Error ? analyzeErr.message : 'CV-Analyse fehlgeschlagen';
+        setAnalysisError(message);
+      } finally {
+        setIsAnalyzing(false);
+      }
 
       // 2) Optional storage upload (non-blocking for extraction UX).
       if (supabaseBrowser) {
@@ -235,6 +280,53 @@ export default function CvUpload({ externalFile = null, externalFileNonce = 0 }:
           placeholder="Upload a CV to extract text…"
         />
       </div>
+
+      {isAnalyzing ? (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700 dark:border-blue-900/50 dark:bg-blue-900/20 dark:text-blue-300">
+          CV wird analysiert...
+        </div>
+      ) : null}
+
+      {analysisError ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200">
+          CV-Analyse konnte nicht persistiert werden: {analysisError}
+        </div>
+      ) : null}
+
+      {analysis ? (
+        <div className="rounded-xl border border-border bg-surface/60 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-wider text-text-tertiary">CV Intelligence</p>
+              <p className="text-lg font-semibold text-text-primary">
+                Rank {analysis.cvRank} · {analysis.rankTier}
+              </p>
+            </div>
+            <div className="text-xs text-text-tertiary">
+              {analysisPersisted ? 'Persisted in profile' : 'Analyze only (migration pending)'}
+            </div>
+          </div>
+
+          <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="rounded-lg border border-border/70 bg-background/35 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">Top Strengths</p>
+              <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                {analysis.topStrengths.map((item) => (
+                  <li key={item}>• {item}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-lg border border-border/70 bg-background/35 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">Top Gaps</p>
+              <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                {analysis.topGaps.map((item) => (
+                  <li key={item}>• {item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
