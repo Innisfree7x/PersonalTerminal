@@ -1,6 +1,6 @@
 'use client';
 
-import { useOptimistic, useState, useTransition, useMemo } from 'react';
+import { useOptimistic, useState, useTransition, useMemo, useRef } from 'react';
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Application, CreateApplicationInput, ApplicationStatus } from '@/lib/schemas/application.schema';
@@ -149,6 +149,8 @@ interface CareerBoardProps {
 export default function CareerBoard({ initialApplications, openCreateOnLoad = false }: CareerBoardProps) {
     const router = useRouter();
     const pathname = usePathname();
+    const cvHeaderInputRef = useRef<HTMLInputElement | null>(null);
+    const cvSectionRef = useRef<HTMLDivElement | null>(null);
     // Optimistic State
     // Action: { type: 'upsert', app: Application } | { type: 'delete', id: string }
     const [applications, dispatchOptimistic] = useOptimistic(
@@ -183,6 +185,8 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
     const { play } = useAppSound();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isCvUploadOpen, setIsCvUploadOpen] = useState(false);
+    const [queuedCvFile, setQueuedCvFile] = useState<File | null>(null);
+    const [queuedCvNonce, setQueuedCvNonce] = useState(0);
     const [editingApplication, setEditingApplication] = useState<Application | null>(null);
     const [radarPrefill, setRadarPrefill] = useState<CreateApplicationInput | null>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
@@ -411,6 +415,14 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
         setIsModalOpen(true);
     };
 
+    const openCvPicker = () => {
+        setIsCvUploadOpen(true);
+        cvHeaderInputRef.current?.click();
+        window.setTimeout(() => {
+            cvSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 0);
+    };
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -429,8 +441,23 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
+                    <input
+                        ref={cvHeaderInputRef}
+                        type="file"
+                        accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        className="hidden"
+                        onChange={(event) => {
+                            const file = event.target.files?.[0] ?? null;
+                            if (file) {
+                                setIsCvUploadOpen(true);
+                                setQueuedCvFile(file);
+                                setQueuedCvNonce((prev) => prev + 1);
+                            }
+                            event.currentTarget.value = '';
+                        }}
+                    />
                     <Button
-                        onClick={() => setIsCvUploadOpen(!isCvUploadOpen)}
+                        onClick={openCvPicker}
                         variant="secondary"
                     >
                         <Upload className="w-4 h-4 mr-2" />
@@ -462,6 +489,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
             <AnimatePresence>
                 {isCvUploadOpen && (
                     <motion.div
+                        ref={cvSectionRef}
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
@@ -470,7 +498,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                     >
                         <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-lg p-6">
                             <h3 className="text-lg font-semibold text-text-primary mb-4">Upload & Extract CV</h3>
-                            <CvUpload />
+                            <CvUpload externalFile={queuedCvFile} externalFileNonce={queuedCvNonce} />
                         </div>
                     </motion.div>
                 )}

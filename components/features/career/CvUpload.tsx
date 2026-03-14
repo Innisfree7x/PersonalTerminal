@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabaseBrowser } from '@/lib/supabase/browserClient';
 
 type ExtractResponse = { text: string };
@@ -37,8 +37,14 @@ function isAllowedFile(file: File): { ok: boolean; reason?: string } {
   return { ok: true };
 }
 
-export default function CvUpload() {
+interface CvUploadProps {
+  externalFile?: File | null;
+  externalFileNonce?: number;
+}
+
+export default function CvUpload({ externalFile = null, externalFileNonce = 0 }: CvUploadProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const lastHandledExternalNonceRef = useRef<number>(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState<number>(0);
@@ -51,7 +57,7 @@ export default function CvUpload() {
 
   const pickFile = () => inputRef.current?.click();
 
-  const handleFile = async (file: File): Promise<void> => {
+  const handleFile = useCallback(async (file: File): Promise<void> => {
     setError(null);
     setUploadWarning(null);
     setProgress(0);
@@ -105,7 +111,14 @@ export default function CvUpload() {
     } finally {
       setIsUploading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!externalFile || externalFileNonce <= 0) return;
+    if (lastHandledExternalNonceRef.current === externalFileNonce) return;
+    lastHandledExternalNonceRef.current = externalFileNonce;
+    void handleFile(externalFile);
+  }, [externalFile, externalFileNonce, handleFile]);
 
   const onDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
