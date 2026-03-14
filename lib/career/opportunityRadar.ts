@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type {
   DachLocation,
+  OpportunitySearchContext,
   OpportunitySearchInput,
   OpportunitySearchItem,
   RadarBand,
@@ -237,6 +238,13 @@ function clampScore(value: number): number {
   return Math.min(100, Math.max(0, Math.round(value)));
 }
 
+const RANK_TIER_BONUS: Record<NonNullable<OpportunitySearchContext['cvProfile']>['rankTier'], number> = {
+  top: 4,
+  strong: 2,
+  developing: 0,
+  early: -2,
+};
+
 function locationLabel(city: string, country: DachLocation): string {
   return `${city}, ${country}`;
 }
@@ -317,7 +325,11 @@ export function scoreToBand(score: number): RadarBand {
   return 'stretch';
 }
 
-function computeFitScore(opportunity: AggregatedOpportunity, input: OpportunitySearchInput): number {
+function computeFitScore(
+  opportunity: AggregatedOpportunity,
+  input: OpportunitySearchInput,
+  context?: OpportunitySearchContext
+): number {
   const priorityIndex = TRACK_PRIORITY_ORDER.indexOf(input.priorityTrack);
   const trackIndex = TRACK_PRIORITY_ORDER.indexOf(opportunity.track);
   const trackDistance = Math.abs(trackIndex - priorityIndex);
@@ -325,8 +337,22 @@ function computeFitScore(opportunity: AggregatedOpportunity, input: OpportunityS
 
   const queryAdjustment = input.query.trim().length > 0 ? 6 : 0;
   const locationAdjustment = input.locations.includes(opportunity.country) ? 6 : -14;
+  const cvProfile = context?.cvProfile;
 
-  return clampScore(opportunity.baseFit + trackAdjustment + queryAdjustment + locationAdjustment);
+  let cvAdjustment = 0;
+  if (cvProfile) {
+    cvAdjustment += RANK_TIER_BONUS[cvProfile.rankTier] ?? 0;
+    if (cvProfile.targetTracks.includes(opportunity.track)) {
+      cvAdjustment += 4;
+    }
+
+    const skills = cvProfile.skills.map((s) => normalizeToken(s));
+    const text = normalizeToken(`${opportunity.title} ${opportunity.description}`);
+    const overlapCount = skills.filter((skill) => skill.length >= 3 && text.includes(skill)).length;
+    cvAdjustment += Math.min(4, overlapCount);
+  }
+
+  return clampScore(opportunity.baseFit + trackAdjustment + queryAdjustment + locationAdjustment + cvAdjustment);
 }
 
 function buildReasons(opportunity: AggregatedOpportunity, input: OpportunitySearchInput): string[] {
@@ -413,21 +439,24 @@ function buildAdzunaProvider(): OpportunitySourceProvider | null {
       const items: OpportunitySourceItem[] = [];
       const what = query.trim() || 'internship finance';
 
-      for (const location of input.locations) {
-        const countryCode = ADZUNA_COUNTRY_MAP[location];
-        if (!countryCode) continue;
-        const url = new URL(`https://api.adzuna.com/v1/api/jobs/${countryCode}/search/1`);
-        url.searchParams.set('app_id', appId);
-        url.searchParams.set('app_key', appKey);
-        url.searchParams.set('what', what);
-        url.searchParams.set('results_per_page', '20');
-        url.searchParams.set('content-type', 'application/json');
+      const perLocation = await Promise.allSettled(
+        input.locations.map(async (location) => {
+          const countryCode = ADZUNA_COUNTRY_MAP[location];
+          if (!countryCode) return [] as OpportunitySourceItem[];
 
-        try {
-          const response = await fetchWithTimeout(url.toString(), { method: 'GET', cache: 'no-store' }, 2800);
-          if (!response.ok) continue;
+          const url = new URL(`https://api.adzuna.com/v1/api/jobs/${countryCode}/search/1`);
+          url.searchParams.set('app_id', appId);
+          url.searchParams.set('app_key', appKey);
+          url.searchParams.set('what', what);
+          url.searchParams.set('results_per_page', '20');
+          url.searchParams.set('content-type', 'application/json');
+
+          const response = await fetchWithTimeout(url.toString(), { method: 'GET', cache: 'no-store' }, 1800);
+          if (!response.ok) return [] as OpportunitySourceItem[];
+
           const payload = (await response.json()) as { results?: unknown[] };
           const results = Array.isArray(payload.results) ? payload.results : [];
+          const locationItems: OpportunitySourceItem[] = [];
 
           for (const raw of results) {
             const job = raw as any;
@@ -446,7 +475,7 @@ function buildAdzunaProvider(): OpportunitySourceProvider | null {
             const reasonPool = inferReasonPool(track, city, location);
             const gapPool = inferGapPool(track);
 
-            items.push({
+            locationItems.push({
               sourceKey: 'adzuna',
               sourceLabel: 'Adzuna',
               sourcePriority: 4,
@@ -463,10 +492,15 @@ function buildAdzunaProvider(): OpportunitySourceProvider | null {
               description,
             });
           }
-        } catch {
-          // ignore per-country source failures (fallback providers remain active)
-        }
-      }
+
+          return locationItems;
+        })
+      );
+
+      perLocation.forEach((result) => {
+        if (result.status !== 'fulfilled') return;
+        items.push(...result.value);
+      });
 
       return filterByQuery(items, query);
     },
@@ -577,7 +611,8 @@ async function attachLlmExplanations(
 }
 
 export async function searchRadarOpportunities(
-  input: OpportunitySearchInput
+  input: OpportunitySearchInput,
+  context?: OpportunitySearchContext
 ): Promise<{
   items: OpportunitySearchItem[];
   sourcesQueried: number;
@@ -613,8 +648,9 @@ export async function searchRadarOpportunities(
   const scoredItems = Array.from(aggregated.values())
     .filter((item) => input.locations.includes(item.country))
     .map((item) => {
-      const fitScore = computeFitScore(item, input);
+      const fitScore = computeFitScore(item, input, context);
       const band = scoreToBand(fitScore);
+      const maxSourcePriority = Math.max(...item.sourcePriorities);
 
       return {
         id: item.id,
@@ -628,14 +664,21 @@ export async function searchRadarOpportunities(
         topReasons: buildReasons(item, input),
         topGaps: buildGaps(item, band),
         sourceLabels: item.sourceLabels,
+        maxSourcePriority,
         ...(item.jobUrl ? { jobUrl: item.jobUrl } : {}),
       };
     })
     .filter((item) => input.bands.includes(item.band))
-    .sort((a, b) => b.fitScore - a.fitScore)
+    .sort((a, b) => {
+      if (b.fitScore !== a.fitScore) return b.fitScore - a.fitScore;
+      return b.maxSourcePriority - a.maxSourcePriority;
+    })
     .slice(0, input.limit);
 
-  const items = await attachLlmExplanations(scoredItems, input);
+  const items = await attachLlmExplanations(
+    scoredItems.map(({ maxSourcePriority: _maxSourcePriority, ...item }) => item),
+    input
+  );
   const liveSourceContributed = items.some((item) => item.sourceLabels.includes('Adzuna'));
 
   return {

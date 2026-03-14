@@ -10,5 +10,5 @@ export const careerRepository: CareerRepository = {
   createApplication,
   updateApplication,
   deleteApplication,
-  searchOpportunities: searchRadarOpportunities,
+  searchOpportunities: (input, context) => searchRadarOpportunities(input, context),
 };

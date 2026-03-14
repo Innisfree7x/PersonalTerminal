@@ -48,6 +48,7 @@ interface CvUploadProps {
 }
 
 export default function CvUpload({ externalFile = null, externalFileNonce = 0 }: CvUploadProps) {
+  const loginHref = '/auth/login?redirectTo=%2Fcareer';
   const inputRef = useRef<HTMLInputElement | null>(null);
   const lastHandledExternalNonceRef = useRef<number>(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -61,6 +62,7 @@ export default function CvUpload({ externalFile = null, externalFileNonce = 0 }:
   const [analysisPersisted, setAnalysisPersisted] = useState<boolean>(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [requiresAuth, setRequiresAuth] = useState(false);
 
   const pickFile = () => inputRef.current?.click();
 
@@ -70,6 +72,7 @@ export default function CvUpload({ externalFile = null, externalFileNonce = 0 }:
     setAnalysisError(null);
     setAnalysis(null);
     setAnalysisPersisted(false);
+    setRequiresAuth(false);
     setProgress(0);
 
     const allowed = isAllowedFile(file);
@@ -89,6 +92,10 @@ export default function CvUpload({ externalFile = null, externalFileNonce = 0 }:
 
       const res = await fetch('/api/cv/extract', { method: 'POST', body: form });
       if (!res.ok) {
+        if (res.status === 401) {
+          setRequiresAuth(true);
+          throw new Error('SESSION_EXPIRED');
+        }
         const msg = await res.text();
         throw new Error(msg || `Extract failed (${res.status})`);
       }
@@ -112,6 +119,10 @@ export default function CvUpload({ externalFile = null, externalFileNonce = 0 }:
         });
 
         if (!analyzeResponse.ok) {
+          if (analyzeResponse.status === 401) {
+            setRequiresAuth(true);
+            throw new Error('SESSION_EXPIRED');
+          }
           const msg = await analyzeResponse.text();
           throw new Error(msg || `Analyze failed (${analyzeResponse.status})`);
         }
@@ -138,6 +149,11 @@ export default function CvUpload({ externalFile = null, externalFileNonce = 0 }:
         });
 
         if (!uploadResponse.ok) {
+          if (uploadResponse.status === 401) {
+            setRequiresAuth(true);
+            setUploadWarning('Session abgelaufen. CV wurde verarbeitet, bitte erneut einloggen, um Storage zu speichern.');
+            return;
+          }
           const message = await uploadResponse.text();
           setUploadWarning(
             `CV text extrahiert, aber Storage-Upload fehlgeschlagen: ${message || `HTTP ${uploadResponse.status}`}`
@@ -156,7 +172,11 @@ export default function CvUpload({ externalFile = null, externalFileNonce = 0 }:
 
       setProgress(100);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'CV konnte nicht verarbeitet werden. Bitte erneut versuchen.');
+      if (e instanceof Error && e.message === 'SESSION_EXPIRED') {
+        setError('Session abgelaufen. Bitte erneut einloggen und Upload wiederholen.');
+      } else {
+        setError(e instanceof Error ? e.message : 'CV konnte nicht verarbeitet werden. Bitte erneut versuchen.');
+      }
     } finally {
       setIsUploading(false);
     }
@@ -187,6 +207,18 @@ export default function CvUpload({ externalFile = null, externalFileNonce = 0 }:
       {uploadWarning ? (
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800 dark:border-yellow-900/50 dark:bg-yellow-900/20 dark:text-yellow-200">
           {uploadWarning}
+        </div>
+      ) : null}
+
+      {requiresAuth ? (
+        <div className="flex items-center justify-between rounded-lg border border-primary/40 bg-primary/10 px-4 py-3 text-sm text-primary">
+          <span>Sitzung ist nicht aktiv. Bitte neu anmelden, dann CV erneut hochladen.</span>
+          <a
+            href={loginHref}
+            className="rounded-md border border-primary/40 bg-primary/15 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/25"
+          >
+            Jetzt einloggen
+          </a>
         </div>
       ) : null}
 

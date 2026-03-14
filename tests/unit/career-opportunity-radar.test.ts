@@ -38,4 +38,37 @@ describe('opportunity radar scoring', () => {
     expect(auditRole?.fitScore).toBe(72);
     expect(auditRole?.band).toBe('realistic');
   });
+
+  it('applies cv profile context to raise relevant fit score', async () => {
+    const base = await searchRadarOpportunities({
+      query: 'audit',
+      priorityTrack: 'M&A',
+      locations: ['DE', 'AT', 'CH'],
+      bands: ['realistic', 'target', 'stretch'],
+      limit: 12,
+    });
+
+    const withProfile = await searchRadarOpportunities(
+      {
+        query: 'audit',
+        priorityTrack: 'M&A',
+        locations: ['DE', 'AT', 'CH'],
+        bands: ['realistic', 'target', 'stretch'],
+        limit: 12,
+      },
+      {
+        cvProfile: {
+          rankTier: 'strong',
+          targetTracks: ['Audit'],
+          skills: ['audit', 'assurance', 'ifrs'],
+        },
+      }
+    );
+
+    const baseRole = base.items.find((item) => item.title === 'Audit & Deals Internship');
+    const profileRole = withProfile.items.find((item) => item.title === 'Audit & Deals Internship');
+    expect(baseRole).toBeTruthy();
+    expect(profileRole).toBeTruthy();
+    expect((profileRole?.fitScore ?? 0)).toBeGreaterThan(baseRole?.fitScore ?? 0);
+  });
 });

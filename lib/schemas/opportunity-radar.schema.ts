@@ -33,6 +33,16 @@ export interface OpportunitySearchItem {
   jobUrl?: string;
 }
 
+export interface OpportunityCvProfileContext {
+  rankTier: 'top' | 'strong' | 'developing' | 'early';
+  targetTracks: RadarTrack[];
+  skills: string[];
+}
+
+export interface OpportunitySearchContext {
+  cvProfile?: OpportunityCvProfileContext | null;
+}
+
 export interface OpportunitySearchResponse {
   items: OpportunitySearchItem[];
   meta: {
@@ -43,5 +53,6 @@ export interface OpportunitySearchResponse {
     liveSourceConfigured: boolean;
     liveSourceHealthy: boolean;
     liveSourceContributed: boolean;
+    cvProfileApplied?: boolean;
   };
 }

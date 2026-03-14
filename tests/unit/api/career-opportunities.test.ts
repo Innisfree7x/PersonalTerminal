@@ -17,12 +17,18 @@ vi.mock('@/lib/infrastructure/supabase/repositories/careerRepository', () => ({
   careerRepository: {},
 }));
 
+vi.mock('@/lib/supabase/careerCvProfiles', () => ({
+  fetchCareerCvProfile: vi.fn(),
+}));
+
 import { requireApiAuth } from '@/lib/api/auth';
 import { searchCareerOpportunities } from '@/lib/application/use-cases/career';
+import { fetchCareerCvProfile } from '@/lib/supabase/careerCvProfiles';
 import { GET } from '@/app/api/career/opportunities/route';
 
 const mockedRequireApiAuth = vi.mocked(requireApiAuth);
 const mockedSearchCareerOpportunities = vi.mocked(searchCareerOpportunities);
+const mockedFetchCareerCvProfile = vi.mocked(fetchCareerCvProfile);
 
 describe('GET /api/career/opportunities', () => {
   beforeEach(() => {
@@ -67,6 +73,7 @@ describe('GET /api/career/opportunities', () => {
       liveSourceHealthy: true,
       liveSourceContributed: true,
     } as any);
+    mockedFetchCareerCvProfile.mockResolvedValueOnce(null as any);
 
     const response = await GET(
       new NextRequest(
@@ -81,12 +88,54 @@ describe('GET /api/career/opportunities', () => {
       locations: ['DE', 'AT'],
       bands: ['realistic', 'target'],
       limit: 8,
-    });
+    }, { cvProfile: null });
 
     const body = await response.json();
     expect(body.items).toHaveLength(1);
     expect(body.meta.sourcesQueried).toBe(3);
     expect(body.meta.liveSourceConfigured).toBe(true);
     expect(body.meta.liveSourceContributed).toBe(true);
+    expect(body.meta.cvProfileApplied).toBe(false);
+  });
+
+  it('passes cv profile context into opportunity search', async () => {
+    mockedRequireApiAuth.mockResolvedValueOnce({
+      user: { id: 'user-42' },
+      errorResponse: null,
+    } as any);
+
+    mockedFetchCareerCvProfile.mockResolvedValueOnce({
+      rank_tier: 'strong',
+      target_tracks: ['M&A', 'TS'],
+      skills: ['valuation', 'excel modeling'],
+    } as any);
+
+    mockedSearchCareerOpportunities.mockResolvedValueOnce({
+      items: [],
+      sourcesQueried: 2,
+      liveSourceConfigured: true,
+      liveSourceHealthy: true,
+      liveSourceContributed: false,
+    } as any);
+
+    const response = await GET(
+      new NextRequest('http://localhost:3000/api/career/opportunities?query=m%26a')
+    );
+    expect(response.status).toBe(200);
+
+    expect(mockedSearchCareerOpportunities).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ query: 'm&a' }),
+      {
+        cvProfile: {
+          rankTier: 'strong',
+          targetTracks: ['M&A', 'TS'],
+          skills: ['valuation', 'excel modeling'],
+        },
+      }
+    );
+
+    const body = await response.json();
+    expect(body.meta.cvProfileApplied).toBe(true);
   });
 });

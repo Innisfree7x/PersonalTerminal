@@ -167,14 +167,21 @@ export default function OpportunityRadar({ onAdoptToPipeline }: OpportunityRadar
             </Badge>
           ) : null}
           {meta?.liveSourceConfigured ? (
-            <Badge variant={meta.liveSourceContributed ? 'success' : 'warning'} size="sm">
-              {meta.liveSourceContributed ? 'Live Jobs aktiv' : 'Fallback aktiv'}
-            </Badge>
+            !meta.liveSourceHealthy ? (
+              <Badge variant="error" size="sm">Live gestört · Fallback aktiv</Badge>
+            ) : meta.liveSourceContributed ? (
+              <Badge variant="success" size="sm">Live Jobs aktiv</Badge>
+            ) : (
+              <Badge variant="warning" size="sm">Live ohne Treffer</Badge>
+            )
           ) : (
             <Badge variant="default" size="sm">
               Demo-Daten
             </Badge>
           )}
+          {meta?.cvProfileApplied ? (
+            <Badge variant="career" size="sm">CV-Profil aktiv</Badge>
+          ) : null}
         </div>
       </div>
 

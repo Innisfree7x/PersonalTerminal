@@ -3,6 +3,7 @@ import { requireApiAuth } from '@/lib/api/auth';
 import { handleRouteError } from '@/lib/api/server-errors';
 import { searchCareerOpportunities } from '@/lib/application/use-cases/career';
 import { careerRepository } from '@/lib/infrastructure/supabase/repositories/careerRepository';
+import { fetchCareerCvProfile } from '@/lib/supabase/careerCvProfiles';
 import {
   DachLocationSchema,
   OpportunitySearchInputSchema,
@@ -37,8 +38,16 @@ function validateBand(value: string) {
   return parsed.success ? parsed.data : null;
 }
 
+function parseTrackList(values: unknown): ('M&A' | 'TS' | 'CorpFin' | 'Audit')[] {
+  if (!Array.isArray(values)) return [];
+  return values
+    .map((value) => RadarTrackSchema.safeParse(value))
+    .filter((parsed): parsed is { success: true; data: 'M&A' | 'TS' | 'CorpFin' | 'Audit' } => parsed.success)
+    .map((parsed) => parsed.data);
+}
+
 export async function GET(request: NextRequest) {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
@@ -60,13 +69,22 @@ export async function GET(request: NextRequest) {
       limit,
     });
 
+    const cvProfile = await fetchCareerCvProfile(user.id);
     const {
       items,
       sourcesQueried,
       liveSourceConfigured,
       liveSourceHealthy,
       liveSourceContributed,
-    } = await searchCareerOpportunities(careerRepository, input);
+    } = await searchCareerOpportunities(careerRepository, input, {
+      cvProfile: cvProfile
+        ? {
+            rankTier: cvProfile.rank_tier,
+            targetTracks: parseTrackList(cvProfile.target_tracks),
+            skills: cvProfile.skills ?? [],
+          }
+        : null,
+    });
 
     return NextResponse.json({
       items,
@@ -78,6 +96,7 @@ export async function GET(request: NextRequest) {
         liveSourceConfigured,
         liveSourceHealthy,
         liveSourceContributed,
+        cvProfileApplied: Boolean(cvProfile),
       },
     });
   } catch (error) {

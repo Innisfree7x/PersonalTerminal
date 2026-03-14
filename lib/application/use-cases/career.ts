@@ -1,5 +1,9 @@
 import type { Application, CreateApplicationInput } from '@/lib/schemas/application.schema';
-import type { OpportunitySearchInput, OpportunitySearchItem } from '@/lib/schemas/opportunity-radar.schema';
+import type {
+  OpportunitySearchContext,
+  OpportunitySearchInput,
+  OpportunitySearchItem,
+} from '@/lib/schemas/opportunity-radar.schema';
 import type { CareerRepository } from '@/lib/application/ports/career-repository';
 
 export async function createCareerApplication(
@@ -29,7 +33,8 @@ export async function deleteCareerApplication(
 
 export async function searchCareerOpportunities(
   repository: CareerRepository,
-  input: OpportunitySearchInput
+  input: OpportunitySearchInput,
+  context?: OpportunitySearchContext
 ): Promise<{
   items: OpportunitySearchItem[];
   sourcesQueried: number;
@@ -37,5 +42,5 @@ export async function searchCareerOpportunities(
   liveSourceHealthy: boolean;
   liveSourceContributed: boolean;
 }> {
-  return repository.searchOpportunities(input);
+  return repository.searchOpportunities(input, context);
 }
