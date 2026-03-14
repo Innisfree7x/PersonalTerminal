@@ -23,16 +23,9 @@ test.describe('Career flow', () => {
     const sourceCard = page.locator('[data-testid^="career-card-"]').filter({ hasText: company }).first();
     const targetColumn = page.getByTestId('career-column-interview');
 
-    const sourceBox = await sourceCard.boundingBox();
-    const targetBox = await targetColumn.boundingBox();
-    if (!sourceBox || !targetBox) {
-      throw new Error('Could not resolve drag-and-drop bounding boxes.');
-    }
-
-    await page.mouse.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox.height / 2);
-    await page.mouse.down();
-    await page.mouse.move(targetBox.x + targetBox.width / 2, targetBox.y + 80, { steps: 16 });
-    await page.mouse.up();
+    await sourceCard.dragTo(targetColumn, {
+      targetPosition: { x: 24, y: 80 },
+    });
 
     await expect(targetColumn.getByText(company)).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText(/Verschoben: Interview/i)).toBeVisible({ timeout: 10_000 });

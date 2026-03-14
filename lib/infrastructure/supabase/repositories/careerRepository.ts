@@ -4,9 +4,11 @@ import {
   updateApplication,
   deleteApplication,
 } from '@/lib/supabase/applications';
+import { searchRadarOpportunities } from '@/lib/career/opportunityRadar';
 
 export const careerRepository: CareerRepository = {
   createApplication,
   updateApplication,
   deleteApplication,
+  searchOpportunities: searchRadarOpportunities,
 };

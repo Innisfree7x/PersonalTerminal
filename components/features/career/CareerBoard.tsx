@@ -34,6 +34,7 @@ import ApplicationCard from '@/components/features/career/ApplicationCard';
 import SortableApplicationItem from '@/components/features/career/SortableApplicationItem';
 import ApplicationStats from '@/components/features/career/ApplicationStats';
 import ApplicationModal from '@/components/features/career/ApplicationModal';
+import OpportunityRadar from '@/components/features/career/OpportunityRadar';
 import { ConfirmModal } from '@/components/shared/ConfirmModal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -183,6 +184,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isCvUploadOpen, setIsCvUploadOpen] = useState(false);
     const [editingApplication, setEditingApplication] = useState<Application | null>(null);
+    const [radarPrefill, setRadarPrefill] = useState<CreateApplicationInput | null>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [deletingName, setDeletingName] = useState('');
@@ -190,12 +192,14 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
     useEffect(() => {
         if (!openCreateOnLoad) return;
         setEditingApplication(null);
+        setRadarPrefill(null);
         setIsModalOpen(true);
         router.replace(pathname);
     }, [openCreateOnLoad, pathname, router]);
 
     usePrismCommandAction('open-new-application', () => {
         setEditingApplication(null);
+        setRadarPrefill(null);
         setIsModalOpen(true);
     });
 
@@ -381,7 +385,9 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
 
     const activeApplication = activeId ? applications.find(app => app.id === activeId) : null;
     const isEditMode = editingApplication !== null;
-    const initialModalData = editingApplication ? applicationToCreateInput(editingApplication) : undefined;
+    const initialModalData = editingApplication
+        ? applicationToCreateInput(editingApplication)
+        : (radarPrefill ?? undefined);
     const listNavigationItems = useMemo(() => {
         const sorted = [...applications];
         sorted.sort((a, b) => b.applicationDate.getTime() - a.applicationDate.getTime());
@@ -393,10 +399,17 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
         getId: (app) => app.id,
         enabled: listNavigationItems.length > 0 && !isModalOpen && !isCvUploadOpen,
         onEnter: (app) => {
+            setRadarPrefill(null);
             setEditingApplication(app);
             setIsModalOpen(true);
         },
     });
+
+    const handleAdoptOpportunity = (prefill: CreateApplicationInput) => {
+        setEditingApplication(null);
+        setRadarPrefill(prefill);
+        setIsModalOpen(true);
+    };
 
     return (
         <div className="space-y-6">
@@ -427,6 +440,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                         data-testid="add-application-button"
                         onClick={() => {
                             setEditingApplication(null);
+                            setRadarPrefill(null);
                             setIsModalOpen(true);
                         }}
                         variant="primary"
@@ -440,6 +454,9 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
 
             {/* Stats Dashboard */}
             <ApplicationStats applications={applications} />
+
+            {/* Opportunity Radar */}
+            <OpportunityRadar onAdoptToPipeline={handleAdoptOpportunity} />
 
             {/* CV Upload Section (Collapsible) */}
             <AnimatePresence>
@@ -481,6 +498,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                         <Button
                             onClick={() => {
                                 setEditingApplication(null);
+                                setRadarPrefill(null);
                                 setIsModalOpen(true);
                             }}
                             variant="primary"
@@ -503,6 +521,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                                     column={column}
                                     applications={kanbanData[column.status]}
                                     onApplicationClick={(app) => {
+                                        setRadarPrefill(null);
                                         setEditingApplication(app);
                                         setIsModalOpen(true);
                                     }}
@@ -539,6 +558,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                 onClose={() => {
                     setIsModalOpen(false);
                     setEditingApplication(null);
+                    setRadarPrefill(null);
                 }}
                 onSubmit={isEditMode ? handleEditApplication : handleAddApplication}
                 initialData={initialModalData}
