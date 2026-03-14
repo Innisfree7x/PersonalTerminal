@@ -63,6 +63,9 @@ describe('GET /api/career/opportunities', () => {
         },
       ],
       sourcesQueried: 3,
+      liveSourceConfigured: true,
+      liveSourceHealthy: true,
+      liveSourceContributed: true,
     } as any);
 
     const response = await GET(
@@ -83,5 +86,7 @@ describe('GET /api/career/opportunities', () => {
     const body = await response.json();
     expect(body.items).toHaveLength(1);
     expect(body.meta.sourcesQueried).toBe(3);
+    expect(body.meta.liveSourceConfigured).toBe(true);
+    expect(body.meta.liveSourceContributed).toBe(true);
   });
 });

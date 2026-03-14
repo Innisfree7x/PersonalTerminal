@@ -30,6 +30,12 @@ export async function deleteCareerApplication(
 export async function searchCareerOpportunities(
   repository: CareerRepository,
   input: OpportunitySearchInput
-): Promise<{ items: OpportunitySearchItem[]; sourcesQueried: number }> {
+): Promise<{
+  items: OpportunitySearchItem[];
+  sourcesQueried: number;
+  liveSourceConfigured: boolean;
+  liveSourceHealthy: boolean;
+  liveSourceContributed: boolean;
+}> {
   return repository.searchOpportunities(input);
 }

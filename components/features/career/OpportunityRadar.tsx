@@ -166,6 +166,15 @@ export default function OpportunityRadar({ onAdoptToPipeline }: OpportunityRadar
               {meta.sourcesQueried} Quellen
             </Badge>
           ) : null}
+          {meta?.liveSourceConfigured ? (
+            <Badge variant={meta.liveSourceContributed ? 'success' : 'warning'} size="sm">
+              {meta.liveSourceContributed ? 'Live Jobs aktiv' : 'Fallback aktiv'}
+            </Badge>
+          ) : (
+            <Badge variant="default" size="sm">
+              Demo-Daten
+            </Badge>
+          )}
         </div>
       </div>
 

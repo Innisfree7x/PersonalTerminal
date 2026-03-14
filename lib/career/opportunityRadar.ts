@@ -578,9 +578,19 @@ async function attachLlmExplanations(
 
 export async function searchRadarOpportunities(
   input: OpportunitySearchInput
-): Promise<{ items: OpportunitySearchItem[]; sourcesQueried: number }> {
+): Promise<{
+  items: OpportunitySearchItem[];
+  sourcesQueried: number;
+  liveSourceConfigured: boolean;
+  liveSourceHealthy: boolean;
+  liveSourceContributed: boolean;
+}> {
   const providers = buildProviders();
   const settled = await Promise.allSettled(providers.map((provider) => provider.search(input.query, input)));
+  const liveSourceConfigured = providers.some((provider) => provider.key === 'adzuna');
+  const liveSourceHealthy = settled.some(
+    (result, index) => providers[index]?.key === 'adzuna' && result.status === 'fulfilled'
+  );
 
   const aggregated = new Map<string, AggregatedOpportunity>();
   let sourcesQueried = 0;
@@ -626,5 +636,13 @@ export async function searchRadarOpportunities(
     .slice(0, input.limit);
 
   const items = await attachLlmExplanations(scoredItems, input);
-  return { items, sourcesQueried };
+  const liveSourceContributed = items.some((item) => item.sourceLabels.includes('Adzuna'));
+
+  return {
+    items,
+    sourcesQueried,
+    liveSourceConfigured,
+    liveSourceHealthy,
+    liveSourceContributed,
+  };
 }

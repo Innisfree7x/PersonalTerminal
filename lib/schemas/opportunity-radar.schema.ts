@@ -40,5 +40,8 @@ export interface OpportunitySearchResponse {
     priorityTrack: RadarTrack;
     totalBeforeLimit: number;
     sourcesQueried: number;
+    liveSourceConfigured: boolean;
+    liveSourceHealthy: boolean;
+    liveSourceContributed: boolean;
   };
 }

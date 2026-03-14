@@ -60,7 +60,13 @@ export async function GET(request: NextRequest) {
       limit,
     });
 
-    const { items, sourcesQueried } = await searchCareerOpportunities(careerRepository, input);
+    const {
+      items,
+      sourcesQueried,
+      liveSourceConfigured,
+      liveSourceHealthy,
+      liveSourceContributed,
+    } = await searchCareerOpportunities(careerRepository, input);
 
     return NextResponse.json({
       items,
@@ -69,6 +75,9 @@ export async function GET(request: NextRequest) {
         priorityTrack: input.priorityTrack,
         totalBeforeLimit: items.length,
         sourcesQueried,
+        liveSourceConfigured,
+        liveSourceHealthy,
+        liveSourceContributed,
       },
     });
   } catch (error) {
