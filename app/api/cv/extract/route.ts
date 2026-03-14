@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server';
 import { requireApiAuth } from '@/lib/api/auth';
 
 export const runtime = 'nodejs';
+const MAX_BYTES = 4 * 1024 * 1024;
+
+function fileExt(name: string): string {
+  const segments = name.toLowerCase().split('.');
+  return segments.length > 1 ? (segments[segments.length - 1] ?? '') : '';
+}
 
 async function extractPdf(buffer: Buffer): Promise<string> {
   const mod = await import('pdf-parse');
@@ -29,18 +35,23 @@ export async function POST(request: Request) {
       return new NextResponse('Missing file', { status: 400 });
     }
 
+    if (file.size > MAX_BYTES) {
+      return new NextResponse('File too large. Max 4MB.', { status: 413 });
+    }
+
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
     const mime = file.type;
+    const ext = fileExt(file.name);
     let text = '';
 
-    if (mime === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+    if (mime === 'application/pdf' || ext === 'pdf') {
       text = await extractPdf(buffer);
     } else if (
       mime ===
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-      file.name.toLowerCase().endsWith('.docx')
+      ext === 'docx'
     ) {
       text = await extractDocx(buffer);
     } else {
@@ -55,4 +66,3 @@ export async function POST(request: Request) {
     return new NextResponse(message, { status: 500 });
   }
 }
-

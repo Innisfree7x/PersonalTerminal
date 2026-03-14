@@ -5,23 +5,34 @@ import { supabaseBrowser } from '@/lib/supabase/browserClient';
 
 type ExtractResponse = { text: string };
 
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 4 * 1024 * 1024;
+const STORAGE_BUCKET = 'cv-uploads';
 const ACCEPTED_MIME = new Set([
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/octet-stream',
 ]);
+const ACCEPTED_EXT = new Set(['pdf', 'docx']);
 
 function formatBytes(bytes: number): string {
   const mb = bytes / (1024 * 1024);
   return `${mb.toFixed(1)} MB`;
 }
 
+function getFileExt(file: File): string {
+  const segments = file.name.toLowerCase().split('.');
+  return segments.length > 1 ? (segments[segments.length - 1] ?? '') : '';
+}
+
 function isAllowedFile(file: File): { ok: boolean; reason?: string } {
-  if (!ACCEPTED_MIME.has(file.type)) {
+  const ext = getFileExt(file);
+  const hasValidMime = !file.type || ACCEPTED_MIME.has(file.type);
+  const hasValidExt = ACCEPTED_EXT.has(ext);
+  if (!hasValidMime && !hasValidExt) {
     return { ok: false, reason: 'Only PDF or DOCX files are allowed.' };
   }
   if (file.size > MAX_BYTES) {
-    return { ok: false, reason: `Max file size is 5MB (got ${formatBytes(file.size)}).` };
+    return { ok: false, reason: `Max file size is 4MB (got ${formatBytes(file.size)}).` };
   }
   return { ok: true };
 }
@@ -32,6 +43,7 @@ export default function CvUpload() {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
+  const [uploadWarning, setUploadWarning] = useState<string | null>(null);
   const [extractedText, setExtractedText] = useState<string>('');
   const [uploadedPath, setUploadedPath] = useState<string | null>(null);
 
@@ -41,6 +53,7 @@ export default function CvUpload() {
 
   const handleFile = async (file: File): Promise<void> => {
     setError(null);
+    setUploadWarning(null);
     setProgress(0);
 
     const allowed = isAllowedFile(file);
@@ -49,36 +62,11 @@ export default function CvUpload() {
       return;
     }
 
-    if (!supabaseBrowser) {
-      setError(
-        'Supabase client not initialized. Check bloomberg-personal/.env.local and restart the dev server.'
-      );
-      return;
-    }
-
     setIsUploading(true);
     try {
-      // Simple staged progress (Supabase JS upload has no native progress callback).
+      // 1) Extract text first so the main function works even when storage is unavailable.
       setProgress(10);
-
-      // Upload to Supabase Storage
-      const ext = file.name.toLowerCase().endsWith('.pdf') ? 'pdf' : 'docx';
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const path = `cv/${Date.now()}_${safeName}`;
-
-      setProgress(35);
-      const { error: uploadError } = await supabaseBrowser.storage
-        .from('cv uploads')
-        .upload(path, file, { upsert: false, contentType: file.type });
-
-      if (uploadError) {
-        throw new Error(`Upload failed: ${uploadError.message}`);
-      }
-
-      setUploadedPath(path);
-      setProgress(65);
-
-      // Extract text via API (send the file)
+      const ext = getFileExt(file) === 'pdf' ? 'pdf' : 'docx';
       const form = new FormData();
       form.append('file', file);
       form.append('ext', ext);
@@ -90,8 +78,27 @@ export default function CvUpload() {
       }
 
       const data = (await res.json()) as ExtractResponse;
-      setProgress(95);
+      setProgress(70);
       setExtractedText(data.text ?? '');
+
+      // 2) Optional storage upload (non-blocking for extraction UX).
+      if (supabaseBrowser) {
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const path = `cv/${Date.now()}_${safeName}`;
+
+        const { error: uploadError } = await supabaseBrowser.storage
+          .from(STORAGE_BUCKET)
+          .upload(path, file, { upsert: false, contentType: file.type || 'application/octet-stream' });
+
+        if (uploadError) {
+          setUploadWarning(`CV text extrahiert, aber Storage-Upload fehlgeschlagen: ${uploadError.message}`);
+        } else {
+          setUploadedPath(path);
+        }
+      } else {
+        setUploadWarning('CV text extrahiert. Supabase-Storage ist lokal nicht initialisiert.');
+      }
+
       setProgress(100);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'CV konnte nicht verarbeitet werden. Bitte erneut versuchen.');
@@ -125,6 +132,12 @@ export default function CvUpload() {
         </div>
       ) : null}
 
+      {uploadWarning ? (
+        <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800 dark:border-yellow-900/50 dark:bg-yellow-900/20 dark:text-yellow-200">
+          {uploadWarning}
+        </div>
+      ) : null}
+
       <div
         onDragEnter={(e) => {
           e.preventDefault();
@@ -151,7 +164,7 @@ export default function CvUpload() {
             Upload your CV
           </div>
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            Drag & drop a <b>PDF</b> or <b>DOCX</b> (max 5MB), or click to select.
+            Drag & drop a <b>PDF</b> or <b>DOCX</b> (max 4MB), or click to select.
           </div>
 
           <input
@@ -212,4 +225,3 @@ export default function CvUpload() {
     </div>
   );
 }
-
