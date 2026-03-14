@@ -25,6 +25,8 @@ interface OpportunitySourceItem {
   gapPool: string[];
   jobUrl?: string;
   description?: string;
+  qualityBoost?: number;
+  qualityReason?: string;
 }
 
 interface AggregatedOpportunity {
@@ -41,6 +43,8 @@ interface AggregatedOpportunity {
   sourceLabels: string[];
   sourcePriorities: number[];
   description: string;
+  qualityBoost: number;
+  qualityReason?: string;
 }
 
 interface OpportunitySourceProvider {
@@ -214,6 +218,52 @@ const ADZUNA_COUNTRY_MAP: Record<DachLocation, string> = {
   CH: 'ch',
 };
 
+const NOISE_ROLE_PATTERNS = [
+  'marketing',
+  'vertrieb',
+  'sales',
+  'customer support',
+  'it support',
+  'software',
+  'developer',
+  'engineering',
+  'logistik',
+  'warehouse',
+  'nursing',
+  'teacher',
+  'retail',
+];
+
+const TRACK_ROLE_KEYWORDS: Record<RadarTrack, string[]> = {
+  'M&A': ['m&a', 'merger', 'acquisition', 'investment banking', 'corporate finance', 'transaction', 'deals'],
+  TS: ['transaction services', 'due diligence', 'fdd', 'financial due diligence', 'deal advisory'],
+  CorpFin: ['corporate finance', 'valuation', 'capital markets', 'm&a financing'],
+  Audit: ['audit', 'assurance', 'wirtschaftspruefung', 'ifrs'],
+};
+
+const TARGET_FIRM_SIGNALS: Array<{ pattern: RegExp; boost: number; reason: string }> = [
+  {
+    pattern: /\b(deloitte|ey|kpmg|pwc|bdo|forvis|mazars|roedl|rodl|baker\s*tilly)\b/i,
+    boost: 10,
+    reason: 'Tier-1 Prüfungs-/Deals-Track',
+  },
+  {
+    pattern: /\b(dz\s*bank|berenberg|unicredit|hauck|oddo|santander|deutsche\s*bank|j\.?p\.?\s*morgan|goldman)\b/i,
+    boost: 9,
+    reason: 'Investment-Banking Umfeld',
+  },
+  {
+    pattern: /\b(dc\s*advisory|alantra|lincoln|rothschild|lazard|rothenstein|parkview|progressiv|value\s*trust|wts)\b/i,
+    boost: 8,
+    reason: 'M&A Advisory Fokus',
+  },
+  {
+    pattern: /\b(rsm|ebner\s*stolz|flick\s*gocke|dhpg|ecovis|grant\s*thornton)\b/i,
+    boost: 6,
+    reason: 'Starker Mid-Market Track',
+  },
+];
+
 const LLM_OUTPUT_SCHEMA = z.object({
   reasons: z.array(z.string().min(1)).min(1).max(3),
   gaps: z.array(z.string().min(1)).min(1).max(2),
@@ -224,6 +274,32 @@ const LLM_CACHE_TTL_MS = 1000 * 60 * 60;
 
 function normalizeToken(input: string): string {
   return input.toLowerCase().replace(/\s+/g, ' ').replace(/[^a-z0-9 ]/g, '').trim();
+}
+
+function isLikelyNoiseRole(text: string): boolean {
+  return NOISE_ROLE_PATTERNS.some((pattern) => text.includes(pattern));
+}
+
+function trackKeywordMatchCount(track: RadarTrack, text: string): number {
+  const keywords = TRACK_ROLE_KEYWORDS[track];
+  return keywords.reduce((count, keyword) => (text.includes(keyword) ? count + 1 : count), 0);
+}
+
+function computeCompanyQualitySignal(company: string): { boost: number; reason?: string } {
+  for (const signal of TARGET_FIRM_SIGNALS) {
+    if (signal.pattern.test(company)) {
+      return { boost: signal.boost, reason: signal.reason };
+    }
+  }
+  return { boost: 0 };
+}
+
+function buildAdzunaWhat(input: OpportunitySearchInput): string {
+  if (input.query.trim()) return input.query.trim();
+  if (input.priorityTrack === 'M&A') return 'm&a internship corporate finance intern';
+  if (input.priorityTrack === 'TS') return 'transaction services due diligence internship';
+  if (input.priorityTrack === 'Audit') return 'audit internship assurance intern';
+  return 'corporate finance valuation internship';
 }
 
 function dedupeKey(item: OpportunitySourceItem): string {
@@ -285,6 +361,8 @@ function mergeIntoAggregate(store: Map<string, AggregatedOpportunity>, item: Opp
       sourceLabels: [item.sourceLabel],
       sourcePriorities: [item.sourcePriority],
       description: item.description ?? '',
+      qualityBoost: item.qualityBoost ?? 0,
+      ...(item.qualityReason ? { qualityReason: item.qualityReason } : {}),
     });
     return;
   }
@@ -314,6 +392,10 @@ function mergeIntoAggregate(store: Map<string, AggregatedOpportunity>, item: Opp
     gapPool: uniqueStrings([...existing.gapPool, ...item.gapPool], 8),
     sourceLabels: uniqueStrings([...existing.sourceLabels, item.sourceLabel], 4),
     sourcePriorities: [...existing.sourcePriorities, item.sourcePriority],
+    qualityBoost: Math.max(existing.qualityBoost, item.qualityBoost ?? 0),
+    ...(existing.qualityReason || item.qualityReason
+      ? { qualityReason: existing.qualityReason ?? item.qualityReason }
+      : {}),
   };
 
   store.set(key, merged);
@@ -352,7 +434,8 @@ function computeFitScore(
     cvAdjustment += Math.min(4, overlapCount);
   }
 
-  return clampScore(opportunity.baseFit + trackAdjustment + queryAdjustment + locationAdjustment + cvAdjustment);
+  const qualityAdjustment = opportunity.qualityBoost;
+  return clampScore(opportunity.baseFit + trackAdjustment + queryAdjustment + locationAdjustment + cvAdjustment + qualityAdjustment);
 }
 
 function buildReasons(opportunity: AggregatedOpportunity, input: OpportunitySearchInput): string[] {
@@ -363,7 +446,8 @@ function buildReasons(opportunity: AggregatedOpportunity, input: OpportunitySear
   const sourcesReason = `Mehrfach gefunden: ${opportunity.sourceLabels.join(' + ')}`;
   const locationReason = `Standort-Fit: ${locationLabel(opportunity.city, opportunity.country)}`;
 
-  return [trackReason, sourcesReason, locationReason, ...opportunity.reasonPool].slice(0, 3);
+  const qualityReason = opportunity.qualityReason ? [opportunity.qualityReason] : [];
+  return [trackReason, ...qualityReason, sourcesReason, locationReason, ...opportunity.reasonPool].slice(0, 3);
 }
 
 function buildGaps(opportunity: AggregatedOpportunity, band: RadarBand): string[] {
@@ -437,7 +521,7 @@ function buildAdzunaProvider(): OpportunitySourceProvider | null {
     priority: 4,
     search: async (query, input) => {
       const items: OpportunitySourceItem[] = [];
-      const what = query.trim() || 'internship finance';
+      const what = buildAdzunaWhat(input);
 
       const perLocation = await Promise.allSettled(
         input.locations.map(async (location) => {
@@ -464,16 +548,23 @@ function buildAdzunaProvider(): OpportunitySourceProvider | null {
             const company = String(job?.company?.display_name ?? '').trim();
             if (!title || !company) continue;
 
+            const description = String(job?.description ?? '').slice(0, 1200);
+            const textBlob = normalizeToken(`${title} ${description}`);
             const normalized = normalizeToken(title);
             const isStudentRole = /(intern|internship|praktikum|werkstudent|working student)/.test(normalized);
             if (!isStudentRole) continue;
+            if (isLikelyNoiseRole(textBlob)) continue;
 
-            const description = String(job?.description ?? '').slice(0, 1200);
             const track = inferTrack(`${title} ${description}`);
+            const trackMatchCount = trackKeywordMatchCount(input.priorityTrack, textBlob);
+            const inferredTrackMismatch = track !== input.priorityTrack && trackMatchCount === 0;
+            if (inferredTrackMismatch) continue;
+
             const city = deriveCity(job?.location?.area);
             const baseFit = inferBaseFit(track, `${title} ${description}`);
             const reasonPool = inferReasonPool(track, city, location);
             const gapPool = inferGapPool(track);
+            const qualitySignal = computeCompanyQualitySignal(company);
 
             locationItems.push({
               sourceKey: 'adzuna',
@@ -485,11 +576,13 @@ function buildAdzunaProvider(): OpportunitySourceProvider | null {
               city,
               country: location,
               track,
-              baseFit,
-              reasonPool,
+              baseFit: clampScore(baseFit + Math.min(4, trackMatchCount)),
+              reasonPool: qualitySignal.reason ? [qualitySignal.reason, ...reasonPool] : reasonPool,
               gapPool,
               jobUrl: typeof job?.redirect_url === 'string' ? job.redirect_url : undefined,
               description,
+              qualityBoost: qualitySignal.boost,
+              ...(qualitySignal.reason ? { qualityReason: qualitySignal.reason } : {}),
             });
           }
 
