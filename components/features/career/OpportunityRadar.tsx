@@ -35,11 +35,18 @@ function formatBand(band: RadarBand): string {
   return 'Stretch';
 }
 
+function toDisplayFitIndex(score: number): string {
+  // Keep internal 0-100 scoring for sorting/bands, but present a realistic market index.
+  const capped = Math.min(89, Math.max(0, score));
+  return (capped / 10).toFixed(1);
+}
+
 function buildApplicationPrefill(opportunity: OpportunitySearchItem): CreateApplicationInput {
+  const displayFitIndex = toDisplayFitIndex(opportunity.fitScore);
   const notes = [
     'Opportunity Radar',
     `Track: ${opportunity.track}`,
-    `Fit Score: ${opportunity.fitScore}`,
+    `Fit Index: ${displayFitIndex}/10`,
     `Band: ${formatBand(opportunity.band)}`,
     `Top Reasons: ${opportunity.topReasons.join('; ')}`,
     `Gaps: ${opportunity.topGaps.join('; ')}`,
@@ -301,8 +308,8 @@ export default function OpportunityRadar({ onAdoptToPipeline }: OpportunityRadar
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-3xl font-black tabular-nums text-career-accent">{item.fitScore}</p>
-                  <p className="text-[11px] uppercase tracking-wide text-text-tertiary">Fit Score</p>
+                  <p className="text-3xl font-black tabular-nums text-career-accent">{toDisplayFitIndex(item.fitScore)}</p>
+                  <p className="text-[11px] uppercase tracking-wide text-text-tertiary">Fit Index / 10</p>
                 </div>
               </div>
 
