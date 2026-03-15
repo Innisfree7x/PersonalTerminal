@@ -13,7 +13,12 @@ export type Theme =
     | 'platinum'
     | 'sapphire'
     | 'copper'
-    | 'amethyst';
+    | 'amethyst'
+    | 'obsidian'
+    | 'rosegold'
+    | 'carbon'
+    | 'titanium'
+    | 'onyx';
 
 export type AccentColor =
     | 'purple'
@@ -27,7 +32,12 @@ export type AccentColor =
     | 'aurora'
     | 'royal'
     | 'plasma'
-    | 'ember';
+    | 'ember'
+    | 'champagne'
+    | 'ice'
+    | 'rose'
+    | 'jade'
+    | 'slate';
 
 interface ThemeContextType {
     theme: Theme;
@@ -49,6 +59,11 @@ const VALID_THEMES = [
     'sapphire',
     'copper',
     'amethyst',
+    'obsidian',
+    'rosegold',
+    'carbon',
+    'titanium',
+    'onyx',
 ] as const;
 
 const VALID_ACCENTS = [
@@ -64,6 +79,11 @@ const VALID_ACCENTS = [
     'royal',
     'plasma',
     'ember',
+    'champagne',
+    'ice',
+    'rose',
+    'jade',
+    'slate',
 ] as const;
 
 const ACCENT_COLORS: Record<AccentColor, { base: string; hover: string; secondary: string }> = {
@@ -79,6 +99,11 @@ const ACCENT_COLORS: Record<AccentColor, { base: string; hover: string; secondar
     royal: { base: '99 102 241', hover: '79 70 229', secondary: '236 72 153' },
     plasma: { base: '168 85 247', hover: '147 51 234', secondary: '59 130 246' },
     ember: { base: '239 68 68', hover: '220 38 38', secondary: '245 158 11' },
+    champagne: { base: '212 175 55', hover: '186 150 40', secondary: '232 204 110' },
+    ice: { base: '148 210 236', hover: '120 190 220', secondary: '200 230 255' },
+    rose: { base: '201 135 143', hover: '180 110 120', secondary: '232 169 176' },
+    jade: { base: '0 168 107', hover: '0 140 90', secondary: '46 204 113' },
+    slate: { base: '112 128 144', hover: '90 105 120', secondary: '143 163 179' },
 };
 
 function isTheme(value: string): value is Theme {

@@ -242,12 +242,92 @@
   --primary-secondary: 236 72 153;
 }
 
+/* Obsidian Theme (Ultra-Dark Warm) */
+[data-theme='obsidian'] {
+  --background: 8 8 8;
+  --surface: 18 17 16;
+  --surface-hover: 30 28 26;
+  --text-primary: 245 240 235;
+  --text-secondary: 200 195 188;
+  --text-tertiary: 145 140 132;
+  --border: 48 45 42;
+  --border-secondary: 32 30 28;
+  --primary: 212 175 55;
+  --primary-hover: 186 150 40;
+  --primary-secondary: 232 204 110;
+}
+
+/* Rose Gold Theme (Luxury Rosé) */
+[data-theme='rosegold'] {
+  --background: 13 10 11;
+  --surface: 28 22 24;
+  --surface-hover: 42 33 36;
+  --text-primary: 252 242 244;
+  --text-secondary: 220 195 200;
+  --text-tertiary: 170 140 148;
+  --border: 72 52 58;
+  --border-secondary: 50 36 40;
+  --primary: 222 150 140;
+  --primary-hover: 200 125 115;
+  --primary-secondary: 240 180 170;
+}
+
+/* Carbon Theme (Industrial Precision) */
+[data-theme='carbon'] {
+  --background: 12 12 14;
+  --surface: 22 22 24;
+  --surface-hover: 34 34 38;
+  --text-primary: 230 232 240;
+  --text-secondary: 170 172 185;
+  --text-tertiary: 110 112 128;
+  --border: 52 52 58;
+  --border-secondary: 36 36 40;
+  --primary: 160 165 175;
+  --primary-hover: 135 140 150;
+  --primary-secondary: 190 195 205;
+}
+
+/* Titanium Theme (Cool Pro Display) */
+[data-theme='titanium'] {
+  --background: 17 18 20;
+  --surface: 25 27 31;
+  --surface-hover: 38 41 48;
+  --text-primary: 238 241 248;
+  --text-secondary: 185 192 210;
+  --text-tertiary: 125 132 155;
+  --border: 55 60 72;
+  --border-secondary: 38 42 52;
+  --primary: 130 155 195;
+  --primary-hover: 105 130 170;
+  --primary-secondary: 160 185 220;
+}
+
+/* Onyx Theme (Deep Jade Black) */
+[data-theme='onyx'] {
+  --background: 5 5 5;
+  --surface: 14 16 14;
+  --surface-hover: 24 28 24;
+  --text-primary: 232 240 232;
+  --text-secondary: 175 192 178;
+  --text-tertiary: 115 135 118;
+  --border: 38 48 40;
+  --border-secondary: 26 32 28;
+  --primary: 80 200 120;
+  --primary-hover: 60 175 100;
+  --primary-secondary: 110 225 150;
+}
+
 /* Dynamic metal backgrounds for premium themes */
 [data-theme='gold'] body,
 [data-theme='platinum'] body,
 [data-theme='sapphire'] body,
 [data-theme='copper'] body,
-[data-theme='amethyst'] body {
+[data-theme='amethyst'] body,
+[data-theme='obsidian'] body,
+[data-theme='rosegold'] body,
+[data-theme='carbon'] body,
+[data-theme='titanium'] body,
+[data-theme='onyx'] body {
   background: radial-gradient(circle at 50% -20%, #423010 0%, #000000 60%);
   background-attachment: fixed;
 }
@@ -268,11 +348,36 @@
   background: radial-gradient(circle at 50% -24%, rgb(168 85 247 / 0.25) 0%, rgb(19 13 31) 60%);
 }
 
+[data-theme='obsidian'] body {
+  background: radial-gradient(circle at 50% -20%, rgb(212 175 55 / 0.12) 0%, rgb(8 8 8) 55%);
+}
+
+[data-theme='rosegold'] body {
+  background: radial-gradient(circle at 50% -22%, rgb(222 150 140 / 0.2) 0%, rgb(13 10 11) 55%);
+}
+
+[data-theme='carbon'] body {
+  background: radial-gradient(circle at 50% -20%, rgb(160 165 175 / 0.15) 0%, rgb(12 12 14) 55%);
+}
+
+[data-theme='titanium'] body {
+  background: radial-gradient(circle at 50% -22%, rgb(130 155 195 / 0.18) 0%, rgb(17 18 20) 55%);
+}
+
+[data-theme='onyx'] body {
+  background: radial-gradient(circle at 50% -20%, rgb(80 200 120 / 0.12) 0%, rgb(5 5 5) 55%);
+}
+
 [data-theme='gold'] body::before,
 [data-theme='platinum'] body::before,
 [data-theme='sapphire'] body::before,
 [data-theme='copper'] body::before,
-[data-theme='amethyst'] body::before {
+[data-theme='amethyst'] body::before,
+[data-theme='obsidian'] body::before,
+[data-theme='rosegold'] body::before,
+[data-theme='carbon'] body::before,
+[data-theme='titanium'] body::before,
+[data-theme='onyx'] body::before {
   content: '';
   position: fixed;
   top: -50%;

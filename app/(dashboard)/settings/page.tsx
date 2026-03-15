@@ -39,6 +39,11 @@ const themes = [
     { id: 'sapphire', name: 'Sapphire', preview: 'linear-gradient(135deg, #162646 0%, #070e1e 100%)', border: '#0ea5e9', tag: 'Metal' },
     { id: 'copper', name: 'Copper', preview: 'linear-gradient(135deg, #3d2318 0%, #140d0a 100%)', border: '#ea580c', tag: 'Metal' },
     { id: 'amethyst', name: 'Amethyst', preview: 'linear-gradient(135deg, #362357 0%, #130d1f 100%)', border: '#a855f7', tag: 'Metal' },
+    { id: 'obsidian', name: 'Obsidian', preview: 'linear-gradient(135deg, #1a1610 0%, #080808 100%)', border: '#d4af37', tag: 'Metal' },
+    { id: 'rosegold', name: 'Rose Gold', preview: 'linear-gradient(135deg, #2a1c1e 0%, #0d0a0b 100%)', border: '#de968c', tag: 'Metal' },
+    { id: 'carbon', name: 'Carbon', preview: 'linear-gradient(135deg, #1e1e22 0%, #0c0c0e 100%)', border: '#a0a5af', tag: 'Metal' },
+    { id: 'titanium', name: 'Titanium', preview: 'linear-gradient(135deg, #1e2230 0%, #111214 100%)', border: '#829bc3', tag: 'Metal' },
+    { id: 'onyx', name: 'Onyx', preview: 'linear-gradient(135deg, #0e160f 0%, #050505 100%)', border: '#50c878', tag: 'Metal' },
     { id: 'midnight', name: 'Midnight', preview: '#0A0A0A', border: '#262626' },
     { id: 'nord', name: 'Nord', preview: '#2E3440', border: '#4C566A' },
     { id: 'dracula', name: 'Dracula', preview: '#282a36', border: '#6272a4' },
@@ -59,6 +64,11 @@ const accents = [
     { id: 'green', name: 'Green', swatch: 'radial-gradient(circle at 30% 25%, rgb(52 211 153), rgb(5 150 105))' },
     { id: 'orange', name: 'Orange', swatch: 'radial-gradient(circle at 30% 25%, rgb(251 146 60), rgb(234 88 12))' },
     { id: 'pink', name: 'Pink', swatch: 'radial-gradient(circle at 30% 25%, rgb(244 114 182), rgb(219 39 119))' },
+    { id: 'champagne', name: 'Champagne', swatch: 'linear-gradient(135deg, rgb(212 175 55), rgb(232 204 110))' },
+    { id: 'ice', name: 'Ice', swatch: 'linear-gradient(135deg, rgb(148 210 236), rgb(200 230 255))' },
+    { id: 'rose', name: 'Rosé', swatch: 'linear-gradient(135deg, rgb(201 135 143), rgb(232 169 176))' },
+    { id: 'jade', name: 'Jade', swatch: 'linear-gradient(135deg, rgb(0 168 107), rgb(46 204 113))' },
+    { id: 'slate', name: 'Slate', swatch: 'linear-gradient(135deg, rgb(112 128 144), rgb(143 163 179))' },
 ] as const satisfies ReadonlyArray<{ id: AccentColor; name: string; swatch: string }>;
 
 const championVfxPresetDescriptions = {

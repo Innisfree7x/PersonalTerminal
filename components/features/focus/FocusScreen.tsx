@@ -62,6 +62,13 @@ type FocusOverlayPreset = {
   grainOpacity: number;
   vignette: string;
   vignetteOpacity: number;
+  /* Layout overrides — overlays change how content is arranged */
+  quotePosition: 'center' | 'top-left' | 'bottom-right' | 'top-center' | 'center-left';
+  quoteMaxWidth: string;
+  quoteAlign: 'center' | 'left' | 'right';
+  quoteFontClass: string;
+  showQuoteBorder: boolean;
+  controlsPosition: 'bottom-spread' | 'bottom-left' | 'bottom-center' | 'top-left';
 };
 
 const FOCUS_THEME_PRESETS: FocusThemePreset[] = [
@@ -117,6 +124,58 @@ const FOCUS_THEME_PRESETS: FocusThemePreset[] = [
     orbThree: 'radial-gradient(circle, rgba(52,211,153,0.12), rgba(52,211,153,0))',
     quoteSurface: 'linear-gradient(180deg, rgba(7,17,31,0.46), rgba(5,12,20,0.26))',
   },
+  {
+    id: 'noir',
+    label: 'Noir',
+    baseColor: '#020202',
+    radialGradient:
+      'radial-gradient(circle at 50% 30%, rgba(255,255,255,0.04), transparent 40%), radial-gradient(circle at 20% 80%, rgba(255,255,255,0.02), transparent 30%), radial-gradient(circle at 80% 70%, rgba(200,200,200,0.03), transparent 35%)',
+    conicGradient:
+      'conic-gradient(from 180deg at 50% 50%, rgba(255,255,255,0.02), transparent 30%, rgba(200,200,200,0.02), transparent 70%, rgba(255,255,255,0.015), transparent 100%)',
+    orbOne: 'radial-gradient(circle, rgba(255,255,255,0.04), rgba(255,255,255,0))',
+    orbTwo: 'radial-gradient(circle, rgba(200,200,200,0.035), rgba(200,200,200,0))',
+    orbThree: 'radial-gradient(circle, rgba(180,180,180,0.03), rgba(180,180,180,0))',
+    quoteSurface: 'linear-gradient(180deg, rgba(18,18,18,0.6), rgba(8,8,8,0.3))',
+  },
+  {
+    id: 'ember',
+    label: 'Ember',
+    baseColor: '#0a0305',
+    radialGradient:
+      'radial-gradient(circle at 30% 25%, rgba(239,68,68,0.18), transparent 36%), radial-gradient(circle at 75% 20%, rgba(249,115,22,0.16), transparent 38%), radial-gradient(circle at 55% 80%, rgba(220,38,38,0.12), transparent 34%)',
+    conicGradient:
+      'conic-gradient(from 200deg at 50% 45%, rgba(239,68,68,0.07), transparent 26%, rgba(249,115,22,0.08), transparent 58%, rgba(168,85,247,0.05), transparent 100%)',
+    orbOne: 'radial-gradient(circle, rgba(239,68,68,0.15), rgba(239,68,68,0))',
+    orbTwo: 'radial-gradient(circle, rgba(249,115,22,0.14), rgba(249,115,22,0))',
+    orbThree: 'radial-gradient(circle, rgba(168,85,247,0.10), rgba(168,85,247,0))',
+    quoteSurface: 'linear-gradient(180deg, rgba(28,8,12,0.5), rgba(14,4,6,0.28))',
+  },
+  {
+    id: 'glacier',
+    label: 'Glacier',
+    baseColor: '#030810',
+    radialGradient:
+      'radial-gradient(circle at 25% 15%, rgba(148,210,236,0.16), transparent 36%), radial-gradient(circle at 80% 25%, rgba(200,230,255,0.12), transparent 34%), radial-gradient(circle at 45% 85%, rgba(100,180,220,0.14), transparent 36%)',
+    conicGradient:
+      'conic-gradient(from 210deg at 50% 45%, rgba(148,210,236,0.06), transparent 28%, rgba(200,230,255,0.07), transparent 60%, rgba(100,180,220,0.05), transparent 100%)',
+    orbOne: 'radial-gradient(circle, rgba(148,210,236,0.14), rgba(148,210,236,0))',
+    orbTwo: 'radial-gradient(circle, rgba(200,230,255,0.12), rgba(200,230,255,0))',
+    orbThree: 'radial-gradient(circle, rgba(100,180,220,0.11), rgba(100,180,220,0))',
+    quoteSurface: 'linear-gradient(180deg, rgba(8,16,28,0.5), rgba(4,10,18,0.28))',
+  },
+  {
+    id: 'nebula',
+    label: 'Nebula',
+    baseColor: '#06030e',
+    radialGradient:
+      'radial-gradient(circle at 20% 20%, rgba(168,85,247,0.18), transparent 36%), radial-gradient(circle at 80% 22%, rgba(236,72,153,0.16), transparent 38%), radial-gradient(circle at 50% 85%, rgba(99,102,241,0.14), transparent 34%)',
+    conicGradient:
+      'conic-gradient(from 195deg at 50% 45%, rgba(168,85,247,0.08), transparent 25%, rgba(236,72,153,0.07), transparent 58%, rgba(99,102,241,0.06), transparent 100%)',
+    orbOne: 'radial-gradient(circle, rgba(168,85,247,0.15), rgba(168,85,247,0))',
+    orbTwo: 'radial-gradient(circle, rgba(236,72,153,0.13), rgba(236,72,153,0))',
+    orbThree: 'radial-gradient(circle, rgba(99,102,241,0.12), rgba(99,102,241,0))',
+    quoteSurface: 'linear-gradient(180deg, rgba(18,8,28,0.5), rgba(10,4,16,0.28))',
+  },
 ];
 
 const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
@@ -131,6 +190,12 @@ const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
     vignette:
       'radial-gradient(circle at 50% 45%, rgba(0,0,0,0) 22%, rgba(2,4,10,0.42) 100%)',
     vignetteOpacity: 0.9,
+    quotePosition: 'center',
+    quoteMaxWidth: '44rem',
+    quoteAlign: 'center',
+    quoteFontClass: 'text-xl sm:text-3xl lg:text-4xl font-semibold',
+    showQuoteBorder: true,
+    controlsPosition: 'bottom-spread',
   },
   {
     id: 'grid',
@@ -143,6 +208,12 @@ const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
     vignette:
       'radial-gradient(circle at 50% 45%, rgba(0,0,0,0) 18%, rgba(2,4,10,0.46) 100%)',
     vignetteOpacity: 0.92,
+    quotePosition: 'center',
+    quoteMaxWidth: '44rem',
+    quoteAlign: 'center',
+    quoteFontClass: 'text-xl sm:text-3xl lg:text-4xl font-semibold',
+    showQuoteBorder: true,
+    controlsPosition: 'bottom-spread',
   },
   {
     id: 'velvet',
@@ -155,6 +226,12 @@ const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
     vignette:
       'radial-gradient(circle at 50% 42%, rgba(0,0,0,0) 16%, rgba(2,4,10,0.5) 100%)',
     vignetteOpacity: 0.95,
+    quotePosition: 'center',
+    quoteMaxWidth: '44rem',
+    quoteAlign: 'center',
+    quoteFontClass: 'text-xl sm:text-3xl lg:text-4xl font-semibold',
+    showQuoteBorder: true,
+    controlsPosition: 'bottom-spread',
   },
   {
     id: 'clean',
@@ -166,6 +243,83 @@ const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
     vignette:
       'radial-gradient(circle at 50% 45%, rgba(0,0,0,0) 26%, rgba(2,4,10,0.36) 100%)',
     vignetteOpacity: 0.78,
+    quotePosition: 'center',
+    quoteMaxWidth: '44rem',
+    quoteAlign: 'center',
+    quoteFontClass: 'text-xl sm:text-3xl lg:text-4xl font-semibold',
+    showQuoteBorder: true,
+    controlsPosition: 'bottom-spread',
+  },
+  {
+    id: 'editorial',
+    label: 'Editorial',
+    texture:
+      'linear-gradient(180deg, rgba(255,255,255,0.01) 0%, transparent 50%, rgba(255,255,255,0.008) 100%)',
+    textureOpacity: 0.12,
+    grain: 'none',
+    grainOpacity: 0,
+    vignette:
+      'radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 30%, rgba(2,4,10,0.35) 100%)',
+    vignetteOpacity: 0.85,
+    quotePosition: 'center-left',
+    quoteMaxWidth: '36rem',
+    quoteAlign: 'left',
+    quoteFontClass: 'text-2xl sm:text-4xl lg:text-5xl font-light italic tracking-tight',
+    showQuoteBorder: false,
+    controlsPosition: 'bottom-left',
+  },
+  {
+    id: 'cinema',
+    label: 'Cinema',
+    texture: 'none',
+    textureOpacity: 0,
+    grain: 'radial-gradient(circle, rgba(255,255,255,0.02) 1px, transparent 1px)',
+    grainOpacity: 0.15,
+    vignette:
+      'radial-gradient(ellipse 100% 70% at 50% 50%, rgba(0,0,0,0) 15%, rgba(0,0,0,0.7) 100%)',
+    vignetteOpacity: 1,
+    quotePosition: 'bottom-right',
+    quoteMaxWidth: '32rem',
+    quoteAlign: 'right',
+    quoteFontClass: 'text-lg sm:text-2xl lg:text-3xl font-normal tracking-wide',
+    showQuoteBorder: false,
+    controlsPosition: 'top-left',
+  },
+  {
+    id: 'mono',
+    label: 'Mono',
+    texture:
+      'linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px)',
+    textureOpacity: 0.08,
+    grain: 'none',
+    grainOpacity: 0,
+    vignette:
+      'radial-gradient(circle at 50% 45%, rgba(0,0,0,0) 25%, rgba(2,4,10,0.3) 100%)',
+    vignetteOpacity: 0.75,
+    quotePosition: 'top-center',
+    quoteMaxWidth: '52rem',
+    quoteAlign: 'center',
+    quoteFontClass: 'text-base sm:text-xl lg:text-2xl font-mono font-medium uppercase tracking-[0.12em]',
+    showQuoteBorder: true,
+    controlsPosition: 'bottom-center',
+  },
+  {
+    id: 'gallery',
+    label: 'Gallery',
+    texture:
+      'linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 40%, rgba(255,255,255,0.015) 70%, transparent 100%)',
+    textureOpacity: 0.18,
+    grain: 'radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px)',
+    grainOpacity: 0.12,
+    vignette:
+      'radial-gradient(circle at 50% 45%, rgba(0,0,0,0) 20%, rgba(2,4,10,0.4) 100%)',
+    vignetteOpacity: 0.88,
+    quotePosition: 'top-left',
+    quoteMaxWidth: '38rem',
+    quoteAlign: 'left',
+    quoteFontClass: 'text-xl sm:text-3xl lg:text-[2.75rem] font-semibold leading-[1.15]',
+    showQuoteBorder: false,
+    controlsPosition: 'bottom-center',
   },
 ];
 
@@ -480,27 +634,42 @@ export default function FocusScreen() {
           />
         </div>
 
-        <div className="mx-auto mt-10 flex w-full max-w-4xl flex-1 items-center justify-center sm:mt-12">
+        <div className={`flex-1 flex flex-col ${
+          activeOverlay.quotePosition === 'center' ? 'mt-10 sm:mt-12 items-center justify-center' :
+          activeOverlay.quotePosition === 'top-left' ? 'mt-8 sm:mt-10 items-start justify-start' :
+          activeOverlay.quotePosition === 'top-center' ? 'mt-8 sm:mt-10 items-center justify-start' :
+          activeOverlay.quotePosition === 'bottom-right' ? 'mt-4 items-end justify-end mb-32 sm:mb-36' :
+          activeOverlay.quotePosition === 'center-left' ? 'mt-10 sm:mt-12 items-start justify-center' :
+          'mt-10 sm:mt-12 items-center justify-center'
+        }`}>
           <div
-            className="w-full rounded-3xl border px-6 py-9 shadow-[0_12px_70px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:px-10 sm:py-12 lg:px-12"
+            className={`w-full ${activeOverlay.showQuoteBorder ? 'rounded-3xl border px-6 py-9 shadow-[0_12px_70px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:px-10 sm:py-12 lg:px-12' : 'px-4 py-6 sm:px-8 sm:py-8'}`}
             style={{
-              borderColor: 'rgba(148,163,184,0.20)',
-              backgroundImage: activeTheme.quoteSurface,
+              maxWidth: activeOverlay.quoteMaxWidth,
+              borderColor: activeOverlay.showQuoteBorder ? 'rgba(148,163,184,0.20)' : 'transparent',
+              backgroundImage: activeOverlay.showQuoteBorder ? activeTheme.quoteSurface : 'none',
             }}
           >
             <AnimatePresence mode="wait">
               <motion.blockquote
-                key={quoteIndex}
+                key={`${quoteIndex}-${activeOverlay.id}`}
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -18 }}
                 transition={{ duration: 0.35 }}
-                className="flex min-h-[10rem] flex-col items-center justify-center text-center sm:min-h-[11.75rem] lg:min-h-[12.5rem]"
+                className={`flex min-h-[10rem] flex-col justify-center sm:min-h-[11.75rem] lg:min-h-[12.5rem] ${
+                  activeOverlay.quoteAlign === 'center' ? 'items-center text-center' :
+                  activeOverlay.quoteAlign === 'left' ? 'items-start text-left' :
+                  'items-end text-right'
+                }`}
               >
-                <p className="max-w-[44rem] text-balance text-xl font-semibold leading-[1.28] text-[#FAF0E6] sm:text-3xl lg:text-4xl">
+                <p className={`text-balance leading-[1.28] text-[#FAF0E6] ${activeOverlay.quoteFontClass}`} style={{ maxWidth: activeOverlay.quoteMaxWidth }}>
                   &ldquo;{currentQuote?.text}&rdquo;
                 </p>
-                <p className="mt-5 text-[11px] uppercase tracking-[0.2em] text-zinc-400 sm:text-xs">
+                <p className={`mt-5 text-[11px] uppercase tracking-[0.2em] text-zinc-400 sm:text-xs ${
+                  activeOverlay.quoteAlign === 'left' ? 'self-start' :
+                  activeOverlay.quoteAlign === 'right' ? 'self-end' : ''
+                }`}>
                   {currentQuote?.source}
                 </p>
               </motion.blockquote>
@@ -508,7 +677,13 @@ export default function FocusScreen() {
           </div>
         </div>
 
-        <div className="mt-8 flex flex-wrap items-stretch gap-3 sm:flex-nowrap sm:items-end sm:justify-between sm:gap-4">
+        <div className={`mt-8 flex flex-wrap items-stretch gap-3 sm:flex-nowrap sm:gap-4 ${
+          activeOverlay.controlsPosition === 'bottom-spread' ? 'sm:items-end sm:justify-between' :
+          activeOverlay.controlsPosition === 'bottom-left' ? 'sm:items-end sm:justify-start' :
+          activeOverlay.controlsPosition === 'bottom-center' ? 'sm:items-end sm:justify-center' :
+          activeOverlay.controlsPosition === 'top-left' ? 'sm:items-start sm:justify-start' :
+          'sm:items-end sm:justify-between'
+        }`}>
           <div className="w-full shrink-0 rounded-2xl border border-white/10 bg-black/28 p-3 backdrop-blur-md sm:w-auto sm:max-w-[560px]">
             <p className="text-[10px] uppercase tracking-[0.15em] text-zinc-500">Session Controls</p>
             {isIdle ? (
