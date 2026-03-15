@@ -279,7 +279,7 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
       }
     },
     enabled: hotkeyDataEnabled,
-    staleTime: 15 * 1000,
+    staleTime: 30 * 1000,
     refetchOnWindowFocus: false,
   });
 

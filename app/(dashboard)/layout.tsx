@@ -98,7 +98,9 @@ function DashboardLayoutInner({
         </div>
 
         {/* Floating Focus Timer */}
-        <FloatingTimer />
+        <ErrorBoundary fallbackTitle="Timer Error">
+          <FloatingTimer />
+        </ErrorBoundary>
       </div>
     </ErrorBoundary>
   );
