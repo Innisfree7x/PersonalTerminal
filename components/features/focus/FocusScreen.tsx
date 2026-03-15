@@ -795,8 +795,14 @@ export default function FocusScreen() {
               </motion.blockquote>
             </AnimatePresence>
           </div>
-          {activeOverlay.showTodos && todayTasks.length > 0 && (
-            <FocusTodoWidget tasks={todayTasks} onToggle={handleToggleTask} />
+          {activeOverlay.showTodos && (
+            todayTasks.length > 0 ? (
+              <FocusTodoWidget tasks={todayTasks} onToggle={handleToggleTask} />
+            ) : (
+              <div className="mt-4 w-full max-w-md rounded-2xl border border-white/8 bg-black/20 px-4 py-3 backdrop-blur-sm">
+                <p className="text-center text-[11px] text-zinc-600">Keine Tasks für heute</p>
+              </div>
+            )
           )}
         </div>
 
