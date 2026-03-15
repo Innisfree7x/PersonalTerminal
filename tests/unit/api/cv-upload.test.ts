@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 vi.mock('@/lib/api/auth', () => ({
   requireApiAuth: vi.fn(),
@@ -9,28 +9,36 @@ vi.mock('@/lib/api/csrf', () => ({
   enforceTrustedMutationOrigin: vi.fn(() => null),
 }));
 
-vi.mock('@/lib/auth/server', () => ({
-  createClient: vi.fn(),
+vi.mock('@/lib/auth/admin', () => ({
+  createAdminClient: vi.fn(),
+}));
+
+vi.mock('@/lib/api/rateLimit', () => ({
+  consumeRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 7, limit: 8, resetMs: 60000 }),
+  applyRateLimitHeaders: vi.fn((response) => response),
+  readForwardedIpFromRequest: vi.fn().mockReturnValue('127.0.0.1'),
 }));
 
 import { requireApiAuth } from '@/lib/api/auth';
-import { createClient } from '@/lib/auth/server';
+import { createAdminClient } from '@/lib/auth/admin';
 import { POST } from '@/app/api/cv/upload/route';
 
 const mockedRequireApiAuth = vi.mocked(requireApiAuth);
-const mockedCreateClient = vi.mocked(createClient);
+const mockedCreateAdminClient = vi.mocked(createAdminClient);
 
 function makeFile(name: string, type: string, content: string | Uint8Array = 'file-content'): File {
   return new File([content], name, { type });
 }
 
-function mockRequest(file?: File | null): Request {
+function mockRequest(file?: File | null): NextRequest {
   const formData = {
     get: (key: string) => (key === 'file' ? file ?? null : null),
   };
   return {
     formData: () => Promise.resolve(formData as unknown as FormData),
-  } as unknown as Request;
+    headers: new Headers(),
+    url: 'http://localhost:3000/api/cv/upload',
+  } as unknown as NextRequest;
 }
 
 describe('POST /api/cv/upload', () => {
@@ -44,14 +52,14 @@ describe('POST /api/cv/upload', () => {
       errorResponse: NextResponse.json({ error: 'unauthorized' }, { status: 401 }),
     } as any);
 
-    const response = await POST(mockRequest(makeFile('cv.pdf', 'application/pdf')) as any);
+    const response = await POST(mockRequest(makeFile('cv.pdf', 'application/pdf')));
     expect(response.status).toBe(401);
   });
 
   it('returns 400 if file is missing', async () => {
     mockedRequireApiAuth.mockResolvedValueOnce({ user: { id: 'user-1' }, errorResponse: null } as any);
 
-    const response = await POST(mockRequest() as any);
+    const response = await POST(mockRequest());
     expect(response.status).toBe(400);
     expect(await response.text()).toBe('Missing file');
   });
@@ -59,7 +67,7 @@ describe('POST /api/cv/upload', () => {
   it('returns 400 for unsupported file types', async () => {
     mockedRequireApiAuth.mockResolvedValueOnce({ user: { id: 'user-1' }, errorResponse: null } as any);
 
-    const response = await POST(mockRequest(makeFile('cv.txt', 'text/plain')) as any);
+    const response = await POST(mockRequest(makeFile('cv.txt', 'text/plain')));
     expect(response.status).toBe(400);
     expect(await response.text()).toBe('Unsupported file type. Upload PDF or DOCX.');
   });
@@ -68,11 +76,11 @@ describe('POST /api/cv/upload', () => {
     mockedRequireApiAuth.mockResolvedValueOnce({ user: { id: 'user-123' }, errorResponse: null } as any);
     const upload = vi.fn().mockResolvedValue({ error: null });
     const from = vi.fn().mockReturnValue({ upload });
-    mockedCreateClient.mockReturnValue({
+    mockedCreateAdminClient.mockReturnValue({
       storage: { from },
     } as any);
 
-    const response = await POST(mockRequest(makeFile('my cv.pdf', 'application/pdf')) as any);
+    const response = await POST(mockRequest(makeFile('my cv.pdf', 'application/pdf')));
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.bucket).toBe('cv-uploads');
@@ -86,11 +94,11 @@ describe('POST /api/cv/upload', () => {
     mockedRequireApiAuth.mockResolvedValueOnce({ user: { id: 'user-123' }, errorResponse: null } as any);
     const upload = vi.fn().mockResolvedValue({ error: { message: 'policy violation' } });
     const from = vi.fn().mockReturnValue({ upload });
-    mockedCreateClient.mockReturnValue({
+    mockedCreateAdminClient.mockReturnValue({
       storage: { from },
     } as any);
 
-    const response = await POST(mockRequest(makeFile('cv.pdf', 'application/pdf')) as any);
+    const response = await POST(mockRequest(makeFile('cv.pdf', 'application/pdf')));
     expect(response.status).toBe(400);
     expect(await response.text()).toBe('policy violation');
   });

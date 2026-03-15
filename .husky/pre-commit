@@ -9,9 +9,8 @@ npm run type-check || exit 1
 echo "🔧 Linting..."
 npm run lint || exit 1
 
-# Tests temporarily disabled - missing @testing-library/user-event
-# TODO: Re-enable after installing dependencies
-# echo "🧪 Running tests..."
-# npm run test -- --run || exit 1
+# Run unit tests
+echo "🧪 Running unit tests..."
+npm run test:unit || exit 1
 
 echo "✅ All checks passed!"

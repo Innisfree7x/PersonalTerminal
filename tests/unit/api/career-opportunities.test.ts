@@ -21,6 +21,22 @@ vi.mock('@/lib/supabase/careerCvProfiles', () => ({
   fetchCareerCvProfile: vi.fn(),
 }));
 
+vi.mock('@/lib/career/llmUsage', () => ({
+  getCareerLlmBudgetSnapshot: vi.fn().mockResolvedValue({
+    enabled: false,
+    maxDailyUnits: 50,
+    usedUnits: 0,
+    remainingUnits: 0,
+  }),
+  recordCareerLlmUsage: vi.fn(),
+}));
+
+vi.mock('@/lib/api/rateLimit', () => ({
+  consumeRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 29, limit: 30, resetMs: 60000 }),
+  applyRateLimitHeaders: vi.fn((response) => response),
+  readForwardedIpFromRequest: vi.fn().mockReturnValue('127.0.0.1'),
+}));
+
 import { requireApiAuth } from '@/lib/api/auth';
 import { searchCareerOpportunities } from '@/lib/application/use-cases/career';
 import { fetchCareerCvProfile } from '@/lib/supabase/careerCvProfiles';
@@ -72,6 +88,7 @@ describe('GET /api/career/opportunities', () => {
       liveSourceConfigured: true,
       liveSourceHealthy: true,
       liveSourceContributed: true,
+      llmEnrichedCount: 0,
     } as any);
     mockedFetchCareerCvProfile.mockResolvedValueOnce(null as any);
 
@@ -82,13 +99,20 @@ describe('GET /api/career/opportunities', () => {
     );
 
     expect(response.status).toBe(200);
-    expect(mockedSearchCareerOpportunities).toHaveBeenCalledWith(expect.anything(), {
-      query: 'audit',
-      priorityTrack: 'M&A',
-      locations: ['DE', 'AT'],
-      bands: ['realistic', 'target'],
-      limit: 8,
-    }, { cvProfile: null });
+    expect(mockedSearchCareerOpportunities).toHaveBeenCalledWith(
+      expect.anything(),
+      {
+        query: 'audit',
+        priorityTrack: 'M&A',
+        locations: ['DE', 'AT'],
+        bands: ['realistic', 'target'],
+        limit: 8,
+      },
+      {
+        cvProfile: null,
+        llm: { enabled: false, maxEnrichments: 0 },
+      }
+    );
 
     const body = await response.json();
     expect(body.items).toHaveLength(1);
@@ -116,6 +140,7 @@ describe('GET /api/career/opportunities', () => {
       liveSourceConfigured: true,
       liveSourceHealthy: true,
       liveSourceContributed: false,
+      llmEnrichedCount: 0,
     } as any);
 
     const response = await GET(
@@ -132,6 +157,7 @@ describe('GET /api/career/opportunities', () => {
           targetTracks: ['M&A', 'TS'],
           skills: ['valuation', 'excel modeling'],
         },
+        llm: { enabled: false, maxEnrichments: 0 },
       }
     );
 
