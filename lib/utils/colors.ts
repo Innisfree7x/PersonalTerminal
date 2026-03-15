@@ -16,7 +16,6 @@ export type EventDensity = 'none' | 'low' | 'medium' | 'high';
 /**
  * Urgency levels for tasks and items
  */
-export type UrgencyLevel = 'low' | 'medium' | 'high' | 'urgent';
 
 /**
  * Get color classes for a specific category
@@ -101,31 +100,6 @@ export function getPercentageGlow(percentage: number): string {
   return 'drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]'; // error red
 }
 
-/**
- * Get color for urgency level
- * Used for task priority indicators
- * 
- * @param urgency - The urgency level
- * @returns Object with text and bg colors
- * 
- * @example
- * const colors = getUrgencyColors('urgent');
- * // Returns: { text: 'text-error', bg: 'bg-error/10' }
- */
-export function getUrgencyColors(urgency: UrgencyLevel): { text: string; bg: string } {
-  switch (urgency) {
-    case 'urgent':
-      return { text: 'text-error', bg: 'bg-error/10' };
-    case 'high':
-      return { text: 'text-warning', bg: 'bg-warning/10' };
-    case 'medium':
-      return { text: 'text-info', bg: 'bg-info/10' };
-    case 'low':
-      return { text: 'text-success', bg: 'bg-success/10' };
-    default:
-      return { text: 'text-text-secondary', bg: 'bg-surface-hover' };
-  }
-}
 
 /**
  * Get color for event density in calendar views
@@ -176,31 +150,3 @@ export function getEventDensityEmoji(density: EventDensity): string | null {
   }
 }
 
-/**
- * Get text color based on status
- * Used for status badges and indicators
- * 
- * @param status - The status string
- * @returns Tailwind text color class
- * 
- * @example
- * const color = getStatusColor('completed'); // Returns: 'text-success'
- */
-export function getStatusColor(status: string): string {
-  const lowerStatus = status.toLowerCase();
-  
-  if (lowerStatus.includes('complet') || lowerStatus.includes('done') || lowerStatus.includes('success')) {
-    return 'text-success';
-  }
-  if (lowerStatus.includes('progress') || lowerStatus.includes('active') || lowerStatus.includes('working')) {
-    return 'text-info';
-  }
-  if (lowerStatus.includes('pending') || lowerStatus.includes('wait')) {
-    return 'text-warning';
-  }
-  if (lowerStatus.includes('error') || lowerStatus.includes('fail') || lowerStatus.includes('reject')) {
-    return 'text-error';
-  }
-  
-  return 'text-text-secondary';
-}
