@@ -146,10 +146,21 @@ npm run dev                   # Dev server
 npm run build                 # Production build
 npm run type-check            # TypeScript check
 npm run lint                  # ESLint
-npm run test                  # Vitest
+npm run test                  # Vitest (all)
+npm run test:unit             # Unit tests only (runs in pre-commit hook)
+npm run test:watch            # Vitest watch mode
+npm run test:coverage         # Coverage report
+npm run test:evals            # AI guardrail eval suite
 npm run test:e2e:blocker      # Critical Playwright blocker suite
 npm run test:e2e              # Full Playwright suite
+npm run test:tenant-isolation # Multi-tenant data isolation check
 ```
+
+## Git Workflow
+- Feature branches only — never push directly to `main`
+- `main` protected via branch protection (required: Quality Checks + E2E Blocker Suite)
+- Vercel Preview URLs = Staging (auto-deployed per branch)
+- Pre-commit hook runs: type-check → lint → unit tests
 
 ## Conventions
 - Supabase DB columns are `snake_case`; app models are `camelCase`.

@@ -1,9 +1,12 @@
 # Context Canon (Single Source of Truth)
 
-Stand: 2026-03-09 (post Wave-22 bis Wave-26 hardening/polish)  
+Stand: 2026-03-15 (post Wave-26 + Testing/Staging Workflow)
 Status: Active
 
-## Neu seit 2026-03-09 (hoch priorisiert)
+## Neu seit 2026-03-15 (hoch priorisiert)
+- `DEVELOPMENT_GUIDE.md` (aktualisiert: Feature-Branch-Workflow, Staging via Vercel Preview, Pre-commit mit Tests, CI/CD-Pipeline-Referenz, Test-Patterns)
+
+## Seit 2026-03-09
 - `docs/AGENT_STANDARD_COMPLIANCE_2026-03-10.md` (Compliance-Abgleich aktiver Wave-Doks mit Agent-Standard)
 - `docs/PHASE26_FEATURE_OPTIMIZATION_WAVE1_5_2026-03-09.md` (Wave-1-5 Feature-Optimierung: shared status tones, today/trajectory/calendar/career polish)
 - `docs/PHASE25_DASHBOARD_BUNDLE_AND_SOUND_2026-03-09.md` (Today-Bundle + Sound + Theme-Readability)
@@ -78,6 +81,7 @@ Wenn zwei Dokumente widersprüchlich sind, gilt immer diese Prioritätsliste.
 - `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/DATABASE.md` (technische Referenz)
 - `docs/BENTO_REDESIGN.md` (Design-Referenz; nicht als "implementiert" interpretieren)
 - `CLAUDE.md`, `llms.txt`, `llms-full.txt` (KI-Kontext; muessen diesen Canon spiegeln)
+- `DEVELOPMENT_GUIDE.md` (Git-Workflow, Staging, Testing, CI/CD, Environment-Referenz)
 
 ## Historische (nicht normative) Dokumente
 Die folgenden Dokumente sind abgeschlossen oder durch neuere Planung ersetzt:

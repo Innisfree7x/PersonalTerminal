@@ -1,186 +1,240 @@
-# 🚀 Development Guide - AI-Assisted Coding Best Practices
+# Development Guide — INNIS
 
-## 📋 Before Starting Any Feature
+Stand: 2026-03-15
 
-### 1. Write Tests First (TDD)
+## Quick Start
+
 ```bash
-# Start test watcher
-npm run test:watch
-
-# Write your test
-# Example: tests/unit/MyFeature.test.tsx
-
-# Then let AI implement the feature
-# Test should pass!
+npm run dev            # Dev server (localhost:3000)
+npm run type-check     # TypeScript strict check
+npm run lint           # ESLint
+npm run test:unit      # Vitest unit tests (297 tests, 62 files)
+npm run test:e2e       # Playwright E2E suite
+npm run build          # Production build
 ```
 
-### 2. Small, Incremental Changes
-- ❌ Don't: "Refactor entire component + add 3 features"
-- ✅ Do: One small change → Test → Commit → Next change
+## Git Workflow — Feature Branches + Staging
 
-### 3. Always Review AI Code
-Before accepting AI suggestions:
-- Read the entire code
-- Understand what it does
-- Check for edge cases
-- Ask: "What could break?"
+**Nie direkt auf `main` pushen.** Main ist geschützt via Branch Protection mit required checks.
 
-## 🛠️ Tooling Setup
+```bash
+# 1. Feature Branch erstellen
+git checkout -b feature/my-feature
 
-### TypeScript - Ultra Strict
-```json
-{
-  "strict": true,
-  "noUncheckedIndexedAccess": true,
-  "noImplicitReturns": true,
-  "noUnusedLocals": true,
-  "noUnusedParameters": true
-}
+# 2. Arbeiten, committen
+git add <files>
+git commit -m "feat: description"
+
+# 3. Pushen → Vercel erstellt automatisch Preview URL (= Staging)
+git push -u origin feature/my-feature
+# → Preview: innis-git-feature-my-feature.vercel.app
+
+# 4. Testen auf Preview URL
+
+# 5. PR erstellen → CI prüft automatisch → mergen
+gh pr create --title "feat: my feature" --body "..."
 ```
 
-### ESLint - Catch Bugs Early
-```json
-{
-  "rules": {
-    "@typescript-eslint/no-explicit-any": "error",
-    "react-hooks/rules-of-hooks": "error",
-    "@typescript-eslint/no-floating-promises": "error"
-  }
-}
+### Vercel Preview = Staging
+
+Jeder Feature Branch bekommt automatisch eine eigene Preview URL von Vercel.
+Das ist dein Staging Environment — keine extra Infrastruktur nötig.
+
+| Branch | URL | Zweck |
+|--------|-----|-------|
+| `main` | Production URL | Live für User |
+| `feature/*` | `innis-git-feature-*.vercel.app` | Testen vor Merge |
+
+## Pre-commit Hooks
+
+Laufen automatisch bei jedem `git commit`:
+
+1. TypeScript check (`tsc --noEmit`)
+2. ESLint + Prettier (`lint-staged`)
+3. Unit Tests (`vitest run tests/unit`)
+
+Wenn einer der Schritte fehlschlägt, wird der Commit blockiert.
+
+## CI/CD Pipeline (GitHub Actions)
+
+Läuft automatisch bei jedem Push / PR:
+
+```
+Push/PR
+  ├── Quality Checks (immer)
+  │   ├── TypeScript check
+  │   ├── ESLint
+  │   ├── Unit Tests (vitest)
+  │   ├── Tenant Isolation Check
+  │   ├── AI Eval Suite
+  │   └── Production Build
+  │
+  └── E2E Blocker Suite (nach Quality, nur bei relevanten Änderungen)
+      ├── Seed Blocker Account
+      ├── Playwright Blocker Tests (seriell)
+      └── Upload Artifacts
 ```
 
-### Pre-commit Hooks
-- Runs automatically before every commit
-- Blocks commits if:
-  - Linting fails
-  - Type checking fails
-  - Tests fail
+**Required Checks für Merge in `main`:** Quality Checks + E2E Blocker Suite.
 
-## 📝 Git Workflow
+## Testing
 
-### Commit Messages Format
+### Test-Typen
+
+| Typ | Befehl | Wann |
+|-----|--------|------|
+| Unit | `npm run test:unit` | Jeder Commit (Pre-commit Hook) |
+| Evals | `npm run test:evals` | CI Pipeline |
+| E2E Blocker | `npm run test:e2e:blocker` | CI Pipeline |
+| E2E Full | `npm run test:e2e` | Manuell |
+| Coverage | `npm run test:coverage` | Manuell |
+| Tenant Isolation | `npm run test:tenant-isolation` | CI Pipeline |
+
+### Test-Struktur
+
 ```
-<type>: <short description>
-
-<detailed description>
-
-<why this change was made>
-```
-
-**Types:**
-- `feat`: New feature
-- `fix`: Bug fix
-- `refactor`: Code refactoring
-- `test`: Adding tests
-- `docs`: Documentation
-- `chore`: Tooling/config
-
-**Example:**
-```
-feat: Add AI task suggestion endpoint
-
-Implements /api/ai/suggest-tasks that analyzes user's
-goals and deadlines to suggest daily tasks.
-
-Uses OpenAI GPT-4 with structured output for consistency.
-Includes rate limiting (10 requests/hour per user).
+tests/
+├── unit/                    # Vitest (jsdom)
+│   ├── api/                 # API Route Tests (mocked auth/db)
+│   ├── *.test.ts            # Pure function / logic tests
+│   └── *.test.tsx           # Component tests
+├── evals/                   # AI guardrail eval tests
+└── e2e/                     # Playwright browser tests
+    └── blocker/             # Critical path E2E tests
 ```
 
-## 🤖 Working with AI Agents
+### Was testen?
 
-### Give Clear Specifications
-❌ Bad: "Fix the bug"
-✅ Good: "When user clicks checkbox, update DB and refetch ['tasks'] query. Test this flow."
+**Immer testen:**
+- Pure functions in `lib/` (Scoring, Parsing, Berechnung)
+- API Route Handler (Auth, Validation, Response Format)
+- Kritische User Flows (E2E)
 
-### Context Management
-- Start new chat every 20-30 messages
-- Or when switching to new feature
-- Document what was done in previous chat
+**Nicht testen:**
+- Styling / CSS
+- Third-party Libraries
+- Triviale Getter/Setter
 
-### Template for New Agent Chat
-```
-# PROJECT: Personal Terminal
+### Test schreiben
 
-## Current Task: [YOUR TASK]
-
-## Tech Stack:
-- Next.js 14, TypeScript, Supabase, TanStack Query
-
-## Requirements:
-1. [Specific requirement]
-2. [Specific requirement]
-3. [Expected behavior]
-
-## Constraints:
-- Must write tests first (TDD)
-- Must be type-safe (no `any`)
-- Must follow existing patterns in codebase
-
-## Definition of Done:
-- [ ] Tests pass
-- [ ] Linting passes
-- [ ] Type checking passes
-- [ ] Manually tested in browser
-- [ ] Code reviewed
-```
-
-## 🧪 Testing Strategy
-
-### What to Test
-1. **Critical User Flows** - Marking tasks complete, creating goals
-2. **Data Transformations** - Parsing, validation, calculations
-3. **Edge Cases** - Empty states, errors, loading states
-
-### Test Structure
 ```typescript
-describe('Feature', () => {
-  it('should handle happy path', () => {
-    // Arrange
-    // Act
-    // Assert
+// tests/unit/my-feature.test.ts
+import { describe, expect, it } from 'vitest';
+import { myFunction } from '@/lib/my-feature';
+
+describe('myFunction', () => {
+  it('handles happy path', () => {
+    const result = myFunction({ input: 'valid' });
+    expect(result.score).toBe(100);
   });
-  
-  it('should handle error case', () => {
-    // ...
+
+  it('returns fallback for empty input', () => {
+    const result = myFunction({ input: '' });
+    expect(result.score).toBe(0);
   });
 });
 ```
 
-## 🚨 Common Pitfalls to Avoid
+### API Route Test Pattern
 
-1. **React Hooks Rules** - Always call hooks at top level
-2. **Async/Await** - Don't forget to await promises
-3. **Type Safety** - Avoid `any`, use proper types
-4. **Mutation Side Effects** - Always refetch affected queries
-5. **Error Handling** - Wrap API calls in try/catch
+```typescript
+// tests/unit/api/my-route.test.ts
+import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { NextRequest, NextResponse } from 'next/server';
 
-## 📊 Quality Checklist Before Committing
+// 1. Mock auth + dependencies
+vi.mock('@/lib/api/auth', () => ({
+  requireApiAuth: vi.fn(),
+}));
+vi.mock('@/lib/api/rateLimit', () => ({
+  consumeRateLimit: vi.fn().mockReturnValue({ allowed: true }),
+  applyRateLimitHeaders: vi.fn((response) => response),
+  readForwardedIpFromRequest: vi.fn().mockReturnValue('127.0.0.1'),
+}));
 
-- [ ] Code reviewed (read every line)
-- [ ] Tests written and passing
-- [ ] No TypeScript errors
-- [ ] No ESLint warnings
-- [ ] Manually tested in browser
-- [ ] Edge cases considered
-- [ ] Error states handled
-- [ ] Loading states handled
+// 2. Import after mocks
+import { requireApiAuth } from '@/lib/api/auth';
+import { GET } from '@/app/api/my-route/route';
 
-## 🎯 Daily Workflow
+describe('GET /api/my-route', () => {
+  beforeEach(() => vi.clearAllMocks());
 
-1. **Morning:** Review what needs to be done
-2. **Plan:** Break down into small tasks
-3. **TDD:** Write test for first task
-4. **Implement:** Let AI help, but review everything
-5. **Test:** Manual + automated testing
-6. **Commit:** Small, focused commits
-7. **Repeat:** Next small task
+  it('returns 401 when unauthenticated', async () => {
+    vi.mocked(requireApiAuth).mockResolvedValueOnce({
+      user: null,
+      errorResponse: NextResponse.json({ error: 'unauthorized' }, { status: 401 }),
+    } as any);
 
-## 💡 Remember
+    const response = await GET(new NextRequest('http://localhost:3000/api/my-route'));
+    expect(response.status).toBe(401);
+  });
+});
+```
 
-> AI is your junior developer.
-> You are the senior developer.
-> Review everything. Trust, but verify.
+## Architecture Rules
 
----
+### Layer Ownership
 
-**Let's build something great! 🚀**
+```
+UI (components/, pages)          → how things look
+API Routes (app/api/)            → validate + respond
+Logic (lib/)                     → business rules + calculations
+Data Layer (lib/supabase/)       → DB queries only
+```
+
+Logik gehört in `lib/`, nie in Components oder API Routes.
+
+### Auth Pattern
+
+```typescript
+// API Route — immer requireApiAuth()
+export async function GET() {
+  const { user, errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+  // ... user.id ist jetzt sicher verfügbar
+}
+```
+
+### Supabase Client
+
+- **API Routes / Server:** `createClient()` aus `lib/auth/server.ts` (request-scoped)
+- **Cron / Admin:** `createAdminClient()` aus `lib/auth/admin.ts`
+- **Nie:** `lib/supabase/client.ts` in API Routes (kein Cookie-Scope → RLS-Fehler)
+
+## Commit Messages
+
+```
+<type>: <kurze Beschreibung>
+
+<Details / Begründung>
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+```
+
+**Types:** `feat` | `fix` | `refactor` | `test` | `docs` | `chore` | `perf`
+
+## Environment Variables
+
+Definiert und validiert in `lib/env.ts` via Zod.
+
+| Variable | Required | Zweck |
+|----------|----------|-------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Ja | Supabase Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Ja | Supabase Anon Key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Nein | Admin/Cron Operations |
+| `ANTHROPIC_API_KEY` | Nein | LLM Features (Career Radar) |
+| `ADZUNA_APP_ID` / `ADZUNA_APP_KEY` | Nein | Live Job Search |
+| `CRON_SECRET` | Prod: Ja | Cron Route Auth |
+| `GOOGLE_CLIENT_ID/SECRET` | Nein | Calendar Integration |
+
+## Quality Checklist
+
+Vor jedem Merge in main:
+
+- [ ] TypeScript check clean (`npm run type-check`)
+- [ ] Lint clean (`npm run lint`)
+- [ ] Unit Tests grün (`npm run test:unit`)
+- [ ] Preview URL getestet (bei UI-Änderungen: Screenshot/Browser-Check)
+- [ ] Keine `any` Types, keine `@ts-ignore`
+- [ ] API Routes haben `requireApiAuth()` + Rate Limiting
+- [ ] Neue DB-Queries filtern auf `user_id`
