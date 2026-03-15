@@ -496,7 +496,7 @@ export default function FocusScreen() {
   const { data: todayTasks = [] } = useQuery({
     queryKey: ['daily-tasks', todayIso],
     queryFn: () => fetchDailyTasks(todayIso),
-    staleTime: 120_000,
+    staleTime: 30_000,
   });
 
   const { data: nextTasksData } = useQuery({
@@ -506,7 +506,7 @@ export default function FocusScreen() {
       if (!res.ok) throw new Error('Failed to fetch next tasks');
       return res.json() as Promise<DashboardNextTasksResponse>;
     },
-    staleTime: 120_000,
+    staleTime: 30_000,
   });
 
   const unifiedTasks = useMemo((): FocusTaskItem[] => {

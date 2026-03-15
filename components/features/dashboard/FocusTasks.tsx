@@ -111,7 +111,7 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
       return response.json();
     },
     enabled: !prefetchedNextTasksData,
-    staleTime: 15 * 1000,
+    staleTime: 30 * 1000,
   });
   const nextTasksData = prefetchedNextTasksData ?? fetchedNextTasksData;
 

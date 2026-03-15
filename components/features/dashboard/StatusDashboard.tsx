@@ -10,10 +10,19 @@ import { Briefcase, Target, GraduationCap, TrendingUp, AlertCircle, Zap, Clock }
 import { fetchDashboardStatsAction } from '@/app/actions/dashboard';
 
 export default function StatusDashboard() {
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading, isError } = useQuery({
     queryKey: ['dashboard', 'stats'],
     queryFn: fetchDashboardStatsAction,
+    staleTime: 30 * 1000,
   });
+
+  if (isError) {
+    return (
+      <div className="card-surface p-4 text-center text-sm text-text-tertiary">
+        Stats konnten nicht geladen werden.
+      </div>
+    );
+  }
 
   if (isLoading || !stats) {
     return (

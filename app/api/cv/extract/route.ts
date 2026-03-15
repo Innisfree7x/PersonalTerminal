@@ -11,15 +11,15 @@ function fileExt(name: string): string {
 }
 
 async function extractPdf(buffer: Buffer): Promise<string> {
-  const mod = await import('pdf-parse');
-  const pdfParse: any = (mod as any).default ?? mod;
+  const mod: Record<string, unknown> = await import('pdf-parse');
+  const pdfParse = (mod.default ?? mod) as (buf: Buffer) => Promise<{ text?: string }>;
   const result = await pdfParse(buffer);
   return String(result?.text ?? '');
 }
 
 async function extractDocx(buffer: Buffer): Promise<string> {
-  const mod = await import('mammoth');
-  const mammoth: any = (mod as any).default ?? mod;
+  const mod: Record<string, unknown> = await import('mammoth');
+  const mammoth = (mod.default ?? mod) as { extractRawText: (opts: { buffer: Buffer }) => Promise<{ value?: string }> };
   const result = await mammoth.extractRawText({ buffer });
   return String(result?.value ?? '');
 }

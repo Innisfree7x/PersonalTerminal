@@ -185,7 +185,7 @@ export default function TodayPage() {
       if (!response.ok) throw new Error('Failed to fetch next tasks');
       return response.json();
     },
-    staleTime: 15 * 1000,
+    staleTime: 30 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
@@ -323,6 +323,7 @@ export default function TodayPage() {
         )}
       </AnimatePresence>
 
+      <ErrorBoundary fallbackTitle="Morning Briefing Error">
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -470,30 +471,33 @@ export default function TodayPage() {
           )}
         </div>
       </motion.div>
+      </ErrorBoundary>
 
       <div className="mt-4">
-        <CommandBar
-          tasksToday={stats?.tasksToday ?? 0}
-          tasksCompleted={stats?.tasksCompleted ?? 0}
-          exercisesCompleted={stats?.exercisesThisWeek ?? 0}
-          exercisesTotal={stats?.exercisesTotal ?? 0}
-          nextExam={
-            stats?.nextExam && typeof stats.nextExam.daysUntilExam === 'number'
-              ? { name: stats.nextExam.name, daysUntilExam: stats.nextExam.daysUntilExam }
-              : null
-          }
-          goalsDueSoon={stats?.goalsDueSoon ?? 0}
-          interviewsUpcoming={stats?.interviewsUpcoming ?? 0}
-          executionScore={nextTasksData?.executionScore ?? 0}
-          nextBestAction={nextTasksData?.nextBestAction ?? null}
-          alternatives={nextTasksData?.nextBestAlternatives ?? []}
-          riskSignals={nextTasksData?.riskSignals ?? []}
-          onChanged={() => {
-            queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
-            queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
-            queryClient.invalidateQueries({ queryKey: ['courses'] });
-          }}
-        />
+        <ErrorBoundary fallbackTitle="Command Bar Error">
+          <CommandBar
+            tasksToday={stats?.tasksToday ?? 0}
+            tasksCompleted={stats?.tasksCompleted ?? 0}
+            exercisesCompleted={stats?.exercisesThisWeek ?? 0}
+            exercisesTotal={stats?.exercisesTotal ?? 0}
+            nextExam={
+              stats?.nextExam && typeof stats.nextExam.daysUntilExam === 'number'
+                ? { name: stats.nextExam.name, daysUntilExam: stats.nextExam.daysUntilExam }
+                : null
+            }
+            goalsDueSoon={stats?.goalsDueSoon ?? 0}
+            interviewsUpcoming={stats?.interviewsUpcoming ?? 0}
+            executionScore={nextTasksData?.executionScore ?? 0}
+            nextBestAction={nextTasksData?.nextBestAction ?? null}
+            alternatives={nextTasksData?.nextBestAlternatives ?? []}
+            riskSignals={nextTasksData?.riskSignals ?? []}
+            onChanged={() => {
+              queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
+              queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
+              queryClient.invalidateQueries({ queryKey: ['courses'] });
+            }}
+          />
+        </ErrorBoundary>
       </div>
 
       {/* MAIN 3-COLUMN GRID */}

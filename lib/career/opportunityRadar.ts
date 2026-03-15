@@ -263,16 +263,50 @@ function trackKeywordMatchCount(track: RadarTrack, text: string): number {
   return keywords.reduce((count, keyword) => (text.includes(keyword) ? count + 1 : count), 0);
 }
 
-function buildAdzunaWhat(input: OpportunitySearchInput): string {
+function trackSearchTerms(track: RadarTrack): string[] {
+  if (track === 'TS') {
+    return ['transaction services', 'due diligence', 'fdd'];
+  }
+  if (track === 'Audit') {
+    return ['audit', 'assurance', 'wirtschaftsprufung'];
+  }
+  if (track === 'CorpFin') {
+    return ['corporate finance', 'valuation', 'capital markets'];
+  }
+  return ['m&a', 'investment banking', 'corporate finance'];
+}
+
+function buildAdzunaWhatCandidates(input: OpportunitySearchInput): string[] {
   const userQuery = input.query.trim();
+  const trackTerms = trackSearchTerms(input.priorityTrack);
+  const candidates: string[] = [];
 
-  let trackTerms = 'm&a internship corporate finance';
-  if (input.priorityTrack === 'TS') trackTerms = 'transaction services due diligence internship';
-  if (input.priorityTrack === 'Audit') trackTerms = 'audit assurance internship';
-  if (input.priorityTrack === 'CorpFin') trackTerms = 'corporate finance valuation internship';
+  if (userQuery.length > 0) {
+    candidates.push(`${userQuery} ${trackTerms[0] ?? ''}`.trim());
+    candidates.push(`${userQuery} internship`);
+    candidates.push(`${userQuery} praktikum`);
+  } else {
+    candidates.push(`${trackTerms[0] ?? ''} internship`.trim());
+    candidates.push(`${trackTerms[1] ?? ''} praktikum`.trim());
+    candidates.push(`${trackTerms[2] ?? ''} werkstudent`.trim());
+    // Broad catch-all fallback for DACH student roles.
+    candidates.push('finance praktikum');
+  }
 
-  const studentTerms = 'internship intern praktikum werkstudent "working student"';
-  return [userQuery, trackTerms, studentTerms].filter(Boolean).join(' ');
+  // Remove duplicates/empty candidates while preserving order.
+  const normalized = new Set<string>();
+  const deduped: string[] = [];
+  for (const candidate of candidates) {
+    const cleaned = candidate.replace(/\s+/g, ' ').trim();
+    if (!cleaned) continue;
+    const key = cleaned.toLowerCase();
+    if (normalized.has(key)) continue;
+    normalized.add(key);
+    deduped.push(cleaned);
+  }
+
+  // Hard cap to keep provider latency bounded.
+  return deduped.slice(0, 4);
 }
 
 function dedupeKey(item: OpportunitySourceItem): string {
@@ -521,70 +555,83 @@ function buildAdzunaProvider(): OpportunitySourceProvider | null {
     priority: 4,
     search: async (query, input) => {
       const items: OpportunitySourceItem[] = [];
-      const what = buildAdzunaWhat(input);
+      const whatCandidates = buildAdzunaWhatCandidates(input);
+      const seenExternalIds = new Set<string>();
 
       const perLocation = await Promise.allSettled(
         input.locations.map(async (location) => {
           const countryCode = ADZUNA_COUNTRY_MAP[location];
           if (!countryCode) return [] as OpportunitySourceItem[];
 
-          const url = new URL(`https://api.adzuna.com/v1/api/jobs/${countryCode}/search/1`);
-          url.searchParams.set('app_id', appId);
-          url.searchParams.set('app_key', appKey);
-          url.searchParams.set('what', what);
-          url.searchParams.set('results_per_page', '20');
-          url.searchParams.set('content-type', 'application/json');
-
-          const response = await fetchWithTimeout(url.toString(), { method: 'GET', cache: 'no-store' }, 1800);
-          if (!response.ok) return [] as OpportunitySourceItem[];
-
-          const payload = (await response.json()) as { results?: unknown[] };
-          const results = Array.isArray(payload.results) ? payload.results : [];
           const locationItems: OpportunitySourceItem[] = [];
 
-          for (const raw of results) {
-            const job = raw as any;
-            const title = String(job?.title ?? '').trim();
-            const company = String(job?.company?.display_name ?? '').trim();
-            if (!title || !company) continue;
+          for (const what of whatCandidates) {
+            const url = new URL(`https://api.adzuna.com/v1/api/jobs/${countryCode}/search/1`);
+            url.searchParams.set('app_id', appId);
+            url.searchParams.set('app_key', appKey);
+            url.searchParams.set('what', what);
+            url.searchParams.set('results_per_page', '20');
+            url.searchParams.set('content-type', 'application/json');
 
-            const description = String(job?.description ?? '').slice(0, 1200);
-            if (!isRecentPosting(job?.created, 45)) continue;
-            const textBlob = normalizeToken(`${title} ${description}`);
-            const normalized = normalizeToken(title);
-            const isStudentRole = /(intern|internship|praktikum|werkstudent|working student)/.test(normalized);
-            if (!isStudentRole) continue;
-            if (isLikelyNoiseRole(textBlob)) continue;
+            const response = await fetchWithTimeout(url.toString(), { method: 'GET', cache: 'no-store' }, 1800);
+            if (!response.ok) continue;
 
-            const track = inferTrack(`${title} ${description}`);
-            const trackMatchCount = trackKeywordMatchCount(input.priorityTrack, textBlob);
-            const inferredTrackMismatch = track !== input.priorityTrack && trackMatchCount === 0;
-            if (inferredTrackMismatch) continue;
+            const payload = (await response.json()) as { results?: unknown[] };
+            const results = Array.isArray(payload.results) ? payload.results : [];
 
-            const city = deriveCity(job?.location?.area);
-            const baseFit = inferBaseFit(track, `${title} ${description}`);
-            const reasonPool = inferReasonPool(track, city, location);
-            const gapPool = inferGapPool(track);
-            const qualitySignal = matchTargetFirmSignal(company, input.priorityTrack);
+            for (const raw of results) {
+              const job = raw as Record<string, unknown>;
+              const jobCompany = job?.company as Record<string, unknown> | undefined;
+              const jobLocation = job?.location as Record<string, unknown> | undefined;
+              const title = String(job?.title ?? '').trim();
+              const company = String(jobCompany?.display_name ?? '').trim();
+              if (!title || !company) continue;
 
-            locationItems.push({
-              sourceKey: 'adzuna',
-              sourceLabel: 'Adzuna',
-              sourcePriority: 4,
-              externalId: String(job?.id ?? `${company}-${title}-${city}`),
-              title,
-              company,
-              city,
-              country: location,
-              track,
-              baseFit: clampScore(baseFit + Math.min(4, trackMatchCount)),
-              reasonPool: qualitySignal.reason ? [qualitySignal.reason, ...reasonPool] : reasonPool,
-              gapPool,
-              jobUrl: typeof job?.redirect_url === 'string' ? job.redirect_url : undefined,
-              description,
-              qualityBoost: qualitySignal.boost,
-              ...(qualitySignal.reason ? { qualityReason: qualitySignal.reason } : {}),
-            });
+              const description = String(job?.description ?? '').slice(0, 1200);
+              if (!isRecentPosting(job?.created as string | undefined, 60)) continue;
+              const textBlob = normalizeToken(`${title} ${description}`);
+              const normalized = normalizeToken(title);
+              const isStudentRole = /(intern|internship|praktikum|werkstudent|working student)/.test(normalized);
+              if (!isStudentRole) continue;
+              if (isLikelyNoiseRole(textBlob)) continue;
+
+              const track = inferTrack(`${title} ${description}`);
+              const trackMatchCount = trackKeywordMatchCount(input.priorityTrack, textBlob);
+              const inferredTrackMismatch = track !== input.priorityTrack && trackMatchCount === 0;
+              if (inferredTrackMismatch) continue;
+
+              const city = deriveCity(jobLocation?.area as string[] | undefined);
+              const externalId = String(job?.id ?? `${company}-${title}-${city}`);
+              const dedupeKey = `${location}:${externalId}`;
+              if (seenExternalIds.has(dedupeKey)) continue;
+              seenExternalIds.add(dedupeKey);
+
+              const baseFit = inferBaseFit(track, `${title} ${description}`);
+              const reasonPool = inferReasonPool(track, city, location);
+              const gapPool = inferGapPool(track);
+              const qualitySignal = matchTargetFirmSignal(company, input.priorityTrack);
+
+              locationItems.push({
+                sourceKey: 'adzuna',
+                sourceLabel: 'Adzuna',
+                sourcePriority: 4,
+                externalId,
+                title,
+                company,
+                city,
+                country: location,
+                track,
+                baseFit: clampScore(baseFit + Math.min(4, trackMatchCount)),
+                reasonPool: qualitySignal.reason ? [qualitySignal.reason, ...reasonPool] : reasonPool,
+                gapPool,
+                ...(typeof job?.redirect_url === 'string' ? { jobUrl: job.redirect_url } : {}),
+                description,
+                qualityBoost: qualitySignal.boost,
+                ...(qualitySignal.reason ? { qualityReason: qualitySignal.reason } : {}),
+              });
+            }
+
+            if (locationItems.length >= 16) break;
           }
 
           return locationItems;
