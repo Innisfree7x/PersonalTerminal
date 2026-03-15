@@ -7,6 +7,7 @@ import type {
   RadarBand,
   RadarTrack,
 } from '@/lib/schemas/opportunity-radar.schema';
+import { matchTargetFirmSignal } from '@/lib/career/targetFirms';
 
 const TRACK_PRIORITY_ORDER: RadarTrack[] = ['M&A', 'TS', 'CorpFin', 'Audit'];
 
@@ -241,29 +242,6 @@ const TRACK_ROLE_KEYWORDS: Record<RadarTrack, string[]> = {
   Audit: ['audit', 'assurance', 'wirtschaftspruefung', 'ifrs'],
 };
 
-const TARGET_FIRM_SIGNALS: Array<{ pattern: RegExp; boost: number; reason: string }> = [
-  {
-    pattern: /\b(deloitte|ey|kpmg|pwc|bdo|forvis|mazars|roedl|rodl|baker\s*tilly)\b/i,
-    boost: 10,
-    reason: 'Tier-1 Prüfungs-/Deals-Track',
-  },
-  {
-    pattern: /\b(dz\s*bank|berenberg|unicredit|hauck|oddo|santander|deutsche\s*bank|j\.?p\.?\s*morgan|goldman)\b/i,
-    boost: 9,
-    reason: 'Investment-Banking Umfeld',
-  },
-  {
-    pattern: /\b(dc\s*advisory|alantra|lincoln|rothschild|lazard|rothenstein|parkview|progressiv|value\s*trust|wts)\b/i,
-    boost: 8,
-    reason: 'M&A Advisory Fokus',
-  },
-  {
-    pattern: /\b(rsm|ebner\s*stolz|flick\s*gocke|dhpg|ecovis|grant\s*thornton)\b/i,
-    boost: 6,
-    reason: 'Starker Mid-Market Track',
-  },
-];
-
 const LLM_OUTPUT_SCHEMA = z.object({
   reasons: z.array(z.string().min(1)).min(1).max(3),
   gaps: z.array(z.string().min(1)).min(1).max(2),
@@ -285,21 +263,16 @@ function trackKeywordMatchCount(track: RadarTrack, text: string): number {
   return keywords.reduce((count, keyword) => (text.includes(keyword) ? count + 1 : count), 0);
 }
 
-function computeCompanyQualitySignal(company: string): { boost: number; reason?: string } {
-  for (const signal of TARGET_FIRM_SIGNALS) {
-    if (signal.pattern.test(company)) {
-      return { boost: signal.boost, reason: signal.reason };
-    }
-  }
-  return { boost: 0 };
-}
-
 function buildAdzunaWhat(input: OpportunitySearchInput): string {
-  if (input.query.trim()) return input.query.trim();
-  if (input.priorityTrack === 'M&A') return 'm&a internship corporate finance intern';
-  if (input.priorityTrack === 'TS') return 'transaction services due diligence internship';
-  if (input.priorityTrack === 'Audit') return 'audit internship assurance intern';
-  return 'corporate finance valuation internship';
+  const userQuery = input.query.trim();
+
+  let trackTerms = 'm&a internship corporate finance';
+  if (input.priorityTrack === 'TS') trackTerms = 'transaction services due diligence internship';
+  if (input.priorityTrack === 'Audit') trackTerms = 'audit assurance internship';
+  if (input.priorityTrack === 'CorpFin') trackTerms = 'corporate finance valuation internship';
+
+  const studentTerms = 'internship intern praktikum werkstudent "working student"';
+  return [userQuery, trackTerms, studentTerms].filter(Boolean).join(' ');
 }
 
 function dedupeKey(item: OpportunitySourceItem): string {
@@ -312,6 +285,14 @@ function uniqueStrings(items: string[], limit: number): string[] {
 
 function clampScore(value: number): number {
   return Math.min(100, Math.max(0, Math.round(value)));
+}
+
+function isRecentPosting(createdValue: unknown, maxAgeDays = 45): boolean {
+  if (typeof createdValue !== 'string' || createdValue.trim().length === 0) return true;
+  const createdAt = Date.parse(createdValue);
+  if (Number.isNaN(createdAt)) return true;
+  const ageMs = Date.now() - createdAt;
+  return ageMs <= maxAgeDays * 24 * 60 * 60 * 1000;
 }
 
 const RANK_TIER_BONUS: Record<NonNullable<OpportunitySearchContext['cvProfile']>['rankTier'], number> = {
@@ -340,6 +321,22 @@ function filterByQuery(items: OpportunitySourceItem[], query: string): Opportuni
     const haystack = normalizeToken(`${item.title} ${item.company} ${item.city} ${item.track}`);
     return tokens.every((token) => haystack.includes(token));
   });
+}
+
+function queryRelevanceAdjustment(inputQuery: string, opportunity: AggregatedOpportunity): number {
+  const trimmed = inputQuery.trim();
+  if (!trimmed) return 0;
+
+  const tokens = normalizeToken(trimmed)
+    .split(' ')
+    .map((token) => token.trim())
+    .filter(Boolean);
+  if (tokens.length === 0) return 0;
+
+  const haystack = normalizeToken(`${opportunity.title} ${opportunity.company} ${opportunity.description}`);
+  const matched = tokens.filter((token) => haystack.includes(token)).length;
+  if (matched === 0) return -6;
+  return Math.min(8, 2 + matched * 2);
 }
 
 function mergeIntoAggregate(store: Map<string, AggregatedOpportunity>, item: OpportunitySourceItem): void {
@@ -417,9 +414,10 @@ function computeFitScore(
   const trackDistance = Math.abs(trackIndex - priorityIndex);
   const trackAdjustment = Math.max(0, 12 - trackDistance * 4);
 
-  const queryAdjustment = input.query.trim().length > 0 ? 6 : 0;
+  const queryAdjustment = queryRelevanceAdjustment(input.query, opportunity);
   const locationAdjustment = input.locations.includes(opportunity.country) ? 6 : -14;
   const cvProfile = context?.cvProfile;
+  const targetFirmSignal = matchTargetFirmSignal(opportunity.company, input.priorityTrack);
 
   let cvAdjustment = 0;
   if (cvProfile) {
@@ -434,11 +432,12 @@ function computeFitScore(
     cvAdjustment += Math.min(4, overlapCount);
   }
 
-  const qualityAdjustment = opportunity.qualityBoost;
+  const qualityAdjustment = opportunity.qualityBoost + targetFirmSignal.boost;
   return clampScore(opportunity.baseFit + trackAdjustment + queryAdjustment + locationAdjustment + cvAdjustment + qualityAdjustment);
 }
 
 function buildReasons(opportunity: AggregatedOpportunity, input: OpportunitySearchInput): string[] {
+  const targetFirmSignal = matchTargetFirmSignal(opportunity.company, input.priorityTrack);
   const trackReason =
     opportunity.track === input.priorityTrack
       ? `Direkter Track-Match zu ${input.priorityTrack}`
@@ -447,7 +446,8 @@ function buildReasons(opportunity: AggregatedOpportunity, input: OpportunitySear
   const locationReason = `Standort-Fit: ${locationLabel(opportunity.city, opportunity.country)}`;
 
   const qualityReason = opportunity.qualityReason ? [opportunity.qualityReason] : [];
-  return [trackReason, ...qualityReason, sourcesReason, locationReason, ...opportunity.reasonPool].slice(0, 3);
+  const firmReason = targetFirmSignal.reason ? [targetFirmSignal.reason] : [];
+  return [trackReason, ...firmReason, ...qualityReason, sourcesReason, locationReason, ...opportunity.reasonPool].slice(0, 3);
 }
 
 function buildGaps(opportunity: AggregatedOpportunity, band: RadarBand): string[] {
@@ -549,6 +549,7 @@ function buildAdzunaProvider(): OpportunitySourceProvider | null {
             if (!title || !company) continue;
 
             const description = String(job?.description ?? '').slice(0, 1200);
+            if (!isRecentPosting(job?.created, 45)) continue;
             const textBlob = normalizeToken(`${title} ${description}`);
             const normalized = normalizeToken(title);
             const isStudentRole = /(intern|internship|praktikum|werkstudent|working student)/.test(normalized);
@@ -564,7 +565,7 @@ function buildAdzunaProvider(): OpportunitySourceProvider | null {
             const baseFit = inferBaseFit(track, `${title} ${description}`);
             const reasonPool = inferReasonPool(track, city, location);
             const gapPool = inferGapPool(track);
-            const qualitySignal = computeCompanyQualitySignal(company);
+            const qualitySignal = matchTargetFirmSignal(company, input.priorityTrack);
 
             locationItems.push({
               sourceKey: 'adzuna',
@@ -601,9 +602,14 @@ function buildAdzunaProvider(): OpportunitySourceProvider | null {
 }
 
 function buildProviders(): OpportunitySourceProvider[] {
-  const providers = [...STATIC_PROVIDERS];
   const adzuna = buildAdzunaProvider();
-  if (adzuna) providers.unshift(adzuna);
+  const providers: OpportunitySourceProvider[] = [];
+  if (adzuna) providers.push(adzuna);
+
+  // Static providers stay available for local/demo fallback, but are off by default once live source is configured.
+  const enableStaticSeeds = process.env.CAREER_ENABLE_STATIC_SEEDS === 'true' || !adzuna;
+  if (enableStaticSeeds) providers.push(...STATIC_PROVIDERS);
+
   return providers;
 }
 
