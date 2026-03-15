@@ -13,6 +13,12 @@ vi.mock('@/lib/api/csrf', () => ({
   enforceTrustedMutationOrigin: vi.fn(() => null),
 }));
 
+vi.mock('@/lib/api/rateLimit', () => ({
+  consumeRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 9, limit: 10, resetMs: 60000 }),
+  applyRateLimitHeaders: vi.fn((response) => response),
+  readForwardedIpFromRequest: vi.fn().mockReturnValue('127.0.0.1'),
+}));
+
 vi.mock('@/lib/supabase/careerCvProfiles', () => ({
   upsertCareerCvProfile: vi.fn(),
 }));

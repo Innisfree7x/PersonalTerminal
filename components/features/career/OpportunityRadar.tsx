@@ -14,6 +14,7 @@ import type {
   RadarTrack,
 } from '@/lib/schemas/opportunity-radar.schema';
 import { AlertTriangle, MapPin, Radar, Search, Sparkles, Target } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface OpportunityRadarProps {
   onAdoptToPipeline: (prefill: CreateApplicationInput) => void;
@@ -74,6 +75,7 @@ export default function OpportunityRadar({ onAdoptToPipeline }: OpportunityRadar
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [results, setResults] = useState<OpportunitySearchItem[]>([]);
   const [meta, setMeta] = useState<OpportunitySearchResponse['meta'] | null>(null);
+  const [committingGapId, setCommittingGapId] = useState<string | null>(null);
 
   const serializedLocations = useMemo(() => selectedLocations.join(','), [selectedLocations]);
   const serializedBands = useMemo(() => selectedBands.join(','), [selectedBands]);
@@ -145,6 +147,43 @@ export default function OpportunityRadar({ onAdoptToPipeline }: OpportunityRadar
     });
   };
 
+  const commitPrimaryGapTask = async (item: OpportunitySearchItem) => {
+    const primaryGap = item.topGaps[0];
+    if (!primaryGap) return;
+
+    setCommittingGapId(item.id);
+    try {
+      const response = await fetch('/api/career/opportunities/gap-task', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          opportunityTitle: item.title,
+          opportunityCompany: item.company,
+          gap: primaryGap,
+          track: item.track,
+          jobUrl: item.jobUrl,
+        }),
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || 'Gap-Task konnte nicht erstellt werden.');
+      }
+
+      const payload = (await response.json()) as { created?: boolean };
+      if (payload.created) {
+        toast.success('Gap als Today-Task angelegt.');
+      } else {
+        toast.success('Gap-Task war bereits vorhanden.');
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Gap-Task konnte nicht erstellt werden.';
+      toast.error(message);
+    } finally {
+      setCommittingGapId(null);
+    }
+  };
+
   return (
     <section className="space-y-4 rounded-2xl border border-border bg-surface/45 p-4 backdrop-blur-sm md:p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -181,6 +220,11 @@ export default function OpportunityRadar({ onAdoptToPipeline }: OpportunityRadar
           )}
           {meta?.cvProfileApplied ? (
             <Badge variant="career" size="sm">CV-Profil aktiv</Badge>
+          ) : null}
+          {meta?.llm?.enabled ? (
+            <Badge variant="default" size="sm">
+              LLM-Budget {meta.llm.remainingUnits}/{meta.llm.maxDailyUnits}
+            </Badge>
           ) : null}
         </div>
       </div>
@@ -336,6 +380,11 @@ export default function OpportunityRadar({ onAdoptToPipeline }: OpportunityRadar
                 <Badge variant="career" size="sm">
                   {item.track}
                 </Badge>
+                {item.targetFirm ? (
+                  <Badge variant="success" size="sm">
+                    Target Firm
+                  </Badge>
+                ) : null}
                 {item.sourceLabels.map((source) => (
                   <Badge key={`${item.id}-${source}`} variant="default" size="sm">
                     {source}
@@ -370,7 +419,16 @@ export default function OpportunityRadar({ onAdoptToPipeline }: OpportunityRadar
                 </div>
               </div>
 
-              <div className="mt-3 flex justify-end">
+              <div className="mt-3 flex flex-wrap justify-end gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  loading={committingGapId === item.id}
+                  onClick={() => commitPrimaryGapTask(item)}
+                  aria-label={`Gap als Task übernehmen: ${item.title} bei ${item.company}`}
+                >
+                  Gap als Task
+                </Button>
                 <Button
                   variant="primary"
                   size="sm"

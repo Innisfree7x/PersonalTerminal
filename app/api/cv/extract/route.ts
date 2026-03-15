@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireApiAuth } from '@/lib/api/auth';
+import { applyRateLimitHeaders, consumeRateLimit, readForwardedIpFromRequest } from '@/lib/api/rateLimit';
 
 export const runtime = 'nodejs';
 const MAX_BYTES = 4 * 1024 * 1024;
@@ -24,10 +25,30 @@ async function extractDocx(buffer: Buffer): Promise<string> {
 }
 
 export async function POST(request: Request) {
-  const { errorResponse } = await requireApiAuth();
+  const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
+    const rateLimit = consumeRateLimit({
+      key: `cv_extract:${user.id}:${readForwardedIpFromRequest(request)}`,
+      limit: 15,
+      windowMs: 60_000,
+    });
+    if (!rateLimit.allowed) {
+      return applyRateLimitHeaders(
+        NextResponse.json(
+          {
+            error: {
+              code: 'RATE_LIMITED',
+              message: 'Zu viele CV-Extract-Requests in kurzer Zeit. Bitte warte kurz.',
+            },
+          },
+          { status: 429 }
+        ),
+        rateLimit
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file');
 
@@ -60,7 +81,7 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json({ text });
+    return applyRateLimitHeaders(NextResponse.json({ text }), rateLimit);
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : 'Failed to extract text';
     return new NextResponse(message, { status: 500 });

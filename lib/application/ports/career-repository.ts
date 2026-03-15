@@ -15,5 +15,6 @@ export interface CareerRepository {
     liveSourceConfigured: boolean;
     liveSourceHealthy: boolean;
     liveSourceContributed: boolean;
+    llmEnrichedCount: number;
   }>;
 }

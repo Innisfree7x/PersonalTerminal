@@ -2,37 +2,30 @@
 
 import { motion } from 'framer-motion';
 
-const pains = [
-  { emoji: '📝', text: 'One App für Thesis-Plan' },
-  { emoji: '🎯', text: 'Eine andere für GMAT' },
-  { emoji: '💼', text: 'Excel für Bewerbungen' },
-  { emoji: '⏱️', text: 'Extra Timer-Tool' },
-  { emoji: '📅', text: 'Kalender + Tasks getrennt' },
-  { emoji: '📊', text: 'Risiko nur im Kopf' },
-  { emoji: '🧠', text: '…und trotzdem Chaos' },
-];
-
-const beforeItems = [
-  '5 Tools parallel geöffnet',
-  'Deadlines nur im Kopf',
-  'Tägliches Neuplanen statt Execution',
-];
-
-const afterItems = [
-  'Eine Timeline mit Risk-Status',
-  'Morning-Brief verbindet Strategie mit Today',
-  'Klare Next-Moves statt Kontextwechsel',
+const diagnosisRows = [
+  {
+    label: 'Planung',
+    before: 'Deadline irgendwo im Kopf, Aufwand irgendwo in Notion.',
+    after: 'Eine Timeline mit Startfenster, Buffer und klarer Risikologik.',
+  },
+  {
+    label: 'Daily',
+    before: 'Jeder Morgen beginnt mit Neu-Sortieren und Kontextwechsel.',
+    after: 'Today uebernimmt den naechsten sinnvollen Move direkt aus Trajectory.',
+  },
+  {
+    label: 'Signal',
+    before: 'Du merkst zu spaet, dass Thesis, GMAT und Bewerbungen kollidieren.',
+    after: 'INNIS zeigt die Kollision frueh genug, damit du noch reagieren kannst.',
+  },
 ];
 
 export function ProblemStrip() {
   return (
     <section className="relative py-16 md:py-20">
-      {/* Top / Bottom borders */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-      {/* Subtle red glow */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-64 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-500/6 blur-3xl" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-64 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-500/5 blur-3xl" />
 
       <div className="marketing-container relative z-10">
         <motion.div
@@ -40,42 +33,18 @@ export function ProblemStrip() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="mx-auto max-w-2xl text-center mb-10"
+          className="mx-auto mb-12 max-w-3xl text-center"
         >
-          <p className="text-[1.35rem] md:text-2xl font-semibold text-[#FAF0E6] leading-snug tracking-tight">
-            Thesis. GMAT. Praktikum. Master-Bewerbungen.
+          <p className="premium-kicker">Die eigentliche Spannung</p>
+          <p className="text-[1.45rem] font-semibold leading-snug tracking-tight text-[#FAF0E6] md:text-3xl">
+            Die meisten Tools verwalten Aufgaben.
             <br />
-            <span className="text-zinc-500">
-              Alles parallel — und meist auf fünf getrennten Tools verteilt.
-            </span>
+            <span className="text-zinc-500">INNIS verwaltet Konflikte.</span>
           </p>
-        </motion.div>
-
-        {/* Pain pills */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-          className="flex flex-wrap justify-center gap-2.5"
-        >
-          {pains.map((pain, i) => (
-            <motion.span
-              key={pain.text}
-              initial={{ opacity: 0, y: 8 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.3, delay: 0.25 + i * 0.06 }}
-              className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm ${
-                i === pains.length - 1
-                  ? 'border-red-500/30 bg-red-500/10 text-red-300'
-                  : 'border-white/8 bg-white/[0.03] text-zinc-500'
-              }`}
-            >
-              <span>{pain.emoji}</span>
-              <span>{pain.text}</span>
-            </motion.span>
-          ))}
+          <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-zinc-400 md:text-base">
+            Thesis, GMAT, Praktikum und Master-Apps scheitern selten an fehlenden To-do-Listen.
+            Sie scheitern daran, dass niemand die Kollisionen frueh genug sichtbar macht.
+          </p>
         </motion.div>
 
         <motion.div
@@ -83,43 +52,39 @@ export function ProblemStrip() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.45, delay: 0.35 }}
-          className="mx-auto mt-8 grid max-w-3xl gap-3 md:grid-cols-2"
+          className="mx-auto grid max-w-5xl gap-4 lg:grid-cols-[0.82fr_1.18fr]"
         >
-          <div className="rounded-xl border border-red-500/25 bg-red-500/[0.06] p-3.5">
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-red-300">Before</p>
-            <div className="space-y-1.5">
-              {beforeItems.map((item) => (
-                <p key={item} className="text-sm text-zinc-400">
-                  · {item}
-                </p>
-              ))}
+          <div className="premium-card rounded-[1.75rem] p-6">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">Ohne INNIS</p>
+            <p className="mt-4 text-2xl font-semibold leading-tight text-[#FAF0E6]">
+              Fuenf Tools. Viele Listen.
+              <span className="block text-zinc-500">Trotzdem zu spaet dran.</span>
+            </p>
+            <div className="mt-6 space-y-3 text-sm leading-relaxed text-zinc-400">
+              <p>Notion fuer Notizen. Kalender fuer Termine. Excel fuer Bewerbungen. Ein extra Timer. Irgendwo noch Goals.</p>
+              <p>Das Problem ist nicht fehlende Aktivitaet, sondern fehlende Prioritaetswahrheit.</p>
             </div>
           </div>
-          <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/[0.06] p-3.5">
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-300">After INNIS</p>
-            <div className="space-y-1.5">
-              {afterItems.map((item) => (
-                <p key={item} className="text-sm text-zinc-300">
-                  · {item}
-                </p>
-              ))}
-            </div>
-          </div>
-        </motion.div>
 
-        {/* Bridge to solution */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.7 }}
-          className="mt-12 flex flex-col items-center gap-4"
-        >
-          <div className="h-8 w-px bg-gradient-to-b from-white/20 to-transparent" />
-          <p className="text-center text-2xl font-semibold tracking-tight text-[#FAF0E6] md:text-3xl">
-            Eine Timeline.{' '}
-            <span className="text-zinc-500">Ein Daily-Flow.</span>
-          </p>
+          <div className="premium-card-soft rounded-[1.75rem] p-6">
+            <div className="grid gap-4">
+              {diagnosisRows.map((row) => (
+                <div key={row.label} className="grid gap-3 rounded-2xl border border-white/8 bg-white/[0.02] p-4 md:grid-cols-[110px_1fr_1fr]">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">{row.label}</p>
+                  </div>
+                  <div className="rounded-xl border border-red-500/18 bg-red-500/[0.05] p-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-red-300">Vorher</p>
+                    <p className="mt-2 text-sm leading-relaxed text-zinc-400">{row.before}</p>
+                  </div>
+                  <div className="rounded-xl border border-yellow-500/16 bg-yellow-500/[0.05] p-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-yellow-300">Mit INNIS</p>
+                    <p className="mt-2 text-sm leading-relaxed text-zinc-300">{row.after}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </motion.div>
       </div>
     </section>

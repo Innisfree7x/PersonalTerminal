@@ -688,25 +688,35 @@ async function generateLlmReasonsAndGaps(
 
 async function attachLlmExplanations(
   items: OpportunitySearchItem[],
-  input: OpportunitySearchInput
-): Promise<OpportunitySearchItem[]> {
-  if (!process.env.ANTHROPIC_API_KEY) return items;
-  if (items.length === 0) return items;
+  input: OpportunitySearchInput,
+  maxEnrichments: number
+): Promise<{ items: OpportunitySearchItem[]; enrichedCount: number }> {
+  if (!process.env.ANTHROPIC_API_KEY) return { items, enrichedCount: 0 };
+  if (items.length === 0) return { items, enrichedCount: 0 };
+  if (!Number.isFinite(maxEnrichments) || maxEnrichments <= 0) {
+    return { items, enrichedCount: 0 };
+  }
 
-  const topCount = Math.min(5, items.length);
+  const topCount = Math.min(5, items.length, Math.floor(maxEnrichments));
   const enrichedTop = await Promise.all(
     items.slice(0, topCount).map(async (item) => {
       const llm = await generateLlmReasonsAndGaps(item, input);
-      if (!llm) return item;
+      if (!llm) return { item, enriched: false } as const;
       return {
-        ...item,
-        topReasons: llm.reasons,
-        topGaps: llm.gaps,
-      };
+        item: {
+          ...item,
+          topReasons: llm.reasons,
+          topGaps: llm.gaps,
+        },
+        enriched: true,
+      } as const;
     })
   );
-
-  return [...enrichedTop, ...items.slice(topCount)];
+  const enrichedCount = enrichedTop.reduce((sum, entry) => sum + (entry.enriched ? 1 : 0), 0);
+  return {
+    items: [...enrichedTop.map((entry) => entry.item), ...items.slice(topCount)],
+    enrichedCount,
+  };
 }
 
 export async function searchRadarOpportunities(
@@ -718,6 +728,7 @@ export async function searchRadarOpportunities(
   liveSourceConfigured: boolean;
   liveSourceHealthy: boolean;
   liveSourceContributed: boolean;
+  llmEnrichedCount: number;
 }> {
   const providers = buildProviders();
   const settled = await Promise.allSettled(providers.map((provider) => provider.search(input.query, input)));
@@ -750,6 +761,7 @@ export async function searchRadarOpportunities(
       const fitScore = computeFitScore(item, input, context);
       const band = scoreToBand(fitScore);
       const maxSourcePriority = Math.max(...item.sourcePriorities);
+      const firmSignal = matchTargetFirmSignal(item.company, input.priorityTrack);
 
       return {
         id: item.id,
@@ -763,28 +775,37 @@ export async function searchRadarOpportunities(
         topReasons: buildReasons(item, input),
         topGaps: buildGaps(item, band),
         sourceLabels: item.sourceLabels,
+        targetFirm: firmSignal.matched,
         maxSourcePriority,
         ...(item.jobUrl ? { jobUrl: item.jobUrl } : {}),
       };
     })
     .filter((item) => input.bands.includes(item.band))
     .sort((a, b) => {
+      if (a.targetFirm !== b.targetFirm) return a.targetFirm ? -1 : 1;
       if (b.fitScore !== a.fitScore) return b.fitScore - a.fitScore;
       return b.maxSourcePriority - a.maxSourcePriority;
     })
     .slice(0, input.limit);
 
-  const items = await attachLlmExplanations(
+  const llmMaxEnrichments =
+    context?.llm?.enabled === false
+      ? 0
+      : Math.max(0, Math.floor(context?.llm?.maxEnrichments ?? 5));
+
+  const llm = await attachLlmExplanations(
     scoredItems.map(({ maxSourcePriority: _maxSourcePriority, ...item }) => item),
-    input
+    input,
+    llmMaxEnrichments
   );
-  const liveSourceContributed = items.some((item) => item.sourceLabels.includes('Adzuna'));
+  const liveSourceContributed = llm.items.some((item) => item.sourceLabels.includes('Adzuna'));
 
   return {
-    items,
+    items: llm.items,
     sourcesQueried,
     liveSourceConfigured,
     liveSourceHealthy,
     liveSourceContributed,
+    llmEnrichedCount: llm.enrichedCount,
   };
 }

@@ -89,6 +89,7 @@ Execution steps live in `docs/GO_LIVE_RUNBOOK.md`.
   - [ ] `GOOGLE_REDIRECT_URI` exakt auch in Supabase Auth > Providers > Google konfiguriert
   - [ ] `GOOGLE_REDIRECT_URI` ist eine App-Callback-URL (`https://<domain>/api/auth/google/callback`) und **keine** Dashboard-URL (z.B. `supabase.com/dashboard/...`)
   - [ ] `GOOGLE_REDIRECT_URI`-Origin passt zur aktiven Deployment-Origin (`NEXT_PUBLIC_SITE_URL` / aktuelle Vercel-URL) oder `GOOGLE_REDIRECT_URI` ist bewusst leer, damit request-origin-basiertes Fallback greift
+  - [ ] Callback-URI ohne Doppel-Slash im Pfad (`...app//api/...` ist ungültig); exakter Wert muss `https://<domain>/api/auth/google/callback` sein
 
 ## 5. Product Smoke (Core Flows)
 

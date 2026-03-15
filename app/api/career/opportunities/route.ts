@@ -10,6 +10,8 @@ import {
   RadarBandSchema,
   RadarTrackSchema,
 } from '@/lib/schemas/opportunity-radar.schema';
+import { getCareerLlmBudgetSnapshot, recordCareerLlmUsage } from '@/lib/career/llmUsage';
+import { applyRateLimitHeaders, consumeRateLimit, readForwardedIpFromRequest } from '@/lib/api/rateLimit';
 
 function parseCsv<T extends string>(raw: string | null, fallback: readonly T[], validator: (value: string) => T | null): T[] {
   if (!raw) return [...fallback];
@@ -51,6 +53,26 @@ export async function GET(request: NextRequest) {
   if (errorResponse) return errorResponse;
 
   try {
+    const rateLimit = consumeRateLimit({
+      key: `career_opportunities:${user.id}:${readForwardedIpFromRequest(request)}`,
+      limit: 30,
+      windowMs: 60_000,
+    });
+    if (!rateLimit.allowed) {
+      return applyRateLimitHeaders(
+        NextResponse.json(
+          {
+            error: {
+              code: 'RATE_LIMITED',
+              message: 'Zu viele Radar-Requests in kurzer Zeit. Bitte kurz warten.',
+            },
+          },
+          { status: 429 }
+        ),
+        rateLimit
+      );
+    }
+
     const { searchParams } = new URL(request.url);
 
     const query = searchParams.get('query') ?? '';
@@ -69,6 +91,24 @@ export async function GET(request: NextRequest) {
       limit,
     });
 
+    let llmBudget = {
+      enabled: false,
+      maxDailyUnits: 50,
+      usedUnits: 0,
+      remainingUnits: 0,
+    };
+    try {
+      const maxDailyUnitsRaw = Number.parseInt(process.env.CAREER_LLM_DAILY_LIMIT ?? '50', 10);
+      const maxDailyUnits = Number.isFinite(maxDailyUnitsRaw) && maxDailyUnitsRaw > 0 ? maxDailyUnitsRaw : 50;
+      llmBudget = await getCareerLlmBudgetSnapshot(user.id, maxDailyUnits);
+    } catch (budgetError) {
+      console.error('Failed to fetch LLM budget snapshot', budgetError);
+    }
+
+    const maxPerRequestRaw = Number.parseInt(process.env.CAREER_LLM_MAX_PER_REQUEST ?? '5', 10);
+    const maxPerRequest = Number.isFinite(maxPerRequestRaw) && maxPerRequestRaw > 0 ? maxPerRequestRaw : 5;
+    const llmMaxEnrichments = llmBudget.enabled ? Math.min(llmBudget.remainingUnits, maxPerRequest) : 0;
+
     const cvProfile = await fetchCareerCvProfile(user.id);
     const {
       items,
@@ -76,6 +116,7 @@ export async function GET(request: NextRequest) {
       liveSourceConfigured,
       liveSourceHealthy,
       liveSourceContributed,
+      llmEnrichedCount,
     } = await searchCareerOpportunities(careerRepository, input, {
       cvProfile: cvProfile
         ? {
@@ -84,9 +125,21 @@ export async function GET(request: NextRequest) {
             skills: cvProfile.skills ?? [],
           }
         : null,
+      llm: {
+        enabled: llmBudget.enabled,
+        maxEnrichments: llmMaxEnrichments,
+      },
     });
 
-    return NextResponse.json({
+    if (llmBudget.enabled && llmEnrichedCount > 0) {
+      try {
+        await recordCareerLlmUsage(user.id, llmEnrichedCount);
+      } catch (recordError) {
+        console.error('Failed to persist LLM usage log', recordError);
+      }
+    }
+
+    const response = NextResponse.json({
       items,
       meta: {
         query: input.query,
@@ -97,8 +150,16 @@ export async function GET(request: NextRequest) {
         liveSourceHealthy,
         liveSourceContributed,
         cvProfileApplied: Boolean(cvProfile),
+        llm: {
+          enabled: llmBudget.enabled,
+          maxDailyUnits: llmBudget.maxDailyUnits,
+          usedUnits: llmBudget.usedUnits + (llmBudget.enabled ? llmEnrichedCount : 0),
+          remainingUnits: Math.max(0, llmBudget.remainingUnits - (llmBudget.enabled ? llmEnrichedCount : 0)),
+          enrichedThisRequest: llmEnrichedCount,
+        },
       },
     });
+    return applyRateLimitHeaders(response, rateLimit);
   } catch (error) {
     return handleRouteError(error, 'Opportunity Radar konnte nicht geladen werden.', 'Error fetching opportunity radar');
   }

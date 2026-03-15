@@ -14,14 +14,14 @@ import { FeatureMarquee } from '@/components/features/marketing/FeatureMarquee';
 export const metadata: Metadata = {
   title: 'Start',
   description:
-    'Trajectory Planner, Today Execution und Focus System in einem persönlichen Studenten-OS.',
+    'INNIS zeigt dir Kollisionen in deinem Karriereplan, bevor sie passieren: Thesis, GMAT, Praktika und Today Execution in einem System.',
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'INNIS — Das Dashboard fürs Studium',
+    title: 'INNIS — Strategie und Daily Execution fuer Studenten',
     description:
-      'Strategischer Karriere-Zeitplan + tägliche Execution in einem System für Studenten.',
+      'Trajectory, Today und Focus in einem System fuer Studenten mit parallelen High-Stakes-Zielen.',
     url: '/',
   },
 };

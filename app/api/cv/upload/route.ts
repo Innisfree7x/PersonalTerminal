@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireApiAuth } from '@/lib/api/auth';
 import { enforceTrustedMutationOrigin } from '@/lib/api/csrf';
-import { createClient } from '@/lib/auth/server';
+import { createAdminClient } from '@/lib/auth/admin';
 import { handleRouteError } from '@/lib/api/server-errors';
+import { applyRateLimitHeaders, consumeRateLimit, readForwardedIpFromRequest } from '@/lib/api/rateLimit';
 
 export const runtime = 'nodejs';
 
@@ -32,6 +33,26 @@ export async function POST(request: NextRequest) {
   if (errorResponse) return errorResponse;
 
   try {
+    const rateLimit = consumeRateLimit({
+      key: `cv_upload:${user.id}:${readForwardedIpFromRequest(request)}`,
+      limit: 8,
+      windowMs: 60_000,
+    });
+    if (!rateLimit.allowed) {
+      return applyRateLimitHeaders(
+        NextResponse.json(
+          {
+            error: {
+              code: 'RATE_LIMITED',
+              message: 'Zu viele CV-Uploads in kurzer Zeit. Bitte warte kurz und versuche es erneut.',
+            },
+          },
+          { status: 429 }
+        ),
+        rateLimit
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file');
     if (!(file instanceof File)) {
@@ -52,19 +73,22 @@ export async function POST(request: NextRequest) {
     const safeName = sanitizeName(file.name);
     const path = `${user.id}/cv/${Date.now()}_${safeName}`;
 
-    const supabase = createClient();
-    const { error } = await supabase.storage
+    const admin = createAdminClient();
+    const { error } = await admin.storage
       .from(STORAGE_BUCKET)
       .upload(path, file, { upsert: false, contentType: file.type || 'application/octet-stream' });
 
     if (error) {
-      return new NextResponse(error.message, { status: 400 });
+      return applyRateLimitHeaders(new NextResponse(error.message, { status: 400 }), rateLimit);
     }
 
-    return NextResponse.json({
-      bucket: STORAGE_BUCKET,
-      path,
-    });
+    return applyRateLimitHeaders(
+      NextResponse.json({
+        bucket: STORAGE_BUCKET,
+        path,
+      }),
+      rateLimit
+    );
   } catch (error) {
     return handleRouteError(error, 'CV konnte nicht in Storage gespeichert werden.', 'Error uploading CV');
   }

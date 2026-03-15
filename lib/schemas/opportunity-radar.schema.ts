@@ -30,6 +30,7 @@ export interface OpportunitySearchItem {
   topReasons: string[];
   topGaps: string[];
   sourceLabels: string[];
+  targetFirm?: boolean;
   jobUrl?: string;
 }
 
@@ -39,8 +40,14 @@ export interface OpportunityCvProfileContext {
   skills: string[];
 }
 
+export interface OpportunityLlmContext {
+  enabled: boolean;
+  maxEnrichments: number;
+}
+
 export interface OpportunitySearchContext {
   cvProfile?: OpportunityCvProfileContext | null;
+  llm?: OpportunityLlmContext | null;
 }
 
 export interface OpportunitySearchResponse {
@@ -54,5 +61,12 @@ export interface OpportunitySearchResponse {
     liveSourceHealthy: boolean;
     liveSourceContributed: boolean;
     cvProfileApplied?: boolean;
+    llm?: {
+      enabled: boolean;
+      maxDailyUnits: number;
+      usedUnits: number;
+      remainingUnits: number;
+      enrichedThisRequest: number;
+    };
   };
 }

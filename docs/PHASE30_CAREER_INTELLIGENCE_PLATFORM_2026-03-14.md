@@ -1,7 +1,45 @@
 # Phase 30 — Career Intelligence Platform (2026-03-14)
 
-Status: Planning Contract  
+Status: Execution in Progress (Wave 1 live + Hardening shipped)  
 Scope: CV-Intelligence + Live Opportunity Matching (DACH) als neues Core-Feature.
+
+## Update 2026-03-15 (umgesetzt)
+
+- Opportunity Radar läuft jetzt `live-first`:
+  - Wenn `ADZUNA_APP_ID` + `ADZUNA_APP_KEY` gesetzt sind, werden primär Live-Jobs genutzt.
+  - Statische Seed-Daten sind nur noch Fallback fuer lokale Demo (`CAREER_ENABLE_STATIC_SEEDS=true`) oder wenn kein Live-Key vorhanden ist.
+- Ranking ist `target-firm aware`:
+  - Kuratiertes DACH-Set (Big4/IB/Boutiques/Tier2) gibt qualitaetsgewichtete Boosts.
+  - Track-Alignment (z. B. TS vs. M&A) wird in den Boost eingerechnet.
+- Adzuna-Fetch wurde gehaertet:
+  - Fokus auf Internship/Werkstudent-Pattern.
+  - Noise-Role-Filter aktiv.
+  - Frischefilter fuer Postings (aktuell 45 Tage).
+
+## Update 2026-03-15 (Hardening + Reliability umgesetzt)
+
+- API Rate-Limits aktiv:
+  - `POST /api/cv/upload` -> 8/min
+  - `POST /api/cv/extract` -> 15/min
+  - `POST /api/cv/analyze` -> 10/min
+  - `GET /api/career/opportunities` -> 30/min
+  - `POST /api/career/opportunities/gap-task` -> 12/min
+- Rate-Limit-Header werden in allen oben genannten Endpunkten gesetzt (`X-RateLimit-Remaining`, bei Block `Retry-After`).
+- CV Upload nutzt serverseitig `createAdminClient()` mit user-scoped Storage-Pfad (`{user_id}/cv/...`) und bleibt auth-gebunden.
+- LLM Budget-Guard ist aktiv:
+  - Daily Snapshot aus `llm_usage_logs`
+  - Per-request cap (`CAREER_LLM_MAX_PER_REQUEST`, default 5)
+  - Daily cap (`CAREER_LLM_DAILY_LIMIT`, default 50)
+  - Usage Logging pro Request (`recordCareerLlmUsage`)
+- Gap -> Action Bridge live:
+  - Neuer Endpoint `POST /api/career/opportunities/gap-task`
+  - Dedupe auf Today-Task Titel + Datum
+  - CTA in Opportunity Radar erzeugt direkt Today-Task aus identifiziertem Gap.
+- Verifikation:
+  - `npm run type-check` ✅
+  - `npm run lint` ✅
+  - `npm run build` ✅
+  - Relevante Unit-Tests für CV/Career/Gap-Flow ✅
 
 ## Finalisierte Produktentscheidungen (Lock)
 

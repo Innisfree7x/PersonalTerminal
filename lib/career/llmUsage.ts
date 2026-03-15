@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/auth/server';
+import { createAdminClient } from '@/lib/auth/admin';
 
 const CAREER_LLM_ROUTE = '/api/career/opportunities';
 const CAREER_LLM_MODEL = 'claude-3-5-haiku-latest';
@@ -17,7 +17,7 @@ export interface CareerLlmBudgetSnapshot {
 }
 
 export async function getCareerLlmBudgetSnapshot(userId: string, maxDailyUnits = 50): Promise<CareerLlmBudgetSnapshot> {
-  const supabase = createClient() as any;
+  const supabase = createAdminClient();
   const usageDate = new Date().toISOString().split('T')[0] ?? '';
 
   const { data, error } = await supabase
@@ -39,7 +39,7 @@ export async function getCareerLlmBudgetSnapshot(userId: string, maxDailyUnits =
     throw new Error(`Failed to read LLM usage budget: ${error.message}`);
   }
 
-  const usedUnits = ((data as any[]) ?? []).reduce((sum: number, row: any) => sum + Number(row.units ?? 0), 0);
+  const usedUnits = (data ?? []).reduce((sum, row) => sum + Number(row.units ?? 0), 0);
   const remainingUnits = Math.max(0, maxDailyUnits - usedUnits);
   return {
     enabled: true,
@@ -52,7 +52,7 @@ export async function getCareerLlmBudgetSnapshot(userId: string, maxDailyUnits =
 export async function recordCareerLlmUsage(userId: string, units: number): Promise<boolean> {
   if (!Number.isFinite(units) || units <= 0) return false;
 
-  const supabase = createClient() as any;
+  const supabase = createAdminClient();
   const usageDate = new Date().toISOString().split('T')[0] ?? '';
   const { error } = await supabase.from('llm_usage_logs').insert({
     user_id: userId,
@@ -68,4 +68,3 @@ export async function recordCareerLlmUsage(userId: string, units: number): Promi
   }
   return true;
 }
-

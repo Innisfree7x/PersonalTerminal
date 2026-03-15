@@ -15,6 +15,12 @@ vi.mock('mammoth', () => ({
   },
 }));
 
+vi.mock('@/lib/api/rateLimit', () => ({
+  consumeRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 14, limit: 15, resetMs: 60000 }),
+  applyRateLimitHeaders: vi.fn((response) => response),
+  readForwardedIpFromRequest: vi.fn().mockReturnValue('127.0.0.1'),
+}));
+
 import { requireApiAuth } from '@/lib/api/auth';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';

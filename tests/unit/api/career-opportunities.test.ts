@@ -40,11 +40,14 @@ vi.mock('@/lib/api/rateLimit', () => ({
 import { requireApiAuth } from '@/lib/api/auth';
 import { searchCareerOpportunities } from '@/lib/application/use-cases/career';
 import { fetchCareerCvProfile } from '@/lib/supabase/careerCvProfiles';
+import { getCareerLlmBudgetSnapshot, recordCareerLlmUsage } from '@/lib/career/llmUsage';
 import { GET } from '@/app/api/career/opportunities/route';
 
 const mockedRequireApiAuth = vi.mocked(requireApiAuth);
 const mockedSearchCareerOpportunities = vi.mocked(searchCareerOpportunities);
 const mockedFetchCareerCvProfile = vi.mocked(fetchCareerCvProfile);
+const mockedGetCareerLlmBudgetSnapshot = vi.mocked(getCareerLlmBudgetSnapshot);
+const mockedRecordCareerLlmUsage = vi.mocked(recordCareerLlmUsage);
 
 describe('GET /api/career/opportunities', () => {
   beforeEach(() => {
@@ -67,6 +70,13 @@ describe('GET /api/career/opportunities', () => {
       errorResponse: null,
     } as any);
 
+    mockedGetCareerLlmBudgetSnapshot.mockResolvedValueOnce({
+      enabled: true,
+      maxDailyUnits: 50,
+      usedUnits: 10,
+      remainingUnits: 40,
+    });
+
     mockedSearchCareerOpportunities.mockResolvedValueOnce({
       items: [
         {
@@ -88,7 +98,7 @@ describe('GET /api/career/opportunities', () => {
       liveSourceConfigured: true,
       liveSourceHealthy: true,
       liveSourceContributed: true,
-      llmEnrichedCount: 0,
+      llmEnrichedCount: 3,
     } as any);
     mockedFetchCareerCvProfile.mockResolvedValueOnce(null as any);
 
@@ -110,7 +120,7 @@ describe('GET /api/career/opportunities', () => {
       },
       {
         cvProfile: null,
-        llm: { enabled: false, maxEnrichments: 0 },
+        llm: { enabled: true, maxEnrichments: 5 },
       }
     );
 
@@ -120,6 +130,9 @@ describe('GET /api/career/opportunities', () => {
     expect(body.meta.liveSourceConfigured).toBe(true);
     expect(body.meta.liveSourceContributed).toBe(true);
     expect(body.meta.cvProfileApplied).toBe(false);
+    expect(body.meta.llm.enabled).toBe(true);
+    expect(body.meta.llm.enrichedThisRequest).toBe(3);
+    expect(mockedRecordCareerLlmUsage).toHaveBeenCalledWith('user-1', 3);
   });
 
   it('passes cv profile context into opportunity search', async () => {

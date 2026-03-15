@@ -143,6 +143,36 @@ export interface Database {
         };
         Relationships: [];
       };
+      llm_usage_logs: {
+        Row: {
+          id: string;
+          user_id: string;
+          route: string;
+          model: string;
+          units: number;
+          usage_date: string; // ISO date string
+          created_at: string; // ISO timestamp
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          route: string;
+          model: string;
+          units: number;
+          usage_date?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          route?: string;
+          model?: string;
+          units?: number;
+          usage_date?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       daily_tasks: {
         Row: {
           id: string;
