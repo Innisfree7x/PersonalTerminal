@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
@@ -21,11 +21,12 @@ import {
   Timer,
   type LucideIcon,
 } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import { useChampion } from '@/components/providers/ChampionProvider';
 import { trackAppEvent } from '@/lib/analytics/client';
-import { fetchDailyTasks, updateTask, type DailyTask } from '@/lib/api/daily-tasks';
+import { fetchDailyTasks } from '@/lib/api/daily-tasks';
+import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 import { LEGACY_STORAGE_KEYS, STORAGE_KEYS } from '@/lib/storage/keys';
 
 type Quote = {
@@ -387,8 +388,16 @@ function VisualPresetPicker({
   );
 }
 
-function FocusTodoWidget({ tasks, onToggle }: { tasks: DailyTask[]; onToggle: (id: string, completed: boolean) => void }) {
-  const incomplete = tasks.filter((t) => !t.completed).slice(0, 5);
+type FocusTaskItem = {
+  id: string;
+  title: string;
+  subtitle?: string;
+  completed: boolean;
+  source: 'homework' | 'goal' | 'interview' | 'manual';
+};
+
+function FocusTodoWidget({ tasks }: { tasks: FocusTaskItem[] }) {
+  const incomplete = tasks.filter((t) => !t.completed).slice(0, 6);
   const completedCount = tasks.filter((t) => t.completed).length;
 
   if (incomplete.length === 0 && completedCount > 0) {
@@ -408,20 +417,20 @@ function FocusTodoWidget({ tasks, onToggle }: { tasks: DailyTask[]; onToggle: (i
       </p>
       <div className="flex flex-col gap-1.5">
         {incomplete.map((task) => (
-          <button
+          <div
             key={task.id}
-            type="button"
-            onClick={() => onToggle(task.id, true)}
-            className="group flex items-center gap-2 rounded-lg px-1.5 py-1 text-left transition-colors hover:bg-white/[0.04]"
+            className="group flex items-center gap-2 rounded-lg px-1.5 py-1 text-left"
           >
-            <Circle className="h-3.5 w-3.5 shrink-0 text-zinc-600 transition-colors group-hover:text-cyan-400" />
-            <span className="truncate text-xs text-zinc-400 transition-colors group-hover:text-zinc-200">
-              {task.title}
-            </span>
-            {task.timeEstimate && (
-              <span className="ml-auto shrink-0 text-[10px] text-zinc-600">{task.timeEstimate}</span>
-            )}
-          </button>
+            <Circle className="h-3.5 w-3.5 shrink-0 text-zinc-600" />
+            <div className="min-w-0 flex-1">
+              <span className="block truncate text-xs text-zinc-400">
+                {task.title}
+              </span>
+              {task.subtitle && (
+                <span className="block truncate text-[10px] text-zinc-600">{task.subtitle}</span>
+              )}
+            </div>
+          </div>
         ))}
       </div>
       {completedCount > 0 && (
@@ -484,35 +493,74 @@ export default function FocusScreen() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }, []);
 
-  const queryClient = useQueryClient();
   const { data: todayTasks = [] } = useQuery({
     queryKey: ['daily-tasks', todayIso],
     queryFn: () => fetchDailyTasks(todayIso),
     staleTime: 120_000,
   });
 
-  const toggleTaskMutation = useMutation({
-    mutationFn: ({ id, completed }: { id: string; completed: boolean }) => updateTask(id, completed),
-    onMutate: async ({ id, completed }) => {
-      await queryClient.cancelQueries({ queryKey: ['daily-tasks', todayIso] });
-      const prev = queryClient.getQueryData<DailyTask[]>(['daily-tasks', todayIso]);
-      queryClient.setQueryData<DailyTask[]>(['daily-tasks', todayIso], (old) =>
-        old?.map((t) => (t.id === id ? { ...t, completed } : t))
-      );
-      return { prev };
+  const { data: nextTasksData } = useQuery({
+    queryKey: ['dashboard', 'next-tasks'],
+    queryFn: async () => {
+      const res = await fetch('/api/dashboard/next-tasks');
+      if (!res.ok) throw new Error('Failed to fetch next tasks');
+      return res.json() as Promise<DashboardNextTasksResponse>;
     },
-    onError: (_err, _vars, ctx) => {
-      if (ctx?.prev) queryClient.setQueryData(['daily-tasks', todayIso], ctx.prev);
-    },
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: ['daily-tasks', todayIso] });
-    },
+    staleTime: 120_000,
   });
 
-  const handleToggleTask = useCallback(
-    (id: string, completed: boolean) => toggleTaskMutation.mutate({ id, completed }),
-    [toggleTaskMutation]
-  );
+  const unifiedTasks = useMemo((): FocusTaskItem[] => {
+    const items: FocusTaskItem[] = [];
+
+    // Homework tasks (from courses + exercise_progress)
+    const homeworks = nextTasksData?.homeworks ?? [];
+    for (const hw of homeworks) {
+      const daysLabel = hw.daysUntilExam !== undefined ? ` · Exam in ${hw.daysUntilExam}d` : '';
+      items.push({
+        id: hw.id,
+        title: `${hw.courseName} - Blatt ${hw.exerciseNumber}`,
+        subtitle: `${hw.completedExercises}/${hw.totalExercises} done${daysLabel}`,
+        completed: false,
+        source: 'homework',
+      });
+    }
+
+    // Goals
+    const goals = nextTasksData?.goals ?? [];
+    for (const g of goals) {
+      items.push({
+        id: `goal-${g.id}`,
+        title: g.title,
+        subtitle: g.daysUntil === 0 ? 'Due today' : `Due in ${g.daysUntil}d`,
+        completed: false,
+        source: 'goal',
+      });
+    }
+
+    // Interviews
+    const interviews = nextTasksData?.interviews ?? [];
+    for (const iv of interviews) {
+      items.push({
+        id: `interview-${iv.id}`,
+        title: `Interview: ${iv.company}`,
+        subtitle: iv.daysUntil === 0 ? 'Today!' : `In ${iv.daysUntil}d`,
+        completed: false,
+        source: 'interview',
+      });
+    }
+
+    // Manual daily tasks
+    for (const t of todayTasks) {
+      items.push({
+        id: t.id,
+        title: t.title,
+        completed: t.completed,
+        source: 'manual',
+      });
+    }
+
+    return items;
+  }, [nextTasksData, todayTasks]);
   const currentQuote = FOCUS_QUOTES[quoteIndex] ?? FOCUS_QUOTES[0];
   const activeTheme = useMemo(
     () => FOCUS_THEME_PRESETS.find((preset) => preset.id === themePresetId) ?? DEFAULT_FOCUS_THEME,
@@ -796,8 +844,8 @@ export default function FocusScreen() {
             </AnimatePresence>
           </div>
           {activeOverlay.showTodos && (
-            todayTasks.length > 0 ? (
-              <FocusTodoWidget tasks={todayTasks} onToggle={handleToggleTask} />
+            unifiedTasks.length > 0 ? (
+              <FocusTodoWidget tasks={unifiedTasks} />
             ) : (
               <div className="mt-4 w-full max-w-md rounded-2xl border border-white/8 bg-black/20 px-4 py-3 backdrop-blur-sm">
                 <p className="text-center text-[11px] text-zinc-600">Keine Tasks für heute</p>
