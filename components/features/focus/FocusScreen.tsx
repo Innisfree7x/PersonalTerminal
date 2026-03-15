@@ -203,7 +203,7 @@ const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
     quoteFontClass: 'text-xl sm:text-3xl lg:text-4xl font-semibold',
     showQuoteBorder: true,
     controlsPosition: 'bottom-spread',
-    showTodos: false,
+    showTodos: true,
   },
   {
     id: 'grid',
@@ -241,7 +241,7 @@ const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
     quoteFontClass: 'text-2xl sm:text-3xl lg:text-4xl font-light leading-[1.35]',
     showQuoteBorder: false,
     controlsPosition: 'bottom-left',
-    showTodos: false,
+    showTodos: true,
   },
   {
     id: 'clean',
@@ -259,7 +259,7 @@ const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
     quoteFontClass: 'text-2xl sm:text-4xl lg:text-5xl font-bold',
     showQuoteBorder: false,
     controlsPosition: 'bottom-center',
-    showTodos: false,
+    showTodos: true,
   },
   {
     id: 'editorial',
@@ -296,7 +296,7 @@ const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
     quoteFontClass: 'text-lg sm:text-2xl lg:text-3xl font-normal tracking-wide',
     showQuoteBorder: false,
     controlsPosition: 'top-left',
-    showTodos: false,
+    showTodos: true,
   },
   {
     id: 'mono',
@@ -315,7 +315,7 @@ const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
     quoteFontClass: 'text-base sm:text-xl lg:text-2xl font-mono font-medium uppercase tracking-[0.12em]',
     showQuoteBorder: true,
     controlsPosition: 'bottom-center',
-    showTodos: false,
+    showTodos: true,
   },
   {
     id: 'gallery',
