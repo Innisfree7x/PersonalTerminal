@@ -186,8 +186,19 @@ export async function updateTrajectorySettings(
   }
 
   if (!data) {
-    await getOrCreateTrajectorySettings(userId);
-    return updateTrajectorySettings(userId, input);
+    // Row doesn't exist yet — upsert with defaults + user overrides
+    const defaults = { hours_per_week: 8, horizon_months: 24 };
+    const upsertData = { user_id: userId, ...defaults, ...updateData };
+    const { data: upserted, error: upsertError } = await supabase
+      .from('trajectory_settings')
+      .upsert(upsertData, { onConflict: 'user_id' })
+      .select('*')
+      .single();
+
+    if (upsertError) {
+      throw new Error(`Failed to upsert trajectory settings: ${upsertError.message}`);
+    }
+    return toSettingsRecord(upserted);
   }
 
   return toSettingsRecord(data);
@@ -200,7 +211,8 @@ export async function listTrajectoryGoals(userId: string): Promise<TrajectoryGoa
     .from('trajectory_goals')
     .select('*')
     .eq('user_id', userId)
-    .order('due_date', { ascending: true });
+    .order('due_date', { ascending: true })
+    .limit(500);
 
   if (error) {
     throw new Error(`Failed to list trajectory goals: ${error.message}`);
@@ -314,7 +326,8 @@ export async function listTrajectoryWindows(userId: string): Promise<TrajectoryW
     .from('trajectory_windows')
     .select('*')
     .eq('user_id', userId)
-    .order('start_date', { ascending: true });
+    .order('start_date', { ascending: true })
+    .limit(500);
 
   if (error) {
     throw new Error(`Failed to list trajectory windows: ${error.message}`);
@@ -406,7 +419,8 @@ export async function listTrajectoryBlocks(userId: string): Promise<TrajectoryBl
     .from('trajectory_blocks')
     .select('*')
     .eq('user_id', userId)
-    .order('start_date', { ascending: true });
+    .order('start_date', { ascending: true })
+    .limit(1000);
 
   if (error) {
     throw new Error(`Failed to list trajectory blocks: ${error.message}`);

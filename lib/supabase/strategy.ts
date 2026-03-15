@@ -315,7 +315,8 @@ export async function listStrategyOptionsByDecision(
     .select('*')
     .eq('user_id', userId)
     .eq('decision_id', decisionId)
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true })
+    .limit(100);
 
   if (error) throw new Error(`Failed to list strategy options: ${error.message}`);
   return (data ?? []).map(toOptionRecord);
