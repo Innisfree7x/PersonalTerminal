@@ -1,10 +1,14 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowLeft,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Circle,
   Eye,
   EyeOff,
   Layers3,
@@ -17,9 +21,11 @@ import {
   Timer,
   type LucideIcon,
 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import { useChampion } from '@/components/providers/ChampionProvider';
 import { trackAppEvent } from '@/lib/analytics/client';
+import { fetchDailyTasks, updateTask, type DailyTask } from '@/lib/api/daily-tasks';
 import { LEGACY_STORAGE_KEYS, STORAGE_KEYS } from '@/lib/storage/keys';
 
 type Quote = {
@@ -69,6 +75,7 @@ type FocusOverlayPreset = {
   quoteFontClass: string;
   showQuoteBorder: boolean;
   controlsPosition: 'bottom-spread' | 'bottom-left' | 'bottom-center' | 'top-left';
+  showTodos: boolean;
 };
 
 const FOCUS_THEME_PRESETS: FocusThemePreset[] = [
@@ -196,6 +203,7 @@ const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
     quoteFontClass: 'text-xl sm:text-3xl lg:text-4xl font-semibold',
     showQuoteBorder: true,
     controlsPosition: 'bottom-spread',
+    showTodos: false,
   },
   {
     id: 'grid',
@@ -208,12 +216,13 @@ const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
     vignette:
       'radial-gradient(circle at 50% 45%, rgba(0,0,0,0) 18%, rgba(2,4,10,0.46) 100%)',
     vignetteOpacity: 0.92,
-    quotePosition: 'center',
-    quoteMaxWidth: '44rem',
+    quotePosition: 'top-center',
+    quoteMaxWidth: '40rem',
     quoteAlign: 'center',
-    quoteFontClass: 'text-xl sm:text-3xl lg:text-4xl font-semibold',
+    quoteFontClass: 'text-lg sm:text-2xl lg:text-3xl font-medium tracking-tight',
     showQuoteBorder: true,
     controlsPosition: 'bottom-spread',
+    showTodos: true,
   },
   {
     id: 'velvet',
@@ -226,12 +235,13 @@ const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
     vignette:
       'radial-gradient(circle at 50% 42%, rgba(0,0,0,0) 16%, rgba(2,4,10,0.5) 100%)',
     vignetteOpacity: 0.95,
-    quotePosition: 'center',
-    quoteMaxWidth: '44rem',
-    quoteAlign: 'center',
-    quoteFontClass: 'text-xl sm:text-3xl lg:text-4xl font-semibold',
-    showQuoteBorder: true,
-    controlsPosition: 'bottom-spread',
+    quotePosition: 'center-left',
+    quoteMaxWidth: '38rem',
+    quoteAlign: 'left',
+    quoteFontClass: 'text-2xl sm:text-3xl lg:text-4xl font-light leading-[1.35]',
+    showQuoteBorder: false,
+    controlsPosition: 'bottom-left',
+    showTodos: false,
   },
   {
     id: 'clean',
@@ -244,11 +254,12 @@ const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
       'radial-gradient(circle at 50% 45%, rgba(0,0,0,0) 26%, rgba(2,4,10,0.36) 100%)',
     vignetteOpacity: 0.78,
     quotePosition: 'center',
-    quoteMaxWidth: '44rem',
+    quoteMaxWidth: '48rem',
     quoteAlign: 'center',
-    quoteFontClass: 'text-xl sm:text-3xl lg:text-4xl font-semibold',
-    showQuoteBorder: true,
-    controlsPosition: 'bottom-spread',
+    quoteFontClass: 'text-2xl sm:text-4xl lg:text-5xl font-bold',
+    showQuoteBorder: false,
+    controlsPosition: 'bottom-center',
+    showTodos: false,
   },
   {
     id: 'editorial',
@@ -267,6 +278,7 @@ const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
     quoteFontClass: 'text-2xl sm:text-4xl lg:text-5xl font-light italic tracking-tight',
     showQuoteBorder: false,
     controlsPosition: 'bottom-left',
+    showTodos: true,
   },
   {
     id: 'cinema',
@@ -284,6 +296,7 @@ const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
     quoteFontClass: 'text-lg sm:text-2xl lg:text-3xl font-normal tracking-wide',
     showQuoteBorder: false,
     controlsPosition: 'top-left',
+    showTodos: false,
   },
   {
     id: 'mono',
@@ -302,6 +315,7 @@ const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
     quoteFontClass: 'text-base sm:text-xl lg:text-2xl font-mono font-medium uppercase tracking-[0.12em]',
     showQuoteBorder: true,
     controlsPosition: 'bottom-center',
+    showTodos: false,
   },
   {
     id: 'gallery',
@@ -320,6 +334,7 @@ const FOCUS_OVERLAY_PRESETS: FocusOverlayPreset[] = [
     quoteFontClass: 'text-xl sm:text-3xl lg:text-[2.75rem] font-semibold leading-[1.15]',
     showQuoteBorder: false,
     controlsPosition: 'bottom-center',
+    showTodos: true,
   },
 ];
 
@@ -341,11 +356,12 @@ function VisualPresetPicker({
   onSelect,
   options,
 }: VisualPresetPickerProps) {
+  const selectedLabel = options.find((o) => o.id === selectedId)?.label ?? '';
   return (
     <div className="rounded-2xl border border-white/12 bg-black/28 p-2.5 backdrop-blur-md">
       <p className="mb-1.5 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-zinc-500">
         <Icon className="h-3.5 w-3.5 text-zinc-400" />
-        {label}
+        {label}: <span className="text-zinc-300">{selectedLabel}</span>
       </p>
       <div className="flex flex-wrap gap-1.5">
         {options.map((option) => {
@@ -367,6 +383,53 @@ function VisualPresetPicker({
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function FocusTodoWidget({ tasks, onToggle }: { tasks: DailyTask[]; onToggle: (id: string, completed: boolean) => void }) {
+  const incomplete = tasks.filter((t) => !t.completed).slice(0, 5);
+  const completedCount = tasks.filter((t) => t.completed).length;
+
+  if (incomplete.length === 0 && completedCount > 0) {
+    return (
+      <div className="mt-4 w-full max-w-md rounded-2xl border border-white/8 bg-black/20 px-4 py-3 backdrop-blur-sm">
+        <p className="text-center text-xs text-zinc-500">Alles erledigt heute</p>
+      </div>
+    );
+  }
+
+  if (incomplete.length === 0) return null;
+
+  return (
+    <div className="mt-4 w-full max-w-md rounded-2xl border border-white/8 bg-black/20 px-4 py-3 backdrop-blur-sm">
+      <p className="mb-2 text-[10px] uppercase tracking-[0.14em] text-zinc-500">
+        Heute offen · {incomplete.length}
+      </p>
+      <div className="flex flex-col gap-1.5">
+        {incomplete.map((task) => (
+          <button
+            key={task.id}
+            type="button"
+            onClick={() => onToggle(task.id, true)}
+            className="group flex items-center gap-2 rounded-lg px-1.5 py-1 text-left transition-colors hover:bg-white/[0.04]"
+          >
+            <Circle className="h-3.5 w-3.5 shrink-0 text-zinc-600 transition-colors group-hover:text-cyan-400" />
+            <span className="truncate text-xs text-zinc-400 transition-colors group-hover:text-zinc-200">
+              {task.title}
+            </span>
+            {task.timeEstimate && (
+              <span className="ml-auto shrink-0 text-[10px] text-zinc-600">{task.timeEstimate}</span>
+            )}
+          </button>
+        ))}
+      </div>
+      {completedCount > 0 && (
+        <p className="mt-2 flex items-center gap-1 text-[10px] text-zinc-600">
+          <Check className="h-3 w-3" />
+          {completedCount} erledigt
+        </p>
+      )}
     </div>
   );
 }
@@ -414,6 +477,42 @@ export default function FocusScreen() {
   const [customMinutes, setCustomMinutes] = useState('');
   const [themePresetId, setThemePresetId] = useState(DEFAULT_FOCUS_THEME.id);
   const [overlayPresetId, setOverlayPresetId] = useState(DEFAULT_FOCUS_OVERLAY.id);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const todayIso = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }, []);
+
+  const queryClient = useQueryClient();
+  const { data: todayTasks = [] } = useQuery({
+    queryKey: ['daily-tasks', todayIso],
+    queryFn: () => fetchDailyTasks(todayIso),
+    staleTime: 120_000,
+  });
+
+  const toggleTaskMutation = useMutation({
+    mutationFn: ({ id, completed }: { id: string; completed: boolean }) => updateTask(id, completed),
+    onMutate: async ({ id, completed }) => {
+      await queryClient.cancelQueries({ queryKey: ['daily-tasks', todayIso] });
+      const prev = queryClient.getQueryData<DailyTask[]>(['daily-tasks', todayIso]);
+      queryClient.setQueryData<DailyTask[]>(['daily-tasks', todayIso], (old) =>
+        old?.map((t) => (t.id === id ? { ...t, completed } : t))
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['daily-tasks', todayIso], ctx.prev);
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ['daily-tasks', todayIso] });
+    },
+  });
+
+  const handleToggleTask = useCallback(
+    (id: string, completed: boolean) => toggleTaskMutation.mutate({ id, completed }),
+    [toggleTaskMutation]
+  );
   const currentQuote = FOCUS_QUOTES[quoteIndex] ?? FOCUS_QUOTES[0];
   const activeTheme = useMemo(
     () => FOCUS_THEME_PRESETS.find((preset) => preset.id === themePresetId) ?? DEFAULT_FOCUS_THEME,
@@ -617,22 +716,43 @@ export default function FocusScreen() {
           </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
-          <VisualPresetPicker
-            label="Theme"
-            icon={Palette}
-            selectedId={themePresetId}
-            onSelect={setThemePresetId}
-            options={FOCUS_THEME_PRESETS}
-          />
-          <VisualPresetPicker
-            label="Overlay"
-            icon={Layers3}
-            selectedId={overlayPresetId}
-            onSelect={setOverlayPresetId}
-            options={FOCUS_OVERLAY_PRESETS}
-          />
+        <div className="mt-3 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setPickerOpen((v) => !v)}
+            className="inline-flex items-center gap-1 rounded-full border border-white/12 bg-black/28 px-3 py-1.5 text-[11px] text-zinc-400 backdrop-blur-md transition-colors hover:bg-white/[0.06] hover:text-zinc-200"
+          >
+            <Palette className="h-3.5 w-3.5" />
+            Customize
+            {pickerOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          </button>
         </div>
+        <AnimatePresence>
+          {pickerOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="mt-2 flex flex-wrap items-start justify-end gap-2 overflow-hidden"
+            >
+              <VisualPresetPicker
+                label="Theme"
+                icon={Palette}
+                selectedId={themePresetId}
+                onSelect={setThemePresetId}
+                options={FOCUS_THEME_PRESETS}
+              />
+              <VisualPresetPicker
+                label="Overlay"
+                icon={Layers3}
+                selectedId={overlayPresetId}
+                onSelect={setOverlayPresetId}
+                options={FOCUS_OVERLAY_PRESETS}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className={`flex-1 flex flex-col ${
           activeOverlay.quotePosition === 'center' ? 'mt-10 sm:mt-12 items-center justify-center' :
@@ -675,6 +795,9 @@ export default function FocusScreen() {
               </motion.blockquote>
             </AnimatePresence>
           </div>
+          {activeOverlay.showTodos && todayTasks.length > 0 && (
+            <FocusTodoWidget tasks={todayTasks} onToggle={handleToggleTask} />
+          )}
         </div>
 
         <div className={`mt-8 flex flex-wrap items-stretch gap-3 sm:flex-nowrap sm:gap-4 ${
