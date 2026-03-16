@@ -11,8 +11,6 @@ import {
   simulateTrajectoryGoalPreview,
 } from '@/lib/trajectory/risk-model';
 
-const signals = ['Thesis', 'GMAT', 'Praktikum', 'Master-Apps'];
-
 export function HeroSection() {
   const [capacityHoursPerWeek, setCapacityHoursPerWeek] = useState(18);
   const [effortHours, setEffortHours] = useState(520);
@@ -39,10 +37,10 @@ export function HeroSection() {
 
   const statusColor =
     preview.status === 'on_track'
-      ? { border: 'border-emerald-500/30', bg: 'bg-emerald-500/10', text: 'text-emerald-400' }
+      ? { border: 'border-emerald-500/25', bg: 'bg-emerald-500/8', text: 'text-emerald-400' }
       : preview.status === 'tight'
-        ? { border: 'border-[#D4AF37]/30', bg: 'bg-[#D4AF37]/10', text: 'text-[#D4AF37]' }
-        : { border: 'border-red-500/30', bg: 'bg-red-500/10', text: 'text-red-400' };
+        ? { border: 'border-[#D4AF37]/25', bg: 'bg-[#D4AF37]/8', text: 'text-[#D4AF37]' }
+        : { border: 'border-red-500/25', bg: 'bg-red-500/8', text: 'text-red-400' };
 
   const trackSimulationOnce = (nextCapacity: number, nextEffort: number) => {
     if (trackedSimulationRef.current) return;
@@ -62,71 +60,60 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative overflow-hidden pt-24 pb-20 md:pt-36 md:pb-32">
-      {/* Subtle gold ambient glow */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-[20%] h-[600px] w-[800px] -translate-x-1/2 rounded-full bg-[#D4AF37]/[0.04] blur-[120px]" />
-      </div>
+    <>
+      {/* Hero — full viewport */}
+      <section className="relative flex min-h-[calc(100dvh-64px)] flex-col items-center justify-center overflow-hidden px-6">
+        {/* Central gold glow */}
+        <div className="pointer-events-none absolute left-1/2 top-[30%] h-[500px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#D4AF37]/[0.05] blur-[150px]" />
 
-      <div className="marketing-container relative z-10">
-        {/* Centered hero content */}
-        <div className="mx-auto max-w-4xl text-center">
+        <div className="relative z-10 mx-auto max-w-5xl text-center">
+          {/* Shimmer badge */}
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2.5 rounded-full border border-[#D4AF37]/20 bg-[#D4AF37]/[0.06] px-4 py-1.5"
+            className="mb-10 inline-flex"
           >
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#D4AF37]" />
-            <span className="text-xs font-medium tracking-wide text-[#D4AF37]">
-              Public Beta
+            <span className="shimmer-badge inline-flex items-center gap-2.5 rounded-full border border-[#D4AF37]/15 bg-[#D4AF37]/[0.05] px-4 py-2">
+              <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-[#D4AF37]" />
+              <span className="text-[12px] font-medium tracking-[0.08em] text-[#D4AF37]/90">
+                Public Beta
+              </span>
             </span>
           </motion.div>
 
+          {/* Headline */}
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.6 }}
-            className="premium-heading mt-8 text-[clamp(2.6rem,6.5vw,5.4rem)] font-semibold text-[#FAF0E6]"
+            transition={{ delay: 0.08, duration: 0.7 }}
+            className="premium-heading text-[clamp(3rem,7.5vw,6.5rem)] font-semibold text-[#FAF0E6]"
           >
             Erkenne Kollisionen
             <br />
             in deinem Karriereplan,{' '}
-            <span className="bg-gradient-to-r from-[#D4AF37] via-[#E0C068] to-[#D4AF37] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#C9A227] via-[#E8D48B] to-[#C9A227] bg-clip-text italic text-transparent">
               bevor sie passieren.
             </span>
           </motion.h1>
 
+          {/* Subline */}
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.25 }}
-            className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-zinc-400 md:text-xl"
+            transition={{ delay: 0.3 }}
+            className="mx-auto mt-8 max-w-xl text-[17px] leading-[1.7] text-zinc-500"
           >
             INNIS verbindet Thesis, GMAT, Master-Apps und Praktika in einer Timeline
             und übersetzt Risiko direkt in den nächsten sinnvollen Tageszug.
           </motion.p>
 
-          {/* Signal chips */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.35 }}
-            className="mt-6 flex flex-wrap justify-center gap-2"
-          >
-            {signals.map((s) => (
-              <span key={s} className="rounded-full border border-white/[0.08] bg-white/[0.03] px-3.5 py-1.5 text-xs text-zinc-400">
-                {s}
-              </span>
-            ))}
-          </motion.div>
-
           {/* CTAs */}
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.42 }}
-            className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
+            transition={{ delay: 0.45 }}
+            className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
           >
             <TrackedCtaLink
               href="/auth/signup"
@@ -146,94 +133,114 @@ export function HeroSection() {
               Bereits angemeldet? Login
             </TrackedCtaLink>
           </motion.div>
-        </div>
 
-        {/* Interactive Trajectory Simulator */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.55, duration: 0.6 }}
-          className="mx-auto mt-20 max-w-3xl"
-        >
-          <div className="premium-card rounded-2xl p-6 md:p-8">
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#D4AF37]">
-                  Live Simulator
-                </p>
-                <p className="mt-1 text-sm text-zinc-500">
-                  Teste, ab wann dein Plan kippt.
-                </p>
-              </div>
-              <span className={`inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold ${statusColor.border} ${statusColor.bg} ${statusColor.text}`}>
-                {formatTrajectoryRiskLabel(preview.status)}
-              </span>
+          {/* Scroll indicator */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2 }}
+            className="mt-20"
+          >
+            <motion.div
+              animate={{ y: [0, 6, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              className="mx-auto h-10 w-[1px] bg-gradient-to-b from-[#D4AF37]/30 to-transparent"
+            />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Interactive Simulator — separate section below fold */}
+      <section className="relative py-24 md:py-32">
+        <div className="premium-divider" />
+
+        <div className="mx-auto mt-16 max-w-3xl px-6 sm:px-10">
+          <motion.div
+            initial={{ opacity: 0, y: 32 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="mb-10 text-center">
+              <p className="premium-kicker">Interaktiver Beweis</p>
+              <h2 className="premium-heading text-[clamp(1.8rem,4vw,3rem)] font-semibold text-[#FAF0E6]">
+                Teste, ab wann dein Plan kippt.
+              </h2>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Controls */}
-              <div className="space-y-5">
-                <label className="block">
-                  <span className="flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-zinc-500">
-                    Kapazität
-                    <span className="font-semibold text-zinc-300">{capacityHoursPerWeek}h/Woche</span>
-                  </span>
-                  <input
-                    type="range"
-                    min={5}
-                    max={50}
-                    step={1}
-                    value={capacityHoursPerWeek}
-                    onChange={(e) => {
-                      const v = Number(e.target.value);
-                      setCapacityHoursPerWeek(v);
-                      trackSimulationOnce(v, effortHours);
-                    }}
-                    className="mt-2 w-full accent-[#D4AF37]"
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-zinc-500">
-                    Aufwand
-                    <span className="font-semibold text-zinc-300">{effortHours}h</span>
-                  </span>
-                  <input
-                    type="range"
-                    min={120}
-                    max={900}
-                    step={10}
-                    value={effortHours}
-                    onChange={(e) => {
-                      const v = Number(e.target.value);
-                      setEffortHours(v);
-                      trackSimulationOnce(capacityHoursPerWeek, v);
-                    }}
-                    className="mt-2 w-full accent-[#D4AF37]"
-                  />
-                </label>
+            <div className="premium-card rounded-2xl p-6 md:p-8">
+              <div className="mb-6 flex items-center justify-end">
+                <span className={`inline-flex rounded-full border px-3 py-1.5 text-[11px] font-semibold ${statusColor.border} ${statusColor.bg} ${statusColor.text}`}>
+                  {formatTrajectoryRiskLabel(preview.status)}
+                </span>
               </div>
 
-              {/* Results */}
-              <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-                <div className="space-y-3">
+              <div className="grid gap-8 md:grid-cols-2">
+                {/* Controls */}
+                <div className="space-y-6">
+                  <label className="block">
+                    <span className="flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-zinc-600">
+                      Kapazität
+                      <span className="font-semibold text-zinc-400">{capacityHoursPerWeek}h / Woche</span>
+                    </span>
+                    <input
+                      type="range"
+                      min={5}
+                      max={50}
+                      step={1}
+                      value={capacityHoursPerWeek}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        setCapacityHoursPerWeek(v);
+                        trackSimulationOnce(v, effortHours);
+                      }}
+                      className="mt-3 w-full accent-[#D4AF37]"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-zinc-600">
+                      Gesamtaufwand
+                      <span className="font-semibold text-zinc-400">{effortHours}h</span>
+                    </span>
+                    <input
+                      type="range"
+                      min={120}
+                      max={900}
+                      step={10}
+                      value={effortHours}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        setEffortHours(v);
+                        trackSimulationOnce(capacityHoursPerWeek, v);
+                      }}
+                      className="mt-3 w-full accent-[#D4AF37]"
+                    />
+                  </label>
+                </div>
+
+                {/* Results */}
+                <div className="space-y-0 rounded-xl border border-white/[0.05] bg-white/[0.015]">
                   {[
                     { label: 'Deadline', value: `${dueDays} Tage` },
                     { label: 'Prep Start', value: prepStartLabel },
                     { label: 'Benötigte Wochen', value: String(preview.requiredWeeks) },
                     { label: 'Buffer', value: '2 Wochen' },
                   ].map((row, i) => (
-                    <div key={row.label} className={`flex items-center justify-between ${i < 3 ? 'border-b border-white/[0.06] pb-3' : ''}`}>
-                      <span className="text-sm text-zinc-500">{row.label}</span>
-                      <span className="text-sm font-semibold text-[#FAF0E6]">{row.value}</span>
+                    <div
+                      key={row.label}
+                      className={`flex items-center justify-between px-5 py-3.5 ${i < 3 ? 'border-b border-white/[0.04]' : ''}`}
+                    >
+                      <span className="text-[13px] text-zinc-600">{row.label}</span>
+                      <span className="text-[13px] font-medium text-[#FAF0E6]">{row.value}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-          </div>
-        </motion.div>
-      </div>
-    </section>
+          </motion.div>
+        </div>
+      </section>
+    </>
   );
 }

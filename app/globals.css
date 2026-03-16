@@ -666,87 +666,104 @@
   }
 
   .marketing-shell {
-    background:
-      radial-gradient(820px 440px at 14% 8%, rgba(212, 175, 55, 0.06), transparent 62%),
-      radial-gradient(640px 360px at 84% 12%, rgba(212, 175, 55, 0.04), transparent 60%),
-      linear-gradient(180deg, #050508 0%, #060609 48%, #050508 100%);
+    background: #050508;
   }
 
   .marketing-grid-overlay {
     background-image:
-      linear-gradient(to right, rgba(250, 240, 230, 0.02) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(250, 240, 230, 0.02) 1px, transparent 1px);
-    background-size: 64px 64px;
-    mask-image: radial-gradient(1120px 680px at 50% 0%, #000 30%, transparent 92%);
+      linear-gradient(to right, rgba(212, 175, 55, 0.018) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(212, 175, 55, 0.018) 1px, transparent 1px);
+    background-size: 80px 80px;
+    mask-image: radial-gradient(900px 500px at 50% 0%, #000 20%, transparent 80%);
   }
 
   .marketing-noise {
-    background-image: radial-gradient(rgba(255, 255, 255, 0.06) 0.5px, transparent 0.5px);
-    background-size: 2px 2px;
-    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    opacity: 0.4;
   }
 
   .marketing-vignette {
-    background: radial-gradient(1160px 700px at 50% 15%, transparent 32%, rgba(0, 0, 0, 0.58) 100%);
+    background: radial-gradient(ellipse 1400px 900px at 50% 0%, transparent 40%, rgba(5, 5, 8, 0.85) 100%);
   }
 
   .marketing-spotlight {
     background:
-      radial-gradient(420px 280px at 18% 10%, rgba(212, 175, 55, 0.06), transparent 72%),
-      radial-gradient(440px 300px at 84% 7%, rgba(212, 175, 55, 0.04), transparent 74%);
-    opacity: 0.72;
+      radial-gradient(600px 400px at 50% 8%, rgba(212, 175, 55, 0.08), transparent 70%);
+    opacity: 1;
   }
 
   .marketing-container {
-    @apply mx-auto w-full max-w-7xl px-5 sm:px-8;
+    @apply mx-auto w-full max-w-6xl px-6 sm:px-10;
+  }
+
+  /* Shimmer animation for badges */
+  @keyframes shimmer-slide {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .shimmer-badge {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer-badge::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.15), transparent);
+    animation: shimmer-slide 3s ease-in-out infinite;
   }
 
   .premium-card {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.012));
-    border: 1px solid rgba(250, 240, 230, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.008));
+    border: 1px solid rgba(212, 175, 55, 0.08);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.04),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.015),
-      0 20px 60px rgba(0, 0, 0, 0.34);
-    backdrop-filter: blur(8px);
+      0 24px 80px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(12px);
   }
 
   .premium-card-soft {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0.01));
-    border: 1px solid rgba(250, 240, 230, 0.065);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.03),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.01),
-      0 10px 36px rgba(0, 0, 0, 0.26);
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   }
 
   .premium-heading {
     font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', 'Times New Roman', serif;
-    letter-spacing: -0.05em;
-    line-height: 0.95;
+    letter-spacing: -0.04em;
+    line-height: 0.92;
     text-wrap: balance;
     font-feature-settings: "liga" 1, "clig" 1;
   }
 
   .premium-subtext {
-    color: rgba(212, 212, 216, 0.82);
-    line-height: 1.7;
+    color: rgba(161, 161, 170, 0.9);
+    line-height: 1.75;
+    letter-spacing: -0.01em;
   }
 
   .premium-kicker {
-    @apply mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-[#D4AF37];
+    @apply mb-5 text-[11px] font-semibold uppercase tracking-[0.25em] text-[#D4AF37]/80;
   }
 
   .premium-chip {
-    @apply inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs text-zinc-300;
+    @apply inline-flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.03] px-4 py-2 text-[13px] text-zinc-500 transition-colors hover:border-[#D4AF37]/20 hover:text-zinc-400;
   }
 
   .premium-cta-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-[#D4AF37] px-7 py-3.5 text-sm font-semibold text-[#050508] transition-all hover:-translate-y-0.5 hover:bg-[#E0C068] hover:shadow-xl hover:shadow-[#D4AF37]/25;
+    @apply inline-flex items-center justify-center gap-2.5 rounded-full bg-[#D4AF37] px-8 py-4 text-[15px] font-semibold text-[#050508] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#E0C068] hover:shadow-2xl hover:shadow-[#D4AF37]/20 active:scale-[0.97];
   }
 
   .premium-cta-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-7 py-3.5 text-sm font-medium text-zinc-300 transition-all hover:border-[#D4AF37]/30 hover:bg-white/[0.06] hover:text-[#FAF0E6];
+    @apply inline-flex items-center justify-center gap-2.5 rounded-full border border-white/[0.08] bg-transparent px-8 py-4 text-[15px] font-medium text-zinc-400 transition-all duration-300 hover:border-[#D4AF37]/25 hover:text-[#FAF0E6] active:scale-[0.97];
+  }
+
+  /* Section divider */
+  .premium-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.12), transparent);
   }
 
   .settings-chip {

@@ -53,44 +53,45 @@ const pillars: Pillar[] = [
 
 export function ProductShowcase() {
   return (
-    <section className="relative py-24 md:py-32">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+    <section className="relative py-28 md:py-36">
+      <div className="premium-divider" />
 
-      <div className="marketing-container">
+      <div className="marketing-container mt-16">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="mx-auto mb-16 max-w-3xl text-center"
+          className="mx-auto mb-20 max-w-3xl text-center"
         >
           <p className="premium-kicker">Das System</p>
-          <h2 className="premium-heading text-[clamp(2rem,4.5vw,3.6rem)] font-semibold text-[#FAF0E6]">
-            Kein Sammelsurium aus Features.
+          <h2 className="premium-heading text-[clamp(2.2rem,5vw,4rem)] font-semibold text-[#FAF0E6]">
+            Kein Sammelsurium
             <br />
-            <span className="text-zinc-600">Ein System mit klarer Reihenfolge.</span>
+            aus Features.
           </h2>
+          <p className="mt-6 text-lg text-zinc-600">Ein System mit klarer Reihenfolge.</p>
         </motion.div>
 
-        <div className="mx-auto max-w-5xl space-y-5">
+        <div className="mx-auto max-w-5xl space-y-6">
           {pillars.map((pillar, i) => (
             <motion.div
               key={pillar.number}
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.45, delay: i * 0.06 }}
-              className="premium-card overflow-hidden rounded-2xl p-6 md:p-8"
+              transition={{ duration: 0.5, delay: i * 0.08 }}
+              className="group premium-card overflow-hidden rounded-2xl"
             >
-              <div className="grid gap-6 md:grid-cols-[1fr_1.2fr] md:items-start">
-                {/* Left: title + description */}
-                <div>
-                  <div className="mb-4 flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#D4AF37]/15 bg-[#D4AF37]/[0.06]">
-                      <pillar.icon className="h-4.5 w-4.5 text-[#D4AF37]" />
+              <div className="grid md:grid-cols-[1fr_1.1fr]">
+                {/* Left: meta + description */}
+                <div className="p-8 md:p-10">
+                  <div className="mb-6 flex items-center gap-4">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#D4AF37]/10 bg-[#D4AF37]/[0.04]">
+                      <pillar.icon className="h-5 w-5 text-[#D4AF37]/70" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-600">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-700">
                         {pillar.number}
                       </p>
                       <h3 className="text-xl font-semibold tracking-tight text-[#FAF0E6]">
@@ -98,22 +99,24 @@ export function ProductShowcase() {
                       </h3>
                     </div>
                   </div>
-                  <p className="text-sm leading-relaxed text-zinc-400">
+                  <p className="text-[15px] leading-[1.7] text-zinc-500">
                     {pillar.description}
                   </p>
                 </div>
 
                 {/* Right: highlights */}
-                <div className="space-y-2.5">
-                  {pillar.highlights.map((point) => (
-                    <div
-                      key={point}
-                      className="flex items-start gap-3 rounded-xl border border-white/[0.05] bg-white/[0.02] px-4 py-3"
-                    >
-                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#D4AF37]/60" />
-                      <span className="text-sm leading-relaxed text-zinc-300">{point}</span>
-                    </div>
-                  ))}
+                <div className="border-t border-white/[0.04] bg-white/[0.01] p-8 md:border-l md:border-t-0 md:p-10">
+                  <div className="space-y-4">
+                    {pillar.highlights.map((point) => (
+                      <div
+                        key={point}
+                        className="flex items-start gap-3"
+                      >
+                        <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-[#D4AF37]/50" />
+                        <span className="text-[14px] leading-[1.7] text-zinc-400">{point}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </motion.div>

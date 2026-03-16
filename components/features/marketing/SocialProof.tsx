@@ -5,65 +5,72 @@ import { motion } from 'framer-motion';
 const stats = [
   { value: '< 50ms', label: 'UI Response Time' },
   { value: '100%', label: 'Type-safe Codebase' },
-  { value: '3', label: 'Integrated Systems' },
-  { value: '0', label: 'External Dependencies' },
+  { value: '3', label: 'Integrierte Systeme' },
+  { value: '0', label: 'Externe Abhängigkeiten' },
 ];
 
 const testimonials = [
   {
-    quote: 'Ich hatte Thesis, GMAT und drei Bewerbungen parallel — ohne INNIS haette ich den GMAT verschoben.',
+    quote: 'Ich hatte Thesis, GMAT und drei Bewerbungen parallel — ohne INNIS hätte ich den GMAT verschoben.',
     role: 'WiWi-Student, Mannheim',
   },
   {
-    quote: 'Endlich sehe ich morgens sofort, was heute wirklich zaehlt. Kein Sortieren, kein Raten.',
+    quote: 'Endlich sehe ich morgens sofort, was heute wirklich zählt. Kein Sortieren, kein Raten.',
     role: 'BWL-Studentin, Frankfurt',
   },
 ];
 
 export function SocialProof() {
   return (
-    <section className="relative py-20 md:py-28">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/10 to-transparent" />
+    <section className="relative py-28 md:py-36">
+      <div className="premium-divider" />
 
-      <div className="marketing-container relative z-10">
-        {/* Stats grid */}
+      <div className="marketing-container mt-16">
+        {/* Stats */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="mx-auto mb-16 grid max-w-4xl grid-cols-2 gap-4 md:grid-cols-4"
+          transition={{ duration: 0.6 }}
+          className="mx-auto mb-20 max-w-4xl"
         >
-          {stats.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 8 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.06 }}
-              className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 text-center"
-            >
-              <div className="text-2xl font-bold text-[#FAF0E6] md:text-3xl">{stat.value}</div>
-              <div className="mt-1 text-xs text-zinc-500">{stat.label}</div>
-            </motion.div>
-          ))}
+          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/[0.05] md:grid-cols-4">
+            {stats.map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 8 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.06 }}
+                className="bg-white/[0.015] p-8 text-center"
+              >
+                <div className="text-3xl font-bold tracking-tight text-[#FAF0E6] md:text-4xl">
+                  {stat.value}
+                </div>
+                <div className="mt-2 text-[12px] tracking-wide text-zinc-600">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
 
         {/* Testimonials */}
-        <div className="mx-auto grid max-w-4xl gap-4 md:grid-cols-2">
+        <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-2">
           {testimonials.map((t, i) => (
             <motion.div
               key={t.role}
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.1 + i * 0.08 }}
-              className="premium-card-soft rounded-2xl p-6"
+              transition={{ delay: 0.1 + i * 0.1 }}
+              className="rounded-2xl border border-white/[0.05] bg-white/[0.015] p-8"
             >
-              <p className="text-sm leading-relaxed text-zinc-300 italic">
+              <p className="text-[15px] leading-[1.7] text-zinc-400 italic">
                 &ldquo;{t.quote}&rdquo;
               </p>
-              <p className="mt-4 text-xs font-medium text-zinc-500">{t.role}</p>
+              <div className="mt-6 flex items-center gap-3">
+                <div className="h-px flex-1 bg-white/[0.04]" />
+                <p className="text-[12px] font-medium tracking-wide text-zinc-600">{t.role}</p>
+              </div>
             </motion.div>
           ))}
         </div>

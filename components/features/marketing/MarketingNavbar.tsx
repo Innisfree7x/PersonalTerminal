@@ -25,35 +25,34 @@ export function MarketingNavbar() {
   ] as const;
 
   return (
-    <header className={`sticky top-0 z-50 border-b backdrop-blur-xl transition-all duration-300 ${scrolled ? 'border-[#D4AF37]/10 bg-[#050508]/90 shadow-lg shadow-black/40' : 'border-white/[0.06] bg-[#050508]/60'}`}>
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/25 to-transparent" />
-      <div className="mx-auto w-full max-w-6xl px-5 sm:px-8 h-[64px] flex items-center justify-between">
+    <header className={`sticky top-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-white/[0.04] bg-[#050508]/80 backdrop-blur-2xl' : 'bg-transparent'}`}>
+      <div className="mx-auto w-full max-w-6xl px-6 sm:px-10 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="group flex items-center gap-3">
           <BrandLockup
-            sizeClassName="h-8 w-8"
+            sizeClassName="h-7 w-7"
             className="transition-transform duration-300 group-hover:scale-[1.02]"
-            wordmarkClassName="text-[#FAF0E6] font-medium text-[1.65rem] tracking-[-0.02em]"
+            wordmarkClassName="text-[#FAF0E6] font-medium text-[1.5rem] tracking-[-0.02em]"
           />
         </Link>
 
         {/* Desktop nav links */}
-        <nav className="hidden md:flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-white/[0.02] p-1">
+        <nav className="hidden md:flex items-center gap-1">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`relative rounded-full px-4 py-1.5 text-sm transition ${
+                className={`relative rounded-full px-4 py-2 text-[14px] transition-colors duration-200 ${
                   isActive
-                    ? 'bg-white/[0.08] text-[#FAF0E6]'
-                    : 'text-zinc-400 hover:bg-white/[0.06] hover:text-[#FAF0E6]'
+                    ? 'text-[#FAF0E6]'
+                    : 'text-zinc-500 hover:text-zinc-300'
                 }`}
               >
                 {link.label}
                 {isActive ? (
-                  <span className="absolute left-1/2 top-[3px] h-1 w-1 -translate-x-1/2 rounded-full bg-[#D4AF37]" />
+                  <span className="absolute bottom-1 left-1/2 h-[3px] w-[3px] -translate-x-1/2 rounded-full bg-[#D4AF37]" />
                 ) : null}
               </Link>
             );
@@ -61,12 +60,12 @@ export function MarketingNavbar() {
         </nav>
 
         {/* Desktop CTAs */}
-        <div className="hidden md:flex items-center gap-2.5">
+        <div className="hidden md:flex items-center gap-3">
           <TrackedCtaLink
             href="/auth/login"
             eventName="landing_cta_secondary_clicked"
             eventPayload={{ source: 'navbar', variant: 'login' }}
-            className="inline-flex h-10 items-center rounded-full border border-white/[0.08] px-4 text-sm text-zinc-400 transition hover:border-[#D4AF37]/20 hover:text-[#FAF0E6]"
+            className="px-4 py-2 text-[14px] text-zinc-500 transition-colors hover:text-[#FAF0E6]"
           >
             Login
           </TrackedCtaLink>
@@ -74,16 +73,16 @@ export function MarketingNavbar() {
             href="/auth/signup"
             eventName="landing_cta_primary_clicked"
             eventPayload={{ source: 'navbar', variant: 'primary' }}
-            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#D4AF37] px-5 text-sm font-semibold text-[#050508] transition-all hover:-translate-y-0.5 hover:bg-[#E0C068] hover:shadow-lg hover:shadow-[#D4AF37]/20 active:translate-y-0"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[#D4AF37] px-5 text-[13px] font-semibold text-[#050508] transition-all duration-300 hover:bg-[#E0C068] hover:shadow-lg hover:shadow-[#D4AF37]/15 active:scale-[0.97]"
           >
-            Kostenlos starten
-            <ArrowRight className="w-3.5 h-3.5" />
+            Starten
+            <ArrowRight className="w-3 h-3" />
           </TrackedCtaLink>
         </div>
 
         {/* Mobile toggle */}
         <button
-          className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-2 text-zinc-400 transition hover:bg-white/[0.06] hover:text-[#FAF0E6] md:hidden"
+          className="rounded-lg p-2 text-zinc-500 transition hover:text-[#FAF0E6] md:hidden"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Navigation öffnen"
         >
@@ -93,23 +92,23 @@ export function MarketingNavbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="border-t border-white/[0.06] bg-[#050508]/95 px-5 py-4 space-y-1 md:hidden">
+        <div className="border-t border-white/[0.04] bg-[#050508]/95 backdrop-blur-2xl px-6 py-5 space-y-1 md:hidden">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               onClick={() => setMobileOpen(false)}
-              className="block rounded-lg px-3 py-2.5 text-sm text-zinc-400 transition hover:bg-white/[0.06] hover:text-[#FAF0E6]"
+              className="block rounded-lg px-3 py-3 text-[15px] text-zinc-500 transition hover:text-[#FAF0E6]"
             >
               {link.label}
             </Link>
           ))}
-          <div className="flex flex-col gap-2 border-t border-white/[0.06] pt-3">
+          <div className="flex flex-col gap-2 border-t border-white/[0.04] pt-4 mt-2">
             <TrackedCtaLink
               href="/auth/login"
               eventName="landing_cta_secondary_clicked"
               eventPayload={{ source: 'navbar_mobile', variant: 'login' }}
-              className="rounded-lg border border-white/[0.08] py-2.5 text-center text-sm text-zinc-400 transition hover:bg-white/[0.06] hover:text-[#FAF0E6]"
+              className="rounded-lg py-3 text-center text-[15px] text-zinc-500 transition hover:text-[#FAF0E6]"
             >
               Login
             </TrackedCtaLink>
@@ -117,7 +116,7 @@ export function MarketingNavbar() {
               href="/auth/signup"
               eventName="landing_cta_primary_clicked"
               eventPayload={{ source: 'navbar_mobile', variant: 'primary' }}
-              className="rounded-lg bg-[#D4AF37] py-2.5 text-center text-sm font-semibold text-[#050508] transition hover:bg-[#E0C068]"
+              className="rounded-lg bg-[#D4AF37] py-3 text-center text-[14px] font-semibold text-[#050508] transition hover:bg-[#E0C068]"
             >
               Kostenlos starten →
             </TrackedCtaLink>
