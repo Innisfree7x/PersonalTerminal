@@ -55,6 +55,17 @@ interface OpportunitySourceProvider {
   search(query: string, input: OpportunitySearchInput): Promise<OpportunitySourceItem[]>;
 }
 
+interface OpportunityProviderBundle {
+  primary: OpportunitySourceProvider[];
+  fallback: OpportunitySourceProvider[];
+  liveConfigured: boolean;
+}
+
+interface SearchRadarOptions {
+  forcePrimaryProviders?: OpportunitySourceProvider[];
+  forceFallbackProviders?: OpportunitySourceProvider[];
+}
+
 const SOURCE_ALPHA_DATA: OpportunitySourceItem[] = [
   {
     sourceKey: 'alpha_board',
@@ -309,6 +320,13 @@ function buildAdzunaWhatCandidates(input: OpportunitySearchInput): string[] {
   return deduped.slice(0, 4);
 }
 
+function buildRelaxedQuery(input: OpportunitySearchInput): string | null {
+  const trimmed = input.query.trim();
+  if (!trimmed) return null;
+  const trackHint = trackSearchTerms(input.priorityTrack)[0] ?? 'finance';
+  return trackHint;
+}
+
 function dedupeKey(item: OpportunitySourceItem): string {
   return [item.company, item.title, item.city, item.country].map(normalizeToken).join('|');
 }
@@ -494,6 +512,23 @@ function buildGaps(opportunity: AggregatedOpportunity, band: RadarBand): string[
   return uniqueStrings(['Erfahrungstiefe im Vergleich zum Markt', ...opportunity.gapPool], 2);
 }
 
+function buildNextAction(item: {
+  title: string;
+  company: string;
+  track: RadarTrack;
+  band: RadarBand;
+  topGaps: string[];
+}): string {
+  const primaryGap = item.topGaps[0] ?? 'CV-Luecke schliessen';
+  if (item.band === 'realistic') {
+    return `Bewerbung diese Woche senden und im CV gezielt "${item.track}" + "${primaryGap}" schärfen.`;
+  }
+  if (item.band === 'target') {
+    return `Zuerst Gap "${primaryGap}" als Today-Task committen, dann Bewerbung in 7-10 Tagen senden.`;
+  }
+  return `Stretch-Case: 2 Wochen Skill-Prep auf "${primaryGap}", dann erneut für ${item.company} bewerten.`;
+}
+
 function inferTrack(text: string): RadarTrack {
   const t = normalizeToken(text);
   if (/(audit|wirtschaftsprüfung|ifrs|assurance)/.test(t)) return 'Audit';
@@ -648,16 +683,30 @@ function buildAdzunaProvider(): OpportunitySourceProvider | null {
   };
 }
 
-function buildProviders(): OpportunitySourceProvider[] {
+function buildProviders(options?: SearchRadarOptions): OpportunityProviderBundle {
+  if (options?.forcePrimaryProviders) {
+    return {
+      primary: options.forcePrimaryProviders,
+      fallback: options.forceFallbackProviders ?? [],
+      liveConfigured: options.forcePrimaryProviders.some((provider) => provider.key === 'adzuna'),
+    };
+  }
+
   const adzuna = buildAdzunaProvider();
-  const providers: OpportunitySourceProvider[] = [];
-  if (adzuna) providers.push(adzuna);
+  const primary: OpportunitySourceProvider[] = [];
+  if (adzuna) primary.push(adzuna);
 
-  // Static providers stay available for local/demo fallback, but are off by default once live source is configured.
+  // Static providers are primary in local/demo or when explicitly enabled.
   const enableStaticSeeds = process.env.CAREER_ENABLE_STATIC_SEEDS === 'true' || !adzuna;
-  if (enableStaticSeeds) providers.push(...STATIC_PROVIDERS);
+  if (enableStaticSeeds) {
+    primary.push(...STATIC_PROVIDERS);
+  }
 
-  return providers;
+  return {
+    primary,
+    fallback: enableStaticSeeds ? [] : STATIC_PROVIDERS,
+    liveConfigured: Boolean(adzuna),
+  };
 }
 
 function llmCacheKey(item: OpportunitySearchItem, input: OpportunitySearchInput): string {
@@ -768,41 +817,74 @@ async function attachLlmExplanations(
 
 export async function searchRadarOpportunities(
   input: OpportunitySearchInput,
-  context?: OpportunitySearchContext
+  context?: OpportunitySearchContext,
+  options?: SearchRadarOptions
 ): Promise<{
   items: OpportunitySearchItem[];
   sourcesQueried: number;
   liveSourceConfigured: boolean;
   liveSourceHealthy: boolean;
   liveSourceContributed: boolean;
+  queryRelaxedUsed: boolean;
+  bandRelaxedUsed: boolean;
   llmEnrichedCount: number;
 }> {
-  const providers = buildProviders();
-  const settled = await Promise.allSettled(providers.map((provider) => provider.search(input.query, input)));
-  const liveSourceConfigured = providers.some((provider) => provider.key === 'adzuna');
-  const liveSourceHealthy = settled.some(
-    (result, index) => providers[index]?.key === 'adzuna' && result.status === 'fulfilled'
-  );
-
+  const providerBundle = buildProviders(options);
+  const liveSourceConfigured = providerBundle.liveConfigured;
   const aggregated = new Map<string, AggregatedOpportunity>();
   let sourcesQueried = 0;
+  let liveSourceHealthy = false;
+  let queryRelaxedUsed = false;
+  let bandRelaxedUsed = false;
 
-  settled.forEach((result, index) => {
-    if (result.status !== 'fulfilled') return;
-    sourcesQueried += 1;
-    const provider = providers[index];
-    if (!provider) return;
+  const mergeSearchRun = async (
+    providers: OpportunitySourceProvider[],
+    query: string
+  ): Promise<void> => {
+    if (providers.length === 0) return;
 
-    result.value.forEach((raw) => {
-      mergeIntoAggregate(aggregated, {
-        ...raw,
-        sourceLabel: provider.label,
-        sourcePriority: provider.priority,
+    const runInput: OpportunitySearchInput = {
+      ...input,
+      query,
+    };
+    const settled = await Promise.allSettled(providers.map((provider) => provider.search(query, runInput)));
+
+    settled.forEach((result, index) => {
+      const provider = providers[index];
+      if (!provider) return;
+
+      if (provider.key === 'adzuna' && result.status === 'fulfilled') {
+        liveSourceHealthy = true;
+      }
+      if (result.status !== 'fulfilled') return;
+      sourcesQueried += 1;
+
+      result.value.forEach((raw) => {
+        mergeIntoAggregate(aggregated, {
+          ...raw,
+          sourceLabel: provider.label,
+          sourcePriority: provider.priority,
+        });
       });
     });
-  });
+  };
 
-  const scoredItems = Array.from(aggregated.values())
+  await mergeSearchRun(providerBundle.primary, input.query);
+
+  const relaxedQuery = buildRelaxedQuery(input);
+  if (aggregated.size === 0 && relaxedQuery && relaxedQuery !== input.query.trim()) {
+    await mergeSearchRun(providerBundle.primary, relaxedQuery);
+    queryRelaxedUsed = aggregated.size > 0;
+  }
+
+  if (aggregated.size === 0 && providerBundle.fallback.length > 0) {
+    await mergeSearchRun(providerBundle.fallback, relaxedQuery ?? input.query);
+    if (aggregated.size > 0 && input.query.trim().length > 0) {
+      queryRelaxedUsed = true;
+    }
+  }
+
+  const allScored = Array.from(aggregated.values())
     .filter((item) => input.locations.includes(item.country))
     .map((item) => {
       const fitScore = computeFitScore(item, input, context);
@@ -822,12 +904,20 @@ export async function searchRadarOpportunities(
         topReasons: buildReasons(item, input),
         topGaps: buildGaps(item, band),
         sourceLabels: item.sourceLabels,
+        nextAction: '',
         targetFirm: firmSignal.matched,
         maxSourcePriority,
         ...(item.jobUrl ? { jobUrl: item.jobUrl } : {}),
       };
-    })
-    .filter((item) => input.bands.includes(item.band))
+    });
+
+  let filteredScored = allScored.filter((item) => input.bands.includes(item.band));
+  if (filteredScored.length === 0 && input.bands.length < 3 && allScored.length > 0) {
+    filteredScored = allScored;
+    bandRelaxedUsed = true;
+  }
+
+  const scoredItems = filteredScored
     .sort((a, b) => {
       if (a.targetFirm !== b.targetFirm) return a.targetFirm ? -1 : 1;
       if (b.fitScore !== a.fitScore) return b.fitScore - a.fitScore;
@@ -841,18 +931,24 @@ export async function searchRadarOpportunities(
       : Math.max(0, Math.floor(context?.llm?.maxEnrichments ?? 5));
 
   const llm = await attachLlmExplanations(
-    scoredItems.map(({ maxSourcePriority: _maxSourcePriority, ...item }) => item),
+    scoredItems.map(({ maxSourcePriority: _maxSourcePriority, nextAction: _nextAction, ...item }) => item),
     input,
     llmMaxEnrichments
   );
-  const liveSourceContributed = llm.items.some((item) => item.sourceLabels.includes('Adzuna'));
+  const itemsWithActions = llm.items.map((item) => ({
+    ...item,
+    nextAction: buildNextAction(item),
+  }));
+  const liveSourceContributed = itemsWithActions.some((item) => item.sourceLabels.includes('Adzuna'));
 
   return {
-    items: llm.items,
+    items: itemsWithActions,
     sourcesQueried,
     liveSourceConfigured,
     liveSourceHealthy,
     liveSourceContributed,
+    queryRelaxedUsed,
+    bandRelaxedUsed,
     llmEnrichedCount: llm.enrichedCount,
   };
 }

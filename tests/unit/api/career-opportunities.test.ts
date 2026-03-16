@@ -98,6 +98,8 @@ describe('GET /api/career/opportunities', () => {
       liveSourceConfigured: true,
       liveSourceHealthy: true,
       liveSourceContributed: true,
+      queryRelaxedUsed: false,
+      bandRelaxedUsed: false,
       llmEnrichedCount: 3,
     } as any);
     mockedFetchCareerCvProfile.mockResolvedValueOnce(null as any);
@@ -129,6 +131,8 @@ describe('GET /api/career/opportunities', () => {
     expect(body.meta.sourcesQueried).toBe(3);
     expect(body.meta.liveSourceConfigured).toBe(true);
     expect(body.meta.liveSourceContributed).toBe(true);
+    expect(body.meta.queryRelaxedUsed).toBe(false);
+    expect(body.meta.bandRelaxedUsed).toBe(false);
     expect(body.meta.cvProfileApplied).toBe(false);
     expect(body.meta.llm.enabled).toBe(true);
     expect(body.meta.llm.enrichedThisRequest).toBe(3);
@@ -153,6 +157,8 @@ describe('GET /api/career/opportunities', () => {
       liveSourceConfigured: true,
       liveSourceHealthy: true,
       liveSourceContributed: false,
+      queryRelaxedUsed: false,
+      bandRelaxedUsed: false,
       llmEnrichedCount: 0,
     } as any);
 

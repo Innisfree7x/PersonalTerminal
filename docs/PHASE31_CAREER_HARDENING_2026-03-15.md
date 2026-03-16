@@ -44,6 +44,19 @@ Hinweis:
 - Dedupe: gleicher Titel + gleiches Datum erzeugt keinen Duplikat-Task.
 - Opportunity Radar hat dafuer eine direkte CTA pro Karte.
 
+### 5) Zero-Hit Resilience (2026-03-16)
+- Query-Relaxation aktiv:
+  - Wenn eine strikte Query keine Treffer liefert, wird automatisch auf einen Track-Hint erweitert.
+  - API-Meta liefert `queryRelaxedUsed=true`.
+- Band-Relaxation aktiv:
+  - Wenn selektierte Reach-Baender leer laufen, wird einmalig auf alle Baender erweitert.
+  - API-Meta liefert `bandRelaxedUsed=true`.
+- Live->Fallback-Flow:
+  - Bei Live-Nulltreffern (z. B. Adzuna aktuell leer) greift statischer Seed-Fallback statt leerer UI.
+  - UI bleibt damit handlungsfaehig, statt "No matching opportunities" Dead-End.
+- Opportunity-Karten geben jetzt `nextAction` aus:
+  - Direkt umsetzbarer naechster Schritt pro Karte statt reiner Score-Anzeige.
+
 ## Datenbank
 
 Migration-Datei:

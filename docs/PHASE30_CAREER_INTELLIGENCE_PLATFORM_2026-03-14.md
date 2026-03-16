@@ -41,6 +41,20 @@ Scope: CV-Intelligence + Live Opportunity Matching (DACH) als neues Core-Feature
   - `npm run build` ✅
   - Relevante Unit-Tests für CV/Career/Gap-Flow ✅
 
+## Update 2026-03-16 (Opportunity-Radar Treffer-Stabilitaet)
+
+- Problem vor Fix:
+  - Bei strenger Query + harten Band-Filtern konnten "0 Treffer" entstehen, obwohl sinnvolle Optionen verfuegbar waeren.
+  - Bei Live-Quelle ohne aktuelle Treffer war das UI teilweise leer.
+- Umgesetzt:
+  - Query-Relaxation im Backend (`queryRelaxedUsed` in API-Meta).
+  - Band-Relaxation im Backend (`bandRelaxedUsed` in API-Meta).
+  - Live-Nulltreffer fallen auf statische Seeds zurueck statt leerer Ergebnisflaeche.
+  - Neue `nextAction` pro Opportunity-Karte fuer direkte Umsetzbarkeit.
+- Erwarteter Effekt:
+  - Weniger "No matching opportunities"-Zustaende.
+  - Klarere Nutzerfuehrung von Radar-Ergebnis -> konkrete Aktion.
+
 ## Finalisierte Produktentscheidungen (Lock)
 
 - `Pricing-Window`: 14 Tage Observability-Phase, danach Gate-Entscheidung.
