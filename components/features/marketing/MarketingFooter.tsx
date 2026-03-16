@@ -3,8 +3,8 @@ import { BrandLockup } from '@/components/shared/BrandLogo';
 
 export function MarketingFooter() {
   return (
-    <footer className="relative border-t border-white/10">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-yellow-200/25 to-transparent" />
+    <footer className="relative border-t border-white/[0.06]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent" />
       <div className="marketing-container py-14">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
           {/* Brand */}
@@ -74,7 +74,7 @@ export function MarketingFooter() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 sm:flex-row">
+        <div className="flex flex-col items-center justify-between gap-3 border-t border-white/[0.06] pt-6 sm:flex-row">
           <p className="text-xs text-zinc-600">© 2026 INNIS. Alle Rechte vorbehalten.</p>
           <div className="flex flex-col items-center gap-1 sm:items-end">
             <p className="text-xs text-zinc-600">Für Studenten gebaut · WS 2025/26</p>

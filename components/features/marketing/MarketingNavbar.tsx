@@ -25,8 +25,8 @@ export function MarketingNavbar() {
   ] as const;
 
   return (
-    <header className={`sticky top-0 z-50 border-b backdrop-blur-xl transition-all duration-300 ${scrolled ? 'border-white/15 bg-[#0A0A0A]/85 shadow-lg shadow-black/40' : 'border-white/10 bg-[#0A0A0A]/60'}`}>
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-yellow-400/35 to-transparent" />
+    <header className={`sticky top-0 z-50 border-b backdrop-blur-xl transition-all duration-300 ${scrolled ? 'border-[#D4AF37]/10 bg-[#050508]/90 shadow-lg shadow-black/40' : 'border-white/[0.06] bg-[#050508]/60'}`}>
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/25 to-transparent" />
       <div className="mx-auto w-full max-w-6xl px-5 sm:px-8 h-[64px] flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="group flex items-center gap-3">
@@ -38,7 +38,7 @@ export function MarketingNavbar() {
         </Link>
 
         {/* Desktop nav links */}
-        <nav className="hidden md:flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.02] p-1">
+        <nav className="hidden md:flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-white/[0.02] p-1">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -47,13 +47,13 @@ export function MarketingNavbar() {
                 href={link.href}
                 className={`relative rounded-full px-4 py-1.5 text-sm transition ${
                   isActive
-                    ? 'bg-white/10 text-[#FAF0E6]'
-                    : 'text-zinc-300 hover:bg-white/10 hover:text-[#FAF0E6]'
+                    ? 'bg-white/[0.08] text-[#FAF0E6]'
+                    : 'text-zinc-400 hover:bg-white/[0.06] hover:text-[#FAF0E6]'
                 }`}
               >
                 {link.label}
                 {isActive ? (
-                  <span className="absolute left-1/2 top-[3px] h-1 w-1 -translate-x-1/2 rounded-full bg-yellow-400/90" />
+                  <span className="absolute left-1/2 top-[3px] h-1 w-1 -translate-x-1/2 rounded-full bg-[#D4AF37]" />
                 ) : null}
               </Link>
             );
@@ -66,7 +66,7 @@ export function MarketingNavbar() {
             href="/auth/login"
             eventName="landing_cta_secondary_clicked"
             eventPayload={{ source: 'navbar', variant: 'login' }}
-            className="inline-flex h-10 items-center rounded-full border border-white/10 px-4 text-sm text-zinc-300 transition hover:border-white/20 hover:bg-white/[0.04] hover:text-[#FAF0E6]"
+            className="inline-flex h-10 items-center rounded-full border border-white/[0.08] px-4 text-sm text-zinc-400 transition hover:border-[#D4AF37]/20 hover:text-[#FAF0E6]"
           >
             Login
           </TrackedCtaLink>
@@ -74,7 +74,7 @@ export function MarketingNavbar() {
             href="/auth/signup"
             eventName="landing_cta_primary_clicked"
             eventPayload={{ source: 'navbar', variant: 'primary' }}
-            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-red-500 px-5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-red-600 hover:shadow-lg hover:shadow-red-500/30 active:translate-y-0"
+            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#D4AF37] px-5 text-sm font-semibold text-[#050508] transition-all hover:-translate-y-0.5 hover:bg-[#E0C068] hover:shadow-lg hover:shadow-[#D4AF37]/20 active:translate-y-0"
           >
             Kostenlos starten
             <ArrowRight className="w-3.5 h-3.5" />
@@ -83,7 +83,7 @@ export function MarketingNavbar() {
 
         {/* Mobile toggle */}
         <button
-          className="rounded-lg border border-white/10 bg-white/[0.02] p-2 text-zinc-300 transition hover:bg-white/10 hover:text-[#FAF0E6] md:hidden"
+          className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-2 text-zinc-400 transition hover:bg-white/[0.06] hover:text-[#FAF0E6] md:hidden"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Navigation öffnen"
         >
@@ -93,23 +93,23 @@ export function MarketingNavbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="border-t border-white/10 bg-[#0A0A0A]/95 px-5 py-4 space-y-1 md:hidden">
+        <div className="border-t border-white/[0.06] bg-[#050508]/95 px-5 py-4 space-y-1 md:hidden">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               onClick={() => setMobileOpen(false)}
-              className="block rounded-lg px-3 py-2.5 text-sm text-zinc-300 transition hover:bg-white/10 hover:text-[#FAF0E6]"
+              className="block rounded-lg px-3 py-2.5 text-sm text-zinc-400 transition hover:bg-white/[0.06] hover:text-[#FAF0E6]"
             >
               {link.label}
             </Link>
           ))}
-          <div className="flex flex-col gap-2 border-t border-white/10 pt-3">
+          <div className="flex flex-col gap-2 border-t border-white/[0.06] pt-3">
             <TrackedCtaLink
               href="/auth/login"
               eventName="landing_cta_secondary_clicked"
               eventPayload={{ source: 'navbar_mobile', variant: 'login' }}
-              className="rounded-lg border border-white/10 py-2.5 text-center text-sm text-zinc-300 transition hover:bg-white/10 hover:text-[#FAF0E6]"
+              className="rounded-lg border border-white/[0.08] py-2.5 text-center text-sm text-zinc-400 transition hover:bg-white/[0.06] hover:text-[#FAF0E6]"
             >
               Login
             </TrackedCtaLink>
@@ -117,7 +117,7 @@ export function MarketingNavbar() {
               href="/auth/signup"
               eventName="landing_cta_primary_clicked"
               eventPayload={{ source: 'navbar_mobile', variant: 'primary' }}
-              className="rounded-lg bg-red-500 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-red-600"
+              className="rounded-lg bg-[#D4AF37] py-2.5 text-center text-sm font-semibold text-[#050508] transition hover:bg-[#E0C068]"
             >
               Kostenlos starten →
             </TrackedCtaLink>

@@ -667,9 +667,9 @@
 
   .marketing-shell {
     background:
-      radial-gradient(820px 440px at 14% 8%, rgba(239, 68, 68, 0.09), transparent 62%),
-      radial-gradient(640px 360px at 84% 12%, rgba(234, 179, 8, 0.07), transparent 60%),
-      linear-gradient(180deg, #090909 0%, #080808 48%, #070707 100%);
+      radial-gradient(820px 440px at 14% 8%, rgba(212, 175, 55, 0.06), transparent 62%),
+      radial-gradient(640px 360px at 84% 12%, rgba(212, 175, 55, 0.04), transparent 60%),
+      linear-gradient(180deg, #050508 0%, #060609 48%, #050508 100%);
   }
 
   .marketing-grid-overlay {
@@ -692,8 +692,8 @@
 
   .marketing-spotlight {
     background:
-      radial-gradient(420px 280px at 18% 10%, rgba(239, 68, 68, 0.09), transparent 72%),
-      radial-gradient(440px 300px at 84% 7%, rgba(234, 179, 8, 0.08), transparent 74%);
+      radial-gradient(420px 280px at 18% 10%, rgba(212, 175, 55, 0.06), transparent 72%),
+      radial-gradient(440px 300px at 84% 7%, rgba(212, 175, 55, 0.04), transparent 74%);
     opacity: 0.72;
   }
 
@@ -734,7 +734,7 @@
   }
 
   .premium-kicker {
-    @apply mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-red-400;
+    @apply mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-[#D4AF37];
   }
 
   .premium-chip {
@@ -742,11 +742,11 @@
   }
 
   .premium-cta-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-red-500 px-7 py-4 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-red-600 hover:shadow-xl hover:shadow-red-500/25;
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-[#D4AF37] px-7 py-3.5 text-sm font-semibold text-[#050508] transition-all hover:-translate-y-0.5 hover:bg-[#E0C068] hover:shadow-xl hover:shadow-[#D4AF37]/25;
   }
 
   .premium-cta-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-medium text-zinc-200 transition-all hover:border-white/20 hover:bg-white/10 hover:text-[#FAF0E6];
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-7 py-3.5 text-sm font-medium text-zinc-300 transition-all hover:border-[#D4AF37]/30 hover:bg-white/[0.06] hover:text-[#FAF0E6];
   }
 
   .settings-chip {

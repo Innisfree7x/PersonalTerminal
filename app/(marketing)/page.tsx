@@ -4,22 +4,19 @@ import { getCurrentUser } from '@/lib/auth/server';
 import { isOnboardingComplete } from '@/lib/auth/profile';
 import { HeroSection } from '@/components/features/marketing/HeroSection';
 import { ProblemStrip } from '@/components/features/marketing/ProblemStrip';
-import { FeatureSection } from '@/components/features/marketing/FeatureSection';
-import { HowItWorksSection } from '@/components/features/marketing/HowItWorksSection';
-import { PricingSection } from '@/components/features/marketing/PricingSection';
-import { FAQSection } from '@/components/features/marketing/FAQSection';
+import { ProductShowcase } from '@/components/features/marketing/ProductShowcase';
+import { SocialProof } from '@/components/features/marketing/SocialProof';
 import { CTASection } from '@/components/features/marketing/CTASection';
-import { FeatureMarquee } from '@/components/features/marketing/FeatureMarquee';
 
 export const metadata: Metadata = {
-  title: 'Start',
+  title: 'INNIS — Erkenne Kollisionen in deinem Karriereplan',
   description:
     'INNIS zeigt dir Kollisionen in deinem Karriereplan, bevor sie passieren: Thesis, GMAT, Praktika und Today Execution in einem System.',
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'INNIS — Strategie und Daily Execution fuer Studenten',
+    title: 'INNIS — Strategie und Daily Execution für Studenten',
     description:
       'Trajectory, Today und Focus in einem System fuer Studenten mit parallelen High-Stakes-Zielen.',
     url: '/',
@@ -35,12 +32,9 @@ export default async function LandingPage() {
   return (
     <>
       <HeroSection />
-      <FeatureMarquee />
       <ProblemStrip />
-      <FeatureSection />
-      <HowItWorksSection />
-      <PricingSection />
-      <FAQSection />
+      <ProductShowcase />
+      <SocialProof />
       <CTASection />
     </>
   );
