@@ -47,7 +47,7 @@ export function SocialProof() {
                 <div className="text-3xl font-bold tracking-tight text-[#FAF0E6] md:text-4xl">
                   {stat.value}
                 </div>
-                <div className="mt-2 text-[12px] tracking-wide text-zinc-600">{stat.label}</div>
+                <div className="mt-2 text-[12px] tracking-wide text-zinc-500">{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -69,7 +69,7 @@ export function SocialProof() {
               </p>
               <div className="mt-6 flex items-center gap-3">
                 <div className="h-px flex-1 bg-white/[0.04]" />
-                <p className="text-[12px] font-medium tracking-wide text-zinc-600">{t.role}</p>
+                <p className="text-[12px] font-medium tracking-wide text-zinc-500">{t.role}</p>
               </div>
             </motion.div>
           ))}

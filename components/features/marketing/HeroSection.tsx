@@ -39,7 +39,7 @@ export function HeroSection() {
     preview.status === 'on_track'
       ? { border: 'border-emerald-500/25', bg: 'bg-emerald-500/8', text: 'text-emerald-400' }
       : preview.status === 'tight'
-        ? { border: 'border-[#D4AF37]/25', bg: 'bg-[#D4AF37]/8', text: 'text-[#D4AF37]' }
+        ? { border: 'border-[#E8B930]/25', bg: 'bg-[#E8B930]/8', text: 'text-[#E8B930]' }
         : { border: 'border-red-500/25', bg: 'bg-red-500/8', text: 'text-red-400' };
 
   const trackSimulationOnce = (nextCapacity: number, nextEffort: number) => {
@@ -63,8 +63,10 @@ export function HeroSection() {
     <>
       {/* Hero — full viewport */}
       <section className="relative flex min-h-[calc(100dvh-64px)] flex-col items-center justify-center overflow-hidden px-6">
-        {/* Central gold glow */}
-        <div className="pointer-events-none absolute left-1/2 top-[30%] h-[500px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#D4AF37]/[0.05] blur-[150px]" />
+        {/* Ambient glows — gold center, red accent left */}
+        <div className="pointer-events-none absolute left-1/2 top-[25%] h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8B930]/[0.08] blur-[150px]" />
+        <div className="pointer-events-none absolute left-[15%] top-[20%] h-[400px] w-[400px] rounded-full bg-[#DC3232]/[0.08] blur-[130px]" />
+        <div className="pointer-events-none absolute right-[10%] top-[30%] h-[300px] w-[350px] rounded-full bg-[#FF7832]/[0.05] blur-[120px]" />
 
         <div className="relative z-10 mx-auto max-w-5xl text-center">
           {/* Shimmer badge */}
@@ -74,9 +76,9 @@ export function HeroSection() {
             transition={{ duration: 0.5 }}
             className="mb-10 inline-flex"
           >
-            <span className="shimmer-badge inline-flex items-center gap-2.5 rounded-full border border-[#D4AF37]/15 bg-[#D4AF37]/[0.05] px-4 py-2">
-              <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-[#D4AF37]" />
-              <span className="text-[12px] font-medium tracking-[0.08em] text-[#D4AF37]/90">
+            <span className="shimmer-badge inline-flex items-center gap-2.5 rounded-full border border-[#E8B930]/15 bg-[#E8B930]/[0.05] px-4 py-2">
+              <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-[#E8B930]" />
+              <span className="text-[12px] font-medium tracking-[0.08em] text-[#E8B930]/90">
                 Public Beta
               </span>
             </span>
@@ -92,7 +94,7 @@ export function HeroSection() {
             Erkenne Kollisionen
             <br />
             in deinem Karriereplan,{' '}
-            <span className="bg-gradient-to-r from-[#C9A227] via-[#E8D48B] to-[#C9A227] bg-clip-text italic text-transparent">
+            <span className="bg-gradient-to-r from-[#E8B930] via-[#F5D565] to-[#E8B930] bg-clip-text italic text-transparent">
               bevor sie passieren.
             </span>
           </motion.h1>
@@ -102,7 +104,7 @@ export function HeroSection() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="mx-auto mt-8 max-w-xl text-[17px] leading-[1.7] text-zinc-500"
+            className="mx-auto mt-8 max-w-xl text-[17px] leading-[1.7] text-zinc-400"
           >
             INNIS verbindet Thesis, GMAT, Master-Apps und Praktika in einer Timeline
             und übersetzt Risiko direkt in den nächsten sinnvollen Tageszug.
@@ -144,7 +146,7 @@ export function HeroSection() {
             <motion.div
               animate={{ y: [0, 6, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-              className="mx-auto h-10 w-[1px] bg-gradient-to-b from-[#D4AF37]/30 to-transparent"
+              className="mx-auto h-10 w-[1px] bg-gradient-to-b from-[#E8B930]/50 to-transparent"
             />
           </motion.div>
         </div>
@@ -179,7 +181,7 @@ export function HeroSection() {
                 {/* Controls */}
                 <div className="space-y-6">
                   <label className="block">
-                    <span className="flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-zinc-600">
+                    <span className="flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-zinc-500">
                       Kapazität
                       <span className="font-semibold text-zinc-400">{capacityHoursPerWeek}h / Woche</span>
                     </span>
@@ -194,12 +196,12 @@ export function HeroSection() {
                         setCapacityHoursPerWeek(v);
                         trackSimulationOnce(v, effortHours);
                       }}
-                      className="mt-3 w-full accent-[#D4AF37]"
+                      className="mt-3 w-full accent-[#E8B930]"
                     />
                   </label>
 
                   <label className="block">
-                    <span className="flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-zinc-600">
+                    <span className="flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-zinc-500">
                       Gesamtaufwand
                       <span className="font-semibold text-zinc-400">{effortHours}h</span>
                     </span>
@@ -214,7 +216,7 @@ export function HeroSection() {
                         setEffortHours(v);
                         trackSimulationOnce(capacityHoursPerWeek, v);
                       }}
-                      className="mt-3 w-full accent-[#D4AF37]"
+                      className="mt-3 w-full accent-[#E8B930]"
                     />
                   </label>
                 </div>
@@ -231,7 +233,7 @@ export function HeroSection() {
                       key={row.label}
                       className={`flex items-center justify-between px-5 py-3.5 ${i < 3 ? 'border-b border-white/[0.04]' : ''}`}
                     >
-                      <span className="text-[13px] text-zinc-600">{row.label}</span>
+                      <span className="text-[13px] text-zinc-500">{row.label}</span>
                       <span className="text-[13px] font-medium text-[#FAF0E6]">{row.value}</span>
                     </div>
                   ))}

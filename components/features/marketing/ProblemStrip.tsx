@@ -39,7 +39,7 @@ export function ProblemStrip() {
             <br />
             verwalten Aufgaben.
           </h2>
-          <p className="mt-6 text-lg text-zinc-600">INNIS verwaltet Konflikte.</p>
+          <p className="mt-6 text-lg text-zinc-500">INNIS verwaltet Konflikte.</p>
         </motion.div>
 
         <div className="mx-auto max-w-4xl space-y-px overflow-hidden rounded-2xl border border-white/[0.05]">
@@ -52,19 +52,19 @@ export function ProblemStrip() {
               transition={{ duration: 0.4, delay: i * 0.1 }}
               className="grid gap-px bg-white/[0.03] md:grid-cols-[120px_1fr_1fr]"
             >
-              <div className="flex items-center bg-[#050508] px-6 py-5">
-                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
+              <div className="flex items-center bg-[#0A0A0C] px-6 py-5">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
                   {row.label}
                 </span>
               </div>
-              <div className="bg-[#050508] px-6 py-5">
+              <div className="bg-[#0A0A0C] px-6 py-5">
                 <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-red-400/60">
                   Vorher
                 </p>
-                <p className="text-[14px] leading-relaxed text-zinc-600">{row.problem}</p>
+                <p className="text-[14px] leading-relaxed text-zinc-500">{row.problem}</p>
               </div>
-              <div className="bg-[#050508] px-6 py-5">
-                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#D4AF37]/60">
+              <div className="bg-[#0A0A0C] px-6 py-5">
+                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#E8B930]/60">
                   Mit INNIS
                 </p>
                 <p className="text-[14px] leading-relaxed text-zinc-300">{row.solution}</p>

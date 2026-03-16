@@ -11,8 +11,9 @@ export function CTASection() {
     <section className="relative overflow-hidden py-32 md:py-44">
       <div className="premium-divider" />
 
-      {/* Central glow */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#D4AF37]/[0.04] blur-[150px]" />
+      {/* Central glow — gold + red accent */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8B930]/[0.07] blur-[150px]" />
+      <div className="pointer-events-none absolute left-[30%] top-[40%] h-[300px] w-[300px] rounded-full bg-[#DC3232]/[0.06] blur-[120px]" />
 
       <div className="marketing-container relative z-10">
         <motion.div
@@ -28,12 +29,12 @@ export function CTASection() {
             Wenn Thesis, GMAT
             <br />
             und Praktika parallel laufen,{' '}
-            <span className="bg-gradient-to-r from-[#C9A227] via-[#E8D48B] to-[#C9A227] bg-clip-text italic text-transparent">
+            <span className="bg-gradient-to-r from-[#E8B930] via-[#F5D565] to-[#E8B930] bg-clip-text italic text-transparent">
               brauchst du kein weiteres Tool.
             </span>
           </h2>
 
-          <p className="mx-auto mt-8 max-w-xl text-[17px] leading-[1.7] text-zinc-500">
+          <p className="mx-auto mt-8 max-w-xl text-[17px] leading-[1.7] text-zinc-400">
             Du brauchst eine klare Linie vom langfristigen Plan bis in den heutigen Move.
             Genau dafür ist INNIS gebaut.
           </p>
@@ -67,7 +68,7 @@ export function CTASection() {
           >
             {trustItems.map((item) => (
               <span key={item} className="flex items-center gap-2 text-[13px] text-zinc-600">
-                <Check className="h-3.5 w-3.5 text-[#D4AF37]/50" />
+                <Check className="h-3.5 w-3.5 text-[#E8B930]/50" />
                 {item}
               </span>
             ))}

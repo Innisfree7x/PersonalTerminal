@@ -25,7 +25,7 @@ export function MarketingNavbar() {
   ] as const;
 
   return (
-    <header className={`sticky top-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-white/[0.04] bg-[#050508]/80 backdrop-blur-2xl' : 'bg-transparent'}`}>
+    <header className={`sticky top-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-white/[0.04] bg-[#0A0A0C]/80 backdrop-blur-2xl' : 'bg-transparent'}`}>
       <div className="mx-auto w-full max-w-6xl px-6 sm:px-10 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="group flex items-center gap-3">
@@ -52,7 +52,7 @@ export function MarketingNavbar() {
               >
                 {link.label}
                 {isActive ? (
-                  <span className="absolute bottom-1 left-1/2 h-[3px] w-[3px] -translate-x-1/2 rounded-full bg-[#D4AF37]" />
+                  <span className="absolute bottom-1 left-1/2 h-[3px] w-[3px] -translate-x-1/2 rounded-full bg-[#E8B930]" />
                 ) : null}
               </Link>
             );
@@ -73,7 +73,7 @@ export function MarketingNavbar() {
             href="/auth/signup"
             eventName="landing_cta_primary_clicked"
             eventPayload={{ source: 'navbar', variant: 'primary' }}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[#D4AF37] px-5 text-[13px] font-semibold text-[#050508] transition-all duration-300 hover:bg-[#E0C068] hover:shadow-lg hover:shadow-[#D4AF37]/15 active:scale-[0.97]"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[#E8B930] px-5 text-[13px] font-semibold text-[#0A0A0C] transition-all duration-300 hover:bg-[#F0CA50] hover:shadow-lg hover:shadow-[#E8B930]/15 active:scale-[0.97]"
           >
             Starten
             <ArrowRight className="w-3 h-3" />
@@ -92,7 +92,7 @@ export function MarketingNavbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="border-t border-white/[0.04] bg-[#050508]/95 backdrop-blur-2xl px-6 py-5 space-y-1 md:hidden">
+        <div className="border-t border-white/[0.04] bg-[#0A0A0C]/95 backdrop-blur-2xl px-6 py-5 space-y-1 md:hidden">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -116,7 +116,7 @@ export function MarketingNavbar() {
               href="/auth/signup"
               eventName="landing_cta_primary_clicked"
               eventPayload={{ source: 'navbar_mobile', variant: 'primary' }}
-              className="rounded-lg bg-[#D4AF37] py-3 text-center text-[14px] font-semibold text-[#050508] transition hover:bg-[#E0C068]"
+              className="rounded-lg bg-[#E8B930] py-3 text-center text-[14px] font-semibold text-[#0A0A0C] transition hover:bg-[#F0CA50]"
             >
               Kostenlos starten →
             </TrackedCtaLink>

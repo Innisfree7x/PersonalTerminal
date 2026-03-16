@@ -16,14 +16,14 @@ export function MarketingFooter() {
                 wordmarkClassName="font-medium text-[#FAF0E6] tracking-tight text-lg"
               />
             </Link>
-            <p className="max-w-[200px] text-[13px] leading-relaxed text-zinc-700">
+            <p className="max-w-[200px] text-[13px] leading-relaxed text-zinc-600">
               Das persönliche Dashboard für Studenten.
             </p>
           </div>
 
           {/* Produkt */}
           <div>
-            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-700">Produkt</p>
+            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-600">Produkt</p>
             <ul className="space-y-3">
               {[
                 { href: '/features', label: 'Features' },
@@ -41,7 +41,7 @@ export function MarketingFooter() {
 
           {/* App */}
           <div>
-            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-700">App</p>
+            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-600">App</p>
             <ul className="space-y-3">
               {[
                 { href: '/auth/signup', label: 'Konto erstellen' },
@@ -58,7 +58,7 @@ export function MarketingFooter() {
 
           {/* Legal */}
           <div>
-            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-700">Legal</p>
+            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-600">Legal</p>
             <ul className="space-y-3">
               {[
                 { href: '/privacy', label: 'Datenschutz' },
@@ -75,9 +75,9 @@ export function MarketingFooter() {
         </div>
 
         <div className="flex flex-col items-center justify-between gap-4 border-t border-white/[0.04] pt-8 sm:flex-row">
-          <p className="text-[12px] text-zinc-700">© 2026 INNIS. Alle Rechte vorbehalten.</p>
+          <p className="text-[12px] text-zinc-600">© 2026 INNIS. Alle Rechte vorbehalten.</p>
           <div className="flex flex-col items-center gap-1.5 sm:items-end">
-            <p className="text-[12px] text-zinc-700">Für Studenten gebaut · WS 2025/26</p>
+            <p className="text-[12px] text-zinc-600">Für Studenten gebaut · WS 2025/26</p>
             <a
               href="mailto:vietdobusiness@gmail.com"
               className="text-[12px] text-zinc-600 transition-colors hover:text-zinc-400"

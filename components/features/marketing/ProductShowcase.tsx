@@ -87,11 +87,11 @@ export function ProductShowcase() {
                 {/* Left: meta + description */}
                 <div className="p-8 md:p-10">
                   <div className="mb-6 flex items-center gap-4">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#D4AF37]/10 bg-[#D4AF37]/[0.04]">
-                      <pillar.icon className="h-5 w-5 text-[#D4AF37]/70" />
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#E8B930]/10 bg-[#E8B930]/[0.04]">
+                      <pillar.icon className="h-5 w-5 text-[#E8B930]/70" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-700">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
                         {pillar.number}
                       </p>
                       <h3 className="text-xl font-semibold tracking-tight text-[#FAF0E6]">
@@ -99,7 +99,7 @@ export function ProductShowcase() {
                       </h3>
                     </div>
                   </div>
-                  <p className="text-[15px] leading-[1.7] text-zinc-500">
+                  <p className="text-[15px] leading-[1.7] text-zinc-400">
                     {pillar.description}
                   </p>
                 </div>
@@ -112,7 +112,7 @@ export function ProductShowcase() {
                         key={point}
                         className="flex items-start gap-3"
                       >
-                        <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-[#D4AF37]/50" />
+                        <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-[#E8B930]/50" />
                         <span className="text-[14px] leading-[1.7] text-zinc-400">{point}</span>
                       </div>
                     ))}
