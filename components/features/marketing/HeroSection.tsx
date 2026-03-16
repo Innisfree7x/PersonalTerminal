@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import { ProductMockup } from './ProductMockup';
 import { TrackedCtaLink } from './TrackedCtaLink';
 import { trackMarketingEvent } from '@/lib/analytics/marketing';
 import {
@@ -61,20 +62,20 @@ export function HeroSection() {
 
   return (
     <>
-      {/* Hero — full viewport */}
-      <section className="relative flex min-h-[calc(100dvh-64px)] flex-col items-center justify-center overflow-hidden px-6">
+      {/* Hero — text + product mockup */}
+      <section className="relative overflow-hidden pt-16 pb-0 md:pt-24">
         {/* Ambient glows — gold center, red accent left */}
-        <div className="pointer-events-none absolute left-1/2 top-[25%] h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8B930]/[0.08] blur-[150px]" />
-        <div className="pointer-events-none absolute left-[15%] top-[20%] h-[400px] w-[400px] rounded-full bg-[#DC3232]/[0.08] blur-[130px]" />
-        <div className="pointer-events-none absolute right-[10%] top-[30%] h-[300px] w-[350px] rounded-full bg-[#FF7832]/[0.05] blur-[120px]" />
+        <div className="pointer-events-none absolute left-1/2 top-[15%] h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8B930]/[0.08] blur-[150px]" />
+        <div className="pointer-events-none absolute left-[15%] top-[10%] h-[400px] w-[400px] rounded-full bg-[#DC3232]/[0.08] blur-[130px]" />
+        <div className="pointer-events-none absolute right-[10%] top-[20%] h-[300px] w-[350px] rounded-full bg-[#FF7832]/[0.05] blur-[120px]" />
 
-        <div className="relative z-10 mx-auto max-w-5xl text-center">
+        <div className="relative z-10 mx-auto max-w-5xl text-center px-6">
           {/* Shimmer badge */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="mb-10 inline-flex"
+            className="mb-8 inline-flex"
           >
             <span className="shimmer-badge inline-flex items-center gap-2.5 rounded-full border border-[#E8B930]/15 bg-[#E8B930]/[0.05] px-4 py-2">
               <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-[#E8B930]" />
@@ -84,16 +85,16 @@ export function HeroSection() {
             </span>
           </motion.div>
 
-          {/* Headline */}
+          {/* Headline — smaller */}
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08, duration: 0.7 }}
-            className="premium-heading text-[clamp(3rem,7.5vw,6.5rem)] font-semibold text-[#FAF0E6]"
+            className="premium-heading text-[clamp(2.4rem,5.5vw,4.8rem)] font-semibold text-[#FAF0E6]"
           >
-            Erkenne Kollisionen
+            Erkenne Kollisionen in deinem
             <br />
-            in deinem Karriereplan,{' '}
+            Karriereplan,{' '}
             <span className="bg-gradient-to-r from-[#E8B930] via-[#F5D565] to-[#E8B930] bg-clip-text italic text-transparent">
               bevor sie passieren.
             </span>
@@ -104,7 +105,7 @@ export function HeroSection() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="mx-auto mt-8 max-w-xl text-[17px] leading-[1.7] text-zinc-400"
+            className="mx-auto mt-6 max-w-xl text-[16px] leading-[1.7] text-zinc-400"
           >
             INNIS verbindet Thesis, GMAT, Master-Apps und Praktika in einer Timeline
             und übersetzt Risiko direkt in den nächsten sinnvollen Tageszug.
@@ -115,7 +116,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45 }}
-            className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
+            className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
           >
             <TrackedCtaLink
               href="/auth/signup"
@@ -135,21 +136,31 @@ export function HeroSection() {
               Bereits angemeldet? Login
             </TrackedCtaLink>
           </motion.div>
-
-          {/* Scroll indicator */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.2 }}
-            className="mt-20"
-          >
-            <motion.div
-              animate={{ y: [0, 6, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-              className="mx-auto h-10 w-[1px] bg-gradient-to-b from-[#E8B930]/50 to-transparent"
-            />
-          </motion.div>
         </div>
+
+        {/* Product Mockup — perspective tilt with fade-out */}
+        <motion.div
+          initial={{ opacity: 0, y: 60 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.8, ease: 'easeOut' }}
+          className="relative z-10 mx-auto mt-16 max-w-5xl px-6 md:mt-20"
+        >
+          <div
+            className="relative"
+            style={{ perspective: '1200px' }}
+          >
+            <div
+              style={{
+                transform: 'rotateX(8deg) scale(0.95)',
+                transformOrigin: 'center top',
+              }}
+            >
+              <ProductMockup />
+            </div>
+            {/* Fade-out gradient at the bottom */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#0A0A0C] via-[#0A0A0C]/80 to-transparent" />
+          </div>
+        </motion.div>
       </section>
 
       {/* Interactive Simulator — separate section below fold */}
