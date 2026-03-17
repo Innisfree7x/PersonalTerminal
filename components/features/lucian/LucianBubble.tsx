@@ -101,6 +101,7 @@ interface LucianBubbleProps {
   mood: LucianMood;
   ariaRole: 'status' | 'alert';
   visible: boolean;
+  anchorSelector?: string;
   actionLabel?: string;
   actionAriaLabel?: string;
   dismissOnBodyClick?: boolean;
@@ -116,6 +117,7 @@ export function LucianBubble({
   mood,
   ariaRole,
   visible,
+  anchorSelector = '[data-champion-sprite="true"]',
   actionLabel,
   actionAriaLabel,
   dismissOnBodyClick = false,
@@ -175,7 +177,7 @@ export function LucianBubble({
 
     const updatePosition = () => {
       const bubbleEl = bubbleRef.current;
-      const championEl = document.querySelector('[data-champion-sprite="true"]') as HTMLElement | null;
+      const championEl = document.querySelector(anchorSelector) as HTMLElement | null;
 
       if (!bubbleEl || !championEl) {
         setAnchor((prev) => ({ ...prev, anchored: false }));
@@ -231,7 +233,7 @@ export function LucianBubble({
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition);
     };
-  }, [text, visible]);
+  }, [anchorSelector, text, visible]);
 
   const variants = prefersReducedMotion
     ? {

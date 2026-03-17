@@ -17,7 +17,6 @@ Lucian Companion Sprite von generischem Pixel-Character zu erkennbarem Chibi-Luc
 - Unit-Test deckt Sheet-Pfad, Default-Size und Config-Wire-up ab.
 
 Offene Folgearbeiten gehoeren nicht mehr zu diesem Upgrade:
-- optionaler Visual-Review pro Mood im echten Browser
 - spaetere Attack-/Dance-/Hurt-Rows fuer Minigame/Spell-Systeme
 
 ## Aktueller Stand (V1)
@@ -186,7 +185,14 @@ Bubble max-width (optional, testen):
 - [x] Mobile (<768px): Bubble bleibt nutzbar
 - [x] 315 Unit Tests grün
 - [x] TypeScript check clean
-- [ ] Visuell reviewed im Browser (alle Moods durchklicken)
+- [x] Visuell reviewed im Browser (alle Moods durchklicken)
+
+## Browser-Review
+
+- Reproduzierbare Preview-Route: `/showcase/lucian`
+- Mood-Wechsel ueber Query-Param: `/showcase/lucian?mood=celebrate&action=1`
+- Review-Screenshots lokal erzeugt unter `.tmp/lucian-review/`
+- Fix aus Review: `LucianBubble` unterstuetzt jetzt optionalen `anchorSelector`, damit Showcase- und produktive Bubble deterministisch an den richtigen Anchor binden
 
 ## Timeline
 
