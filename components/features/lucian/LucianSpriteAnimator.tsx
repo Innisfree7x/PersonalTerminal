@@ -5,6 +5,11 @@ import { useReducedMotion } from 'framer-motion';
 
 export type LucianAnimation = 'idle' | 'walk' | 'victory' | 'panic' | 'meditate';
 
+const DEFAULT_SIZE = 72;
+const SHEET_COLUMNS = 8;
+const SHEET_ROWS = 10;
+const SPRITE_SHEET_PATH = '/sprites/lucian-sprites-v2.svg';
+
 interface LucianSpriteAnimatorProps {
   animation: LucianAnimation;
   size?: number;
@@ -39,7 +44,7 @@ function frameDuration(animation: LucianAnimation): number {
   }
 }
 
-export function LucianSpriteAnimator({ animation, size = 64 }: LucianSpriteAnimatorProps) {
+export function LucianSpriteAnimator({ animation, size = DEFAULT_SIZE }: LucianSpriteAnimatorProps) {
   const [frame, setFrame] = useState(0);
   const prefersReducedMotion = useReducedMotion();
 
@@ -63,8 +68,8 @@ export function LucianSpriteAnimator({ animation, size = 64 }: LucianSpriteAnima
       style={{
         width: size,
         height: size,
-        backgroundImage: `url('/sprites/lucian-sprites.svg')`,
-        backgroundSize: `${8 * size}px ${10 * size}px`,
+        backgroundImage: `url('${SPRITE_SHEET_PATH}')`,
+        backgroundSize: `${SHEET_COLUMNS * size}px ${SHEET_ROWS * size}px`,
         backgroundPosition: `-${frame * size}px -${row * size}px`,
         imageRendering: 'pixelated',
         flexShrink: 0,

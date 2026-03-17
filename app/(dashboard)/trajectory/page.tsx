@@ -27,6 +27,7 @@ import TrajectoryShareCard from '@/components/features/trajectory/TrajectoryShar
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
+import { DecisionSurfaceCard } from '@/components/ui/DecisionSurfaceCard';
 import { buildTimelineRuler } from '@/lib/trajectory/timeline';
 import { detectGoalStatusTransitions } from '@/lib/trajectory/statusTransition';
 import { cn } from '@/lib/utils';
@@ -310,6 +311,40 @@ export default function TrajectoryPage() {
     const windowId = url.searchParams.get('windowId')?.trim() ?? '';
     setDeepLinkedGoalId(goalId);
     setDeepLinkedWindowId(windowId);
+
+    const prefillTitle = url.searchParams.get('prefillTitle')?.trim() ?? '';
+    const prefillCategory = url.searchParams.get('prefillCategory')?.trim() ?? '';
+    const prefillDueDate = url.searchParams.get('prefillDueDate')?.trim() ?? '';
+    const prefillEffortHours = Number(url.searchParams.get('prefillEffortHours') ?? '');
+    const prefillBufferWeeks = Number(url.searchParams.get('prefillBufferWeeks') ?? '');
+
+    const validCategory: GoalCategory =
+      prefillCategory === 'thesis' ||
+      prefillCategory === 'gmat' ||
+      prefillCategory === 'master_app' ||
+      prefillCategory === 'internship'
+        ? prefillCategory
+        : 'other';
+
+    if (prefillTitle) {
+      setGoalForm((current) => ({
+        ...current,
+        title: prefillTitle,
+        category: validCategory,
+        dueDate: prefillDueDate || current.dueDate,
+        effortUnit: 'hours',
+        effortHours: Number.isFinite(prefillEffortHours) && prefillEffortHours > 0 ? prefillEffortHours : current.effortHours,
+        bufferUnit: 'weeks',
+        bufferWeeks: Number.isFinite(prefillBufferWeeks) && prefillBufferWeeks >= 0 ? prefillBufferWeeks : current.bufferWeeks,
+      }));
+      toast.success('Strategy-Entscheidung in das Trajectory-Formular übernommen.');
+
+      ['prefillTitle', 'prefillCategory', 'prefillDueDate', 'prefillEffortHours', 'prefillBufferWeeks'].forEach((key) =>
+        url.searchParams.delete(key)
+      );
+      const nextUrl = `${url.pathname}${url.searchParams.toString() ? `?${url.searchParams.toString()}` : ''}`;
+      window.history.replaceState({}, '', nextUrl);
+    }
   }, []);
 
   const {
@@ -445,6 +480,42 @@ export default function TrajectoryPage() {
     () => goals.find((goal) => goal.id === selectedGoalId) ?? null,
     [goals, selectedGoalId]
   );
+  const selectedTrajectoryDecisionSurface = useMemo(() => {
+    if (!selectedGoal || !selectedBlock) return null;
+
+    const status = selectedBlock.status;
+    const tone: 'error' | 'warning' | 'success' =
+      status === 'at_risk' ? 'error' : status === 'tight' ? 'warning' : 'success';
+    const dueInDays = differenceInCalendarDays(parseISO(selectedGoal.dueDate), startOfDay(new Date()));
+
+    return {
+      tone,
+      title:
+        status === 'at_risk'
+          ? `${selectedGoal.title} driftet gerade`
+          : status === 'tight'
+            ? `${selectedGoal.title} ist knapp, aber machbar`
+            : `${selectedGoal.title} ist sauber planbar`,
+      summary:
+        `${selectedBlock.requiredWeeks} Wochen Prep bei ${selectedBlock.weeklyHours.toFixed(1)}h/Woche. ` +
+        `Start ${formatShortDate(selectedBlock.startDate)}, Deadline in ${dueInDays} Tagen.`,
+      bullets: [
+        ...selectedBlock.reasons.slice(0, 3),
+        `Buffer: ${selectedGoal.bufferWeeks} Wochen · Effort: ${selectedGoal.effortHours}h`,
+      ],
+      chips: [
+        { label: getRiskStatusLabel(status), tone },
+        { label: `${selectedBlock.requiredWeeks} Prep-Wochen`, tone: 'info' as const },
+        { label: `${selectedBlock.weeklyHours.toFixed(1)}h/Woche`, tone: 'default' as const },
+      ],
+      nextStep:
+        status === 'at_risk'
+          ? 'Task-Package erzeugen und diese Woche den Prep-Start absichern.'
+          : status === 'tight'
+            ? 'Simulation committen oder jetzt direkt ein Task-Package nach Today schieben.'
+            : 'Plan committen und nur noch den wöchentlichen Check-in halten.',
+    };
+  }, [selectedBlock, selectedGoal]);
   const selectedGoalSimulationWeeks = useMemo(() => {
     if (!selectedGoal) return null;
     return Math.max(1, Math.ceil(selectedGoal.effortHours / Math.max(1, effectiveCapacity)));
@@ -1497,6 +1568,19 @@ export default function TrajectoryPage() {
               )}
             </div>
           </div>
+
+          {selectedTrajectoryDecisionSurface ? (
+            <DecisionSurfaceCard
+              eyebrow="Selected plan"
+              title={selectedTrajectoryDecisionSurface.title}
+              summary={selectedTrajectoryDecisionSurface.summary}
+              bullets={selectedTrajectoryDecisionSurface.bullets}
+              chips={selectedTrajectoryDecisionSurface.chips}
+              tone={selectedTrajectoryDecisionSurface.tone}
+              icon={<Sparkles className="h-4 w-4" />}
+              footer={<p className="text-xs text-text-secondary">{selectedTrajectoryDecisionSurface.nextStep}</p>}
+            />
+          ) : null}
 
           <div className="rounded-2xl border border-border bg-surface/35 p-3">
             <h3 className="mb-2 text-sm font-semibold text-text-primary">Milestones</h3>

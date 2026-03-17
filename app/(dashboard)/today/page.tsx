@@ -60,6 +60,10 @@ const LazyWeekOverview = dynamic(
   () => import('@/components/features/dashboard/WeekOverview'),
   { ssr: false, loading: () => widgetSkeleton }
 );
+const LazyActivityFeed = dynamic(
+  () => import('@/components/features/dashboard/ActivityFeed'),
+  { ssr: false, loading: () => widgetSkeleton }
+);
 const LazyPomodoroTimer = dynamic(
   () => import('@/components/features/dashboard/PomodoroTimer'),
   { ssr: false, loading: () => widgetSkeleton }
@@ -569,6 +573,9 @@ export default function TodayPage() {
 
             {/* Week Overview */}
             <LazyWeekOverview {...(prefetchedWeekEvents ? { events: prefetchedWeekEvents } : {})} />
+
+            {/* Recent Activity */}
+            <LazyActivityFeed maxItems={5} />
           </ErrorBoundary>
         </motion.div>
       </div>

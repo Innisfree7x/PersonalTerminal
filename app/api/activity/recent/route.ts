@@ -1,22 +1,27 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { requireApiAuth } from '@/lib/api/auth';
 import { createClient } from '@/lib/auth/server';
 import { handleRouteError } from '@/lib/api/server-errors';
 
-/**
- * GET /api/activity/recent - Fetch recent user activity
- * For now, returns mock data.
- *
- * TODO: Implement proper authentication and database queries
- * when user_id columns are added to tables
- */
-export async function GET() {
+const DEFAULT_LIMIT = 5;
+const MAX_LIMIT = 10;
+
+function parseLimit(value: string | null): number {
+  const parsed = Number.parseInt(value ?? '', 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return DEFAULT_LIMIT;
+  }
+
+  return Math.min(parsed, MAX_LIMIT);
+}
+
+export async function GET(request: NextRequest) {
   const { user, errorResponse } = await requireApiAuth();
   if (errorResponse) return errorResponse;
 
   try {
     const supabase = createClient();
-    const limit = 5;
+    const limit = parseLimit(request.nextUrl.searchParams.get('limit'));
 
     const [{ data: tasks }, { data: goals }, { data: applications }, { data: exercises }] =
       await Promise.all([
@@ -49,6 +54,22 @@ export async function GET() {
           .limit(limit),
       ]);
 
+    const courseIds = Array.from(new Set((exercises ?? []).map((exercise) => exercise.course_id).filter(Boolean)));
+    const courseNameById = new Map<string, string>();
+
+    if (courseIds.length > 0) {
+      const { data: courses } = await supabase
+        .from('courses')
+        .select('id,name')
+        .eq('user_id', user.id)
+        .in('id', courseIds)
+        .limit(courseIds.length);
+
+      for (const course of courses ?? []) {
+        courseNameById.set(course.id, course.name);
+      }
+    }
+
     const activities = [
       ...(tasks || []).map((t) => ({
         id: `task-${t.id}`,
@@ -71,7 +92,7 @@ export async function GET() {
       ...(exercises || []).map((e) => ({
         id: `exercise-${e.id}`,
         type: 'exercise',
-        action: `Completed exercise ${e.exercise_number}`,
+        action: `Completed ${courseNameById.get(e.course_id) ?? 'course'} exercise ${e.exercise_number}`,
         timestamp: e.completed_at as string,
       })),
     ]

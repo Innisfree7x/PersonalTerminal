@@ -48,14 +48,6 @@ vi.mock('@/components/features/onboarding/StepWelcome', () => ({
   ),
 }));
 
-vi.mock('@/components/features/onboarding/StepProfile', () => ({
-  StepProfile: ({ onNext }: { onNext: (name: string) => void }) => (
-    <button type="button" onClick={() => onNext('Ada')}>
-      profile-next
-    </button>
-  ),
-}));
-
 vi.mock('@/components/features/onboarding/StepTrajectoryGoal', () => ({
   StepTrajectoryGoal: ({
     onNext,
@@ -77,20 +69,20 @@ vi.mock('@/components/features/onboarding/StepTrajectoryGoal', () => ({
         title: string;
         category: 'gmat';
         dueDate: string;
-        effortUnit: 'hours';
         effortHours: number;
-        effortMonths: number;
-        bufferUnit: 'weeks';
         bufferWeeks: number;
-        bufferMonths: number;
-        priority: number;
+        capacityHoursPerWeek: number;
+      },
+      settings: { hoursPerWeek: number; horizonMonths: number },
+      summary: {
+        status: 'on_track';
+        startDate: string;
+        explanation: string;
+        effectiveCapacityHoursPerWeek: number;
       }
     ) => void;
   }) => (
-    <div data-testid="mock-step-goal">
-      <button type="button" onClick={() => {}}>
-        goal-write-fail
-      </button>
+    <div data-testid="mock-step-goal-plan">
       <button
         type="button"
         onClick={() =>
@@ -111,18 +103,21 @@ vi.mock('@/components/features/onboarding/StepTrajectoryGoal', () => ({
               title: 'GMAT Sprint',
               category: 'gmat',
               dueDate: '2026-09-01',
-              effortUnit: 'hours',
               effortHours: 80,
-              effortMonths: 2.3,
-              bufferUnit: 'weeks',
               bufferWeeks: 2,
-              bufferMonths: 0.5,
-              priority: 3,
+              capacityHoursPerWeek: 10,
+            },
+            { hoursPerWeek: 10, horizonMonths: 24 },
+            {
+              status: 'on_track',
+              startDate: '2026-06-01',
+              explanation: 'Stable trajectory.',
+              effectiveCapacityHoursPerWeek: 10,
             }
           )
         }
       >
-        goal-write-success
+        goal-success
       </button>
     </div>
   ),
@@ -142,10 +137,7 @@ vi.mock('@/components/features/onboarding/StepTrajectoryPlan', () => ({
       }
     ) => void;
   }) => (
-    <div data-testid="mock-step-plan">
-      <button type="button" onClick={() => {}}>
-        settings-plan-fail
-      </button>
+    <div data-testid="mock-step-trajectory-plan">
       <button
         type="button"
         onClick={() =>
@@ -160,7 +152,7 @@ vi.mock('@/components/features/onboarding/StepTrajectoryPlan', () => ({
           )
         }
       >
-        settings-plan-success
+        plan-success
       </button>
     </div>
   ),
@@ -212,12 +204,13 @@ function okJson(payload: unknown): Response {
   });
 }
 
-describe('Onboarding V2 page flow', () => {
+describe('Onboarding V2 page flow (4-step)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     storageState.clear();
     installLocalStorageMock();
     localStorage.removeItem('innis_onboarding_v1');
+    localStorage.removeItem('innis_onboarding_v2');
     mockedFetchProfileAction.mockResolvedValue({
       fullName: 'Ada',
       onboardingCompleted: false,
@@ -226,65 +219,42 @@ describe('Onboarding V2 page flow', () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(okJson({ hoursPerWeek: 8, horizonMonths: 24 }));
   });
 
-  test('resumes safely from legacy localStorage payload (courses/firstTask)', async () => {
-    localStorage.setItem(
-      'innis_onboarding_v1',
-      JSON.stringify({
-        step: 5,
-        name: 'Legacy User',
-        courses: [{ name: 'Legacy Course' }],
-        firstTask: { title: 'Legacy Task' },
-        unknownLegacyField: { foo: 'bar' },
-      })
-    );
+  test('starts at step 1 with no persisted state', async () => {
+    render(<OnboardingPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('current-step')).toHaveTextContent('step:1');
+    });
+  });
+
+  test('happy path: welcome → goal → plan → complete', async () => {
+    const user = userEvent.setup();
+    render(<OnboardingPage />);
+
+    await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:1'));
+    await user.click(screen.getByRole('button', { name: 'welcome-next' }));
+    await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:2'));
+
+    await user.click(await screen.findByRole('button', { name: 'goal-success' }));
+    await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:3'));
+
+    await user.click(await screen.findByRole('button', { name: 'plan-success' }));
+    await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:4'));
+
+    expect(await screen.findByTestId('mock-step-complete')).toHaveTextContent('status:on_track');
+  });
+
+  test('redirects already-onboarded users to /today', async () => {
+    mockedFetchProfileAction.mockResolvedValue({
+      fullName: 'Ada',
+      onboardingCompleted: true,
+      onboardingCompletedAt: '2026-03-01T00:00:00Z',
+    });
 
     render(<OnboardingPage />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('current-step')).toHaveTextContent('step:3');
+      expect(hoistedRouter.router.replace).toHaveBeenCalledWith('/today');
     });
-    expect(screen.getByTestId('mock-step-goal')).toBeInTheDocument();
-  });
-
-  test('completion gate opens only after successful goal + settings + plan', async () => {
-    const user = userEvent.setup();
-    render(<OnboardingPage />);
-
-    await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:1'));
-    await user.click(screen.getByRole('button', { name: 'welcome-next' }));
-    await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:2'));
-    await user.click(await screen.findByRole('button', { name: 'profile-next' }));
-    await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:3'));
-
-    await user.click(await screen.findByRole('button', { name: 'goal-write-fail' }));
-    expect(screen.getByTestId('current-step')).toHaveTextContent('step:3');
-
-    await user.click(screen.getByRole('button', { name: 'goal-write-success' }));
-    await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:4'));
-
-    await user.click(await screen.findByRole('button', { name: 'settings-plan-fail' }));
-    expect(screen.getByTestId('current-step')).toHaveTextContent('step:4');
-
-    await user.click(screen.getByRole('button', { name: 'settings-plan-success' }));
-    await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:5'));
-
-    expect(await screen.findByTestId('mock-step-complete')).toHaveTextContent('status:on_track');
-  });
-
-  test('happy path reaches visible trajectory status in complete step', async () => {
-    const user = userEvent.setup();
-    render(<OnboardingPage />);
-
-    await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:1'));
-    await user.click(screen.getByRole('button', { name: 'welcome-next' }));
-    await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:2'));
-    await user.click(await screen.findByRole('button', { name: 'profile-next' }));
-    await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:3'));
-    await user.click(await screen.findByRole('button', { name: 'goal-write-success' }));
-    await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:4'));
-    await user.click(await screen.findByRole('button', { name: 'settings-plan-success' }));
-    await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:5'));
-
-    expect(await screen.findByTestId('mock-step-complete')).toHaveTextContent('status:on_track');
   });
 });

@@ -2,12 +2,15 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { CheckCircle2, Flame, Plus, Sparkles, Target, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
+import { DecisionSurfaceCard } from '@/components/ui/DecisionSurfaceCard';
 import { cn } from '@/lib/utils';
+import { buildStrategyCommitReadiness } from '@/lib/strategy/readiness';
 import { computeStrategyOptionScoreWithMode, scoreStrategyOptions, type StrategyScoreMode } from '@/lib/strategy/scoring';
 
 type StrategyDecisionStatus = 'draft' | 'committed' | 'archived';
@@ -259,7 +262,19 @@ const STRATEGY_PRESETS: StrategyPreset[] = [
   },
 ];
 
+type TrajectoryGoalCategory = 'thesis' | 'gmat' | 'master_app' | 'internship' | 'other';
+
+function inferTrajectoryCategory(input: string): TrajectoryGoalCategory {
+  const normalized = input.toLowerCase();
+  if (normalized.includes('gmat')) return 'gmat';
+  if (normalized.includes('thesis') || normalized.includes('bachelor')) return 'thesis';
+  if (normalized.includes('master')) return 'master_app';
+  if (normalized.includes('intern') || normalized.includes('prakt')) return 'internship';
+  return 'other';
+}
+
 export default function StrategyPage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [selectedDecisionId, setSelectedDecisionId] = useState<string>('');
   const [decisionTitle, setDecisionTitle] = useState('');
@@ -408,6 +423,46 @@ export default function StrategyPage() {
       drivers: deltas.length ? deltas : ['Vorsprung ist knapp und verteilt sich auf mehrere Faktoren.'],
     };
   }, [localScore.scoredOptions, localScore.winner]);
+
+  const selectedWinnerOption = useMemo(() => {
+    if (!selectedDecision || !localScore.winner) return null;
+    return selectedDecision.options.find((option) => option.id === localScore.winner?.optionId) ?? null;
+  }, [localScore.winner, selectedDecision]);
+
+  const commitReadiness = useMemo(
+    () =>
+      buildStrategyCommitReadiness({
+        hasWinner: Boolean(localScore.winner),
+        optionCount: selectedDecision?.options.length ?? 0,
+        winnerTitle: winnerInsight?.winnerTitle ?? null,
+        winnerMargin: winnerInsight?.margin ?? null,
+        scoreMode,
+      }),
+    [localScore.winner, scoreMode, selectedDecision?.options.length, winnerInsight]
+  );
+
+  const trajectoryBridgeHref = useMemo(() => {
+    if (!selectedDecision || !selectedWinnerOption) return null;
+
+    const title = `${selectedDecision.title}: ${selectedWinnerOption.title}`;
+    const category = inferTrajectoryCategory(`${selectedDecision.title} ${selectedWinnerOption.title}`);
+    const effortHours = Math.max(24, Math.round(selectedWinnerOption.timeToValueWeeks * 6));
+    const bufferWeeks = scoreMode === 'deadline' ? 1 : 2;
+
+    const params = new URLSearchParams({
+      source: 'strategy_bridge',
+      prefillTitle: title,
+      prefillCategory: category,
+      prefillEffortHours: String(effortHours),
+      prefillBufferWeeks: String(bufferWeeks),
+    });
+
+    if (selectedDecision.targetDate) {
+      params.set('prefillDueDate', selectedDecision.targetDate);
+    }
+
+    return `/trajectory?${params.toString()}`;
+  }, [scoreMode, selectedDecision, selectedWinnerOption]);
 
   const optionsForRender = useMemo(() => {
     if (!selectedDecision) return [];
@@ -824,6 +879,43 @@ export default function StrategyPage() {
                     </div>
                   </div>
                 ) : null}
+
+                <div className="mb-3">
+                  <DecisionSurfaceCard
+                    eyebrow="Commit readiness"
+                    title={commitReadiness.title}
+                    summary={commitReadiness.summary}
+                    bullets={commitReadiness.bullets}
+                    chips={[
+                      { label: `${selectedDecision.options.length} Optionen`, tone: 'info' },
+                      { label: scoreMode === 'deadline' ? 'Deadline lens' : 'Standard lens', tone: 'default' },
+                      ...(winnerInsight ? [{ label: `Vorsprung ${winnerInsight.margin > 0 ? '+' : ''}${winnerInsight.margin} pts`, tone: commitReadiness.tone }] : []),
+                    ]}
+                    tone={commitReadiness.tone}
+                    icon={<CheckCircle2 className="h-4 w-4" />}
+                    footer={
+                      <div className="flex items-center justify-between gap-3 text-xs text-text-secondary">
+                        <span>{commitReadiness.nextStep}</span>
+                        <div className="flex items-center gap-2">
+                          {trajectoryBridgeHref ? (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => router.push(trajectoryBridgeHref)}
+                            >
+                              In Trajectory vorbereiten
+                            </Button>
+                          ) : null}
+                          {localScore.winner ? (
+                            <span className="rounded-full border border-white/10 bg-black/20 px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-text-tertiary">
+                              Winner vorhanden
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                    }
+                  />
+                </div>
 
                 <div className="grid gap-2.5 lg:grid-cols-2">
                   {optionsForRender.map((option, index) => {

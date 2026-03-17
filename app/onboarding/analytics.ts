@@ -36,14 +36,8 @@ const MAX_EVENTS = 50;
 /**
  * Fire a client-side onboarding analytics event.
  *
- * Currently a stub — logs to console in dev and stores last 50 events
- * in sessionStorage for debugging.
- *
- * TODO (Codex): Connect to real provider:
- *   - Option A: window.analytics?.track(event, properties)  // Segment / PostHog
- *   - Option B: fetch('/api/analytics/event', { method: 'POST', body: JSON.stringify({ event, properties }) })
- *
- * Event payload shapes are typed via OnboardingEventProperties above.
+ * Keeps a short sessionStorage debug trail and forwards events
+ * non-blocking to the internal analytics route.
  */
 export function trackOnboardingEvent<E extends OnboardingEvent>(
   event: E,

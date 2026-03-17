@@ -21,8 +21,9 @@ Archived phase docs are historical references only.
 ## ✨ Features
 
 ### 🚀 Onboarding (`/onboarding`)
-- **5-step setup wizard**: Name → Courses (1–3) → First task for today → Complete
-- **Demo seed**: "Mit Beispieldaten starten" loads example courses, goals, and tasks instantly
+- **4-step trajectory activation**: Welcome → Trajectory goal → Capacity plan → Complete
+- **Trajectory-first activation**: new users see an immediate `on track / tight / at risk` result instead of filling low-signal setup forms
+- **Demo seed**: "Mit Beispieldaten starten" loads an end-to-end trajectory demo with visible status instantly
 - **Confetti celebration** on completion (canvas-confetti)
 - **LocalStorage persistence**: wizard state survives refresh and back-navigation
 - **Back-navigation** with form draft preservation (no duplicate API calls)
@@ -218,7 +219,7 @@ bloomberg-personal/
 │   │   ├── settings/             # Themes, sounds, hotkeys, demo data
 │   │   └── layout.tsx            # Sidebar + header layout
 │   ├── onboarding/               # Onboarding wizard
-│   │   ├── page.tsx              # 5-step wizard controller
+│   │   ├── page.tsx              # 4-step trajectory activation controller
 │   │   ├── analytics.ts          # Client-side event tracking
 │   │   ├── demoData.ts           # Demo seed constants
 │   │   └── demoSeedService.ts    # seedDemoData / removeDemoData
@@ -240,7 +241,7 @@ bloomberg-personal/
 ├── components/
 │   ├── features/
 │   │   ├── dashboard/            # FocusTasks, QuickStatsBar, PomodoroTimer, …
-│   │   ├── onboarding/           # StepWelcome, StepProfile, StepCourses, StepFirstTask, StepComplete, OnboardingLayout
+│   │   ├── onboarding/           # StepWelcome, StepTrajectoryGoal, StepTrajectoryPlan, StepComplete, OnboardingLayout
 │   │   ├── goals/
 │   │   ├── career/
 │   │   ├── university/

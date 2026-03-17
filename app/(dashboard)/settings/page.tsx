@@ -666,7 +666,7 @@ export default function SettingsPage() {
                                 }
                                 className="w-full px-3 py-2 bg-surface-hover text-text-primary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                             >
-                                <option value="lucian">Lucian (generic gunner sprite for now)</option>
+                                <option value="lucian">Lucian (Chibi Sprite V2)</option>
                                 <option value="aphelios">Aphelios</option>
                             </select>
                         </div>

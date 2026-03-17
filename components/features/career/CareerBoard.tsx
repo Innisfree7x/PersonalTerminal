@@ -187,6 +187,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
     const [isCvUploadOpen, setIsCvUploadOpen] = useState(false);
     const [queuedCvFile, setQueuedCvFile] = useState<File | null>(null);
     const [queuedCvNonce, setQueuedCvNonce] = useState(0);
+    const [radarRefreshToken, setRadarRefreshToken] = useState(0);
     const [editingApplication, setEditingApplication] = useState<Application | null>(null);
     const [radarPrefill, setRadarPrefill] = useState<CreateApplicationInput | null>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
@@ -483,7 +484,10 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
             <ApplicationStats applications={applications} />
 
             {/* Opportunity Radar */}
-            <OpportunityRadar onAdoptToPipeline={handleAdoptOpportunity} />
+            <OpportunityRadar
+                onAdoptToPipeline={handleAdoptOpportunity}
+                externalRefreshToken={radarRefreshToken}
+            />
 
             {/* CV Upload Section (Collapsible) */}
             <AnimatePresence>
@@ -498,7 +502,16 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                     >
                         <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-lg p-6">
                             <h3 className="text-lg font-semibold text-text-primary mb-4">Upload & Extract CV</h3>
-                            <CvUpload externalFile={queuedCvFile} externalFileNonce={queuedCvNonce} />
+                            <CvUpload
+                                externalFile={queuedCvFile}
+                                externalFileNonce={queuedCvNonce}
+                                onCvProcessed={({ persisted }) => {
+                                    if (persisted) {
+                                        setRadarRefreshToken((prev) => prev + 1);
+                                        toast.success('CV-Profil aktualisiert. Radar wurde neu geladen.');
+                                    }
+                                }}
+                            />
                         </div>
                     </motion.div>
                 )}

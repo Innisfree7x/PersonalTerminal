@@ -36,6 +36,14 @@ vi.mock('@/app/onboarding/analytics', () => ({
   trackOnboardingEvent: vi.fn(),
 }));
 
+vi.mock('@/lib/trajectory/risk-model', () => ({
+  formatTrajectoryRiskLabel: (status: string) => {
+    if (status === 'on_track') return 'on track';
+    if (status === 'tight') return 'tight';
+    return 'at risk';
+  },
+}));
+
 import { StepComplete } from '@/components/features/onboarding/StepComplete';
 import { updateProfileAction } from '@/app/actions/profile';
 import { trackOnboardingEvent } from '@/app/onboarding/analytics';
@@ -44,14 +52,13 @@ const mockedUpdateProfileAction = vi.mocked(updateProfileAction);
 const mockedTrackOnboardingEvent = vi.mocked(trackOnboardingEvent);
 
 const baseCompletedData = {
-  name: 'Ada',
   trajectory: {
     goalId: 'goal-1',
+    goalTitle: 'GMAT Sprint',
     status: 'on_track' as const,
     startDate: '2026-09-01',
     explanation: 'Stable trajectory.',
     effectiveCapacityHoursPerWeek: 10,
-    horizonMonths: 24,
   },
   demoSeeded: false,
 };
@@ -71,9 +78,9 @@ describe('Onboarding StepComplete gate', () => {
       />
     );
 
-    expect(screen.getByText(/Completion ist gesperrt/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Open Trajectory/i })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /Go to Today/i })).toBeDisabled();
+    expect(screen.getByText(/Trajectory-Daten fehlen/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Trajectory öffnen/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Direkt zu Today/i })).toBeDisabled();
     expect(mockedUpdateProfileAction).not.toHaveBeenCalled();
   });
 
@@ -86,7 +93,7 @@ describe('Onboarding StepComplete gate', () => {
 
     render(<StepComplete completedData={baseCompletedData} onComplete={onComplete} />);
 
-    const openTrajectoryButton = screen.getByRole('button', { name: /Open Trajectory/i });
+    const openTrajectoryButton = screen.getByRole('button', { name: /Trajectory öffnen/i });
     expect(openTrajectoryButton).not.toBeDisabled();
 
     await user.click(openTrajectoryButton);
@@ -96,7 +103,7 @@ describe('Onboarding StepComplete gate', () => {
     expect(mockedTrackOnboardingEvent).not.toHaveBeenCalled();
     expect(hoisted.router.push).not.toHaveBeenCalled();
 
-    await user.click(screen.getByRole('button', { name: /Open Trajectory/i }));
+    await user.click(screen.getByRole('button', { name: /Trajectory öffnen/i }));
 
     await waitFor(() => expect(mockedUpdateProfileAction).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(hoisted.router.push).toHaveBeenCalledWith('/trajectory'));

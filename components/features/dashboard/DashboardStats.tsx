@@ -5,6 +5,7 @@ import type { LucideIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, GraduationCap, Briefcase, Flame } from 'lucide-react';
 import AnimatedCounter from '@/components/ui/AnimatedCounter';
+import { useStreak } from '@/lib/hooks/useStreak';
 
 interface DashboardStatsProps {
   tasksToday: number;
@@ -149,8 +150,7 @@ export default function DashboardStats({
   goalsDueSoon,
   interviewsUpcoming,
 }: DashboardStatsProps) {
-  // TODO: wire to /api/user/streak
-  const streak = 3;
+  const { streak } = useStreak();
 
   const taskPct = tasksToday > 0 ? (tasksCompleted / tasksToday) * 100 : 0;
   const exercisePct = exercisesTotal > 0 ? (exercisesCompleted / exercisesTotal) * 100 : 0;

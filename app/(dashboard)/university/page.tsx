@@ -15,6 +15,7 @@ import CourseCard from '@/components/features/university/CourseCard';
 import CourseModal from '@/components/features/university/CourseModal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { DecisionSurfaceCard } from '@/components/ui/DecisionSurfaceCard';
 import { Plus, GraduationCap, BookOpen, Calendar, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AnimatedCounter from '@/components/ui/AnimatedCounter';
@@ -232,6 +233,60 @@ export default function UniversityPage() {
     });
   }, [courses, todayTs]);
 
+  const criticalCourseDecision = useMemo(() => {
+    const upcomingIncomplete = sortedCourses.find((course) => {
+      const hasRemaining = course.exercises.some((exercise) => !exercise.completed);
+      const isUpcoming = course.examDate ? startOfDay(course.examDate).getTime() >= todayTs : true;
+      return hasRemaining && isUpcoming;
+    });
+
+    const fallbackIncomplete = sortedCourses.find((course) =>
+      course.exercises.some((exercise) => !exercise.completed)
+    );
+
+    const course = upcomingIncomplete ?? fallbackIncomplete ?? null;
+    if (!course) return null;
+
+    const totalExercises = course.exercises.length;
+    const completedExercises = course.exercises.filter((exercise) => exercise.completed).length;
+    const remainingExercises = Math.max(0, totalExercises - completedExercises);
+    const completionRate = totalExercises > 0 ? Math.round((completedExercises / totalExercises) * 100) : 0;
+    const daysUntilExam = course.examDate ? differenceInDays(startOfDay(course.examDate), today) : null;
+
+    const tone: 'warning' | 'error' | 'success' | 'info' =
+      daysUntilExam !== null && daysUntilExam <= 14 && completionRate < 70
+        ? 'error'
+        : daysUntilExam !== null && daysUntilExam <= 30 && completionRate < 85
+          ? 'warning'
+          : course.examDate
+            ? 'success'
+            : 'info';
+
+    return {
+      course,
+      tone,
+      title: `Critical course: ${course.name}`,
+      summary:
+        daysUntilExam !== null
+          ? `Prüfung in ${daysUntilExam} Tagen. ${remainingExercises} von ${totalExercises} Übungen sind noch offen.`
+          : `${remainingExercises} von ${totalExercises} Übungen sind noch offen. Ohne Prüfungsdatum fehlt aktuell ein harter Zeitanker.`,
+      bullets: [
+        `${completedExercises}/${totalExercises} Übungen abgeschlossen (${completionRate}%).`,
+        course.examDate ? `Prüfung am ${format(course.examDate, 'dd.MM.yyyy')}.` : 'Noch kein Prüfungsdatum gesetzt.',
+        course.semester ? `Semester: ${course.semester}.` : `ECTS: ${course.ects}.`,
+      ],
+      chips: [
+        { label: `${course.ects} ECTS`, tone: 'info' as const },
+        { label: `${completedExercises}/${totalExercises} done`, tone: tone === 'success' ? 'success' as const : 'default' as const },
+        ...(daysUntilExam !== null ? [{ label: `Exam in ${daysUntilExam}d`, tone }] : []),
+      ],
+      nextStep:
+        daysUntilExam !== null && daysUntilExam <= 14
+          ? 'Öffnen, offene Übungen priorisieren und heute den Prüfungsblock sichern.'
+          : 'Öffnen und die nächste offene Übung oder das Prüfungsdatum sauber festziehen.',
+    };
+  }, [sortedCourses, today, todayTs]);
+
   const handleSubmitCourse = (data: CreateCourseInput) => {
     if (editingCourse) {
       updateMutation.mutate({ id: editingCourse.id, data });
@@ -438,6 +493,36 @@ export default function UniversityPage() {
           </div>
         </div>
       </motion.div>
+
+      {criticalCourseDecision ? (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.12, delay: 0.04 }}
+        >
+          <DecisionSurfaceCard
+            eyebrow="Study decision surface"
+            title={criticalCourseDecision.title}
+            summary={criticalCourseDecision.summary}
+            bullets={criticalCourseDecision.bullets}
+            chips={criticalCourseDecision.chips}
+            tone={criticalCourseDecision.tone}
+            icon={<Calendar className="h-4 w-4" />}
+            footer={
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xs text-text-secondary">{criticalCourseDecision.nextStep}</span>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => handleEditCourse(criticalCourseDecision.course)}
+                >
+                  Kurs öffnen
+                </Button>
+              </div>
+            }
+          />
+        </motion.div>
+      ) : null}
 
       <LayoutGroup id="university-cards">
         {/* Course Cards */}

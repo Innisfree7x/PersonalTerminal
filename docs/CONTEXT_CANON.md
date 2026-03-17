@@ -1,12 +1,14 @@
 # Context Canon (Single Source of Truth)
 
-Stand: 2026-03-15 (post Wave-26 + Career Hardening)
+Stand: 2026-03-17 (post Midnight Session + Lucian V2)
 Status: Active
 
 ## Neu seit 2026-03-15 (hoch priorisiert)
 - `DEVELOPMENT_GUIDE.md` (aktualisiert: Feature-Branch-Workflow, Staging via Vercel Preview, Pre-commit mit Tests, CI/CD-Pipeline-Referenz, Test-Patterns)
 - `docs/PHASE31_MARKETING_PREMIUM_REFRESH_2026-03-15.md` (neue Marketing-Designphilosophie und Relaunch fuer Landing/Features/Pricing/About)
 - `docs/PHASE31_CAREER_HARDENING_2026-03-15.md` (Rate-Limits, LLM-Budget-Guard, Gap->Task-Bridge, Verifikation)
+- `docs/ONBOARDING_V2_TRAJECTORY_ACTIVATION.md` (live 4-step onboarding, trajectory-first activation, completion gate)
+- `docs/LUCIAN_SPRITE_V2_UPGRADE.md` (Lucian Sprite V2 live, config + tests verdrahtet)
 
 ## Seit 2026-03-09
 - `docs/AGENT_STANDARD_COMPLIANCE_2026-03-10.md` (Compliance-Abgleich aktiver Wave-Doks mit Agent-Standard)
@@ -51,6 +53,8 @@ Wenn zwei Dokumente widersprüchlich sind, gilt immer diese Prioritätsliste.
 ## Aktive Dokumente
 - `docs/AGENT_STANDARD_COMPLIANCE_2026-03-10.md` (aktueller Compliance-Report fuer Agent-Standard in aktiven Wellen)
 - `docs/PHASE31_CAREER_HARDENING_2026-03-15.md` (Rate-Limits, LLM-Budget-Guard, Gap->Task-Bridge inkl. Verifikation)
+- `docs/ONBOARDING_V2_TRAJECTORY_ACTIVATION.md` (live trajectory-first onboarding, v1 step files entfernt)
+- `docs/LUCIAN_SPRITE_V2_UPGRADE.md` (Lucian Sprite V2 live; Visual Review offen als optionaler Follow-up)
 - `docs/PHASE31_MARKETING_PREMIUM_REFRESH_2026-03-15.md` (aktueller Marketing-Relaunch und verbindliche Designphilosophie fuer oeffentliche Routen)
 - `docs/PHASE26_FEATURE_OPTIMIZATION_WAVE1_5_2026-03-09.md` (abgeschlossene Wave-1-5 Feature-Optimierung inkl. Audit)
 - `docs/PHASE25_DASHBOARD_BUNDLE_AND_SOUND_2026-03-09.md` (Today-Bundle + Sound + Theme/Readability-Pass)

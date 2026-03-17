@@ -3,10 +3,10 @@
 import { motion } from 'framer-motion';
 
 const stats = [
-  { value: '< 50ms', label: 'UI Response Time' },
-  { value: '100%', label: 'Type-safe Codebase' },
-  { value: '3', label: 'Integrierte Systeme' },
-  { value: '0', label: 'Externe Abhängigkeiten' },
+  { value: '< 3 Min', label: 'Bis zum ersten Risk-Status' },
+  { value: '36M', label: 'Planungshorizont in Trajectory' },
+  { value: 'Live', label: 'Career-Radar fuer Praktika & Werkstudenten' },
+  { value: '1', label: 'System fuer Strategie, Today und Focus' },
 ];
 
 const testimonials = [

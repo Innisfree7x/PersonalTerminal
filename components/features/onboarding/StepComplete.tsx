@@ -2,26 +2,24 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { CheckCircle2, ArrowRight, Compass, Info } from 'lucide-react';
+import { ArrowRight, Compass } from 'lucide-react';
 import { updateProfileAction } from '@/app/actions/profile';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
 import { trackOnboardingEvent } from '@/app/onboarding/analytics';
+import { formatTrajectoryRiskLabel } from '@/lib/trajectory/risk-model';
 
 type TrajectoryStatus = 'on_track' | 'tight' | 'at_risk';
 
 interface CompletedData {
-  name: string;
   trajectory: {
     goalId: string;
+    goalTitle: string;
     status: TrajectoryStatus;
     startDate: string;
     explanation: string;
     effectiveCapacityHoursPerWeek: number;
-    horizonMonths: number;
   } | null;
   demoSeeded?: boolean;
 }
@@ -44,19 +42,7 @@ const itemVariants = {
 function formatDateLabel(dateIso: string): string {
   const parsed = new Date(`${dateIso}T00:00:00.000Z`);
   if (Number.isNaN(parsed.getTime())) return dateIso;
-  return parsed.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
-}
-
-function statusVariant(status: TrajectoryStatus): 'success' | 'warning' | 'error' {
-  if (status === 'on_track') return 'success';
-  if (status === 'tight') return 'warning';
-  return 'error';
-}
-
-function statusLabel(status: TrajectoryStatus): string {
-  if (status === 'on_track') return 'on track';
-  if (status === 'tight') return 'tight';
-  return 'at risk';
+  return parsed.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 export function StepComplete({ completedData, onComplete }: StepCompleteProps) {
@@ -65,7 +51,15 @@ export function StepComplete({ completedData, onComplete }: StepCompleteProps) {
   const [savingTarget, setSavingTarget] = useState<'trajectory' | 'today' | null>(null);
   const [error, setError] = useState('');
 
-  const trajectoryReady = completedData.trajectory !== null;
+  const trajectory = completedData.trajectory;
+
+  const statusColor = !trajectory
+    ? { border: 'border-red-500/25', bg: 'bg-red-500/8', text: 'text-red-400', dot: 'bg-red-400' }
+    : trajectory.status === 'on_track'
+      ? { border: 'border-emerald-500/25', bg: 'bg-emerald-500/8', text: 'text-emerald-400', dot: 'bg-emerald-400' }
+      : trajectory.status === 'tight'
+        ? { border: 'border-[#E8B930]/25', bg: 'bg-[#E8B930]/8', text: 'text-[#E8B930]', dot: 'bg-[#E8B930]' }
+        : { border: 'border-red-500/25', bg: 'bg-red-500/8', text: 'text-red-400', dot: 'bg-red-400' };
 
   useEffect(() => {
     if (firedRef.current) return;
@@ -91,8 +85,8 @@ export function StepComplete({ completedData, onComplete }: StepCompleteProps) {
   }, []);
 
   const handleFinalize = async (destination: '/trajectory' | '/today') => {
-    if (!completedData.trajectory) {
-      setError('Trajectory data fehlt. Bitte gehe zurück zu Schritt 4 und berechne den Plan erneut.');
+    if (!trajectory) {
+      setError('Trajectory-Daten fehlen. Bitte gehe zurück und berechne den Plan.');
       return;
     }
 
@@ -101,15 +95,13 @@ export function StepComplete({ completedData, onComplete }: StepCompleteProps) {
     try {
       await updateProfileAction({ onboardingCompleted: true });
       trackOnboardingEvent('onboarding_completed', {
-        trajectory_status: completedData.trajectory.status,
-        trajectory_goal_id: completedData.trajectory.goalId,
+        trajectory_status: trajectory.status,
+        trajectory_goal_id: trajectory.goalId,
         destination,
         demo_seeded: completedData.demoSeeded ?? false,
       });
       onComplete?.();
-
-      const displayName = completedData.name.trim();
-      toast.success(displayName ? `Willkommen, ${displayName}!` : 'Willkommen bei INNIS!');
+      toast.success('Willkommen bei INNIS!');
       router.push(destination);
       router.refresh();
     } catch (err) {
@@ -119,113 +111,114 @@ export function StepComplete({ completedData, onComplete }: StepCompleteProps) {
     }
   };
 
-  const displayName = completedData.name.trim() || 'dir';
-
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
+      {/* Header */}
       <motion.div variants={itemVariants} className="text-center">
         <motion.div
-          initial={{ scale: 0, rotate: -30 }}
-          animate={{ scale: 1, rotate: 0 }}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 12, delay: 0.1 }}
-          className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10"
+          className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-[#E8B930]/20 bg-[#E8B930]/[0.08]"
         >
-          <CheckCircle2 className="h-8 w-8 text-emerald-400" />
+          <span className="text-3xl">⚡</span>
         </motion.div>
-        <h2 className="mb-2 text-2xl font-bold text-text-primary">
-          INNIS ist bereit,{' '}
-          <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            {displayName}!
+        <h2 className="mb-2 text-2xl font-bold text-[#FAF0E6]">
+          Dein Terminal ist{' '}
+          <span className="bg-gradient-to-r from-[#E8B930] via-[#F5D565] to-[#E8B930] bg-clip-text text-transparent">
+            bereit.
           </span>
         </h2>
-        <p className="text-sm text-text-secondary">
-          Dein Trajectory-Setup ist abgeschlossen. Prüfe zuerst den Plan und geh dann in die tägliche Execution.
+        <p className="text-sm text-zinc-400">
+          Trajectory ist konfiguriert. Prüfe deinen Plan und starte die Execution.
         </p>
       </motion.div>
 
-      <motion.div variants={itemVariants} className="space-y-3 rounded-xl border border-primary/20 bg-primary/10 p-4">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold text-text-primary">Trajectory status</p>
-          {completedData.trajectory ? (
-            <Badge size="sm" variant={statusVariant(completedData.trajectory.status)}>
-              {statusLabel(completedData.trajectory.status)}
-            </Badge>
-          ) : (
-            <Badge size="sm" variant="error">
-              missing
-            </Badge>
-          )}
-        </div>
-
-        {completedData.trajectory ? (
-          <>
-            <p className="text-sm text-text-secondary">
-              Prep starts {formatDateLabel(completedData.trajectory.startDate)}
-            </p>
-            <p className="text-xs text-text-tertiary">{completedData.trajectory.explanation}</p>
-            <p className="text-xs text-text-tertiary">
-              Capacity {completedData.trajectory.effectiveCapacityHoursPerWeek}h/week · horizon {completedData.trajectory.horizonMonths} months
-            </p>
-          </>
-        ) : (
-          <p className="text-xs text-error">
-            Completion ist gesperrt, bis Goal + Capacity + Plan erfolgreich gespeichert wurden.
-          </p>
-        )}
-      </motion.div>
-
-      {completedData.demoSeeded && (
+      {/* Trajectory summary card */}
+      {trajectory ? (
+        <motion.div variants={itemVariants} className="rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
+          {/* Status header */}
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.04]">
+            <p className="text-[13px] font-medium text-[#FAF0E6]">{trajectory.goalTitle}</p>
+            <span className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[10px] font-semibold ${statusColor.border} ${statusColor.bg} ${statusColor.text}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${statusColor.dot} animate-pulse`} />
+              {formatTrajectoryRiskLabel(trajectory.status)}
+            </span>
+          </div>
+          {/* Details */}
+          {[
+            { label: 'Prep Start', value: formatDateLabel(trajectory.startDate) },
+            { label: 'Kapazität', value: `${trajectory.effectiveCapacityHoursPerWeek}h / Woche` },
+          ].map((row, i) => (
+            <div
+              key={row.label}
+              className={`flex items-center justify-between px-5 py-3 ${i < 1 ? 'border-b border-white/[0.04]' : ''}`}
+            >
+              <span className="text-[12px] text-zinc-500">{row.label}</span>
+              <span className="text-[12px] font-medium text-[#FAF0E6]">{row.value}</span>
+            </div>
+          ))}
+          <div className="px-5 py-3 border-t border-white/[0.04]">
+            <p className="text-[11px] text-zinc-500 leading-relaxed">{trajectory.explanation}</p>
+          </div>
+        </motion.div>
+      ) : (
         <motion.div variants={itemVariants}>
-          <div className="flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/10 p-3">
-            <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
-            <p className="text-xs leading-relaxed text-text-secondary">
-              Demo seed aktiv: Du kannst die Beispiel-Daten später unter{' '}
-              <span className="font-medium text-text-primary">Einstellungen → Daten</span> entfernen.
+          <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4">
+            <p className="text-sm text-red-400">
+              Trajectory-Daten fehlen. Bitte gehe zurück zu Schritt 2.
             </p>
           </div>
         </motion.div>
       )}
 
-      <motion.div variants={itemVariants}>
-        <div className="flex items-start gap-3 rounded-xl border border-border bg-surface-hover p-3">
-          <span className="mt-0.5 flex-shrink-0 text-sm">⚡</span>
-          <p className="text-xs leading-relaxed text-text-secondary">
-            <span className="font-medium text-text-primary">Lucian ist aktiv.</span>{' '}
-            Deine nächsten Schritte werden jetzt mit Fokus- und Risiko-Signalen priorisiert.
-          </p>
-        </div>
-      </motion.div>
+      {/* Demo seed hint */}
+      {completedData.demoSeeded && (
+        <motion.div variants={itemVariants}>
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
+            <p className="text-[11px] text-zinc-500 leading-relaxed">
+              Demo-Daten aktiv — entfernbar unter{' '}
+              <span className="font-medium text-zinc-300">Einstellungen → Daten</span>
+            </p>
+          </div>
+        </motion.div>
+      )}
 
       {error ? (
         <motion.div variants={itemVariants}>
-          <div className="rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error">{error}</div>
+          <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">{error}</div>
         </motion.div>
       ) : null}
 
+      {/* CTAs */}
       <motion.div variants={itemVariants} className="space-y-2">
-        <Button
-          variant="primary"
-          fullWidth
-          size="lg"
+        <button
+          type="button"
           onClick={() => handleFinalize('/trajectory')}
-          loading={savingTarget === 'trajectory'}
-          disabled={!trajectoryReady || savingTarget !== null}
-          rightIcon={<Compass className="h-4 w-4" />}
+          disabled={!trajectory || savingTarget !== null}
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-[#E8B930] px-6 py-3 text-sm font-semibold text-[#0A0A0C] transition-all hover:brightness-110 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none"
         >
-          Open Trajectory (recommended)
-        </Button>
+          {savingTarget === 'trajectory' ? (
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#0A0A0C]/30 border-t-[#0A0A0C]" />
+          ) : (
+            <Compass className="h-4 w-4" />
+          )}
+          Trajectory öffnen
+        </button>
 
-        <Button
-          variant="ghost"
-          fullWidth
-          size="lg"
+        <button
+          type="button"
           onClick={() => handleFinalize('/today')}
-          loading={savingTarget === 'today'}
-          disabled={!trajectoryReady || savingTarget !== null}
-          rightIcon={<ArrowRight className="h-4 w-4" />}
+          disabled={!trajectory || savingTarget !== null}
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-white/[0.08] bg-transparent px-6 py-3 text-sm font-medium text-zinc-300 transition-all hover:border-[#E8B930]/30 hover:text-[#FAF0E6] disabled:opacity-50 disabled:pointer-events-none"
         >
-          Go to Today
-        </Button>
+          {savingTarget === 'today' ? (
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-500/30 border-t-zinc-300" />
+          ) : (
+            <ArrowRight className="h-4 w-4" />
+          )}
+          Direkt zu Today
+        </button>
       </motion.div>
     </motion.div>
   );

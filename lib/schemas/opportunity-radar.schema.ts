@@ -64,6 +64,8 @@ export interface OpportunitySearchResponse {
     queryRelaxedUsed?: boolean;
     bandRelaxedUsed?: boolean;
     cvProfileApplied?: boolean;
+    cvRankTier?: OpportunityCvProfileContext['rankTier'];
+    cvTargetTracks?: RadarTrack[];
     llm?: {
       enabled: boolean;
       maxDailyUnits: number;

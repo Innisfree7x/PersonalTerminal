@@ -22,9 +22,8 @@ export const CHAMPION_CONFIG: Record<
 > = {
   lucian: {
     name: 'Lucian',
-    // Lucian-like pixel sheet (in-repo fallback until final handcrafted sheet lands).
-    spriteSheet: '/sprites/lucian-sprites.svg',
-    frameSize: 48,
+    spriteSheet: '/sprites/lucian-sprites-v2.svg',
+    frameSize: 64,
     sheetColumns: 8,
     sheetRows: 10,
     colors: {

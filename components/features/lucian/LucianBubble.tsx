@@ -101,6 +101,7 @@ interface LucianBubbleProps {
   mood: LucianMood;
   ariaRole: 'status' | 'alert';
   visible: boolean;
+  anchorSelector?: string;
   actionLabel?: string;
   actionAriaLabel?: string;
   dismissOnBodyClick?: boolean;
@@ -116,6 +117,7 @@ export function LucianBubble({
   mood,
   ariaRole,
   visible,
+  anchorSelector = '[data-champion-sprite="true"]',
   actionLabel,
   actionAriaLabel,
   dismissOnBodyClick = false,
@@ -175,7 +177,7 @@ export function LucianBubble({
 
     const updatePosition = () => {
       const bubbleEl = bubbleRef.current;
-      const championEl = document.querySelector('[data-champion-sprite="true"]') as HTMLElement | null;
+      const championEl = document.querySelector(anchorSelector) as HTMLElement | null;
 
       if (!bubbleEl || !championEl) {
         setAnchor((prev) => ({ ...prev, anchored: false }));
@@ -231,7 +233,7 @@ export function LucianBubble({
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition);
     };
-  }, [text, visible]);
+  }, [anchorSelector, text, visible]);
 
   const variants = prefersReducedMotion
     ? {
@@ -259,7 +261,7 @@ export function LucianBubble({
           ref={bubbleRef}
           {...variants}
           transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}
-          className={`fixed z-[56] w-[min(380px,calc(100vw-40px))] ${anchor.anchored ? '' : 'bottom-[108px] right-6'}`}
+          className={`fixed z-[56] w-[min(420px,calc(100vw-40px))] ${anchor.anchored ? '' : 'bottom-[108px] right-6'}`}
           style={bubbleStyle}
           onMouseEnter={onPause}
           onFocus={onPause}
@@ -314,11 +316,11 @@ export function LucianBubble({
             {/* Body — sprite panel + text panel */}
             <div className="relative flex items-stretch">
               {/* Sprite panel */}
-              <div className="relative flex w-[72px] flex-shrink-0 items-center justify-center border-r border-white/[0.06] py-4">
+              <div className="relative flex w-[96px] flex-shrink-0 items-center justify-center border-r border-white/[0.06] py-4">
                 <div
                   className={`pointer-events-none absolute inset-0 ${moodSpriteGlow[mood]} blur-xl`}
                 />
-                <LucianSpriteAnimator animation={spriteAnimation} size={52} />
+                <LucianSpriteAnimator animation={spriteAnimation} size={72} />
               </div>
 
               {/* Text panel */}

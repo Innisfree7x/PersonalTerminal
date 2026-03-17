@@ -45,9 +45,14 @@ function isAllowedFile(file: File): { ok: boolean; reason?: string } {
 interface CvUploadProps {
   externalFile?: File | null;
   externalFileNonce?: number;
+  onCvProcessed?: (payload: { persisted: boolean; analysis: CvAnalyzeResult }) => void;
 }
 
-export default function CvUpload({ externalFile = null, externalFileNonce = 0 }: CvUploadProps) {
+export default function CvUpload({
+  externalFile = null,
+  externalFileNonce = 0,
+  onCvProcessed,
+}: CvUploadProps) {
   const loginHref = '/auth/login?redirectTo=%2Fcareer';
   const inputRef = useRef<HTMLInputElement | null>(null);
   const lastHandledExternalNonceRef = useRef<number>(0);
@@ -130,7 +135,11 @@ export default function CvUpload({ externalFile = null, externalFileNonce = 0 }:
         const analyzeData = (await analyzeResponse.json()) as AnalyzeResponse;
         if (analyzeData.analysis) {
           setAnalysis(analyzeData.analysis);
-          setAnalysisPersisted(Boolean(analyzeData.meta?.persisted));
+          const persisted = Boolean(analyzeData.meta?.persisted);
+          setAnalysisPersisted(persisted);
+          if (onCvProcessed) {
+            onCvProcessed({ persisted, analysis: analyzeData.analysis });
+          }
         }
       } catch (analyzeErr) {
         const message = analyzeErr instanceof Error ? analyzeErr.message : 'CV-Analyse fehlgeschlagen';
@@ -180,7 +189,7 @@ export default function CvUpload({ externalFile = null, externalFileNonce = 0 }:
     } finally {
       setIsUploading(false);
     }
-  }, []);
+  }, [onCvProcessed]);
 
   useEffect(() => {
     if (!externalFile || externalFileNonce <= 0) return;
