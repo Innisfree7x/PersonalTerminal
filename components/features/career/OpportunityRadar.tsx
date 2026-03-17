@@ -18,6 +18,7 @@ import toast from 'react-hot-toast';
 
 interface OpportunityRadarProps {
   onAdoptToPipeline: (prefill: CreateApplicationInput) => void;
+  externalRefreshToken?: number;
 }
 
 const TRACK_PRIORITY_ORDER: RadarTrack[] = ['M&A', 'TS', 'CorpFin', 'Audit'];
@@ -65,7 +66,7 @@ function buildApplicationPrefill(opportunity: OpportunitySearchItem): CreateAppl
   };
 }
 
-export default function OpportunityRadar({ onAdoptToPipeline }: OpportunityRadarProps) {
+export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshToken = 0 }: OpportunityRadarProps) {
   const [query, setQuery] = useState('');
   const [selectedLocations, setSelectedLocations] = useState<DachLocation[]>(['DE', 'AT', 'CH']);
   const [priorityTrack, setPriorityTrack] = useState<RadarTrack>('M&A');
@@ -125,7 +126,7 @@ export default function OpportunityRadar({ onAdoptToPipeline }: OpportunityRadar
       window.clearTimeout(run);
       controller.abort();
     };
-  }, [priorityTrack, query, refreshNonce, serializedBands, serializedLocations]);
+  }, [priorityTrack, query, refreshNonce, serializedBands, serializedLocations, externalRefreshToken]);
 
   const toggleLocation = (location: DachLocation) => {
     setSelectedLocations((prev) => {
