@@ -7,30 +7,25 @@ import { fetchProfileAction } from '@/app/actions/profile';
 import { trackOnboardingEvent } from '@/app/onboarding/analytics';
 import { OnboardingLayout } from '@/components/features/onboarding/OnboardingLayout';
 import { StepWelcome } from '@/components/features/onboarding/StepWelcome';
-import { StepProfile } from '@/components/features/onboarding/StepProfile';
 import {
-  StepTrajectoryGoal,
+  StepGoalAndPlan,
   type TrajectoryGoalDraft,
   type TrajectoryGoalPersisted,
-} from '@/components/features/onboarding/StepTrajectoryGoal';
-import {
-  StepTrajectoryPlan,
   type TrajectorySettingsDraft,
   type TrajectoryPlanSummary,
-} from '@/components/features/onboarding/StepTrajectoryPlan';
+} from '@/components/features/onboarding/StepGoalAndPlan';
 import { StepComplete } from '@/components/features/onboarding/StepComplete';
 import type { DemoSeedResult } from '@/app/onboarding/demoSeedService';
 
-const TOTAL_STEPS = 5;
-const LS_KEY = 'innis_onboarding_v1';
+const TOTAL_STEPS = 3;
+const LS_KEY = 'innis_onboarding_v2';
 
 interface PersistedState {
   step: number;
-  name: string;
   demoSeeded: boolean;
   trajectory: {
     goal: TrajectoryGoalPersisted | null;
-    goalFormDraft: TrajectoryGoalDraft | null;
+    goalDraft: TrajectoryGoalDraft | null;
     settingsDraft: TrajectorySettingsDraft | null;
     planSummary: TrajectoryPlanSummary | null;
   };
@@ -48,6 +43,9 @@ function parseStep(value: unknown): number {
 function parseTrajectoryGoalDraft(value: unknown): TrajectoryGoalDraft | null {
   if (!isRecord(value)) return null;
   const title = typeof value.title === 'string' ? value.title : '';
+  const dueDate = typeof value.dueDate === 'string' ? value.dueDate : '';
+  if (!title && !dueDate) return null;
+
   const category =
     value.category === 'thesis' ||
     value.category === 'gmat' ||
@@ -56,20 +54,14 @@ function parseTrajectoryGoalDraft(value: unknown): TrajectoryGoalDraft | null {
     value.category === 'other'
       ? value.category
       : 'thesis';
-  const dueDate = typeof value.dueDate === 'string' ? value.dueDate : '';
-  if (!title && !dueDate) return null;
 
   return {
     title,
     category,
     dueDate,
-    effortUnit: value.effortUnit === 'hours' ? 'hours' : 'months',
-    effortHours: typeof value.effortHours === 'number' ? value.effortHours : 120,
-    effortMonths: typeof value.effortMonths === 'number' ? value.effortMonths : 3,
-    bufferUnit: value.bufferUnit === 'weeks' ? 'weeks' : 'months',
+    effortHours: typeof value.effortHours === 'number' ? value.effortHours : 300,
     bufferWeeks: typeof value.bufferWeeks === 'number' ? value.bufferWeeks : 2,
-    bufferMonths: typeof value.bufferMonths === 'number' ? value.bufferMonths : 0.5,
-    priority: typeof value.priority === 'number' ? Math.min(5, Math.max(1, Math.round(value.priority))) : 3,
+    capacityHoursPerWeek: typeof value.capacityHoursPerWeek === 'number' ? value.capacityHoursPerWeek : 15,
   };
 }
 
@@ -88,13 +80,9 @@ function parseTrajectoryGoalPersisted(value: unknown): TrajectoryGoalPersisted |
       ? goalDraft.category
       : 'other';
 
-  const status = goalDraft.status === 'active' ? 'active' : null;
   const title = typeof goalDraft.title === 'string' ? goalDraft.title : '';
   const dueDate = typeof goalDraft.dueDate === 'string' ? goalDraft.dueDate : '';
-  const effortHours = typeof goalDraft.effortHours === 'number' ? goalDraft.effortHours : 0;
-  const bufferWeeks = typeof goalDraft.bufferWeeks === 'number' ? goalDraft.bufferWeeks : 0;
-  const priority = typeof goalDraft.priority === 'number' ? goalDraft.priority : 3;
-
+  const status = goalDraft.status === 'active' ? 'active' : null;
   if (!title || !dueDate || !status) return null;
 
   return {
@@ -103,9 +91,9 @@ function parseTrajectoryGoalPersisted(value: unknown): TrajectoryGoalPersisted |
       title,
       category,
       dueDate,
-      effortHours: Math.max(1, Math.round(effortHours)),
-      bufferWeeks: Math.max(0, Math.round(bufferWeeks)),
-      priority: Math.max(1, Math.min(5, Math.round(priority))),
+      effortHours: typeof goalDraft.effortHours === 'number' ? Math.max(1, Math.round(goalDraft.effortHours)) : 0,
+      bufferWeeks: typeof goalDraft.bufferWeeks === 'number' ? Math.max(0, Math.round(goalDraft.bufferWeeks)) : 0,
+      priority: typeof goalDraft.priority === 'number' ? Math.max(1, Math.min(5, Math.round(goalDraft.priority))) : 3,
       status,
     },
   };
@@ -126,45 +114,33 @@ function parseTrajectoryPlanSummary(value: unknown): TrajectoryPlanSummary | nul
   if (!isRecord(value)) return null;
   const status = value.status;
   if (status !== 'on_track' && status !== 'tight' && status !== 'at_risk') return null;
-
   const startDate = typeof value.startDate === 'string' ? value.startDate : '';
   const explanation = typeof value.explanation === 'string' ? value.explanation : '';
   const effectiveCapacityHoursPerWeek =
     typeof value.effectiveCapacityHoursPerWeek === 'number' ? value.effectiveCapacityHoursPerWeek : 0;
-
   if (!startDate || !explanation || effectiveCapacityHoursPerWeek <= 0) return null;
-
-  return {
-    status,
-    startDate,
-    explanation,
-    effectiveCapacityHoursPerWeek,
-  };
+  return { status, startDate, explanation, effectiveCapacityHoursPerWeek };
 }
 
 function loadPersistedState(): Partial<PersistedState> {
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) return {};
-
     const parsed = JSON.parse(raw);
     if (!isRecord(parsed)) return {};
 
     const trajectoryRaw = isRecord(parsed.trajectory) ? parsed.trajectory : {};
 
-    const parsedState: Partial<PersistedState> = {
+    return {
       step: parseStep(parsed.step),
-      name: typeof parsed.name === 'string' ? parsed.name : '',
       demoSeeded: parsed.demoSeeded === true,
       trajectory: {
         goal: parseTrajectoryGoalPersisted(trajectoryRaw.goal),
-        goalFormDraft: parseTrajectoryGoalDraft(trajectoryRaw.goalFormDraft),
+        goalDraft: parseTrajectoryGoalDraft(trajectoryRaw.goalDraft),
         settingsDraft: parseTrajectorySettingsDraft(trajectoryRaw.settingsDraft),
         planSummary: parseTrajectoryPlanSummary(trajectoryRaw.planSummary),
       },
     };
-
-    return parsedState;
   } catch {
     return {};
   }
@@ -181,30 +157,19 @@ function savePersistedState(state: PersistedState) {
 function clearPersistedState() {
   try {
     localStorage.removeItem(LS_KEY);
+    // Also clear old v1 key
+    localStorage.removeItem('innis_onboarding_v1');
   } catch {
     // ignore
   }
 }
 
-function hoursToMonths(hours: number, capacityHoursPerWeek: number): number {
-  const normalizedHours = Math.max(1, hours);
-  const normalizedWeekly = Math.max(1, capacityHoursPerWeek);
-  return Math.max(0.25, normalizedHours / normalizedWeekly / 4.345);
-}
-
-function weeksToMonths(weeks: number): number {
-  return Math.max(0.25, weeks / 4.345);
-}
-
 function resolveRestoredStep(step: number, trajectory: PersistedState['trajectory']): number {
   let resolved = Math.max(1, Math.min(TOTAL_STEPS, step));
 
-  if (resolved >= 5 && !trajectory.planSummary) {
-    resolved = trajectory.goal ? 4 : 3;
-  }
-
-  if (resolved === 4 && !trajectory.goal) {
-    resolved = 3;
+  // Can't be on step 3 (complete) without plan data
+  if (resolved >= 3 && !trajectory.planSummary) {
+    resolved = 2;
   }
 
   return resolved;
@@ -231,17 +196,16 @@ export default function OnboardingPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState(1);
-  const [initialName, setInitialName] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const [name, setName] = useState('');
   const [demoSeeded, setDemoSeeded] = useState(false);
   const [trajectoryGoal, setTrajectoryGoal] = useState<TrajectoryGoalPersisted | null>(null);
-  const [trajectoryGoalFormDraft, setTrajectoryGoalFormDraft] = useState<TrajectoryGoalDraft | null>(null);
+  const [trajectoryGoalDraft, setTrajectoryGoalDraft] = useState<TrajectoryGoalDraft | null>(null);
   const [trajectorySettingsDraft, setTrajectorySettingsDraft] = useState<TrajectorySettingsDraft | null>(null);
   const [trajectoryPlanSummary, setTrajectoryPlanSummary] = useState<TrajectoryPlanSummary | null>(null);
   const startedRef = useRef(false);
 
+  // Load persisted state + check auth
   useEffect(() => {
     let mounted = true;
 
@@ -249,22 +213,21 @@ export default function OnboardingPage() {
       const stored = loadPersistedState();
       const restoredTrajectory = stored.trajectory ?? {
         goal: null,
-        goalFormDraft: null,
+        goalDraft: null,
         settingsDraft: null,
         planSummary: null,
       };
 
       if (!mounted) return;
-      setName(stored.name ?? '');
       setDemoSeeded(stored.demoSeeded ?? false);
       setTrajectoryGoal(restoredTrajectory.goal ?? null);
-      setTrajectoryGoalFormDraft(restoredTrajectory.goalFormDraft ?? null);
+      setTrajectoryGoalDraft(restoredTrajectory.goalDraft ?? null);
       setTrajectorySettingsDraft(restoredTrajectory.settingsDraft ?? null);
       setTrajectoryPlanSummary(restoredTrajectory.planSummary ?? null);
 
       const restoredStep = resolveRestoredStep(stored.step ?? 1, {
         goal: restoredTrajectory.goal ?? null,
-        goalFormDraft: restoredTrajectory.goalFormDraft ?? null,
+        goalDraft: restoredTrajectory.goalDraft ?? null,
         settingsDraft: restoredTrajectory.settingsDraft ?? null,
         planSummary: restoredTrajectory.planSummary ?? null,
       });
@@ -278,11 +241,11 @@ export default function OnboardingPage() {
           router.replace('/today');
           return;
         }
-        setInitialName(profile.fullName || '');
       } catch {
         // silently continue
       }
 
+      // Bootstrap settings if not restored
       if (!restoredTrajectory.settingsDraft) {
         try {
           const response = await fetch('/api/trajectory/settings');
@@ -294,7 +257,7 @@ export default function OnboardingPage() {
             });
           }
         } catch {
-          // ignore bootstrap settings errors
+          // ignore
         }
       }
 
@@ -302,12 +265,12 @@ export default function OnboardingPage() {
     };
 
     void load();
-
     return () => {
       mounted = false;
     };
   }, [router]);
 
+  // Track onboarding started
   useEffect(() => {
     if (!loading && !startedRef.current) {
       startedRef.current = true;
@@ -315,43 +278,28 @@ export default function OnboardingPage() {
     }
   }, [loading]);
 
+  // Persist state
   useEffect(() => {
     if (loading) return;
-
     savePersistedState({
       step: currentStep,
-      name,
       demoSeeded,
       trajectory: {
         goal: trajectoryGoal,
-        goalFormDraft: trajectoryGoalFormDraft,
+        goalDraft: trajectoryGoalDraft,
         settingsDraft: trajectorySettingsDraft,
         planSummary: trajectoryPlanSummary,
       },
     });
-  }, [
-    loading,
-    currentStep,
-    name,
-    demoSeeded,
-    trajectoryGoal,
-    trajectoryGoalFormDraft,
-    trajectorySettingsDraft,
-    trajectoryPlanSummary,
-  ]);
+  }, [loading, currentStep, demoSeeded, trajectoryGoal, trajectoryGoalDraft, trajectorySettingsDraft, trajectoryPlanSummary]);
 
+  // Guard: can't be on step 3 without plan data
   useEffect(() => {
     if (loading) return;
-
-    if (currentStep >= 4 && !trajectoryGoal) {
-      setCurrentStep(3);
-      return;
+    if (currentStep >= 3 && !trajectoryPlanSummary) {
+      setCurrentStep(2);
     }
-
-    if (currentStep >= 5 && !trajectoryPlanSummary) {
-      setCurrentStep(trajectoryGoal ? 4 : 3);
-    }
-  }, [loading, currentStep, trajectoryGoal, trajectoryPlanSummary]);
+  }, [loading, currentStep, trajectoryPlanSummary]);
 
   const goNext = () => {
     const fromStep = currentStep;
@@ -369,25 +317,18 @@ export default function OnboardingPage() {
   const handleDemoSeeded = (seedResult: DemoSeedResult) => {
     const { trajectory } = seedResult;
     setDemoSeeded(true);
-
     setTrajectoryGoal({
       goalId: trajectory.goalId,
       goalDraft: trajectory.goalDraft,
     });
-
-    setTrajectoryGoalFormDraft({
+    setTrajectoryGoalDraft({
       title: trajectory.goalDraft.title,
       category: trajectory.goalDraft.category,
       dueDate: trajectory.goalDraft.dueDate,
-      effortUnit: 'hours',
       effortHours: trajectory.goalDraft.effortHours,
-      effortMonths: Number(hoursToMonths(trajectory.goalDraft.effortHours, trajectory.settingsDraft.hoursPerWeek).toFixed(2)),
-      bufferUnit: 'weeks',
       bufferWeeks: trajectory.goalDraft.bufferWeeks,
-      bufferMonths: Number(weeksToMonths(trajectory.goalDraft.bufferWeeks).toFixed(2)),
-      priority: trajectory.goalDraft.priority,
+      capacityHoursPerWeek: trajectory.settingsDraft.hoursPerWeek,
     });
-
     setTrajectorySettingsDraft(trajectory.settingsDraft);
     setTrajectoryPlanSummary(trajectory.planSummary);
 
@@ -402,13 +343,13 @@ export default function OnboardingPage() {
 
   if (loading) {
     return (
-      <div className="grid min-h-screen place-items-center bg-gradient-to-br from-background via-surface to-background">
+      <div className="grid min-h-screen place-items-center bg-[#0A0A0C]">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-sm text-text-tertiary"
+          className="text-sm text-zinc-600"
         >
-          Workspace vorbereiten...
+          Terminal vorbereiten...
         </motion.div>
       </div>
     );
@@ -420,11 +361,11 @@ export default function OnboardingPage() {
     trajectoryGoal && trajectorySettingsDraft && trajectoryPlanSummary
       ? {
           goalId: trajectoryGoal.goalId,
+          goalTitle: trajectoryGoal.goalDraft.title,
           status: trajectoryPlanSummary.status,
           startDate: trajectoryPlanSummary.startDate,
           explanation: trajectoryPlanSummary.explanation,
           effectiveCapacityHoursPerWeek: trajectoryPlanSummary.effectiveCapacityHoursPerWeek,
-          horizonMonths: trajectorySettingsDraft.horizonMonths,
         }
       : null;
 
@@ -452,36 +393,15 @@ export default function OnboardingPage() {
           )}
 
           {currentStep === 2 && (
-            <StepProfile
-              initialName={initialName || name}
-              onNext={(n) => {
-                setName(n);
-                goNext();
-              }}
-            />
-          )}
-
-          {currentStep === 3 && (
-            <StepTrajectoryGoal
-              initialValues={trajectoryGoalFormDraft}
+            <StepGoalAndPlan
+              initialDraft={trajectoryGoalDraft}
               existingGoal={trajectoryGoal}
-              capacityHoursPerWeek={trajectorySettingsDraft?.hoursPerWeek ?? 8}
-              onNext={(goal, goalFormDraft) => {
-                setTrajectoryGoal(goal);
-                setTrajectoryGoalFormDraft(goalFormDraft);
-                goNext();
-              }}
-            />
-          )}
-
-          {currentStep === 4 && trajectoryGoal && (
-            <StepTrajectoryPlan
-              goalId={trajectoryGoal.goalId}
               initialSettings={trajectorySettingsDraft}
-              existingSummary={trajectoryPlanSummary}
-              onNext={(settingsDraft, planSummary) => {
-                setTrajectorySettingsDraft(settingsDraft);
-                setTrajectoryPlanSummary(planSummary);
+              onNext={(goal, draft, settings, plan) => {
+                setTrajectoryGoal(goal);
+                setTrajectoryGoalDraft(draft);
+                setTrajectorySettingsDraft(settings);
+                setTrajectoryPlanSummary(plan);
                 goNext();
               }}
             />
@@ -490,7 +410,6 @@ export default function OnboardingPage() {
           {currentStep === TOTAL_STEPS && (
             <StepComplete
               completedData={{
-                name,
                 trajectory: completeTrajectory,
                 demoSeeded,
               }}
