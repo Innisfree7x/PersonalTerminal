@@ -1,0 +1,952 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="640" viewBox="0 0 512 640" shape-rendering="crispEdges">
+  <defs>
+    <!-- === SHADOW === -->
+    <symbol id="shadow" viewBox="0 0 64 64">
+      <ellipse cx="32" cy="57" rx="10" ry="3" fill="#000" fill-opacity="0.15"/>
+    </symbol>
+
+    <!-- === HAIR === -->
+    <symbol id="hair" viewBox="0 0 64 64">
+      <!-- Main hair mass - dark navy, fluffy -->
+      <rect x="22" y="8" width="20" height="3" fill="#1E293B"/>
+      <rect x="21" y="10" width="22" height="2" fill="#1E293B"/>
+      <rect x="20" y="12" width="24" height="2" fill="#1E293B"/>
+      <!-- Side fluff -->
+      <rect x="19" y="13" width="3" height="4" fill="#1E293B"/>
+      <rect x="42" y="13" width="3" height="4" fill="#1E293B"/>
+      <!-- Hair highlight -->
+      <rect x="26" y="9" width="4" height="1" fill="#334155"/>
+      <rect x="34" y="10" width="3" height="1" fill="#334155"/>
+      <!-- Ahoge (cute sticking-up hair tuft) -->
+      <rect x="30" y="6" width="2" height="3" fill="#1E293B"/>
+      <rect x="31" y="5" width="2" height="2" fill="#1E293B"/>
+    </symbol>
+
+    <!-- === FACE BASES === -->
+    <symbol id="face-base" viewBox="0 0 64 64">
+      <rect x="21" y="14" width="22" height="14" fill="#E8B4A0"/>
+      <!-- Cheek contour -->
+      <rect x="21" y="14" width="1" height="14" fill="#D4956B" fill-opacity="0.3"/>
+      <rect x="42" y="14" width="1" height="14" fill="#D4956B" fill-opacity="0.3"/>
+      <!-- Blush -->
+      <rect x="22" y="23" width="3" height="2" fill="#F0A0A0" fill-opacity="0.45"/>
+      <rect x="39" y="23" width="3" height="2" fill="#F0A0A0" fill-opacity="0.45"/>
+    </symbol>
+
+    <!-- === EYES === -->
+    <symbol id="eyes-open-cyan" viewBox="0 0 64 64">
+      <!-- Left eye -->
+      <rect x="25" y="18" width="4" height="4" fill="#0D1119"/>
+      <rect x="26" y="19" width="3" height="3" fill="#22D3EE"/>
+      <rect x="26" y="19" width="2" height="2" fill="#06B6D4"/>
+      <rect x="28" y="18" width="1" height="1" fill="#FFF" fill-opacity="0.9"/>
+      <!-- Right eye -->
+      <rect x="35" y="18" width="4" height="4" fill="#0D1119"/>
+      <rect x="36" y="19" width="3" height="3" fill="#22D3EE"/>
+      <rect x="36" y="19" width="2" height="2" fill="#06B6D4"/>
+      <rect x="38" y="18" width="1" height="1" fill="#FFF" fill-opacity="0.9"/>
+    </symbol>
+
+    <symbol id="eyes-open-amber" viewBox="0 0 64 64">
+      <rect x="25" y="18" width="4" height="4" fill="#0D1119"/>
+      <rect x="26" y="19" width="3" height="3" fill="#F59E0B"/>
+      <rect x="26" y="19" width="2" height="2" fill="#D97706"/>
+      <rect x="28" y="18" width="1" height="1" fill="#FFF" fill-opacity="0.9"/>
+      <rect x="35" y="18" width="4" height="4" fill="#0D1119"/>
+      <rect x="36" y="19" width="3" height="3" fill="#F59E0B"/>
+      <rect x="36" y="19" width="2" height="2" fill="#D97706"/>
+      <rect x="38" y="18" width="1" height="1" fill="#FFF" fill-opacity="0.9"/>
+    </symbol>
+
+    <symbol id="eyes-open-red" viewBox="0 0 64 64">
+      <rect x="25" y="18" width="4" height="4" fill="#0D1119"/>
+      <rect x="26" y="19" width="3" height="3" fill="#EF4444"/>
+      <rect x="26" y="19" width="2" height="2" fill="#DC2626"/>
+      <rect x="28" y="18" width="1" height="1" fill="#FFF" fill-opacity="0.9"/>
+      <rect x="35" y="18" width="4" height="4" fill="#0D1119"/>
+      <rect x="36" y="19" width="3" height="3" fill="#EF4444"/>
+      <rect x="36" y="19" width="2" height="2" fill="#DC2626"/>
+      <rect x="38" y="18" width="1" height="1" fill="#FFF" fill-opacity="0.9"/>
+    </symbol>
+
+    <symbol id="eyes-closed" viewBox="0 0 64 64">
+      <rect x="25" y="20" width="4" height="1" fill="#0D1119"/>
+      <rect x="35" y="20" width="4" height="1" fill="#0D1119"/>
+      <rect x="24" y="19" width="1" height="1" fill="#0D1119" fill-opacity="0.4"/>
+      <rect x="29" y="19" width="1" height="1" fill="#0D1119" fill-opacity="0.4"/>
+      <rect x="34" y="19" width="1" height="1" fill="#0D1119" fill-opacity="0.4"/>
+      <rect x="39" y="19" width="1" height="1" fill="#0D1119" fill-opacity="0.4"/>
+    </symbol>
+
+    <symbol id="eyes-happy" viewBox="0 0 64 64">
+      <!-- Happy squint: ∪ shaped -->
+      <rect x="25" y="19" width="4" height="1" fill="#0D1119"/>
+      <rect x="25" y="18" width="1" height="2" fill="#0D1119"/>
+      <rect x="28" y="18" width="1" height="2" fill="#0D1119"/>
+      <rect x="35" y="19" width="4" height="1" fill="#0D1119"/>
+      <rect x="35" y="18" width="1" height="2" fill="#0D1119"/>
+      <rect x="38" y="18" width="1" height="2" fill="#0D1119"/>
+    </symbol>
+
+    <symbol id="eyes-worried" viewBox="0 0 64 64">
+      <!-- Worried: angled brows + smaller pupils -->
+      <rect x="25" y="18" width="4" height="4" fill="#0D1119"/>
+      <rect x="26" y="19" width="2" height="2" fill="#EF4444"/>
+      <rect x="28" y="18" width="1" height="1" fill="#FFF" fill-opacity="0.7"/>
+      <rect x="35" y="18" width="4" height="4" fill="#0D1119"/>
+      <rect x="36" y="19" width="2" height="2" fill="#EF4444"/>
+      <rect x="38" y="18" width="1" height="1" fill="#FFF" fill-opacity="0.7"/>
+      <!-- Worried brows -->
+      <rect x="24" y="16" width="5" height="1" fill="#1E293B"/>
+      <rect x="35" y="16" width="5" height="1" fill="#1E293B"/>
+      <rect x="24" y="15" width="2" height="1" fill="#1E293B"/>
+      <rect x="38" y="15" width="2" height="1" fill="#1E293B"/>
+    </symbol>
+
+    <symbol id="eyes-sparkle" viewBox="0 0 64 64">
+      <!-- Big sparkly eyes for victory/celebrate -->
+      <rect x="24" y="17" width="5" height="5" fill="#0D1119"/>
+      <rect x="25" y="18" width="4" height="4" fill="#22D3EE"/>
+      <rect x="25" y="18" width="2" height="2" fill="#FFF" fill-opacity="0.7"/>
+      <rect x="28" y="21" width="1" height="1" fill="#FFF" fill-opacity="0.5"/>
+      <rect x="35" y="17" width="5" height="5" fill="#0D1119"/>
+      <rect x="36" y="18" width="4" height="4" fill="#22D3EE"/>
+      <rect x="36" y="18" width="2" height="2" fill="#FFF" fill-opacity="0.7"/>
+      <rect x="39" y="21" width="1" height="1" fill="#FFF" fill-opacity="0.5"/>
+    </symbol>
+
+    <!-- === MOUTHS === -->
+    <symbol id="mouth-neutral" viewBox="0 0 64 64">
+      <rect x="30" y="24" width="4" height="1" fill="#A0695C"/>
+    </symbol>
+
+    <symbol id="mouth-happy" viewBox="0 0 64 64">
+      <rect x="29" y="24" width="6" height="1" fill="#A0695C"/>
+      <rect x="30" y="25" width="4" height="1" fill="#A0695C"/>
+    </symbol>
+
+    <symbol id="mouth-grin" viewBox="0 0 64 64">
+      <rect x="28" y="24" width="8" height="1" fill="#A0695C"/>
+      <rect x="29" y="25" width="6" height="1" fill="#C06060"/>
+      <rect x="30" y="26" width="4" height="1" fill="#A0695C"/>
+    </symbol>
+
+    <symbol id="mouth-worried" viewBox="0 0 64 64">
+      <rect x="29" y="25" width="6" height="1" fill="#A0695C"/>
+      <rect x="30" y="24" width="4" height="1" fill="#A0695C"/>
+    </symbol>
+
+    <symbol id="mouth-open" viewBox="0 0 64 64">
+      <rect x="30" y="24" width="4" height="2" fill="#A0695C"/>
+      <rect x="31" y="25" width="2" height="1" fill="#C06060"/>
+    </symbol>
+
+    <symbol id="mouth-cat" viewBox="0 0 64 64">
+      <!-- :3 cat mouth -->
+      <rect x="30" y="24" width="1" height="1" fill="#A0695C"/>
+      <rect x="33" y="24" width="1" height="1" fill="#A0695C"/>
+      <rect x="31" y="25" width="2" height="1" fill="#A0695C"/>
+    </symbol>
+
+    <!-- === HOODIE BODY === -->
+    <symbol id="hoodie-body" viewBox="0 0 64 64">
+      <!-- Main hoodie -->
+      <rect x="23" y="28" width="18" height="14" fill="#4A5568"/>
+      <rect x="22" y="29" width="1" height="12" fill="#2D3748"/>
+      <rect x="41" y="29" width="1" height="12" fill="#2D3748"/>
+      <!-- Hood collar -->
+      <rect x="25" y="27" width="14" height="3" fill="#4A5568"/>
+      <rect x="26" y="27" width="12" height="1" fill="#718096"/>
+      <!-- Center zipper line -->
+      <rect x="32" y="29" width="1" height="13" fill="#2D3748"/>
+      <!-- Pocket -->
+      <rect x="25" y="36" width="6" height="3" fill="#2D3748" fill-opacity="0.4"/>
+      <rect x="33" y="36" width="6" height="3" fill="#2D3748" fill-opacity="0.4"/>
+    </symbol>
+
+    <symbol id="hoodie-lean-left" viewBox="0 0 64 64">
+      <rect x="22" y="28" width="18" height="14" fill="#4A5568"/>
+      <rect x="21" y="29" width="1" height="12" fill="#2D3748"/>
+      <rect x="40" y="29" width="1" height="12" fill="#2D3748"/>
+      <rect x="24" y="27" width="14" height="3" fill="#4A5568"/>
+      <rect x="25" y="27" width="12" height="1" fill="#718096"/>
+      <rect x="31" y="29" width="1" height="13" fill="#2D3748"/>
+    </symbol>
+
+    <symbol id="hoodie-lean-right" viewBox="0 0 64 64">
+      <rect x="24" y="28" width="18" height="14" fill="#4A5568"/>
+      <rect x="23" y="29" width="1" height="12" fill="#2D3748"/>
+      <rect x="42" y="29" width="1" height="12" fill="#2D3748"/>
+      <rect x="26" y="27" width="14" height="3" fill="#4A5568"/>
+      <rect x="27" y="27" width="12" height="1" fill="#718096"/>
+      <rect x="33" y="29" width="1" height="13" fill="#2D3748"/>
+    </symbol>
+
+    <!-- === LEGS === -->
+    <symbol id="legs-stand" viewBox="0 0 64 64">
+      <rect x="25" y="42" width="5" height="8" fill="#1E293B"/>
+      <rect x="34" y="42" width="5" height="8" fill="#1E293B"/>
+      <!-- Shoes -->
+      <rect x="24" y="50" width="7" height="3" fill="#0F172A"/>
+      <rect x="33" y="50" width="7" height="3" fill="#0F172A"/>
+      <rect x="24" y="50" width="7" height="1" fill="#1E293B"/>
+      <rect x="33" y="50" width="7" height="1" fill="#1E293B"/>
+    </symbol>
+
+    <symbol id="legs-walk-a" viewBox="0 0 64 64">
+      <rect x="24" y="42" width="5" height="7" fill="#1E293B"/>
+      <rect x="35" y="42" width="5" height="9" fill="#1E293B"/>
+      <rect x="23" y="49" width="7" height="3" fill="#0F172A"/>
+      <rect x="34" y="51" width="7" height="3" fill="#0F172A"/>
+    </symbol>
+
+    <symbol id="legs-walk-b" viewBox="0 0 64 64">
+      <rect x="26" y="42" width="5" height="9" fill="#1E293B"/>
+      <rect x="33" y="42" width="5" height="7" fill="#1E293B"/>
+      <rect x="25" y="51" width="7" height="3" fill="#0F172A"/>
+      <rect x="32" y="49" width="7" height="3" fill="#0F172A"/>
+    </symbol>
+
+    <symbol id="legs-jump" viewBox="0 0 64 64">
+      <!-- Legs tucked for jumping -->
+      <rect x="25" y="42" width="5" height="6" fill="#1E293B"/>
+      <rect x="34" y="42" width="5" height="6" fill="#1E293B"/>
+      <rect x="24" y="48" width="7" height="3" fill="#0F172A"/>
+      <rect x="33" y="48" width="7" height="3" fill="#0F172A"/>
+    </symbol>
+
+    <symbol id="legs-sit" viewBox="0 0 64 64">
+      <!-- Crossed/folded legs for meditation -->
+      <rect x="24" y="42" width="16" height="4" fill="#1E293B"/>
+      <rect x="23" y="44" width="6" height="4" fill="#0F172A"/>
+      <rect x="35" y="44" width="6" height="4" fill="#0F172A"/>
+    </symbol>
+
+    <!-- === ARMS === -->
+    <symbol id="arms-down" viewBox="0 0 64 64">
+      <rect x="19" y="29" width="4" height="8" fill="#4A5568"/>
+      <rect x="41" y="29" width="4" height="8" fill="#4A5568"/>
+      <rect x="19" y="37" width="4" height="3" fill="#E8B4A0"/>
+      <rect x="41" y="37" width="4" height="3" fill="#E8B4A0"/>
+    </symbol>
+
+    <symbol id="arms-swing-a" viewBox="0 0 64 64">
+      <rect x="18" y="29" width="4" height="7" fill="#4A5568"/>
+      <rect x="42" y="30" width="4" height="6" fill="#4A5568"/>
+      <rect x="18" y="36" width="4" height="3" fill="#E8B4A0"/>
+      <rect x="42" y="36" width="4" height="3" fill="#E8B4A0"/>
+    </symbol>
+
+    <symbol id="arms-swing-b" viewBox="0 0 64 64">
+      <rect x="19" y="30" width="4" height="6" fill="#4A5568"/>
+      <rect x="41" y="29" width="4" height="7" fill="#4A5568"/>
+      <rect x="19" y="36" width="4" height="3" fill="#E8B4A0"/>
+      <rect x="41" y="36" width="4" height="3" fill="#E8B4A0"/>
+    </symbol>
+
+    <symbol id="arms-up" viewBox="0 0 64 64">
+      <!-- Arms raised for celebration -->
+      <rect x="17" y="22" width="4" height="8" fill="#4A5568"/>
+      <rect x="43" y="22" width="4" height="8" fill="#4A5568"/>
+      <rect x="16" y="20" width="4" height="3" fill="#E8B4A0"/>
+      <rect x="44" y="20" width="4" height="3" fill="#E8B4A0"/>
+    </symbol>
+
+    <symbol id="arms-out" viewBox="0 0 64 64">
+      <!-- Arms spread sideways for panic -->
+      <rect x="14" y="29" width="8" height="4" fill="#4A5568"/>
+      <rect x="42" y="29" width="8" height="4" fill="#4A5568"/>
+      <rect x="12" y="29" width="3" height="4" fill="#E8B4A0"/>
+      <rect x="49" y="29" width="3" height="4" fill="#E8B4A0"/>
+    </symbol>
+
+    <symbol id="arms-crossed" viewBox="0 0 64 64">
+      <rect x="22" y="32" width="8" height="3" fill="#4A5568"/>
+      <rect x="34" y="32" width="8" height="3" fill="#4A5568"/>
+      <rect x="28" y="33" width="8" height="3" fill="#4A5568" fill-opacity="0.7"/>
+    </symbol>
+
+    <symbol id="arms-cast-forward" viewBox="0 0 64 64">
+      <!-- One arm forward for casting -->
+      <rect x="19" y="29" width="4" height="8" fill="#4A5568"/>
+      <rect x="42" y="27" width="4" height="4" fill="#4A5568"/>
+      <rect x="46" y="27" width="4" height="4" fill="#E8B4A0"/>
+      <rect x="19" y="37" width="4" height="3" fill="#E8B4A0"/>
+    </symbol>
+
+    <symbol id="arms-cast-both" viewBox="0 0 64 64">
+      <!-- Both arms forward -->
+      <rect x="18" y="27" width="4" height="4" fill="#4A5568"/>
+      <rect x="42" y="27" width="4" height="4" fill="#4A5568"/>
+      <rect x="14" y="27" width="4" height="4" fill="#E8B4A0"/>
+      <rect x="46" y="27" width="4" height="4" fill="#E8B4A0"/>
+    </symbol>
+
+    <!-- === ACCESSORIES === -->
+    <symbol id="acc-sparkle-small" viewBox="0 0 64 64">
+      <rect x="14" y="10" width="1" height="3" fill="#FFD166"/>
+      <rect x="13" y="11" width="3" height="1" fill="#FFD166"/>
+      <rect x="49" y="14" width="1" height="3" fill="#FFD166"/>
+      <rect x="48" y="15" width="3" height="1" fill="#FFD166"/>
+    </symbol>
+
+    <symbol id="acc-sparkle-big" viewBox="0 0 64 64">
+      <rect x="12" y="8" width="1" height="5" fill="#FFD166"/>
+      <rect x="10" y="10" width="5" height="1" fill="#FFD166"/>
+      <rect x="50" y="12" width="1" height="5" fill="#FFD166"/>
+      <rect x="48" y="14" width="5" height="1" fill="#FFD166"/>
+      <rect x="46" y="6" width="1" height="3" fill="#FFF2A8"/>
+      <rect x="45" y="7" width="3" height="1" fill="#FFF2A8"/>
+      <rect x="16" y="46" width="1" height="3" fill="#FFF2A8"/>
+      <rect x="15" y="47" width="3" height="1" fill="#FFF2A8"/>
+    </symbol>
+
+    <symbol id="acc-sweat" viewBox="0 0 64 64">
+      <rect x="44" y="16" width="2" height="3" fill="#60A5FA" fill-opacity="0.7"/>
+      <rect x="44" y="19" width="1" height="1" fill="#60A5FA" fill-opacity="0.5"/>
+    </symbol>
+
+    <symbol id="acc-zzz" viewBox="0 0 64 64">
+      <rect x="44" y="10" width="4" height="1" fill="#94A3B8" fill-opacity="0.5"/>
+      <rect x="46" y="11" width="1" height="1" fill="#94A3B8" fill-opacity="0.5"/>
+      <rect x="44" y="12" width="4" height="1" fill="#94A3B8" fill-opacity="0.5"/>
+      <rect x="48" y="6" width="3" height="1" fill="#94A3B8" fill-opacity="0.35"/>
+      <rect x="49" y="7" width="1" height="1" fill="#94A3B8" fill-opacity="0.35"/>
+      <rect x="48" y="8" width="3" height="1" fill="#94A3B8" fill-opacity="0.35"/>
+    </symbol>
+
+    <symbol id="acc-exclaim" viewBox="0 0 64 64">
+      <rect x="46" y="8" width="2" height="6" fill="#EF4444"/>
+      <rect x="46" y="16" width="2" height="2" fill="#EF4444"/>
+    </symbol>
+
+    <symbol id="acc-energy-orb" viewBox="0 0 64 64">
+      <!-- Cyan energy orb in front of hands -->
+      <rect x="48" y="25" width="6" height="6" fill="#22D3EE" fill-opacity="0.3"/>
+      <rect x="49" y="26" width="4" height="4" fill="#22D3EE" fill-opacity="0.6"/>
+      <rect x="50" y="27" width="2" height="2" fill="#FFF" fill-opacity="0.5"/>
+    </symbol>
+
+    <symbol id="acc-shield-glow" viewBox="0 0 64 64">
+      <!-- Shield aura around body -->
+      <rect x="18" y="16" width="28" height="2" fill="#60A5FA" fill-opacity="0.15"/>
+      <rect x="17" y="18" width="30" height="28" fill="#60A5FA" fill-opacity="0.08"/>
+      <rect x="18" y="46" width="28" height="2" fill="#60A5FA" fill-opacity="0.15"/>
+      <rect x="17" y="18" width="2" height="28" fill="#60A5FA" fill-opacity="0.15"/>
+      <rect x="45" y="18" width="2" height="28" fill="#60A5FA" fill-opacity="0.15"/>
+    </symbol>
+
+    <symbol id="acc-dash-trail" viewBox="0 0 64 64">
+      <!-- Motion blur trail -->
+      <rect x="8" y="28" width="3" height="8" fill="#22D3EE" fill-opacity="0.15"/>
+      <rect x="12" y="26" width="3" height="12" fill="#22D3EE" fill-opacity="0.1"/>
+      <rect x="4" y="30" width="3" height="4" fill="#22D3EE" fill-opacity="0.08"/>
+    </symbol>
+
+    <symbol id="acc-gold-aura" viewBox="0 0 64 64">
+      <!-- Gold aura for ultimate -->
+      <rect x="16" y="10" width="32" height="2" fill="#F59E0B" fill-opacity="0.2"/>
+      <rect x="14" y="12" width="36" height="36" fill="#F59E0B" fill-opacity="0.08"/>
+      <rect x="16" y="48" width="32" height="2" fill="#F59E0B" fill-opacity="0.2"/>
+      <rect x="14" y="12" width="2" height="36" fill="#F59E0B" fill-opacity="0.15"/>
+      <rect x="48" y="12" width="2" height="36" fill="#F59E0B" fill-opacity="0.15"/>
+    </symbol>
+
+    <symbol id="acc-recall-ring" viewBox="0 0 64 64">
+      <!-- Recall circle beneath feet -->
+      <rect x="18" y="52" width="28" height="1" fill="#A78BFA" fill-opacity="0.5"/>
+      <rect x="16" y="53" width="32" height="2" fill="#A78BFA" fill-opacity="0.3"/>
+      <rect x="18" y="55" width="28" height="1" fill="#A78BFA" fill-opacity="0.5"/>
+      <rect x="24" y="51" width="16" height="1" fill="#C4B5FD" fill-opacity="0.3"/>
+    </symbol>
+
+    <!-- === CONFETTI (for victory) === -->
+    <symbol id="confetti" viewBox="0 0 64 64">
+      <rect x="14" y="6" width="2" height="2" fill="#EF4444" fill-opacity="0.7"/>
+      <rect x="22" y="4" width="2" height="2" fill="#F59E0B" fill-opacity="0.7"/>
+      <rect x="40" y="5" width="2" height="2" fill="#22D3EE" fill-opacity="0.7"/>
+      <rect x="48" y="8" width="2" height="2" fill="#A78BFA" fill-opacity="0.7"/>
+      <rect x="10" y="14" width="1" height="2" fill="#34D399" fill-opacity="0.6"/>
+      <rect x="52" y="12" width="1" height="2" fill="#F472B6" fill-opacity="0.6"/>
+    </symbol>
+  </defs>
+
+  <!-- ============================================ -->
+  <!-- Row 0: IDLE (4 frames) — relaxed standing   -->
+  <!-- ============================================ -->
+  <!-- Frame 0: neutral -->
+  <g transform="translate(0 0)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-down"/>
+    <use href="#face-base"/>
+    <use href="#hair"/>
+    <use href="#eyes-open-cyan"/>
+    <use href="#mouth-neutral"/>
+  </g>
+  <!-- Frame 1: slight lean, blink prep -->
+  <g transform="translate(64 0)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-down"/>
+    <use href="#face-base" transform="translate(0 1)"/>
+    <use href="#hair" transform="translate(0 1)"/>
+    <use href="#eyes-open-cyan" transform="translate(0 1)"/>
+    <use href="#mouth-cat" transform="translate(0 1)"/>
+  </g>
+  <!-- Frame 2: blink -->
+  <g transform="translate(128 0)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-down"/>
+    <use href="#face-base"/>
+    <use href="#hair"/>
+    <use href="#eyes-closed"/>
+    <use href="#mouth-neutral"/>
+  </g>
+  <!-- Frame 3: back to neutral with small smile -->
+  <g transform="translate(192 0)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-down"/>
+    <use href="#face-base" transform="translate(0 1)"/>
+    <use href="#hair" transform="translate(0 1)"/>
+    <use href="#eyes-open-cyan" transform="translate(0 1)"/>
+    <use href="#mouth-happy" transform="translate(0 1)"/>
+  </g>
+
+  <!-- ============================================ -->
+  <!-- Row 1: WALK (6 frames)                      -->
+  <!-- ============================================ -->
+  <g transform="translate(0 64)">
+    <use href="#shadow"/>
+    <use href="#hoodie-lean-left"/>
+    <use href="#legs-walk-a"/>
+    <use href="#arms-swing-a"/>
+    <use href="#face-base" transform="translate(-1 0)"/>
+    <use href="#hair" transform="translate(-1 0)"/>
+    <use href="#eyes-open-cyan" transform="translate(-1 0)"/>
+    <use href="#mouth-happy" transform="translate(-1 0)"/>
+  </g>
+  <g transform="translate(64 64)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-swing-b"/>
+    <use href="#face-base"/>
+    <use href="#hair"/>
+    <use href="#eyes-open-cyan"/>
+    <use href="#mouth-happy"/>
+  </g>
+  <g transform="translate(128 64)">
+    <use href="#shadow"/>
+    <use href="#hoodie-lean-right"/>
+    <use href="#legs-walk-b"/>
+    <use href="#arms-swing-b"/>
+    <use href="#face-base" transform="translate(1 0)"/>
+    <use href="#hair" transform="translate(1 0)"/>
+    <use href="#eyes-open-cyan" transform="translate(1 0)"/>
+    <use href="#mouth-happy" transform="translate(1 0)"/>
+  </g>
+  <g transform="translate(192 64)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-swing-a"/>
+    <use href="#face-base"/>
+    <use href="#hair"/>
+    <use href="#eyes-open-cyan"/>
+    <use href="#mouth-neutral"/>
+  </g>
+  <g transform="translate(256 64)">
+    <use href="#shadow"/>
+    <use href="#hoodie-lean-left"/>
+    <use href="#legs-walk-a"/>
+    <use href="#arms-swing-a"/>
+    <use href="#face-base" transform="translate(-1 1)"/>
+    <use href="#hair" transform="translate(-1 1)"/>
+    <use href="#eyes-open-cyan" transform="translate(-1 1)"/>
+    <use href="#mouth-happy" transform="translate(-1 1)"/>
+  </g>
+  <g transform="translate(320 64)">
+    <use href="#shadow"/>
+    <use href="#hoodie-lean-right"/>
+    <use href="#legs-walk-b"/>
+    <use href="#arms-swing-b"/>
+    <use href="#face-base" transform="translate(1 1)"/>
+    <use href="#hair" transform="translate(1 1)"/>
+    <use href="#eyes-open-cyan" transform="translate(1 1)"/>
+    <use href="#mouth-neutral" transform="translate(1 1)"/>
+  </g>
+
+  <!-- ============================================ -->
+  <!-- Row 2: CAST_Q (4 frames) — energy shot      -->
+  <!-- ============================================ -->
+  <g transform="translate(0 128)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-cast-forward"/>
+    <use href="#face-base"/>
+    <use href="#hair"/>
+    <use href="#eyes-open-cyan"/>
+    <use href="#mouth-open"/>
+  </g>
+  <g transform="translate(64 128)">
+    <use href="#shadow"/>
+    <use href="#hoodie-lean-right"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-cast-forward"/>
+    <use href="#acc-energy-orb"/>
+    <use href="#face-base" transform="translate(1 0)"/>
+    <use href="#hair" transform="translate(1 0)"/>
+    <use href="#eyes-open-cyan" transform="translate(1 0)"/>
+    <use href="#mouth-open" transform="translate(1 0)"/>
+    <use href="#acc-sparkle-small"/>
+  </g>
+  <g transform="translate(128 128)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-cast-forward"/>
+    <use href="#acc-energy-orb"/>
+    <use href="#face-base"/>
+    <use href="#hair"/>
+    <use href="#eyes-open-cyan"/>
+    <use href="#mouth-happy"/>
+    <use href="#acc-sparkle-big"/>
+  </g>
+  <g transform="translate(192 128)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-down"/>
+    <use href="#face-base"/>
+    <use href="#hair"/>
+    <use href="#eyes-open-cyan"/>
+    <use href="#mouth-happy"/>
+  </g>
+
+  <!-- ============================================ -->
+  <!-- Row 3: CAST_W (3 frames) — shield spell     -->
+  <!-- ============================================ -->
+  <g transform="translate(0 192)">
+    <use href="#shadow"/>
+    <use href="#acc-shield-glow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-cast-both"/>
+    <use href="#face-base"/>
+    <use href="#hair"/>
+    <use href="#eyes-open-cyan"/>
+    <use href="#mouth-open"/>
+  </g>
+  <g transform="translate(64 192)">
+    <use href="#shadow"/>
+    <use href="#acc-shield-glow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-up"/>
+    <use href="#face-base" transform="translate(0 1)"/>
+    <use href="#hair" transform="translate(0 1)"/>
+    <use href="#eyes-open-cyan" transform="translate(0 1)"/>
+    <use href="#mouth-happy" transform="translate(0 1)"/>
+    <use href="#acc-sparkle-small"/>
+  </g>
+  <g transform="translate(128 192)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-down"/>
+    <use href="#face-base"/>
+    <use href="#hair"/>
+    <use href="#eyes-open-cyan"/>
+    <use href="#mouth-happy"/>
+  </g>
+
+  <!-- ============================================ -->
+  <!-- Row 4: CAST_E (4 frames) — dash             -->
+  <!-- ============================================ -->
+  <g transform="translate(0 256)">
+    <use href="#shadow"/>
+    <use href="#hoodie-lean-right"/>
+    <use href="#legs-walk-a"/>
+    <use href="#arms-swing-a"/>
+    <use href="#face-base" transform="translate(1 0)"/>
+    <use href="#hair" transform="translate(1 0)"/>
+    <use href="#eyes-open-cyan" transform="translate(1 0)"/>
+    <use href="#mouth-open" transform="translate(1 0)"/>
+  </g>
+  <g transform="translate(64 256)">
+    <use href="#shadow"/>
+    <use href="#acc-dash-trail"/>
+    <use href="#hoodie-lean-right"/>
+    <use href="#legs-walk-b"/>
+    <use href="#arms-swing-b"/>
+    <use href="#face-base" transform="translate(2 -1)"/>
+    <use href="#hair" transform="translate(2 -1)"/>
+    <use href="#eyes-open-cyan" transform="translate(2 -1)"/>
+    <use href="#mouth-happy" transform="translate(2 -1)"/>
+  </g>
+  <g transform="translate(128 256)">
+    <use href="#shadow"/>
+    <use href="#acc-dash-trail"/>
+    <use href="#hoodie-lean-right"/>
+    <use href="#legs-walk-a"/>
+    <use href="#arms-swing-a"/>
+    <use href="#face-base" transform="translate(3 0)"/>
+    <use href="#hair" transform="translate(3 0)"/>
+    <use href="#eyes-happy" transform="translate(3 0)"/>
+    <use href="#mouth-happy" transform="translate(3 0)"/>
+    <use href="#acc-sparkle-small"/>
+  </g>
+  <g transform="translate(192 256)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-down"/>
+    <use href="#face-base"/>
+    <use href="#hair"/>
+    <use href="#eyes-open-cyan"/>
+    <use href="#mouth-happy"/>
+  </g>
+
+  <!-- ============================================ -->
+  <!-- Row 5: CAST_R (8 frames) — ultimate power   -->
+  <!-- ============================================ -->
+  <g transform="translate(0 320)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-down"/>
+    <use href="#face-base"/>
+    <use href="#hair"/>
+    <use href="#eyes-open-amber"/>
+    <use href="#mouth-open"/>
+  </g>
+  <g transform="translate(64 320)">
+    <use href="#shadow"/>
+    <use href="#acc-gold-aura"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-up"/>
+    <use href="#face-base" transform="translate(0 -1)"/>
+    <use href="#hair" transform="translate(0 -1)"/>
+    <use href="#eyes-open-amber" transform="translate(0 -1)"/>
+    <use href="#mouth-open" transform="translate(0 -1)"/>
+  </g>
+  <g transform="translate(128 320)">
+    <use href="#shadow"/>
+    <use href="#acc-gold-aura"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-jump"/>
+    <use href="#arms-up"/>
+    <use href="#face-base" transform="translate(0 -3)"/>
+    <use href="#hair" transform="translate(0 -3)"/>
+    <use href="#eyes-sparkle" transform="translate(0 -3)"/>
+    <use href="#mouth-grin" transform="translate(0 -3)"/>
+    <use href="#acc-sparkle-big"/>
+  </g>
+  <g transform="translate(192 320)">
+    <use href="#shadow"/>
+    <use href="#acc-gold-aura"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-jump"/>
+    <use href="#arms-cast-both"/>
+    <use href="#face-base" transform="translate(0 -2)"/>
+    <use href="#hair" transform="translate(0 -2)"/>
+    <use href="#eyes-sparkle" transform="translate(0 -2)"/>
+    <use href="#mouth-grin" transform="translate(0 -2)"/>
+    <use href="#acc-sparkle-big"/>
+    <use href="#confetti"/>
+  </g>
+  <g transform="translate(256 320)">
+    <use href="#shadow"/>
+    <use href="#acc-gold-aura"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-up"/>
+    <use href="#face-base" transform="translate(0 -1)"/>
+    <use href="#hair" transform="translate(0 -1)"/>
+    <use href="#eyes-sparkle" transform="translate(0 -1)"/>
+    <use href="#mouth-grin" transform="translate(0 -1)"/>
+    <use href="#confetti"/>
+  </g>
+  <g transform="translate(320 320)">
+    <use href="#shadow"/>
+    <use href="#acc-gold-aura"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-cast-both"/>
+    <use href="#face-base"/>
+    <use href="#hair"/>
+    <use href="#eyes-open-amber"/>
+    <use href="#mouth-grin"/>
+    <use href="#acc-sparkle-big"/>
+  </g>
+  <g transform="translate(384 320)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-up"/>
+    <use href="#face-base" transform="translate(0 1)"/>
+    <use href="#hair" transform="translate(0 1)"/>
+    <use href="#eyes-open-amber" transform="translate(0 1)"/>
+    <use href="#mouth-happy" transform="translate(0 1)"/>
+    <use href="#acc-sparkle-small"/>
+  </g>
+  <g transform="translate(448 320)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-down"/>
+    <use href="#face-base"/>
+    <use href="#hair"/>
+    <use href="#eyes-open-cyan"/>
+    <use href="#mouth-happy"/>
+  </g>
+
+  <!-- ============================================ -->
+  <!-- Row 6: VICTORY (6 frames) — celebrating     -->
+  <!-- ============================================ -->
+  <g transform="translate(0 384)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-up"/>
+    <use href="#face-base" transform="translate(0 -1)"/>
+    <use href="#hair" transform="translate(0 -1)"/>
+    <use href="#eyes-sparkle" transform="translate(0 -1)"/>
+    <use href="#mouth-grin" transform="translate(0 -1)"/>
+    <use href="#confetti"/>
+  </g>
+  <g transform="translate(64 384)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-jump"/>
+    <use href="#arms-up"/>
+    <use href="#face-base" transform="translate(0 -3)"/>
+    <use href="#hair" transform="translate(0 -3)"/>
+    <use href="#eyes-happy" transform="translate(0 -3)"/>
+    <use href="#mouth-grin" transform="translate(0 -3)"/>
+    <use href="#confetti"/>
+    <use href="#acc-sparkle-big"/>
+  </g>
+  <g transform="translate(128 384)">
+    <use href="#shadow"/>
+    <use href="#hoodie-lean-right"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-up"/>
+    <use href="#face-base" transform="translate(1 -1)"/>
+    <use href="#hair" transform="translate(1 -1)"/>
+    <use href="#eyes-sparkle" transform="translate(1 -1)"/>
+    <use href="#mouth-grin" transform="translate(1 -1)"/>
+    <use href="#acc-sparkle-small"/>
+  </g>
+  <g transform="translate(192 384)">
+    <use href="#shadow"/>
+    <use href="#hoodie-lean-left"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-up"/>
+    <use href="#face-base" transform="translate(-1 -1)"/>
+    <use href="#hair" transform="translate(-1 -1)"/>
+    <use href="#eyes-happy" transform="translate(-1 -1)"/>
+    <use href="#mouth-grin" transform="translate(-1 -1)"/>
+    <use href="#confetti"/>
+  </g>
+  <g transform="translate(256 384)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-jump"/>
+    <use href="#arms-up"/>
+    <use href="#face-base" transform="translate(0 -3)"/>
+    <use href="#hair" transform="translate(0 -3)"/>
+    <use href="#eyes-sparkle" transform="translate(0 -3)"/>
+    <use href="#mouth-grin" transform="translate(0 -3)"/>
+    <use href="#confetti"/>
+    <use href="#acc-sparkle-big"/>
+  </g>
+  <g transform="translate(320 384)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-up"/>
+    <use href="#face-base"/>
+    <use href="#hair"/>
+    <use href="#eyes-sparkle"/>
+    <use href="#mouth-happy"/>
+  </g>
+
+  <!-- ============================================ -->
+  <!-- Row 7: PANIC (4 frames) — stressed          -->
+  <!-- ============================================ -->
+  <g transform="translate(0 448)">
+    <use href="#shadow"/>
+    <use href="#hoodie-lean-left"/>
+    <use href="#legs-walk-a"/>
+    <use href="#arms-out"/>
+    <use href="#face-base" transform="translate(-1 0)"/>
+    <use href="#hair" transform="translate(-1 0)"/>
+    <use href="#eyes-worried" transform="translate(-1 0)"/>
+    <use href="#mouth-worried" transform="translate(-1 0)"/>
+    <use href="#acc-sweat"/>
+    <use href="#acc-exclaim"/>
+  </g>
+  <g transform="translate(64 448)">
+    <use href="#shadow"/>
+    <use href="#hoodie-lean-right"/>
+    <use href="#legs-walk-b"/>
+    <use href="#arms-out"/>
+    <use href="#face-base" transform="translate(1 0)"/>
+    <use href="#hair" transform="translate(1 0)"/>
+    <use href="#eyes-worried" transform="translate(1 0)"/>
+    <use href="#mouth-open" transform="translate(1 0)"/>
+    <use href="#acc-sweat"/>
+  </g>
+  <g transform="translate(128 448)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-out"/>
+    <use href="#face-base" transform="translate(0 1)"/>
+    <use href="#hair" transform="translate(0 1)"/>
+    <use href="#eyes-worried" transform="translate(0 1)"/>
+    <use href="#mouth-worried" transform="translate(0 1)"/>
+    <use href="#acc-exclaim"/>
+  </g>
+  <g transform="translate(192 448)">
+    <use href="#shadow"/>
+    <use href="#hoodie-lean-left"/>
+    <use href="#legs-walk-a"/>
+    <use href="#arms-out"/>
+    <use href="#face-base" transform="translate(-1 1)"/>
+    <use href="#hair" transform="translate(-1 1)"/>
+    <use href="#eyes-open-red" transform="translate(-1 1)"/>
+    <use href="#mouth-open" transform="translate(-1 1)"/>
+    <use href="#acc-sweat"/>
+  </g>
+
+  <!-- ============================================ -->
+  <!-- Row 8: MEDITATE (4 frames) — peaceful       -->
+  <!-- ============================================ -->
+  <g transform="translate(0 512)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-sit"/>
+    <use href="#arms-crossed"/>
+    <use href="#face-base"/>
+    <use href="#hair"/>
+    <use href="#eyes-closed"/>
+    <use href="#mouth-cat"/>
+    <use href="#acc-zzz"/>
+  </g>
+  <g transform="translate(64 512)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-sit"/>
+    <use href="#arms-crossed"/>
+    <use href="#face-base" transform="translate(0 1)"/>
+    <use href="#hair" transform="translate(0 1)"/>
+    <use href="#eyes-closed" transform="translate(0 1)"/>
+    <use href="#mouth-cat" transform="translate(0 1)"/>
+    <use href="#acc-zzz"/>
+  </g>
+  <g transform="translate(128 512)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-sit"/>
+    <use href="#arms-crossed"/>
+    <use href="#face-base"/>
+    <use href="#hair"/>
+    <use href="#eyes-closed"/>
+    <use href="#mouth-neutral"/>
+  </g>
+  <g transform="translate(192 512)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-sit"/>
+    <use href="#arms-crossed"/>
+    <use href="#face-base" transform="translate(0 1)"/>
+    <use href="#hair" transform="translate(0 1)"/>
+    <use href="#eyes-closed" transform="translate(0 1)"/>
+    <use href="#mouth-cat" transform="translate(0 1)"/>
+    <use href="#acc-zzz"/>
+  </g>
+
+  <!-- ============================================ -->
+  <!-- Row 9: RECALL (6 frames) — teleport back    -->
+  <!-- ============================================ -->
+  <g transform="translate(0 576)">
+    <use href="#shadow"/>
+    <use href="#acc-recall-ring"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-down"/>
+    <use href="#face-base"/>
+    <use href="#hair"/>
+    <use href="#eyes-open-cyan"/>
+    <use href="#mouth-neutral"/>
+  </g>
+  <g transform="translate(64 576)">
+    <use href="#shadow"/>
+    <use href="#acc-recall-ring"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-cast-both"/>
+    <use href="#face-base" transform="translate(0 -1)"/>
+    <use href="#hair" transform="translate(0 -1)"/>
+    <use href="#eyes-closed" transform="translate(0 -1)"/>
+    <use href="#mouth-neutral" transform="translate(0 -1)"/>
+    <use href="#acc-sparkle-small"/>
+  </g>
+  <g transform="translate(128 576)">
+    <use href="#shadow"/>
+    <use href="#acc-recall-ring"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-up"/>
+    <use href="#face-base" transform="translate(0 -2)"/>
+    <use href="#hair" transform="translate(0 -2)"/>
+    <use href="#eyes-closed" transform="translate(0 -2)"/>
+    <use href="#mouth-cat" transform="translate(0 -2)"/>
+    <use href="#acc-sparkle-big"/>
+  </g>
+  <g transform="translate(192 576)">
+    <use href="#shadow"/>
+    <use href="#acc-recall-ring"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-jump"/>
+    <use href="#arms-up"/>
+    <use href="#face-base" transform="translate(0 -3)"/>
+    <use href="#hair" transform="translate(0 -3)"/>
+    <use href="#eyes-open-cyan" transform="translate(0 -3)"/>
+    <use href="#mouth-happy" transform="translate(0 -3)"/>
+    <use href="#acc-sparkle-big"/>
+  </g>
+  <g transform="translate(256 576)">
+    <use href="#shadow"/>
+    <use href="#acc-recall-ring"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-cast-both"/>
+    <use href="#face-base" transform="translate(0 -1)"/>
+    <use href="#hair" transform="translate(0 -1)"/>
+    <use href="#eyes-closed" transform="translate(0 -1)"/>
+    <use href="#mouth-neutral" transform="translate(0 -1)"/>
+  </g>
+  <g transform="translate(320 576)">
+    <use href="#shadow"/>
+    <use href="#hoodie-body"/>
+    <use href="#legs-stand"/>
+    <use href="#arms-down"/>
+    <use href="#face-base"/>
+    <use href="#hair"/>
+    <use href="#eyes-open-cyan"/>
+    <use href="#mouth-happy"/>
+  </g>
+</svg>

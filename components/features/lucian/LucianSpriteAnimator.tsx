@@ -8,7 +8,7 @@ export type LucianAnimation = 'idle' | 'walk' | 'victory' | 'panic' | 'meditate'
 const DEFAULT_SIZE = 72;
 const SHEET_COLUMNS = 8;
 const SHEET_ROWS = 10;
-const SPRITE_SHEET_PATH = '/sprites/lucian-sprites-v2.svg';
+const SPRITE_SHEET_PATH = '/sprites/lucian-sprites-v3.svg';
 
 interface LucianSpriteAnimatorProps {
   animation: LucianAnimation;

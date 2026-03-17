@@ -7,20 +7,20 @@ vi.mock('framer-motion', () => ({
   useReducedMotion: () => false,
 }));
 
-describe('Lucian sprite V2', () => {
-  test('animator points to the V2 spritesheet with 72px default size', () => {
+describe('Lucian sprite V3', () => {
+  test('animator points to the V3 spritesheet with 72px default size', () => {
     const { container } = render(<LucianSpriteAnimator animation="idle" />);
     const sprite = container.firstChild as HTMLElement | null;
 
     expect(sprite).not.toBeNull();
-    expect(sprite?.style.backgroundImage).toContain('/sprites/lucian-sprites-v2.svg');
+    expect(sprite?.style.backgroundImage).toContain('/sprites/lucian-sprites-v3.svg');
     expect(sprite?.style.width).toBe('72px');
     expect(sprite?.style.height).toBe('72px');
     expect(sprite?.style.imageRendering).toBe('pixelated');
   });
 
-  test('champion config uses Lucian V2 sheet and 64px frames', () => {
-    expect(CHAMPION_CONFIG.lucian.spriteSheet).toBe('/sprites/lucian-sprites-v2.svg');
+  test('champion config uses Lucian V3 sheet and 64px frames', () => {
+    expect(CHAMPION_CONFIG.lucian.spriteSheet).toBe('/sprites/lucian-sprites-v3.svg');
     expect(CHAMPION_CONFIG.lucian.frameSize).toBe(64);
   });
 });
