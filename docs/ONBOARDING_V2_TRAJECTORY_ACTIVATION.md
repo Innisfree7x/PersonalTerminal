@@ -9,24 +9,22 @@ This is the primary activation workstream for the next phase.
 
 ### Keep As-Is
 - `StepWelcome`
-- `StepProfile`
 - `OnboardingLayout`
 - Transition system (`AnimatePresence`, slide transitions)
-- `TOTAL_STEPS = 5`
-- Local storage resume key: `innis_onboarding_v1`
+- Local storage resume key: `innis_onboarding_v2`
 
 ### Replace
 Current step sequence:
-- `Welcome -> Profile -> Courses -> FirstTask -> Complete`
+- `Welcome -> Legacy setup steps -> Complete`
 
 New step sequence:
-- `Welcome -> Profile -> TrajectoryGoal -> TrajectoryPlan -> Complete`
+- `Welcome -> TrajectoryGoal -> TrajectoryPlan -> Complete`
 
-`Courses` and `FirstTask` are removed from onboarding. Users handle those later in `/university` and `/today`.
+Legacy `Profile`, `Courses`, and `FirstTask` are removed from the live onboarding flow. Users handle operational setup later in `/university` and `/today`.
 
 ## New Step Specs
 
-### Step 3: `StepTrajectoryGoal` (new)
+### Step 2: `StepTrajectoryGoal` (new)
 - Prompt: "What is your next big goal?"
 - Inputs:
   - `title`
@@ -42,7 +40,7 @@ New step sequence:
   - `POST /api/trajectory/goals`
   - Persist `goalId` + normalized goal payload in onboarding state
 
-### Step 4: `StepTrajectoryPlan` (new)
+### Step 3: `StepTrajectoryPlan` (new)
 - Prompt: "How many hours per week can you realistically invest?"
 - Inputs:
   - hours/week slider (5..60)
@@ -55,7 +53,7 @@ New step sequence:
   - Concrete date line (example: "Prep starts Nov 09, 2026")
   - One-sentence explanation from plan summary
 
-### Step 5: `StepComplete` (adjusted)
+### Step 4: `StepComplete` (adjusted)
 - Show trajectory status block prominently at top
 - Primary CTA: `Open Trajectory`
 - Secondary CTA: `Go to Today`
@@ -141,7 +139,7 @@ Do not merge if any of these are unresolved:
 - red CI
 
 ## Implementation Status (2026-03-04)
-- UI onboarding step swap implemented (`StepTrajectoryGoal`, `StepTrajectoryPlan`, updated `StepComplete`): done
+- Live onboarding step swap implemented (`StepTrajectoryGoal`, `StepTrajectoryPlan`, updated `StepComplete`): done
 - Demo seed trajectory integration: done
 - Completion gate + duplicate-submit guard tests: done
 - Legacy resume migration tests: done
@@ -149,4 +147,5 @@ Do not merge if any of these are unresolved:
 - Analytics event schema alignment for trajectory onboarding events: done
 - Monitoring optional Sentry import hardened (no dynamic dependency build warning): done
 - Marketing/Features pages aligned to trajectory-first product narrative: done
+- Legacy V1 step files removed from the live path: done
 - Remaining follow-up: ensure authenticated blocker E2E env always yields executed (non-skipped) runs

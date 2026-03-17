@@ -48,8 +48,8 @@ vi.mock('@/components/features/onboarding/StepWelcome', () => ({
   ),
 }));
 
-vi.mock('@/components/features/onboarding/StepGoalAndPlan', () => ({
-  StepGoalAndPlan: ({
+vi.mock('@/components/features/onboarding/StepTrajectoryGoal', () => ({
+  StepTrajectoryGoal: ({
     onNext,
   }: {
     onNext: (
@@ -117,7 +117,42 @@ vi.mock('@/components/features/onboarding/StepGoalAndPlan', () => ({
           )
         }
       >
-        goal-plan-success
+        goal-success
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock('@/components/features/onboarding/StepTrajectoryPlan', () => ({
+  StepTrajectoryPlan: ({
+    onNext,
+  }: {
+    onNext: (
+      settings: { hoursPerWeek: number; horizonMonths: number },
+      summary: {
+        status: 'on_track';
+        startDate: string;
+        explanation: string;
+        effectiveCapacityHoursPerWeek: number;
+      }
+    ) => void;
+  }) => (
+    <div data-testid="mock-step-trajectory-plan">
+      <button
+        type="button"
+        onClick={() =>
+          onNext(
+            { hoursPerWeek: 10, horizonMonths: 24 },
+            {
+              status: 'on_track',
+              startDate: '2026-06-01',
+              explanation: 'Stable trajectory.',
+              effectiveCapacityHoursPerWeek: 10,
+            }
+          )
+        }
+      >
+        plan-success
       </button>
     </div>
   ),
@@ -169,7 +204,7 @@ function okJson(payload: unknown): Response {
   });
 }
 
-describe('Onboarding V2 page flow (3-step)', () => {
+describe('Onboarding V2 page flow (4-step)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     storageState.clear();
@@ -192,7 +227,7 @@ describe('Onboarding V2 page flow (3-step)', () => {
     });
   });
 
-  test('happy path: welcome → goal+plan → complete', async () => {
+  test('happy path: welcome → goal → plan → complete', async () => {
     const user = userEvent.setup();
     render(<OnboardingPage />);
 
@@ -200,8 +235,11 @@ describe('Onboarding V2 page flow (3-step)', () => {
     await user.click(screen.getByRole('button', { name: 'welcome-next' }));
     await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:2'));
 
-    await user.click(await screen.findByRole('button', { name: 'goal-plan-success' }));
+    await user.click(await screen.findByRole('button', { name: 'goal-success' }));
     await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:3'));
+
+    await user.click(await screen.findByRole('button', { name: 'plan-success' }));
+    await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:4'));
 
     expect(await screen.findByTestId('mock-step-complete')).toHaveTextContent('status:on_track');
   });

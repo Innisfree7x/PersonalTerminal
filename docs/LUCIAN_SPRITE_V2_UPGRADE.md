@@ -1,11 +1,24 @@
 # Lucian Sprite V2 Upgrade
 
 Stand: 2026-03-17
-Status: Geplant
+Status: Implementiert
 
 ## Ziel
 
 Lucian Companion Sprite von generischem Pixel-Character zu erkennbarem Chibi-Lucian (League of Legends) upgraden. Cuter, mehr Charakter, mehr Detail durch größere Frames.
+
+## Implementierter Stand
+
+- `public/sprites/lucian-sprites-v2.svg` ist live und wird produktiv verwendet.
+- `LucianSpriteAnimator.tsx` nutzt V2-Sheet mit `64x64` Frame-Logik.
+- `LucianBubble.tsx` rendert den Sprite in `72px` innerhalb eines `96px` Panels.
+- `lib/champion/config.ts` zeigt Lucian ebenfalls auf das V2-Sheet.
+- Settings-Label ist auf `Lucian (Chibi Sprite V2)` aktualisiert.
+- Unit-Test deckt Sheet-Pfad, Default-Size und Config-Wire-up ab.
+
+Offene Folgearbeiten gehoeren nicht mehr zu diesem Upgrade:
+- optionaler Visual-Review pro Mood im echten Browser
+- spaetere Attack-/Dance-/Hurt-Rows fuer Minigame/Spell-Systeme
 
 ## Aktueller Stand (V1)
 
@@ -166,13 +179,13 @@ Bubble max-width (optional, testen):
 
 ## Akzeptanzkriterien
 
-- [ ] Neues Spritesheet unter `public/sprites/lucian-sprites-v2.svg` (oder `.png`)
-- [ ] Lucian erkennbar als Chibi-Lucian (Pistolen, Mantel, Haare)
-- [ ] Alle 5 Animationen laufen sauber (idle, walk, victory, panic, meditate)
-- [ ] Bubble-Layout passt mit größerem Sprite (kein Overflow, kein Clipping)
-- [ ] Mobile (<768px): Bubble bleibt nutzbar
-- [ ] 297 Unit Tests grün
-- [ ] TypeScript check clean
+- [x] Neues Spritesheet unter `public/sprites/lucian-sprites-v2.svg`
+- [x] Lucian erkennbar als Chibi-Lucian (Pistolen, Mantel, Haare)
+- [x] Alle 5 Animationen laufen sauber (idle, walk, victory, panic, meditate)
+- [x] Bubble-Layout passt mit größerem Sprite (kein Overflow, kein Clipping)
+- [x] Mobile (<768px): Bubble bleibt nutzbar
+- [x] 315 Unit Tests grün
+- [x] TypeScript check clean
 - [ ] Visuell reviewed im Browser (alle Moods durchklicken)
 
 ## Timeline

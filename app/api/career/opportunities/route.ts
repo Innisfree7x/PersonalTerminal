@@ -154,6 +154,8 @@ export async function GET(request: NextRequest) {
         queryRelaxedUsed,
         bandRelaxedUsed,
         cvProfileApplied: Boolean(cvProfile),
+        cvRankTier: cvProfile?.rank_tier,
+        cvTargetTracks: cvProfile ? parseTrackList(cvProfile.target_tracks) : [],
         llm: {
           enabled: llmBudget.enabled,
           maxDailyUnits: llmBudget.maxDailyUnits,

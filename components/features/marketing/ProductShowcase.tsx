@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Route, CalendarDays, Command } from 'lucide-react';
+import { Route, CalendarDays, Command, Briefcase } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 interface Pillar {
@@ -47,6 +47,18 @@ const pillars: Pillar[] = [
       'Natürliche Sprache: "create task GMAT block tomorrow"',
       'Career-Pipeline parallel zur Studienplanung',
       'Keyboard-first für schnelle Ausführung',
+    ],
+  },
+  {
+    icon: Briefcase,
+    number: '04',
+    title: 'Career Intelligence',
+    description:
+      'CV-Upload, Opportunity Radar und Gap-Signale in derselben Oberfläche. Nicht nur Jobs finden, sondern sofort verstehen, was realistisch ist.',
+    highlights: [
+      'CV-Intelligence mit Strengths, Gaps und Rank-Tier',
+      'Opportunity Radar mit Reach-Bands statt blindem Keyword-Matching',
+      'Career-Pipeline direkt neben Trajectory und Today',
     ],
   },
 ];

@@ -182,5 +182,7 @@ describe('GET /api/career/opportunities', () => {
 
     const body = await response.json();
     expect(body.meta.cvProfileApplied).toBe(true);
+    expect(body.meta.cvRankTier).toBe('strong');
+    expect(body.meta.cvTargetTracks).toEqual(['M&A', 'TS']);
   });
 });

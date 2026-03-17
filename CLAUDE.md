@@ -37,7 +37,7 @@ Important:
 - `app/(marketing)` contains landing + public pages (`/`, `/features`, `/pricing`, `/about`, `/privacy`, `/terms`).
 - `app/(dashboard)` contains authenticated product routes.
 - `app/auth` contains login/signup pages.
-- `app/onboarding` is the onboarding gate for authenticated users.
+- `app/onboarding` is the live 4-step trajectory-first onboarding gate for authenticated users.
 - `app/actions` contains server actions used by dashboard features.
 - `app/api` contains API routes (user, admin, monitoring, cron, analytics ingress).
 
@@ -136,7 +136,7 @@ Migration docs indicate owner-based isolation is expected:
 | `components/features/lucian/LucianBubble.tsx` | Contextual companion UI — Character-Card layout, mood-mapped sprite, walk-entry animation |
 | `components/features/dashboard/CommandBar.tsx` | Unified command bar — stats (tasks/exercises/streak/career) + inline NBA, ~56px, card-surface |
 | `lib/hooks/useStreak.ts` | React Query hook for `/api/user/streak` (task-based streak, 5min staleTime) |
-| `public/sprites/lucian-sprites.svg` | Lucian pixel art spritesheet — 8×10 grid, 48×48px frames, 5 animations |
+| `public/sprites/lucian-sprites-v2.svg` | Lucian pixel art spritesheet V2 — 8×10 grid, 64×64px frames, 5 live animations |
 | `lib/lucian/copy.ts` | Lucian companion message library (5 moods, 80+ lines) |
 | `lib/command/parser.ts` | Deterministic grammar parser for Command Palette intents (4 intents: task, goal, focus, page) |
 

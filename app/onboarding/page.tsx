@@ -8,16 +8,19 @@ import { trackOnboardingEvent } from '@/app/onboarding/analytics';
 import { OnboardingLayout } from '@/components/features/onboarding/OnboardingLayout';
 import { StepWelcome } from '@/components/features/onboarding/StepWelcome';
 import {
-  StepGoalAndPlan,
+  StepTrajectoryGoal,
   type TrajectoryGoalDraft,
   type TrajectoryGoalPersisted,
+} from '@/components/features/onboarding/StepTrajectoryGoal';
+import {
+  StepTrajectoryPlan,
   type TrajectorySettingsDraft,
   type TrajectoryPlanSummary,
-} from '@/components/features/onboarding/StepGoalAndPlan';
+} from '@/components/features/onboarding/StepTrajectoryPlan';
 import { StepComplete } from '@/components/features/onboarding/StepComplete';
 import type { DemoSeedResult } from '@/app/onboarding/demoSeedService';
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
 const LS_KEY = 'innis_onboarding_v2';
 
 interface PersistedState {
@@ -55,13 +58,24 @@ function parseTrajectoryGoalDraft(value: unknown): TrajectoryGoalDraft | null {
       ? value.category
       : 'thesis';
 
+  const effortHours = typeof value.effortHours === 'number' ? Math.max(1, Math.round(value.effortHours)) : 120;
+  const effortMonths =
+    typeof value.effortMonths === 'number' ? Math.max(0.25, value.effortMonths) : Math.max(0.25, effortHours / 8 / 4.345);
+  const bufferWeeks = typeof value.bufferWeeks === 'number' ? Math.max(0, Math.round(value.bufferWeeks)) : 2;
+  const bufferMonths =
+    typeof value.bufferMonths === 'number' ? Math.max(0.25, value.bufferMonths) : Math.max(0.25, bufferWeeks / 4.345);
+
   return {
     title,
     category,
     dueDate,
-    effortHours: typeof value.effortHours === 'number' ? value.effortHours : 300,
-    bufferWeeks: typeof value.bufferWeeks === 'number' ? value.bufferWeeks : 2,
-    capacityHoursPerWeek: typeof value.capacityHoursPerWeek === 'number' ? value.capacityHoursPerWeek : 15,
+    effortUnit: value.effortUnit === 'hours' || value.effortUnit === 'months' ? value.effortUnit : 'months',
+    effortHours,
+    effortMonths,
+    bufferUnit: value.bufferUnit === 'weeks' || value.bufferUnit === 'months' ? value.bufferUnit : 'months',
+    bufferWeeks,
+    bufferMonths,
+    priority: typeof value.priority === 'number' ? Math.max(1, Math.min(5, Math.round(value.priority))) : 3,
   };
 }
 
@@ -167,8 +181,11 @@ function clearPersistedState() {
 function resolveRestoredStep(step: number, trajectory: PersistedState['trajectory']): number {
   let resolved = Math.max(1, Math.min(TOTAL_STEPS, step));
 
-  // Can't be on step 3 (complete) without plan data
-  if (resolved >= 3 && !trajectory.planSummary) {
+  if (resolved >= 4 && !trajectory.planSummary) {
+    resolved = 3;
+  }
+
+  if (resolved >= 3 && !trajectory.goal) {
     resolved = 2;
   }
 
@@ -296,10 +313,14 @@ export default function OnboardingPage() {
   // Guard: can't be on step 3 without plan data
   useEffect(() => {
     if (loading) return;
-    if (currentStep >= 3 && !trajectoryPlanSummary) {
+    if (currentStep >= 4 && !trajectoryPlanSummary) {
+      setCurrentStep(3);
+      return;
+    }
+    if (currentStep >= 3 && !trajectoryGoal) {
       setCurrentStep(2);
     }
-  }, [loading, currentStep, trajectoryPlanSummary]);
+  }, [loading, currentStep, trajectoryGoal, trajectoryPlanSummary]);
 
   const goNext = () => {
     const fromStep = currentStep;
@@ -325,9 +346,13 @@ export default function OnboardingPage() {
       title: trajectory.goalDraft.title,
       category: trajectory.goalDraft.category,
       dueDate: trajectory.goalDraft.dueDate,
+      effortUnit: 'hours',
       effortHours: trajectory.goalDraft.effortHours,
+      effortMonths: Math.max(0.25, trajectory.goalDraft.effortHours / trajectory.settingsDraft.hoursPerWeek / 4.345),
+      bufferUnit: 'weeks',
       bufferWeeks: trajectory.goalDraft.bufferWeeks,
-      capacityHoursPerWeek: trajectory.settingsDraft.hoursPerWeek,
+      bufferMonths: Math.max(0.25, trajectory.goalDraft.bufferWeeks / 4.345),
+      priority: trajectory.goalDraft.priority,
     });
     setTrajectorySettingsDraft(trajectory.settingsDraft);
     setTrajectoryPlanSummary(trajectory.planSummary);
@@ -393,13 +418,24 @@ export default function OnboardingPage() {
           )}
 
           {currentStep === 2 && (
-            <StepGoalAndPlan
-              initialDraft={trajectoryGoalDraft}
+            <StepTrajectoryGoal
+              initialValues={trajectoryGoalDraft}
               existingGoal={trajectoryGoal}
-              initialSettings={trajectorySettingsDraft}
-              onNext={(goal, draft, settings, plan) => {
+              capacityHoursPerWeek={trajectorySettingsDraft?.hoursPerWeek ?? 8}
+              onNext={(goal, draft) => {
                 setTrajectoryGoal(goal);
                 setTrajectoryGoalDraft(draft);
+                goNext();
+              }}
+            />
+          )}
+
+          {currentStep === 3 && trajectoryGoal && (
+            <StepTrajectoryPlan
+              goalId={trajectoryGoal.goalId}
+              initialSettings={trajectorySettingsDraft}
+              existingSummary={trajectoryPlanSummary}
+              onNext={(settings, plan) => {
                 setTrajectorySettingsDraft(settings);
                 setTrajectoryPlanSummary(plan);
                 goNext();

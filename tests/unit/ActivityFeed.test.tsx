@@ -13,7 +13,7 @@ describe('ActivityFeed', () => {
 
   test('renders title', () => {
     render(<ActivityFeed activities={[]} />);
-    expect(screen.getByText('Recent Activity')).toBeInTheDocument();
+    expect(screen.getByText('Letzte Aktivität')).toBeInTheDocument();
   });
 
   test('renders provided activities', () => {
@@ -36,7 +36,7 @@ describe('ActivityFeed', () => {
   test('shows empty state when provided activities are empty', async () => {
     render(<ActivityFeed activities={[]} />);
     await waitFor(() => {
-      expect(screen.getByText('No recent activity')).toBeInTheDocument();
+      expect(screen.getByText('Noch keine letzte Aktivität')).toBeInTheDocument();
     });
   });
 
@@ -45,13 +45,13 @@ describe('ActivityFeed', () => {
     expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
   });
 
-  test('falls back to local activities when API fails', async () => {
+  test('shows the empty state when API loading fails', async () => {
     vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('network'));
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     render(<ActivityFeed />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Completed Exercise 3/i)).toBeInTheDocument();
+      expect(screen.getByText('Noch keine letzte Aktivität')).toBeInTheDocument();
     });
     consoleSpy.mockRestore();
   });

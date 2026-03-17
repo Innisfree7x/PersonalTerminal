@@ -10,6 +10,14 @@ import { motion } from 'framer-motion';
 import { BrandMark } from '@/components/shared/BrandLogo';
 import { trackMarketingEvent } from '@/lib/analytics/marketing';
 
+const waitlistSegmentOptions = [
+  { value: 'thesis', label: 'Thesis', hint: 'Bachelorarbeit + Abgabe planen' },
+  { value: 'gmat', label: 'GMAT', hint: 'Prep realistisch in den Kalender bringen' },
+  { value: 'internship', label: 'Praktikum', hint: 'Radar + Pipeline fuer relevante Stellen' },
+  { value: 'master_app', label: 'Master', hint: 'Apps, Tests und Deadlines koordinieren' },
+  { value: 'other', label: 'Sonstiges', hint: 'Strategische Ziele flexibel abbilden' },
+] as const;
+
 export default function SignUpPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -134,22 +142,33 @@ export default function SignUpPage() {
             </div>
 
             <div>
-              <label htmlFor="waitlistSegment" className="block text-sm font-medium text-text-primary mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 Primärer Fokus
               </label>
-              <select
-                id="waitlistSegment"
-                value={waitlistSegment}
-                onChange={(e) => setWaitlistSegment(e.target.value as 'thesis' | 'gmat' | 'internship' | 'master_app' | 'other')}
-                disabled={loading}
-                className="h-10 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="thesis">Thesis</option>
-                <option value="gmat">GMAT</option>
-                <option value="internship">Praktikum</option>
-                <option value="master_app">Master-Bewerbungen</option>
-                <option value="other">Sonstiges</option>
-              </select>
+              <div className="grid gap-2">
+                {waitlistSegmentOptions.map((option) => {
+                  const active = waitlistSegment === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setWaitlistSegment(option.value)}
+                      disabled={loading}
+                      className={`rounded-xl border px-3 py-3 text-left transition-all ${
+                        active
+                          ? 'border-primary/35 bg-primary/10 shadow-[0_0_0_1px_rgba(255,179,71,0.12)]'
+                          : 'border-border bg-surface hover:border-primary/20 hover:bg-surface-hover'
+                      }`}
+                    >
+                      <div className="text-sm font-medium text-text-primary">{option.label}</div>
+                      <div className="mt-1 text-xs text-text-tertiary">{option.hint}</div>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-2 text-xs text-text-tertiary">
+                Das personalisiert Onboarding, Trajectory und Career-Radar direkt beim ersten Start.
+              </p>
             </div>
 
             <div>

@@ -15,6 +15,8 @@ import type {
 } from '@/lib/schemas/opportunity-radar.schema';
 import { AlertTriangle, MapPin, Radar, Search, Sparkles, Target } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { DecisionSurfaceCard } from '@/components/ui/DecisionSurfaceCard';
+import { buildOpportunityRadarInsight } from '@/lib/career/radarInsights';
 
 interface OpportunityRadarProps {
   onAdoptToPipeline: (prefill: CreateApplicationInput) => void;
@@ -24,6 +26,11 @@ interface OpportunityRadarProps {
 const TRACK_PRIORITY_ORDER: RadarTrack[] = ['M&A', 'TS', 'CorpFin', 'Audit'];
 const LOCATION_FILTERS: DachLocation[] = ['DE', 'AT', 'CH'];
 const BAND_FILTERS: RadarBand[] = ['realistic', 'target', 'stretch'];
+
+function nextTrack(track: RadarTrack): RadarTrack {
+  const currentIndex = TRACK_PRIORITY_ORDER.indexOf(track);
+  return TRACK_PRIORITY_ORDER[(currentIndex + 1) % TRACK_PRIORITY_ORDER.length] ?? 'M&A';
+}
 
 function bandToBadgeVariant(band: RadarBand): 'success' | 'warning' | 'error' {
   if (band === 'realistic') return 'success';
@@ -41,6 +48,14 @@ function toDisplayFitIndex(score: number): string {
   // Keep internal 0-100 scoring for sorting/bands, but present a realistic market index.
   const capped = Math.min(89, Math.max(0, score));
   return (capped / 10).toFixed(1);
+}
+
+function formatCvRankTier(rankTier?: OpportunitySearchResponse['meta']['cvRankTier']): string | null {
+  if (!rankTier) return null;
+  if (rankTier === 'top') return 'Top-Profil';
+  if (rankTier === 'strong') return 'Starkes Profil';
+  if (rankTier === 'developing') return 'Aufbau-Profil';
+  return 'Frühes Profil';
 }
 
 function buildApplicationPrefill(opportunity: OpportunitySearchItem): CreateApplicationInput {
@@ -80,6 +95,11 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
 
   const serializedLocations = useMemo(() => selectedLocations.join(','), [selectedLocations]);
   const serializedBands = useMemo(() => selectedBands.join(','), [selectedBands]);
+  const radarInsight = useMemo(() => buildOpportunityRadarInsight(results, meta, priorityTrack), [results, meta, priorityTrack]);
+  const cvRankLabel = useMemo(() => formatCvRankTier(meta?.cvRankTier), [meta?.cvRankTier]);
+  const hasCustomQuery = query.trim().length > 0;
+  const allLocationsSelected = selectedLocations.length === LOCATION_FILTERS.length;
+  const allBandsSelected = selectedBands.length === BAND_FILTERS.length;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -146,6 +166,19 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
       }
       return [...prev, band];
     });
+  };
+
+  const handleClearQuery = () => setQuery('');
+  const handleBroadenBands = () => setSelectedBands([...BAND_FILTERS]);
+  const handleBroadenLocations = () => setSelectedLocations([...LOCATION_FILTERS]);
+  const handleSwitchTrack = () => setPriorityTrack((current) => nextTrack(current));
+  const handleRetry = () => setRefreshNonce((prev) => prev + 1);
+  const handleResetRadar = () => {
+    setQuery('');
+    setPriorityTrack('M&A');
+    setSelectedLocations([...LOCATION_FILTERS]);
+    setSelectedBands([...BAND_FILTERS]);
+    setRefreshNonce((prev) => prev + 1);
   };
 
   const commitPrimaryGapTask = async (item: OpportunitySearchItem) => {
@@ -330,7 +363,7 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setRefreshNonce((prev) => prev + 1)}
+                onClick={handleRetry}
                 aria-label="Retry opportunity radar"
               >
                 Retry
@@ -352,24 +385,148 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
           ))}
         </div>
       ) : results.length === 0 ? (
-        <div className="rounded-xl border border-border bg-surface/25 p-6 text-center">
-          <Target className="mx-auto mb-3 h-8 w-8 text-text-tertiary" />
-          <p className="text-base font-medium text-text-primary">No matching opportunities</p>
-          <p className="mt-1 text-sm text-text-tertiary">Passe Query, Standort oder Band an, um wieder Treffer zu sehen.</p>
-          {meta?.liveSourceConfigured ? (
-            <p className="mt-2 text-xs text-text-tertiary">
-              Live-Quelle liefert aktuell keine passenden Treffer. Tipp: Query vereinfachen oder Track wechseln.
-            </p>
-          ) : null}
+        <div className="rounded-xl border border-border bg-surface/25 p-5">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-text-tertiary" />
+                <p className="text-base font-medium text-text-primary">Radar hat aktuell keine belastbaren Treffer</p>
+              </div>
+              <p className="mt-2 text-sm leading-relaxed text-text-tertiary">
+                Das ist kein Dead End. Meist ist entweder der Query zu eng, das Band zu hart oder der Track gerade zu speziell.
+              </p>
+
+              <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+                {meta?.queryRelaxedUsed ? (
+                  <Badge variant="warning" size="sm">Query bereits erweitert</Badge>
+                ) : null}
+                {meta?.bandRelaxedUsed ? (
+                  <Badge variant="warning" size="sm">Band bereits erweitert</Badge>
+                ) : null}
+                {meta?.liveSourceConfigured ? (
+                  meta.liveSourceHealthy ? (
+                    <Badge variant="default" size="sm">Live-Suche aktiv</Badge>
+                  ) : (
+                    <Badge variant="error" size="sm">Live-Suche gestört</Badge>
+                  )
+                ) : (
+                  <Badge variant="default" size="sm">Nur Fallback-Daten aktiv</Badge>
+                )}
+                {cvRankLabel ? (
+                  <Badge variant="career" size="sm">{cvRankLabel}</Badge>
+                ) : null}
+                {meta?.cvTargetTracks?.length ? (
+                  <Badge variant="default" size="sm">
+                    CV-Fokus: {meta.cvTargetTracks.join(' / ')}
+                  </Badge>
+                ) : null}
+              </div>
+
+              <div className="mt-4 space-y-2 text-xs text-text-secondary">
+                <p>
+                  {hasCustomQuery
+                    ? `Aktiver Query: "${query.trim()}". Das ist oft zu spitz, wenn Firmennamen oder sehr enge Titel drinstehen.`
+                    : `Ohne Query wird gerade rein über Track, Standort, CV-Signal und verfügbare Live-Treffer gefiltert.`}
+                </p>
+                <p>
+                  {meta?.liveSourceConfigured
+                    ? 'Wenn Live aktuell leer läuft, hilft fast immer ein breiterer Track oder ein offenerer Query.'
+                    : 'Solange keine Live-Quelle greift, sollte der Fokus auf Track/Standort liegen statt auf sehr exakten Suchbegriffen.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid min-w-0 gap-2 sm:grid-cols-2 xl:w-[360px]">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleClearQuery}
+                disabled={!hasCustomQuery}
+              >
+                Query leeren
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleBroadenBands}
+                disabled={allBandsSelected}
+              >
+                Band öffnen
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleBroadenLocations}
+                disabled={allLocationsSelected}
+              >
+                Ganz DACH aktivieren
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleSwitchTrack}
+              >
+                Zu {nextTrack(priorityTrack)} wechseln
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRetry}
+              >
+                Erneut laden
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleResetRadar}
+              >
+                Radar resetten
+              </Button>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-2 md:grid-cols-3">
+            <div className="rounded-lg border border-border/80 bg-background/35 p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-text-tertiary">1. Query</p>
+              <p className="mt-1 text-xs leading-relaxed text-text-secondary">
+                Lieber breit nach Firma oder Track suchen als nach exakten Stellenbezeichnungen.
+              </p>
+            </div>
+            <div className="rounded-lg border border-border/80 bg-background/35 p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-text-tertiary">2. Band</p>
+              <p className="mt-1 text-xs leading-relaxed text-text-secondary">
+                Wenn Realistic leer ist, kurz Target dazunehmen. Das gibt meist genug Signal ohne komplett zu verwässern.
+              </p>
+            </div>
+            <div className="rounded-lg border border-border/80 bg-background/35 p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-text-tertiary">3. Track</p>
+              <p className="mt-1 text-xs leading-relaxed text-text-secondary">
+                Bei dünnem Markt erst M&A → TS → CorpFin rotieren, bevor du das Radar als unbrauchbar wertest.
+              </p>
+            </div>
+          </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-          {results.map((item) => (
-            <article
-              key={item.id}
-              className="rounded-xl border border-border bg-surface/35 p-4 backdrop-blur-sm"
-              aria-label={`Opportunity ${item.title} at ${item.company}`}
-            >
+        <div className="space-y-3">
+          {radarInsight ? (
+            <DecisionSurfaceCard
+              eyebrow="Radar readout"
+              title={radarInsight.title}
+              summary={radarInsight.summary}
+              bullets={radarInsight.bullets}
+              chips={radarInsight.chips}
+              tone={radarInsight.tone}
+              icon={<Target className="h-4 w-4" />}
+            />
+          ) : null}
+
+          <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+            {results.map((item) => (
+              <article
+                key={item.id}
+                className="rounded-xl border border-border bg-surface/35 p-4 backdrop-blur-sm"
+                aria-label={`Opportunity ${item.title} at ${item.company}`}
+              >
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h3 className="text-base font-semibold text-text-primary">{item.title}</h3>
@@ -457,8 +614,9 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
                   In Pipeline übernehmen
                 </Button>
               </div>
-            </article>
-          ))}
+              </article>
+            ))}
+          </div>
         </div>
       )}
     </section>

@@ -83,12 +83,7 @@ const ActivityFeed = memo(function ActivityFeed({ activities: propActivities, ma
         if (!isCancelled) setActivities(parsedActivities);
       } catch (err) {
         console.error('ActivityFeed fetch error:', err);
-        // Fallback to mock data on error
-        if (!isCancelled) setActivities([
-          { id: '1', type: 'exercise', action: 'Completed Exercise 3 for GDI 2', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) },
-          { id: '2', type: 'goal', action: 'Added new goal: Learn TypeScript', timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000) },
-          { id: '3', type: 'task', action: 'Completed task: Review PRs', timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) },
-        ] as ActivityItem[]);
+        if (!isCancelled) setActivities([]);
       } finally {
         if (!isCancelled) setIsLoading(false);
       }
@@ -124,7 +119,7 @@ const ActivityFeed = memo(function ActivityFeed({ activities: propActivities, ma
     <div className="card-surface rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4">
         <Activity className="w-5 h-5 text-info" />
-        <h3 className="text-base font-semibold text-text-primary">Recent Activity</h3>
+        <h3 className="text-base font-semibold text-text-primary">Letzte Aktivität</h3>
       </div>
 
       {isLoading ? (
@@ -170,7 +165,7 @@ const ActivityFeed = memo(function ActivityFeed({ activities: propActivities, ma
         })}
 
         {displayActivities.length === 0 && (
-          <p className="text-sm text-text-tertiary text-center py-4">No recent activity</p>
+          <p className="text-sm text-text-tertiary text-center py-4">Noch keine letzte Aktivität</p>
         )}
       </div>
       )}

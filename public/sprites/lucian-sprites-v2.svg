@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="640" viewBox="0 0 512 640" shape-rendering="crispEdges">
+  <defs>
+    <symbol id="shadow" viewBox="0 0 64 64">
+      <rect x="20" y="56" width="24" height="3" fill="#000000" fill-opacity="0.18"/>
+      <rect x="23" y="55" width="18" height="1" fill="#0d1119" fill-opacity="0.25"/>
+    </symbol>
+
+    <symbol id="head-cyan" viewBox="0 0 64 64">
+      <rect x="25" y="6" width="14" height="2" fill="#1A1A1A"/>
+      <rect x="24" y="8" width="16" height="11" fill="#C88C61"/>
+      <rect x="24" y="8" width="1" height="11" fill="#8D5B3B" fill-opacity="0.35"/>
+      <rect x="39" y="8" width="1" height="11" fill="#8D5B3B" fill-opacity="0.35"/>
+      <rect x="24" y="10" width="16" height="2" fill="#2A2A2A"/>
+      <rect x="27" y="12" width="3" height="2" fill="#22D3EE"/>
+      <rect x="34" y="12" width="3" height="2" fill="#22D3EE"/>
+      <rect x="30" y="16" width="4" height="2" fill="#7B4C2D"/>
+    </symbol>
+
+    <symbol id="head-amber" viewBox="0 0 64 64">
+      <rect x="25" y="6" width="14" height="2" fill="#1A1A1A"/>
+      <rect x="24" y="8" width="16" height="11" fill="#C88C61"/>
+      <rect x="24" y="8" width="1" height="11" fill="#8D5B3B" fill-opacity="0.35"/>
+      <rect x="39" y="8" width="1" height="11" fill="#8D5B3B" fill-opacity="0.35"/>
+      <rect x="24" y="10" width="16" height="2" fill="#2A2A2A"/>
+      <rect x="27" y="12" width="3" height="2" fill="#F59E0B"/>
+      <rect x="34" y="12" width="3" height="2" fill="#F59E0B"/>
+      <rect x="30" y="16" width="4" height="2" fill="#7B4C2D"/>
+    </symbol>
+
+    <symbol id="head-red" viewBox="0 0 64 64">
+      <rect x="25" y="6" width="14" height="2" fill="#1A1A1A"/>
+      <rect x="24" y="8" width="16" height="11" fill="#C88C61"/>
+      <rect x="24" y="8" width="1" height="11" fill="#8D5B3B" fill-opacity="0.35"/>
+      <rect x="39" y="8" width="1" height="11" fill="#8D5B3B" fill-opacity="0.35"/>
+      <rect x="24" y="10" width="16" height="2" fill="#2A2A2A"/>
+      <rect x="27" y="12" width="3" height="2" fill="#EF4444"/>
+      <rect x="34" y="12" width="3" height="2" fill="#EF4444"/>
+      <rect x="30" y="16" width="4" height="2" fill="#7B4C2D"/>
+    </symbol>
+
+    <symbol id="head-closed" viewBox="0 0 64 64">
+      <rect x="25" y="6" width="14" height="2" fill="#1A1A1A"/>
+      <rect x="24" y="8" width="16" height="11" fill="#C88C61"/>
+      <rect x="24" y="8" width="1" height="11" fill="#8D5B3B" fill-opacity="0.35"/>
+      <rect x="39" y="8" width="1" height="11" fill="#8D5B3B" fill-opacity="0.35"/>
+      <rect x="24" y="10" width="16" height="2" fill="#2A2A2A"/>
+      <rect x="27" y="13" width="3" height="1" fill="#0D1119" fill-opacity="0.8"/>
+      <rect x="34" y="13" width="3" height="1" fill="#0D1119" fill-opacity="0.8"/>
+      <rect x="30" y="16" width="4" height="2" fill="#7B4C2D"/>
+    </symbol>
+
+    <symbol id="cape-rest" viewBox="0 0 64 64">
+      <rect x="19" y="20" width="6" height="18" fill="#F5F6FA"/>
+      <rect x="39" y="20" width="6" height="18" fill="#F5F6FA"/>
+      <rect x="18" y="22" width="4" height="13" fill="#D3D7E0"/>
+      <rect x="42" y="22" width="4" height="13" fill="#D3D7E0"/>
+      <rect x="22" y="20" width="20" height="4" fill="#E8EBF4"/>
+    </symbol>
+
+    <symbol id="cape-left" viewBox="0 0 64 64">
+      <rect x="16" y="20" width="7" height="18" fill="#F5F6FA"/>
+      <rect x="39" y="20" width="6" height="16" fill="#F5F6FA"/>
+      <rect x="15" y="22" width="4" height="12" fill="#D3D7E0"/>
+      <rect x="42" y="22" width="3" height="11" fill="#D3D7E0"/>
+      <rect x="22" y="20" width="20" height="4" fill="#E8EBF4"/>
+    </symbol>
+
+    <symbol id="cape-right" viewBox="0 0 64 64">
+      <rect x="19" y="20" width="6" height="16" fill="#F5F6FA"/>
+      <rect x="41" y="20" width="7" height="18" fill="#F5F6FA"/>
+      <rect x="19" y="22" width="3" height="11" fill="#D3D7E0"/>
+      <rect x="45" y="22" width="4" height="12" fill="#D3D7E0"/>
+      <rect x="22" y="20" width="20" height="4" fill="#E8EBF4"/>
+    </symbol>
+
+    <symbol id="cape-wide" viewBox="0 0 64 64">
+      <rect x="14" y="20" width="8" height="19" fill="#F5F6FA"/>
+      <rect x="42" y="20" width="8" height="19" fill="#F5F6FA"/>
+      <rect x="13" y="23" width="4" height="13" fill="#D3D7E0"/>
+      <rect x="47" y="23" width="4" height="13" fill="#D3D7E0"/>
+      <rect x="22" y="20" width="20" height="4" fill="#E8EBF4"/>
+    </symbol>
+
+    <symbol id="cape-tight" viewBox="0 0 64 64">
+      <rect x="22" y="20" width="20" height="4" fill="#E8EBF4"/>
+      <rect x="23" y="24" width="4" height="12" fill="#F5F6FA"/>
+      <rect x="37" y="24" width="4" height="12" fill="#F5F6FA"/>
+    </symbol>
+
+    <symbol id="torso-neutral" viewBox="0 0 64 64">
+      <rect x="30" y="19" width="4" height="3" fill="#C88C61"/>
+      <rect x="22" y="22" width="20" height="4" fill="#ECEFF7"/>
+      <rect x="24" y="26" width="16" height="11" fill="#F5F6FA"/>
+      <rect x="28" y="25" width="8" height="13" fill="#1F2937"/>
+      <rect x="27" y="37" width="10" height="2" fill="#C89B40"/>
+    </symbol>
+
+    <symbol id="torso-lean-left" viewBox="0 0 64 64">
+      <rect x="29" y="19" width="4" height="3" fill="#C88C61"/>
+      <rect x="21" y="22" width="20" height="4" fill="#ECEFF7"/>
+      <rect x="23" y="26" width="16" height="11" fill="#F5F6FA"/>
+      <rect x="27" y="25" width="8" height="13" fill="#1F2937"/>
+      <rect x="26" y="37" width="10" height="2" fill="#C89B40"/>
+    </symbol>
+
+    <symbol id="torso-lean-right" viewBox="0 0 64 64">
+      <rect x="31" y="19" width="4" height="3" fill="#C88C61"/>
+      <rect x="23" y="22" width="20" height="4" fill="#ECEFF7"/>
+      <rect x="25" y="26" width="16" height="11" fill="#F5F6FA"/>
+      <rect x="29" y="25" width="8" height="13" fill="#1F2937"/>
+      <rect x="28" y="37" width="10" height="2" fill="#C89B40"/>
+    </symbol>
+
+    <symbol id="legs-neutral" viewBox="0 0 64 64">
+      <rect x="25" y="39" width="5" height="12" fill="#192133"/>
+      <rect x="34" y="39" width="5" height="12" fill="#192133"/>
+      <rect x="24" y="51" width="7" height="4" fill="#0D1119"/>
+      <rect x="33" y="51" width="7" height="4" fill="#0D1119"/>
+    </symbol>
+
+    <symbol id="legs-step-a" viewBox="0 0 64 64">
+      <rect x="24" y="39" width="5" height="11" fill="#192133"/>
+      <rect x="35" y="39" width="5" height="13" fill="#192133"/>
+      <rect x="23" y="50" width="8" height="4" fill="#0D1119"/>
+      <rect x="34" y="52" width="8" height="4" fill="#0D1119"/>
+    </symbol>
+
+    <symbol id="legs-step-b" viewBox="0 0 64 64">
+      <rect x="26" y="39" width="5" height="13" fill="#192133"/>
+      <rect x="33" y="39" width="5" height="11" fill="#192133"/>
+      <rect x="25" y="52" width="8" height="4" fill="#0D1119"/>
+      <rect x="32" y="50" width="8" height="4" fill="#0D1119"/>
+    </symbol>
+
+    <symbol id="legs-step-c" viewBox="0 0 64 64">
+      <rect x="25" y="39" width="5" height="12" fill="#192133"/>
+      <rect x="34" y="39" width="5" height="12" fill="#192133"/>
+      <rect x="23" y="51" width="8" height="4" fill="#0D1119"/>
+      <rect x="34" y="51" width="8" height="4" fill="#0D1119"/>
+    </symbol>
+
+    <symbol id="arms-guns-down" viewBox="0 0 64 64">
+      <rect x="19" y="26" width="4" height="10" fill="#F0F2F7"/>
+      <rect x="41" y="26" width="4" height="10" fill="#F0F2F7"/>
+      <rect x="18" y="35" width="4" height="3" fill="#C88C61"/>
+      <rect x="42" y="35" width="4" height="3" fill="#C88C61"/>
+      <rect x="12" y="35" width="8" height="3" fill="#3B4252"/>
+      <rect x="44" y="35" width="8" height="3" fill="#3B4252"/>
+      <rect x="11" y="35" width="1" height="3" fill="#AAB4C7"/>
+      <rect x="52" y="35" width="1" height="3" fill="#AAB4C7"/>
+      <rect x="18" y="36" width="1" height="1" fill="#22D3EE" fill-opacity="0.8"/>
+      <rect x="45" y="36" width="1" height="1" fill="#22D3EE" fill-opacity="0.8"/>
+    </symbol>
+
+    <symbol id="arms-swing-a" viewBox="0 0 64 64">
+      <rect x="17" y="26" width="4" height="9" fill="#F0F2F7"/>
+      <rect x="42" y="27" width="4" height="8" fill="#F0F2F7"/>
+      <rect x="18" y="34" width="3" height="3" fill="#C88C61"/>
+      <rect x="42" y="34" width="3" height="3" fill="#C88C61"/>
+      <rect x="24" y="37" width="3" height="5" fill="#3B4252"/>
+      <rect x="37" y="37" width="3" height="5" fill="#3B4252"/>
+    </symbol>
+
+    <symbol id="arms-swing-b" viewBox="0 0 64 64">
+      <rect x="19" y="27" width="4" height="8" fill="#F0F2F7"/>
+      <rect x="40" y="26" width="4" height="9" fill="#F0F2F7"/>
+      <rect x="20" y="34" width="3" height="3" fill="#C88C61"/>
+      <rect x="40" y="34" width="3" height="3" fill="#C88C61"/>
+      <rect x="24" y="37" width="3" height="5" fill="#3B4252"/>
+      <rect x="37" y="37" width="3" height="5" fill="#3B4252"/>
+    </symbol>
+
+    <symbol id="arms-guns-up" viewBox="0 0 64 64">
+      <rect x="16" y="18" width="4" height="11" fill="#F0F2F7"/>
+      <rect x="44" y="18" width="4" height="11" fill="#F0F2F7"/>
+      <rect x="17" y="17" width="3" height="2" fill="#C88C61"/>
+      <rect x="44" y="17" width="3" height="2" fill="#C88C61"/>
+      <rect x="13" y="10" width="4" height="8" fill="#3B4252"/>
+      <rect x="47" y="10" width="4" height="8" fill="#3B4252"/>
+      <rect x="12" y="10" width="1" height="8" fill="#AAB4C7"/>
+      <rect x="51" y="10" width="1" height="8" fill="#AAB4C7"/>
+    </symbol>
+
+    <symbol id="arms-guns-out" viewBox="0 0 64 64">
+      <rect x="12" y="26" width="8" height="4" fill="#F0F2F7"/>
+      <rect x="44" y="26" width="8" height="4" fill="#F0F2F7"/>
+      <rect x="11" y="27" width="2" height="3" fill="#C88C61"/>
+      <rect x="52" y="27" width="2" height="3" fill="#C88C61"/>
+      <rect x="4" y="27" width="8" height="3" fill="#3B4252"/>
+      <rect x="52" y="27" width="8" height="3" fill="#3B4252"/>
+      <rect x="3" y="27" width="1" height="3" fill="#AAB4C7"/>
+      <rect x="60" y="27" width="1" height="3" fill="#AAB4C7"/>
+    </symbol>
+
+    <symbol id="arms-crossed" viewBox="0 0 64 64">
+      <rect x="21" y="28" width="8" height="3" fill="#F0F2F7"/>
+      <rect x="35" y="28" width="8" height="3" fill="#F0F2F7"/>
+      <rect x="28" y="30" width="9" height="3" fill="#D9DEE8"/>
+      <rect x="24" y="31" width="6" height="2" fill="#C88C61"/>
+      <rect x="34" y="31" width="6" height="2" fill="#C88C61"/>
+    </symbol>
+
+    <symbol id="guns-floor" viewBox="0 0 64 64">
+      <rect x="18" y="51" width="9" height="3" fill="#3B4252"/>
+      <rect x="37" y="51" width="9" height="3" fill="#3B4252"/>
+      <rect x="17" y="51" width="1" height="3" fill="#AAB4C7"/>
+      <rect x="46" y="51" width="1" height="3" fill="#AAB4C7"/>
+    </symbol>
+
+    <symbol id="muzzle-left" viewBox="0 0 64 64">
+      <rect x="9" y="8" width="3" height="3" fill="#FFD166"/>
+      <rect x="10" y="7" width="1" height="5" fill="#FFF2A8"/>
+    </symbol>
+
+    <symbol id="muzzle-right" viewBox="0 0 64 64">
+      <rect x="52" y="8" width="3" height="3" fill="#FFD166"/>
+      <rect x="53" y="7" width="1" height="5" fill="#FFF2A8"/>
+    </symbol>
+  </defs>
+
+  <!-- Row 0: idle -->
+  <g transform="translate(0 0)">
+    <use href="#shadow"/>
+    <use href="#cape-rest"/>
+    <use href="#head-cyan"/>
+    <use href="#torso-neutral"/>
+    <use href="#arms-guns-down"/>
+    <use href="#legs-neutral"/>
+  </g>
+  <g transform="translate(64 0)">
+    <use href="#shadow"/>
+    <use href="#cape-left"/>
+    <use href="#head-cyan" transform="translate(0 1)"/>
+    <use href="#torso-lean-left" transform="translate(0 1)"/>
+    <use href="#arms-guns-down" transform="translate(-1 1)"/>
+    <use href="#legs-neutral"/>
+  </g>
+  <g transform="translate(128 0)">
+    <use href="#shadow"/>
+    <use href="#cape-right"/>
+    <use href="#head-cyan"/>
+    <use href="#torso-lean-right"/>
+    <use href="#arms-guns-down" transform="translate(1 0)"/>
+    <use href="#legs-neutral"/>
+  </g>
+  <g transform="translate(192 0)">
+    <use href="#shadow"/>
+    <use href="#cape-rest"/>
+    <use href="#head-cyan" transform="translate(0 1)"/>
+    <use href="#torso-neutral" transform="translate(0 1)"/>
+    <use href="#arms-guns-down" transform="translate(0 1)"/>
+    <use href="#legs-neutral"/>
+  </g>
+
+  <!-- Row 1: walk -->
+  <g transform="translate(0 64)">
+    <use href="#shadow"/>
+    <use href="#cape-left"/>
+    <use href="#head-cyan" transform="translate(-1 0)"/>
+    <use href="#torso-lean-left"/>
+    <use href="#arms-swing-a"/>
+    <use href="#legs-step-a"/>
+  </g>
+  <g transform="translate(64 64)">
+    <use href="#shadow"/>
+    <use href="#cape-rest"/>
+    <use href="#head-cyan"/>
+    <use href="#torso-neutral"/>
+    <use href="#arms-swing-b"/>
+    <use href="#legs-step-c"/>
+  </g>
+  <g transform="translate(128 64)">
+    <use href="#shadow"/>
+    <use href="#cape-right"/>
+    <use href="#head-cyan" transform="translate(1 0)"/>
+    <use href="#torso-lean-right"/>
+    <use href="#arms-swing-b"/>
+    <use href="#legs-step-b"/>
+  </g>
+  <g transform="translate(192 64)">
+    <use href="#shadow"/>
+    <use href="#cape-wide"/>
+    <use href="#head-cyan"/>
+    <use href="#torso-neutral"/>
+    <use href="#arms-swing-a"/>
+    <use href="#legs-step-c"/>
+  </g>
+  <g transform="translate(256 64)">
+    <use href="#shadow"/>
+    <use href="#cape-left"/>
+    <use href="#head-cyan" transform="translate(-1 1)"/>
+    <use href="#torso-lean-left" transform="translate(0 1)"/>
+    <use href="#arms-swing-a" transform="translate(-1 1)"/>
+    <use href="#legs-step-a"/>
+  </g>
+  <g transform="translate(320 64)">
+    <use href="#shadow"/>
+    <use href="#cape-right"/>
+    <use href="#head-cyan" transform="translate(1 1)"/>
+    <use href="#torso-lean-right" transform="translate(0 1)"/>
+    <use href="#arms-swing-b" transform="translate(1 1)"/>
+    <use href="#legs-step-b"/>
+  </g>
+
+  <!-- Row 6: victory -->
+  <g transform="translate(0 384)">
+    <use href="#shadow"/>
+    <use href="#cape-wide"/>
+    <use href="#head-amber"/>
+    <use href="#torso-neutral"/>
+    <use href="#arms-guns-up"/>
+    <use href="#legs-neutral"/>
+    <use href="#muzzle-left"/>
+    <use href="#muzzle-right"/>
+  </g>
+  <g transform="translate(64 384)">
+    <use href="#shadow"/>
+    <use href="#cape-wide"/>
+    <use href="#head-amber" transform="translate(0 1)"/>
+    <use href="#torso-neutral" transform="translate(0 1)"/>
+    <use href="#arms-guns-up" transform="translate(0 1)"/>
+    <use href="#legs-step-a"/>
+  </g>
+  <g transform="translate(128 384)">
+    <use href="#shadow"/>
+    <use href="#cape-right"/>
+    <use href="#head-amber"/>
+    <use href="#torso-lean-right"/>
+    <use href="#arms-guns-up"/>
+    <use href="#legs-neutral"/>
+    <use href="#muzzle-right"/>
+  </g>
+  <g transform="translate(192 384)">
+    <use href="#shadow"/>
+    <use href="#cape-left"/>
+    <use href="#head-amber"/>
+    <use href="#torso-lean-left"/>
+    <use href="#arms-guns-up"/>
+    <use href="#legs-neutral"/>
+    <use href="#muzzle-left"/>
+  </g>
+  <g transform="translate(256 384)">
+    <use href="#shadow"/>
+    <use href="#cape-wide"/>
+    <use href="#head-amber" transform="translate(0 1)"/>
+    <use href="#torso-neutral" transform="translate(0 1)"/>
+    <use href="#arms-guns-up" transform="translate(0 1)"/>
+    <use href="#legs-step-b"/>
+    <use href="#muzzle-left"/>
+    <use href="#muzzle-right"/>
+  </g>
+  <g transform="translate(320 384)">
+    <use href="#shadow"/>
+    <use href="#cape-rest"/>
+    <use href="#head-amber"/>
+    <use href="#torso-neutral"/>
+    <use href="#arms-guns-up"/>
+    <use href="#legs-neutral"/>
+  </g>
+
+  <!-- Row 7: panic -->
+  <g transform="translate(0 448)">
+    <use href="#shadow"/>
+    <use href="#cape-left"/>
+    <use href="#head-red"/>
+    <use href="#torso-lean-left"/>
+    <use href="#arms-guns-out"/>
+    <use href="#legs-step-a"/>
+  </g>
+  <g transform="translate(64 448)">
+    <use href="#shadow"/>
+    <use href="#cape-right"/>
+    <use href="#head-red"/>
+    <use href="#torso-lean-right"/>
+    <use href="#arms-guns-out"/>
+    <use href="#legs-step-b"/>
+  </g>
+  <g transform="translate(128 448)">
+    <use href="#shadow"/>
+    <use href="#cape-wide"/>
+    <use href="#head-red" transform="translate(0 1)"/>
+    <use href="#torso-neutral" transform="translate(0 1)"/>
+    <use href="#arms-guns-out" transform="translate(0 1)"/>
+    <use href="#legs-step-c"/>
+  </g>
+  <g transform="translate(192 448)">
+    <use href="#shadow"/>
+    <use href="#cape-left"/>
+    <use href="#head-red"/>
+    <use href="#torso-lean-left"/>
+    <use href="#arms-guns-out"/>
+    <use href="#legs-step-a"/>
+  </g>
+
+  <!-- Row 8: meditate -->
+  <g transform="translate(0 512)">
+    <use href="#shadow"/>
+    <use href="#cape-tight"/>
+    <use href="#head-closed"/>
+    <use href="#torso-neutral"/>
+    <use href="#arms-crossed"/>
+    <use href="#legs-neutral"/>
+    <use href="#guns-floor"/>
+  </g>
+  <g transform="translate(64 512)">
+    <use href="#shadow"/>
+    <use href="#cape-tight"/>
+    <use href="#head-closed" transform="translate(0 1)"/>
+    <use href="#torso-neutral" transform="translate(0 1)"/>
+    <use href="#arms-crossed" transform="translate(0 1)"/>
+    <use href="#legs-neutral"/>
+    <use href="#guns-floor"/>
+  </g>
+  <g transform="translate(128 512)">
+    <use href="#shadow"/>
+    <use href="#cape-tight"/>
+    <use href="#head-cyan"/>
+    <use href="#torso-neutral"/>
+    <use href="#arms-crossed"/>
+    <use href="#legs-neutral"/>
+    <use href="#guns-floor"/>
+  </g>
+  <g transform="translate(192 512)">
+    <use href="#shadow"/>
+    <use href="#cape-tight"/>
+    <use href="#head-closed"/>
+    <use href="#torso-neutral"/>
+    <use href="#arms-crossed"/>
+    <use href="#legs-neutral"/>
+    <use href="#guns-floor"/>
+  </g>
+</svg>
