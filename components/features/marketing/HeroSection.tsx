@@ -62,108 +62,101 @@ export function HeroSection() {
 
   return (
     <>
-      {/* Hero — text + product mockup */}
-      <section className="relative overflow-hidden pt-16 pb-0 md:pt-24">
-        {/* Ambient glows — gold center, red accent left */}
+      {/* Hero — side by side */}
+      <section className="relative overflow-hidden pb-8 pt-12 md:pb-16 md:pt-20">
+        {/* Ambient glows */}
         <div className="pointer-events-none absolute left-1/2 top-[15%] h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8B930]/[0.08] blur-[150px]" />
         <div className="pointer-events-none absolute left-[15%] top-[10%] h-[400px] w-[400px] rounded-full bg-[#DC3232]/[0.08] blur-[130px]" />
         <div className="pointer-events-none absolute right-[10%] top-[20%] h-[300px] w-[350px] rounded-full bg-[#FF7832]/[0.05] blur-[120px]" />
 
-        <div className="relative z-10 mx-auto max-w-5xl text-center px-6">
-          {/* Shimmer badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-8 inline-flex"
-          >
-            <span className="shimmer-badge inline-flex items-center gap-2.5 rounded-full border border-[#E8B930]/15 bg-[#E8B930]/[0.05] px-4 py-2">
-              <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-[#E8B930]" />
-              <span className="text-[12px] font-medium tracking-[0.08em] text-[#E8B930]/90">
-                Public Beta
-              </span>
-            </span>
-          </motion.div>
-
-          {/* Headline — smaller */}
-          <motion.h1
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08, duration: 0.7 }}
-            className="premium-heading text-[clamp(2.4rem,5.5vw,4.8rem)] font-semibold text-[#FAF0E6]"
-          >
-            Erkenne Kollisionen in deinem
-            <br />
-            Karriereplan,{' '}
-            <span className="bg-gradient-to-r from-[#E8B930] via-[#F5D565] to-[#E8B930] bg-clip-text italic text-transparent">
-              bevor sie passieren.
-            </span>
-          </motion.h1>
-
-          {/* Subline */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="mx-auto mt-6 max-w-xl text-[16px] leading-[1.7] text-zinc-400"
-          >
-            INNIS verbindet Thesis, GMAT, Master-Apps und Praktika in einer Timeline
-            und übersetzt Risiko direkt in den nächsten sinnvollen Tageszug.
-          </motion.p>
-
-          {/* CTAs */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.45 }}
-            className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
-          >
-            <TrackedCtaLink
-              href="/auth/signup"
-              eventName="landing_cta_primary_clicked"
-              eventPayload={{ source: 'hero', variant: 'primary' }}
-              className="premium-cta-primary"
+        <div className="marketing-container relative z-10">
+          <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-16">
+            {/* Left — text content */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
             >
-              Kostenlos starten
-              <ArrowRight className="h-4 w-4" />
-            </TrackedCtaLink>
-            <TrackedCtaLink
-              href="/auth/login"
-              eventName="landing_cta_secondary_clicked"
-              eventPayload={{ source: 'hero', variant: 'login' }}
-              className="premium-cta-secondary"
-            >
-              Bereits angemeldet? Login
-            </TrackedCtaLink>
-          </motion.div>
-        </div>
+              {/* Shimmer badge */}
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 }}
+                className="mb-7 inline-flex"
+              >
+                <span className="shimmer-badge inline-flex items-center gap-2.5 rounded-full border border-[#E8B930]/15 bg-[#E8B930]/[0.05] px-4 py-2">
+                  <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-[#E8B930]" />
+                  <span className="text-[12px] font-medium tracking-[0.08em] text-[#E8B930]/90">
+                    Public Beta
+                  </span>
+                </span>
+              </motion.div>
 
-        {/* Product Mockup — perspective tilt with fade-out */}
-        <motion.div
-          initial={{ opacity: 0, y: 60 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.8, ease: 'easeOut' }}
-          className="relative z-10 mx-auto mt-16 max-w-5xl px-6 md:mt-20"
-        >
-          <div
-            className="relative"
-            style={{ perspective: '1200px' }}
-          >
-            <div
-              style={{
-                transform: 'rotateX(8deg) scale(0.95)',
-                transformOrigin: 'center top',
-              }}
+              {/* Headline */}
+              <motion.h1
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.6 }}
+                className="premium-heading text-[clamp(2.2rem,4.8vw,4.2rem)] font-semibold text-[#FAF0E6]"
+              >
+                Das persönliche Terminal für{' '}
+                <span className="bg-gradient-to-r from-[#E8B930] via-[#F5D565] to-[#E8B930] bg-clip-text italic text-transparent">
+                  ambitionierte Studenten.
+                </span>
+              </motion.h1>
+
+              {/* Subline */}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.25 }}
+                className="mt-5 max-w-lg text-[16px] leading-[1.75] text-zinc-400"
+              >
+                Thesis, GMAT, Praktika und Master-Apps in einem System.
+                INNIS übersetzt Strategie direkt in den nächsten sinnvollen Tageszug.
+              </motion.p>
+
+              {/* CTAs */}
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.38 }}
+                className="mt-8 flex flex-wrap gap-3"
+              >
+                <TrackedCtaLink
+                  href="/auth/signup"
+                  eventName="landing_cta_primary_clicked"
+                  eventPayload={{ source: 'hero', variant: 'primary' }}
+                  className="premium-cta-primary"
+                >
+                  Kostenlos starten
+                  <ArrowRight className="h-4 w-4" />
+                </TrackedCtaLink>
+                <TrackedCtaLink
+                  href="/auth/login"
+                  eventName="landing_cta_secondary_clicked"
+                  eventPayload={{ source: 'hero', variant: 'login' }}
+                  className="premium-cta-secondary"
+                >
+                  Login
+                </TrackedCtaLink>
+              </motion.div>
+            </motion.div>
+
+            {/* Right — product mockup */}
+            <motion.div
+              initial={{ opacity: 0, y: 32, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: 0.25, duration: 0.75, ease: 'easeOut' }}
+              className="relative"
             >
               <ProductMockup />
-            </div>
-            {/* Fade-out gradient at the bottom */}
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#0A0A0C] via-[#0A0A0C]/80 to-transparent" />
+            </motion.div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
-      {/* Interactive Simulator — separate section below fold */}
+      {/* Interactive Simulator */}
       <section className="relative py-24 md:py-32">
         <div className="premium-divider" />
 
@@ -189,7 +182,6 @@ export function HeroSection() {
               </div>
 
               <div className="grid gap-8 md:grid-cols-2">
-                {/* Controls */}
                 <div className="space-y-6">
                   <label className="block">
                     <span className="flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-zinc-500">
@@ -232,7 +224,6 @@ export function HeroSection() {
                   </label>
                 </div>
 
-                {/* Results */}
                 <div className="space-y-0 rounded-xl border border-white/[0.05] bg-white/[0.015]">
                   {[
                     { label: 'Deadline', value: `${dueDays} Tage` },
