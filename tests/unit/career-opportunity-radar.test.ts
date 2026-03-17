@@ -72,4 +72,30 @@ describe('opportunity radar scoring', () => {
     expect(profileRole).toBeTruthy();
     expect((profileRole?.fitScore ?? 0)).toBeGreaterThan(baseRole?.fitScore ?? 0);
   });
+
+  it('relaxes strict query when first pass yields no hits', async () => {
+    const result = await searchRadarOpportunities({
+      query: 'zzzxqv',
+      priorityTrack: 'M&A',
+      locations: ['DE', 'AT', 'CH'],
+      bands: ['realistic', 'target', 'stretch'],
+      limit: 12,
+    });
+
+    expect(result.queryRelaxedUsed).toBe(true);
+    expect(result.items.length).toBeGreaterThan(0);
+  });
+
+  it('relaxes band filter when user-selected bands return none', async () => {
+    const result = await searchRadarOpportunities({
+      query: 'audit',
+      priorityTrack: 'M&A',
+      locations: ['DE', 'AT', 'CH'],
+      bands: ['realistic'],
+      limit: 12,
+    });
+
+    expect(result.bandRelaxedUsed).toBe(true);
+    expect(result.items.length).toBeGreaterThan(0);
+  });
 });

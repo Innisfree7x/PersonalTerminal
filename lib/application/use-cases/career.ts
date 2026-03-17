@@ -41,6 +41,8 @@ export async function searchCareerOpportunities(
   liveSourceConfigured: boolean;
   liveSourceHealthy: boolean;
   liveSourceContributed: boolean;
+  queryRelaxedUsed: boolean;
+  bandRelaxedUsed: boolean;
   llmEnrichedCount: number;
 }> {
   return repository.searchOpportunities(input, context);

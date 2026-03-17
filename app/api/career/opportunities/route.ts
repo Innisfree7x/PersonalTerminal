@@ -116,6 +116,8 @@ export async function GET(request: NextRequest) {
       liveSourceConfigured,
       liveSourceHealthy,
       liveSourceContributed,
+      queryRelaxedUsed,
+      bandRelaxedUsed,
       llmEnrichedCount,
     } = await searchCareerOpportunities(careerRepository, input, {
       cvProfile: cvProfile
@@ -149,6 +151,8 @@ export async function GET(request: NextRequest) {
         liveSourceConfigured,
         liveSourceHealthy,
         liveSourceContributed,
+        queryRelaxedUsed,
+        bandRelaxedUsed,
         cvProfileApplied: Boolean(cvProfile),
         llm: {
           enabled: llmBudget.enabled,

@@ -32,6 +32,7 @@ export interface OpportunitySearchItem {
   sourceLabels: string[];
   targetFirm?: boolean;
   jobUrl?: string;
+  nextAction?: string;
 }
 
 export interface OpportunityCvProfileContext {
@@ -60,6 +61,8 @@ export interface OpportunitySearchResponse {
     liveSourceConfigured: boolean;
     liveSourceHealthy: boolean;
     liveSourceContributed: boolean;
+    queryRelaxedUsed?: boolean;
+    bandRelaxedUsed?: boolean;
     cvProfileApplied?: boolean;
     llm?: {
       enabled: boolean;

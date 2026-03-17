@@ -8,12 +8,12 @@ const trustItems = ['Keine Kreditkarte', 'Konto in 2 Minuten', 'Public Beta'];
 
 export function CTASection() {
   return (
-    <section className="relative overflow-hidden py-24 md:py-36">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-        <div className="absolute left-1/2 top-1/2 h-[520px] w-[720px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-500/9 blur-[130px]" />
-        <div className="absolute left-1/2 top-1/2 h-[260px] w-[440px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-yellow-500/5 blur-[90px]" />
-      </div>
+    <section className="relative overflow-hidden py-32 md:py-44">
+      <div className="premium-divider" />
+
+      {/* Central glow — gold + red accent */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8B930]/[0.07] blur-[150px]" />
+      <div className="pointer-events-none absolute left-[30%] top-[40%] h-[300px] w-[300px] rounded-full bg-[#DC3232]/[0.06] blur-[120px]" />
 
       <div className="marketing-container relative z-10">
         <motion.div
@@ -23,29 +23,23 @@ export function CTASection() {
           transition={{ duration: 0.6 }}
           className="mx-auto max-w-3xl text-center"
         >
-          <motion.p
-            initial={{ opacity: 0, y: 8 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.05 }}
-            className="premium-kicker mb-5"
-          >
-            Jetzt starten
-          </motion.p>
+          <p className="premium-kicker">Jetzt starten</p>
 
-          <h2 className="premium-heading text-[clamp(2.4rem,5vw,4.2rem)] font-semibold text-[#FAF0E6]">
-            Wenn Thesis, GMAT und Praktika parallel laufen,
-            <span className="block bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+          <h2 className="premium-heading text-[clamp(2.4rem,5.5vw,4.5rem)] font-semibold text-[#FAF0E6]">
+            Wenn Thesis, GMAT
+            <br />
+            und Praktika parallel laufen,{' '}
+            <span className="bg-gradient-to-r from-[#E8B930] via-[#F5D565] to-[#E8B930] bg-clip-text italic text-transparent">
               brauchst du kein weiteres Tool.
             </span>
           </h2>
 
-          <p className="premium-subtext mx-auto mt-5 max-w-2xl text-[1rem] leading-relaxed md:text-lg">
+          <p className="mx-auto mt-8 max-w-xl text-[17px] leading-[1.7] text-zinc-400">
             Du brauchst eine klare Linie vom langfristigen Plan bis in den heutigen Move.
-            Genau dafuer ist INNIS gebaut.
+            Genau dafür ist INNIS gebaut.
           </p>
 
-          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+          <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <TrackedCtaLink
               href="/auth/signup"
               eventName="landing_cta_primary_clicked"
@@ -70,11 +64,11 @@ export function CTASection() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
-            className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2"
+            className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2"
           >
             {trustItems.map((item) => (
-              <span key={item} className="flex items-center gap-1.5 text-xs text-zinc-500">
-                <Check className="h-3 w-3 text-emerald-500" />
+              <span key={item} className="flex items-center gap-2 text-[13px] text-zinc-600">
+                <Check className="h-3.5 w-3.5 text-[#E8B930]/50" />
                 {item}
               </span>
             ))}

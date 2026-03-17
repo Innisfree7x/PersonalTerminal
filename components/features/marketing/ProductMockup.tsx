@@ -16,8 +16,8 @@ export function ProductMockup() {
   return (
     <div className="relative">
       {/* Ambient glow behind mockup */}
-      <div className="pointer-events-none absolute -inset-10 rounded-3xl bg-gradient-to-tr from-red-500/15 via-transparent to-yellow-500/12 blur-3xl" />
-      <div className="pointer-events-none absolute inset-x-0 -bottom-8 mx-auto h-24 w-3/4 rounded-full bg-red-500/10 blur-2xl" />
+      <div className="pointer-events-none absolute -inset-10 rounded-3xl bg-gradient-to-tr from-[#DC3232]/12 via-transparent to-[#E8B930]/10 blur-3xl" />
+      <div className="pointer-events-none absolute inset-x-0 -bottom-8 mx-auto h-24 w-3/4 rounded-full bg-[#E8B930]/8 blur-2xl" />
 
       {/* Floating animation wrapper */}
       <motion.div
@@ -53,7 +53,7 @@ export function ProductMockup() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 + i * 0.05 }}
-                  className={`w-8 h-1.5 rounded-full ${i === 0 ? 'bg-red-500' : 'bg-white/8'}`}
+                  className={`w-8 h-1.5 rounded-full ${i === 0 ? 'bg-[#E8B930]' : 'bg-white/8'}`}
                 />
               ))}
             </div>

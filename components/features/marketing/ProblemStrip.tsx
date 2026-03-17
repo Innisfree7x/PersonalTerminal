@@ -2,90 +2,76 @@
 
 import { motion } from 'framer-motion';
 
-const diagnosisRows = [
+const contrasts = [
   {
     label: 'Planung',
-    before: 'Deadline irgendwo im Kopf, Aufwand irgendwo in Notion.',
-    after: 'Eine Timeline mit Startfenster, Buffer und klarer Risikologik.',
+    problem: 'Deadline irgendwo im Kopf, Aufwand irgendwo in Notion.',
+    solution: 'Eine Timeline mit Startfenster, Buffer und Risikologik.',
   },
   {
     label: 'Daily',
-    before: 'Jeder Morgen beginnt mit Neu-Sortieren und Kontextwechsel.',
-    after: 'Today uebernimmt den naechsten sinnvollen Move direkt aus Trajectory.',
+    problem: 'Jeder Morgen beginnt mit Sortieren und Kontextwechsel.',
+    solution: 'Today übernimmt den nächsten Move aus Trajectory.',
   },
   {
     label: 'Signal',
-    before: 'Du merkst zu spaet, dass Thesis, GMAT und Bewerbungen kollidieren.',
-    after: 'INNIS zeigt die Kollision frueh genug, damit du noch reagieren kannst.',
+    problem: 'Du merkst zu spät, dass Thesis, GMAT und Bewerbungen kollidieren.',
+    solution: 'INNIS zeigt die Kollision früh genug, damit du reagieren kannst.',
   },
 ];
 
 export function ProblemStrip() {
   return (
-    <section className="relative py-16 md:py-20">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-      <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-64 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-500/5 blur-3xl" />
+    <section className="relative py-28 md:py-36">
+      <div className="premium-divider" />
 
-      <div className="marketing-container relative z-10">
+      <div className="marketing-container relative z-10 mt-16">
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="mx-auto mb-12 max-w-3xl text-center"
+          className="mx-auto mb-20 max-w-3xl text-center"
         >
-          <p className="premium-kicker">Die eigentliche Spannung</p>
-          <p className="text-[1.45rem] font-semibold leading-snug tracking-tight text-[#FAF0E6] md:text-3xl">
-            Die meisten Tools verwalten Aufgaben.
+          <p className="premium-kicker">Das eigentliche Problem</p>
+          <h2 className="premium-heading text-[clamp(2.2rem,5vw,4rem)] font-semibold text-[#FAF0E6]">
+            Die meisten Tools
             <br />
-            <span className="text-zinc-500">INNIS verwaltet Konflikte.</span>
-          </p>
-          <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-zinc-400 md:text-base">
-            Thesis, GMAT, Praktikum und Master-Apps scheitern selten an fehlenden To-do-Listen.
-            Sie scheitern daran, dass niemand die Kollisionen frueh genug sichtbar macht.
-          </p>
+            verwalten Aufgaben.
+          </h2>
+          <p className="mt-6 text-lg text-zinc-500">INNIS verwaltet Konflikte.</p>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.45, delay: 0.35 }}
-          className="mx-auto grid max-w-5xl gap-4 lg:grid-cols-[0.82fr_1.18fr]"
-        >
-          <div className="premium-card rounded-[1.75rem] p-6">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">Ohne INNIS</p>
-            <p className="mt-4 text-2xl font-semibold leading-tight text-[#FAF0E6]">
-              Fuenf Tools. Viele Listen.
-              <span className="block text-zinc-500">Trotzdem zu spaet dran.</span>
-            </p>
-            <div className="mt-6 space-y-3 text-sm leading-relaxed text-zinc-400">
-              <p>Notion fuer Notizen. Kalender fuer Termine. Excel fuer Bewerbungen. Ein extra Timer. Irgendwo noch Goals.</p>
-              <p>Das Problem ist nicht fehlende Aktivitaet, sondern fehlende Prioritaetswahrheit.</p>
-            </div>
-          </div>
-
-          <div className="premium-card-soft rounded-[1.75rem] p-6">
-            <div className="grid gap-4">
-              {diagnosisRows.map((row) => (
-                <div key={row.label} className="grid gap-3 rounded-2xl border border-white/8 bg-white/[0.02] p-4 md:grid-cols-[110px_1fr_1fr]">
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">{row.label}</p>
-                  </div>
-                  <div className="rounded-xl border border-red-500/18 bg-red-500/[0.05] p-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-red-300">Vorher</p>
-                    <p className="mt-2 text-sm leading-relaxed text-zinc-400">{row.before}</p>
-                  </div>
-                  <div className="rounded-xl border border-yellow-500/16 bg-yellow-500/[0.05] p-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-yellow-300">Mit INNIS</p>
-                    <p className="mt-2 text-sm leading-relaxed text-zinc-300">{row.after}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
+        <div className="mx-auto max-w-4xl space-y-px overflow-hidden rounded-2xl border border-white/[0.05]">
+          {contrasts.map((row, i) => (
+            <motion.div
+              key={row.label}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.1 }}
+              className="grid gap-px bg-white/[0.03] md:grid-cols-[120px_1fr_1fr]"
+            >
+              <div className="flex items-center bg-[#0A0A0C] px-6 py-5">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                  {row.label}
+                </span>
+              </div>
+              <div className="bg-[#0A0A0C] px-6 py-5">
+                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-red-400/60">
+                  Vorher
+                </p>
+                <p className="text-[14px] leading-relaxed text-zinc-500">{row.problem}</p>
+              </div>
+              <div className="bg-[#0A0A0C] px-6 py-5">
+                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#E8B930]/60">
+                  Mit INNIS
+                </p>
+                <p className="text-[14px] leading-relaxed text-zinc-300">{row.solution}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   );

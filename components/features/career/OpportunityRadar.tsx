@@ -221,6 +221,12 @@ export default function OpportunityRadar({ onAdoptToPipeline }: OpportunityRadar
           {meta?.cvProfileApplied ? (
             <Badge variant="career" size="sm">CV-Profil aktiv</Badge>
           ) : null}
+          {meta?.queryRelaxedUsed ? (
+            <Badge variant="warning" size="sm">Query erweitert</Badge>
+          ) : null}
+          {meta?.bandRelaxedUsed ? (
+            <Badge variant="warning" size="sm">Band erweitert</Badge>
+          ) : null}
           {meta?.llm?.enabled ? (
             <Badge variant="default" size="sm">
               LLM-Budget {meta.llm.remainingUnits}/{meta.llm.maxDailyUnits}
@@ -349,6 +355,11 @@ export default function OpportunityRadar({ onAdoptToPipeline }: OpportunityRadar
           <Target className="mx-auto mb-3 h-8 w-8 text-text-tertiary" />
           <p className="text-base font-medium text-text-primary">No matching opportunities</p>
           <p className="mt-1 text-sm text-text-tertiary">Passe Query, Standort oder Band an, um wieder Treffer zu sehen.</p>
+          {meta?.liveSourceConfigured ? (
+            <p className="mt-2 text-xs text-text-tertiary">
+              Live-Quelle liefert aktuell keine passenden Treffer. Tipp: Query vereinfachen oder Track wechseln.
+            </p>
+          ) : null}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
@@ -418,6 +429,13 @@ export default function OpportunityRadar({ onAdoptToPipeline }: OpportunityRadar
                   </ul>
                 </div>
               </div>
+
+              {item.nextAction ? (
+                <div className="mt-3 rounded-lg border border-primary/20 bg-primary/10 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">Nächster Schritt</p>
+                  <p className="mt-1 text-xs leading-relaxed text-text-secondary">{item.nextAction}</p>
+                </div>
+              ) : null}
 
               <div className="mt-3 flex flex-wrap justify-end gap-2">
                 <Button
