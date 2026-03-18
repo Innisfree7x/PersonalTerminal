@@ -1228,7 +1228,6 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
     startCooldown,
     startLockedAnimation,
     vfxPresetProfile.dashGhostCount,
-    vfxPresetProfile.qSparkCount,
     vfxPresetProfile.rBulletCount,
   ]);
 
