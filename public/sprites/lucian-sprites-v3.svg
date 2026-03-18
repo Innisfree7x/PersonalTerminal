@@ -8,28 +8,63 @@
       <ellipse cx="32" cy="57" rx="10" ry="3" fill="#000" fill-opacity="0.2"/>
     </g>
 
-    <!-- VISOR/HELMET — dark with cyan glow slit -->
+    <!-- VISOR/HELMET — dark with cyan glow slit, premium shading -->
     <g id="helm">
-      <rect x="21" y="9" width="22" height="6" fill="#1E293B"/>
-      <rect x="20" y="11" width="24" height="3" fill="#0F172A"/>
+      <!-- Base helmet shell -->
+      <rect x="21" y="9" width="22" height="8" fill="#1E293B"/>
+      <!-- Top surface highlight (light from top-left) -->
       <rect x="22" y="8" width="20" height="2" fill="#334155"/>
-      <!-- visor glow -->
-      <rect x="24" y="12" width="16" height="2" fill="#22D3EE"/>
-      <rect x="24" y="12" width="16" height="1" fill="#67E8F9" fill-opacity="0.8"/>
-      <!-- side plates -->
-      <rect x="19" y="11" width="2" height="5" fill="#334155"/>
-      <rect x="43" y="11" width="2" height="5" fill="#334155"/>
-      <!-- top ridge -->
+      <rect x="23" y="8" width="18" height="1" fill="#475569"/>
+      <!-- Top ridge — stepped crest -->
       <rect x="28" y="7" width="8" height="2" fill="#334155"/>
       <rect x="30" y="6" width="4" height="2" fill="#475569"/>
+      <rect x="31" y="5" width="2" height="2" fill="#64748B"/>
+      <!-- Specular catch on crest -->
+      <rect x="31" y="5" width="1" height="1" fill="#94A3B8" fill-opacity="0.5"/>
+      <!-- Visor frame (deep recess) -->
+      <rect x="20" y="11" width="24" height="4" fill="#0F172A"/>
+      <!-- Visor glow — 3-layer depth -->
+      <rect x="23" y="11" width="18" height="4" fill="#164E63" fill-opacity="0.6"/>
+      <rect x="24" y="12" width="16" height="2" fill="#22D3EE"/>
+      <rect x="25" y="12" width="14" height="1" fill="#67E8F9" fill-opacity="0.9"/>
+      <rect x="28" y="12" width="8" height="1" fill="#A5F3FC" fill-opacity="0.7"/>
+      <!-- Visor overflow glow (ambient bleed) -->
+      <rect x="22" y="10" width="20" height="1" fill="#22D3EE" fill-opacity="0.12"/>
+      <rect x="22" y="14" width="20" height="1" fill="#22D3EE" fill-opacity="0.12"/>
+      <!-- Side plates with directional shading -->
+      <rect x="19" y="11" width="2" height="6" fill="#334155"/>
+      <rect x="43" y="11" width="2" height="6" fill="#334155"/>
+      <rect x="19" y="11" width="2" height="1" fill="#475569"/>
+      <rect x="43" y="11" width="2" height="1" fill="#475569"/>
+      <rect x="19" y="16" width="2" height="1" fill="#0F172A" fill-opacity="0.6"/>
+      <rect x="43" y="16" width="2" height="1" fill="#0F172A" fill-opacity="0.6"/>
+      <!-- AA corner pixels -->
+      <rect x="18" y="12" width="1" height="2" fill="#1E293B" fill-opacity="0.35"/>
+      <rect x="45" y="12" width="1" height="2" fill="#1E293B" fill-opacity="0.35"/>
+      <rect x="27" y="6" width="1" height="1" fill="#334155" fill-opacity="0.3"/>
+      <rect x="36" y="6" width="1" height="1" fill="#334155" fill-opacity="0.3"/>
     </g>
 
-    <!-- FACE — dark skin, visible below visor -->
+    <!-- FACE — dark skin, volumetric shading -->
     <g id="face">
+      <!-- Base skin -->
       <rect x="21" y="15" width="22" height="13" fill="#8B6914"/>
-      <rect x="21" y="15" width="1" height="13" fill="#7A5A10" fill-opacity="0.4"/>
-      <rect x="42" y="15" width="1" height="13" fill="#7A5A10" fill-opacity="0.4"/>
-      <rect x="22" y="27" width="20" height="1" fill="#7A5A10" fill-opacity="0.3"/>
+      <!-- Top-left highlight (light catch) -->
+      <rect x="22" y="15" width="10" height="2" fill="#A67E1A" fill-opacity="0.5"/>
+      <!-- Right cheek shadow -->
+      <rect x="38" y="17" width="5" height="6" fill="#7A5A10" fill-opacity="0.35"/>
+      <!-- Left edge shadow -->
+      <rect x="21" y="15" width="1" height="13" fill="#6B5210" fill-opacity="0.5"/>
+      <!-- Right edge shadow -->
+      <rect x="42" y="15" width="1" height="13" fill="#6B5210" fill-opacity="0.5"/>
+      <!-- Jawline shadow -->
+      <rect x="22" y="26" width="20" height="2" fill="#6B5210" fill-opacity="0.4"/>
+      <!-- Chin definition -->
+      <rect x="29" y="27" width="6" height="1" fill="#7A5A10" fill-opacity="0.3"/>
+      <!-- Brow shadow (above eye area) -->
+      <rect x="24" y="17" width="16" height="1" fill="#7A5A10" fill-opacity="0.25"/>
+      <!-- Nose bridge hint -->
+      <rect x="31" y="21" width="2" height="3" fill="#7A5A10" fill-opacity="0.2"/>
     </g>
 
     <!-- EYES — cyan glow (PROJECT) -->
@@ -109,66 +144,120 @@
       <rect x="33" y="24" width="2" height="1" fill="#5C3A08"/>
     </g>
 
-    <!-- ARMOR BODY — dark gunmetal with cyan accent lines -->
+    <!-- ARMOR BODY — dark gunmetal, 5-tone directional shading -->
     <g id="armor">
+      <!-- Base plate -->
       <rect x="23" y="28" width="18" height="14" fill="#1E293B"/>
-      <rect x="22" y="29" width="1" height="12" fill="#0F172A"/>
+      <!-- Top highlight (light from top-left) -->
+      <rect x="23" y="28" width="18" height="1" fill="#334155" fill-opacity="0.7"/>
+      <rect x="24" y="28" width="8" height="1" fill="#475569" fill-opacity="0.4"/>
+      <!-- Left edge lighter -->
+      <rect x="22" y="29" width="1" height="12" fill="#334155" fill-opacity="0.3"/>
+      <!-- Right edge shadow -->
       <rect x="41" y="29" width="1" height="12" fill="#0F172A"/>
-      <!-- shoulder plates -->
-      <rect x="21" y="28" width="3" height="3" fill="#334155"/>
-      <rect x="40" y="28" width="3" height="3" fill="#334155"/>
+      <!-- Bottom deep shadow -->
+      <rect x="23" y="41" width="18" height="1" fill="#060B14" fill-opacity="0.6"/>
+      <!-- Shoulder plates with bevel -->
+      <rect x="21" y="28" width="3" height="4" fill="#334155"/>
+      <rect x="40" y="28" width="3" height="4" fill="#334155"/>
       <rect x="21" y="28" width="3" height="1" fill="#475569"/>
       <rect x="40" y="28" width="3" height="1" fill="#475569"/>
-      <!-- collar -->
+      <rect x="21" y="31" width="3" height="1" fill="#1E293B" fill-opacity="0.7"/>
+      <rect x="40" y="31" width="3" height="1" fill="#1E293B" fill-opacity="0.7"/>
+      <!-- Shoulder specular catch -->
+      <rect x="21" y="28" width="1" height="1" fill="#64748B" fill-opacity="0.5"/>
+      <rect x="42" y="28" width="1" height="1" fill="#64748B" fill-opacity="0.3"/>
+      <!-- Collar with depth -->
       <rect x="25" y="27" width="14" height="2" fill="#334155"/>
       <rect x="26" y="27" width="12" height="1" fill="#475569"/>
-      <!-- cyan accent lines -->
+      <rect x="25" y="28" width="14" height="1" fill="#1E293B" fill-opacity="0.4"/>
+      <!-- Chest plates — left with highlight, right with shadow -->
+      <rect x="27" y="30" width="4" height="4" fill="#334155"/>
+      <rect x="33" y="30" width="4" height="4" fill="#334155"/>
+      <rect x="27" y="30" width="4" height="1" fill="#475569" fill-opacity="0.6"/>
+      <rect x="33" y="30" width="4" height="1" fill="#475569" fill-opacity="0.4"/>
+      <rect x="27" y="33" width="4" height="1" fill="#1E293B" fill-opacity="0.5"/>
+      <rect x="33" y="33" width="4" height="1" fill="#1E293B" fill-opacity="0.5"/>
+      <!-- Cyan center line (energy seam) -->
       <rect x="32" y="29" width="1" height="12" fill="#22D3EE" fill-opacity="0.5"/>
-      <rect x="25" y="34" width="14" height="1" fill="#22D3EE" fill-opacity="0.3"/>
-      <!-- chest plate highlight -->
-      <rect x="27" y="30" width="4" height="3" fill="#334155"/>
-      <rect x="33" y="30" width="4" height="3" fill="#334155"/>
-      <!-- red accent marks (PROJECT style) -->
+      <!-- Cyan belt accent -->
+      <rect x="25" y="35" width="14" height="1" fill="#22D3EE" fill-opacity="0.35"/>
+      <rect x="25" y="36" width="14" height="1" fill="#0F172A" fill-opacity="0.5"/>
+      <!-- Red accent marks (PROJECT style) -->
       <rect x="28" y="31" width="2" height="1" fill="#EF4444" fill-opacity="0.7"/>
       <rect x="34" y="31" width="2" height="1" fill="#EF4444" fill-opacity="0.7"/>
+      <!-- Ambient occlusion at arm-body junction -->
+      <rect x="22" y="29" width="1" height="3" fill="#060B14" fill-opacity="0.3"/>
+      <rect x="41" y="29" width="1" height="3" fill="#060B14" fill-opacity="0.3"/>
     </g>
-    <g id="armor-l"> <!-- lean left -->
+    <g id="armor-l"> <!-- lean left — 5-tone shading -->
       <rect x="22" y="28" width="18" height="14" fill="#1E293B"/>
-      <rect x="21" y="29" width="1" height="12" fill="#0F172A"/>
+      <rect x="22" y="28" width="18" height="1" fill="#334155" fill-opacity="0.7"/>
+      <rect x="21" y="29" width="1" height="12" fill="#334155" fill-opacity="0.3"/>
       <rect x="40" y="29" width="1" height="12" fill="#0F172A"/>
-      <rect x="20" y="28" width="3" height="3" fill="#334155"/>
-      <rect x="39" y="28" width="3" height="3" fill="#334155"/>
+      <rect x="22" y="41" width="18" height="1" fill="#060B14" fill-opacity="0.6"/>
+      <rect x="20" y="28" width="3" height="4" fill="#334155"/>
+      <rect x="39" y="28" width="3" height="4" fill="#334155"/>
+      <rect x="20" y="28" width="3" height="1" fill="#475569"/>
+      <rect x="39" y="28" width="3" height="1" fill="#475569"/>
       <rect x="24" y="27" width="14" height="2" fill="#334155"/>
+      <rect x="25" y="27" width="12" height="1" fill="#475569"/>
       <rect x="31" y="29" width="1" height="12" fill="#22D3EE" fill-opacity="0.5"/>
-      <rect x="24" y="34" width="14" height="1" fill="#22D3EE" fill-opacity="0.3"/>
+      <rect x="24" y="35" width="14" height="1" fill="#22D3EE" fill-opacity="0.35"/>
+      <rect x="26" y="30" width="4" height="4" fill="#334155"/>
+      <rect x="32" y="30" width="4" height="4" fill="#334155"/>
       <rect x="27" y="31" width="2" height="1" fill="#EF4444" fill-opacity="0.7"/>
       <rect x="33" y="31" width="2" height="1" fill="#EF4444" fill-opacity="0.7"/>
     </g>
-    <g id="armor-r"> <!-- lean right -->
+    <g id="armor-r"> <!-- lean right — 5-tone shading -->
       <rect x="24" y="28" width="18" height="14" fill="#1E293B"/>
-      <rect x="23" y="29" width="1" height="12" fill="#0F172A"/>
+      <rect x="24" y="28" width="18" height="1" fill="#334155" fill-opacity="0.7"/>
+      <rect x="23" y="29" width="1" height="12" fill="#334155" fill-opacity="0.3"/>
       <rect x="42" y="29" width="1" height="12" fill="#0F172A"/>
-      <rect x="22" y="28" width="3" height="3" fill="#334155"/>
-      <rect x="41" y="28" width="3" height="3" fill="#334155"/>
+      <rect x="24" y="41" width="18" height="1" fill="#060B14" fill-opacity="0.6"/>
+      <rect x="22" y="28" width="3" height="4" fill="#334155"/>
+      <rect x="41" y="28" width="3" height="4" fill="#334155"/>
+      <rect x="22" y="28" width="3" height="1" fill="#475569"/>
+      <rect x="41" y="28" width="3" height="1" fill="#475569"/>
       <rect x="26" y="27" width="14" height="2" fill="#334155"/>
+      <rect x="27" y="27" width="12" height="1" fill="#475569"/>
       <rect x="33" y="29" width="1" height="12" fill="#22D3EE" fill-opacity="0.5"/>
-      <rect x="26" y="34" width="14" height="1" fill="#22D3EE" fill-opacity="0.3"/>
+      <rect x="26" y="35" width="14" height="1" fill="#22D3EE" fill-opacity="0.35"/>
+      <rect x="28" y="30" width="4" height="4" fill="#334155"/>
+      <rect x="34" y="30" width="4" height="4" fill="#334155"/>
       <rect x="29" y="31" width="2" height="1" fill="#EF4444" fill-opacity="0.7"/>
       <rect x="35" y="31" width="2" height="1" fill="#EF4444" fill-opacity="0.7"/>
     </g>
 
-    <!-- LEGS — armored dark -->
+    <!-- LEGS — armored, directional shading -->
     <g id="ls">
+      <!-- Thighs -->
       <rect x="25" y="42" width="5" height="8" fill="#1E293B"/>
       <rect x="34" y="42" width="5" height="8" fill="#1E293B"/>
-      <!-- cyan knee accents -->
-      <rect x="26" y="44" width="3" height="1" fill="#22D3EE" fill-opacity="0.35"/>
-      <rect x="35" y="44" width="3" height="1" fill="#22D3EE" fill-opacity="0.35"/>
-      <!-- boots -->
+      <!-- Thigh highlight (left face) -->
+      <rect x="25" y="42" width="1" height="8" fill="#334155" fill-opacity="0.4"/>
+      <rect x="34" y="42" width="1" height="8" fill="#334155" fill-opacity="0.4"/>
+      <!-- Thigh shadow (right face) -->
+      <rect x="29" y="42" width="1" height="8" fill="#0F172A" fill-opacity="0.4"/>
+      <rect x="38" y="42" width="1" height="8" fill="#0F172A" fill-opacity="0.4"/>
+      <!-- Knee armor plates -->
+      <rect x="25" y="44" width="5" height="2" fill="#334155" fill-opacity="0.5"/>
+      <rect x="34" y="44" width="5" height="2" fill="#334155" fill-opacity="0.5"/>
+      <!-- Cyan knee accents -->
+      <rect x="26" y="44" width="3" height="1" fill="#22D3EE" fill-opacity="0.4"/>
+      <rect x="35" y="44" width="3" height="1" fill="#22D3EE" fill-opacity="0.4"/>
+      <!-- Boots — armored with sole -->
       <rect x="24" y="50" width="7" height="3" fill="#0F172A"/>
       <rect x="33" y="50" width="7" height="3" fill="#0F172A"/>
+      <!-- Boot top rim -->
       <rect x="24" y="50" width="7" height="1" fill="#334155"/>
       <rect x="33" y="50" width="7" height="1" fill="#334155"/>
+      <!-- Boot highlight -->
+      <rect x="24" y="51" width="2" height="1" fill="#1E293B" fill-opacity="0.7"/>
+      <rect x="33" y="51" width="2" height="1" fill="#1E293B" fill-opacity="0.7"/>
+      <!-- Sole -->
+      <rect x="24" y="52" width="7" height="1" fill="#060B14"/>
+      <rect x="33" y="52" width="7" height="1" fill="#060B14"/>
     </g>
     <g id="la">
       <rect x="24" y="42" width="5" height="7" fill="#1E293B"/>
@@ -198,82 +287,184 @@
       <rect x="35" y="44" width="6" height="4" fill="#0F172A"/>
     </g>
 
-    <!-- ARMS + LIGHT GUNS — cyan-glowing barrels -->
+    <!-- ARMS + LIGHT GUNS — cyan-glowing barrels, premium detail -->
     <g id="ad"> <!-- arms down, guns holstered -->
-      <rect x="19" y="29" width="3" height="7" fill="#1E293B"/>
-      <rect x="42" y="29" width="3" height="7" fill="#1E293B"/>
-      <!-- armored gauntlets -->
-      <rect x="19" y="29" width="3" height="1" fill="#334155"/>
-      <rect x="42" y="29" width="3" height="1" fill="#334155"/>
-      <rect x="19" y="36" width="3" height="2" fill="#8B6914"/>
-      <rect x="42" y="36" width="3" height="2" fill="#8B6914"/>
-      <!-- guns pointing down -->
-      <rect x="19" y="38" width="2" height="5" fill="#475569"/>
-      <rect x="43" y="38" width="2" height="5" fill="#475569"/>
-      <rect x="19" y="40" width="2" height="1" fill="#22D3EE" fill-opacity="0.6"/>
-      <rect x="43" y="40" width="2" height="1" fill="#22D3EE" fill-opacity="0.6"/>
+      <!-- Arms with gauntlet armor -->
+      <rect x="19" y="29" width="4" height="7" fill="#1E293B"/>
+      <rect x="41" y="29" width="4" height="7" fill="#1E293B"/>
+      <rect x="19" y="29" width="4" height="1" fill="#334155"/>
+      <rect x="41" y="29" width="4" height="1" fill="#334155"/>
+      <!-- Gauntlet accent -->
+      <rect x="19" y="33" width="4" height="1" fill="#475569" fill-opacity="0.4"/>
+      <rect x="41" y="33" width="4" height="1" fill="#475569" fill-opacity="0.4"/>
+      <!-- Hands -->
+      <rect x="19" y="36" width="4" height="2" fill="#8B6914"/>
+      <rect x="41" y="36" width="4" height="2" fill="#8B6914"/>
+      <rect x="19" y="36" width="4" height="1" fill="#A67E1A" fill-opacity="0.4"/>
+      <rect x="41" y="36" width="4" height="1" fill="#A67E1A" fill-opacity="0.4"/>
+      <!-- Guns pointing down — detailed -->
+      <rect x="19" y="38" width="3" height="6" fill="#475569"/>
+      <rect x="42" y="38" width="3" height="6" fill="#475569"/>
+      <!-- Gun highlight (left face) -->
+      <rect x="19" y="38" width="1" height="6" fill="#64748B" fill-opacity="0.5"/>
+      <rect x="42" y="38" width="1" height="6" fill="#64748B" fill-opacity="0.5"/>
+      <!-- Gun shadow (right face) -->
+      <rect x="21" y="38" width="1" height="6" fill="#334155" fill-opacity="0.6"/>
+      <rect x="44" y="38" width="1" height="6" fill="#334155" fill-opacity="0.6"/>
+      <!-- Energy cell glow -->
+      <rect x="20" y="40" width="1" height="2" fill="#22D3EE" fill-opacity="0.7"/>
+      <rect x="43" y="40" width="1" height="2" fill="#22D3EE" fill-opacity="0.7"/>
+      <!-- Muzzle tips -->
+      <rect x="19" y="43" width="3" height="1" fill="#334155"/>
+      <rect x="42" y="43" width="3" height="1" fill="#334155"/>
+      <rect x="20" y="44" width="1" height="1" fill="#22D3EE" fill-opacity="0.4"/>
+      <rect x="43" y="44" width="1" height="1" fill="#22D3EE" fill-opacity="0.4"/>
     </g>
     <g id="asa"> <!-- arms swing a -->
-      <rect x="18" y="29" width="3" height="6" fill="#1E293B"/>
-      <rect x="43" y="30" width="3" height="5" fill="#1E293B"/>
-      <rect x="18" y="35" width="3" height="2" fill="#8B6914"/>
-      <rect x="43" y="35" width="3" height="2" fill="#8B6914"/>
-      <rect x="18" y="37" width="2" height="4" fill="#475569"/>
-      <rect x="44" y="37" width="2" height="4" fill="#475569"/>
-      <rect x="18" y="39" width="2" height="1" fill="#22D3EE" fill-opacity="0.5"/>
-      <rect x="44" y="39" width="2" height="1" fill="#22D3EE" fill-opacity="0.5"/>
+      <rect x="17" y="29" width="4" height="6" fill="#1E293B"/>
+      <rect x="43" y="30" width="4" height="5" fill="#1E293B"/>
+      <rect x="17" y="29" width="4" height="1" fill="#334155"/>
+      <rect x="43" y="30" width="4" height="1" fill="#334155"/>
+      <rect x="17" y="35" width="4" height="2" fill="#8B6914"/>
+      <rect x="43" y="35" width="4" height="2" fill="#8B6914"/>
+      <rect x="17" y="37" width="3" height="5" fill="#475569"/>
+      <rect x="44" y="37" width="3" height="5" fill="#475569"/>
+      <rect x="17" y="37" width="1" height="5" fill="#64748B" fill-opacity="0.4"/>
+      <rect x="44" y="37" width="1" height="5" fill="#64748B" fill-opacity="0.4"/>
+      <rect x="18" y="39" width="1" height="2" fill="#22D3EE" fill-opacity="0.5"/>
+      <rect x="45" y="39" width="1" height="2" fill="#22D3EE" fill-opacity="0.5"/>
     </g>
     <g id="asb"> <!-- arms swing b -->
-      <rect x="19" y="30" width="3" height="5" fill="#1E293B"/>
-      <rect x="42" y="29" width="3" height="6" fill="#1E293B"/>
-      <rect x="19" y="35" width="3" height="2" fill="#8B6914"/>
-      <rect x="42" y="35" width="3" height="2" fill="#8B6914"/>
-      <rect x="19" y="37" width="2" height="4" fill="#475569"/>
-      <rect x="43" y="37" width="2" height="4" fill="#475569"/>
-      <rect x="19" y="39" width="2" height="1" fill="#22D3EE" fill-opacity="0.5"/>
-      <rect x="43" y="39" width="2" height="1" fill="#22D3EE" fill-opacity="0.5"/>
+      <rect x="19" y="30" width="4" height="5" fill="#1E293B"/>
+      <rect x="41" y="29" width="4" height="6" fill="#1E293B"/>
+      <rect x="19" y="30" width="4" height="1" fill="#334155"/>
+      <rect x="41" y="29" width="4" height="1" fill="#334155"/>
+      <rect x="19" y="35" width="4" height="2" fill="#8B6914"/>
+      <rect x="41" y="35" width="4" height="2" fill="#8B6914"/>
+      <rect x="19" y="37" width="3" height="5" fill="#475569"/>
+      <rect x="42" y="37" width="3" height="5" fill="#475569"/>
+      <rect x="19" y="37" width="1" height="5" fill="#64748B" fill-opacity="0.4"/>
+      <rect x="42" y="37" width="1" height="5" fill="#64748B" fill-opacity="0.4"/>
+      <rect x="20" y="39" width="1" height="2" fill="#22D3EE" fill-opacity="0.5"/>
+      <rect x="43" y="39" width="1" height="2" fill="#22D3EE" fill-opacity="0.5"/>
     </g>
-    <g id="ag-fwd"> <!-- right gun forward (Q) -->
-      <rect x="19" y="29" width="3" height="6" fill="#1E293B"/>
-      <rect x="42" y="28" width="3" height="4" fill="#1E293B"/>
-      <!-- right hand + light gun forward -->
-      <rect x="45" y="28" width="3" height="3" fill="#8B6914"/>
-      <rect x="48" y="27" width="8" height="3" fill="#475569"/>
-      <rect x="48" y="27" width="2" height="1" fill="#334155"/>
-      <rect x="55" y="27" width="1" height="3" fill="#334155"/>
-      <!-- gun glow barrel -->
-      <rect x="50" y="28" width="5" height="1" fill="#22D3EE" fill-opacity="0.7"/>
-      <rect x="56" y="27" width="2" height="3" fill="#22D3EE" fill-opacity="0.5"/>
-      <!-- left hand stays down -->
-      <rect x="19" y="35" width="3" height="2" fill="#8B6914"/>
-      <rect x="19" y="37" width="2" height="4" fill="#475569"/>
+    <g id="ag-fwd"> <!-- right gun forward (Q) — detailed light gun -->
+      <!-- Left arm down with gun -->
+      <rect x="18" y="29" width="4" height="7" fill="#1E293B"/>
+      <rect x="18" y="29" width="4" height="1" fill="#334155"/>
+      <rect x="18" y="36" width="4" height="2" fill="#8B6914"/>
+      <rect x="18" y="38" width="3" height="5" fill="#475569"/>
+      <rect x="18" y="38" width="1" height="5" fill="#64748B" fill-opacity="0.4"/>
+      <rect x="19" y="40" width="1" height="2" fill="#22D3EE" fill-opacity="0.5"/>
+      <!-- Right arm forward -->
+      <rect x="42" y="27" width="4" height="5" fill="#1E293B"/>
+      <rect x="42" y="27" width="4" height="1" fill="#334155"/>
+      <rect x="42" y="31" width="4" height="1" fill="#475569" fill-opacity="0.3"/>
+      <!-- Right hand gripping -->
+      <rect x="45" y="27" width="3" height="4" fill="#8B6914"/>
+      <rect x="45" y="27" width="3" height="1" fill="#A67E1A" fill-opacity="0.5"/>
+      <!-- GUN BODY — multi-tone light gun -->
+      <rect x="48" y="26" width="10" height="5" fill="#475569"/>
+      <!-- Top highlight -->
+      <rect x="48" y="26" width="10" height="1" fill="#64748B"/>
+      <rect x="49" y="26" width="4" height="1" fill="#94A3B8" fill-opacity="0.3"/>
+      <!-- Bottom shadow -->
+      <rect x="48" y="30" width="10" height="1" fill="#334155"/>
+      <!-- Panel line -->
+      <rect x="49" y="28" width="8" height="1" fill="#334155" fill-opacity="0.4"/>
+      <!-- Rear grip housing -->
+      <rect x="48" y="26" width="2" height="5" fill="#334155"/>
+      <rect x="48" y="26" width="1" height="1" fill="#475569"/>
+      <!-- Energy cell (glowing) -->
+      <rect x="51" y="27" width="3" height="2" fill="#164E63"/>
+      <rect x="51" y="27" width="3" height="2" fill="#22D3EE" fill-opacity="0.6"/>
+      <rect x="52" y="27" width="1" height="1" fill="#67E8F9" fill-opacity="0.9"/>
+      <!-- Barrel section -->
+      <rect x="56" y="26" width="2" height="5" fill="#334155"/>
+      <rect x="56" y="27" width="2" height="3" fill="#1E293B"/>
+      <!-- Muzzle bore -->
+      <rect x="58" y="27" width="1" height="3" fill="#0F172A"/>
+      <!-- Barrel glow ring -->
+      <rect x="57" y="27" width="1" height="1" fill="#22D3EE" fill-opacity="0.6"/>
+      <rect x="57" y="29" width="1" height="1" fill="#22D3EE" fill-opacity="0.6"/>
+      <rect x="58" y="27" width="2" height="3" fill="#22D3EE" fill-opacity="0.3"/>
     </g>
-    <g id="ag-dual"> <!-- both light guns out (W/R) -->
-      <rect x="15" y="28" width="3" height="3" fill="#1E293B"/>
-      <rect x="42" y="28" width="3" height="3" fill="#1E293B"/>
-      <!-- left gun -->
-      <rect x="12" y="28" width="3" height="3" fill="#8B6914"/>
-      <rect x="4" y="27" width="8" height="3" fill="#475569"/>
-      <rect x="4" y="27" width="1" height="3" fill="#334155"/>
-      <rect x="5" y="28" width="5" height="1" fill="#22D3EE" fill-opacity="0.7"/>
-      <rect x="2" y="27" width="2" height="3" fill="#22D3EE" fill-opacity="0.5"/>
-      <!-- right gun -->
-      <rect x="45" y="28" width="3" height="3" fill="#8B6914"/>
-      <rect x="48" y="27" width="8" height="3" fill="#475569"/>
-      <rect x="55" y="27" width="1" height="3" fill="#334155"/>
-      <rect x="50" y="28" width="5" height="1" fill="#22D3EE" fill-opacity="0.7"/>
-      <rect x="56" y="27" width="2" height="3" fill="#22D3EE" fill-opacity="0.5"/>
+    <g id="ag-dual"> <!-- both light guns out (W/R) — detailed dual guns -->
+      <!-- Left arm -->
+      <rect x="14" y="27" width="4" height="4" fill="#1E293B"/>
+      <rect x="14" y="27" width="4" height="1" fill="#334155"/>
+      <!-- Right arm -->
+      <rect x="42" y="27" width="4" height="4" fill="#1E293B"/>
+      <rect x="42" y="27" width="4" height="1" fill="#334155"/>
+      <!-- Left hand -->
+      <rect x="11" y="27" width="3" height="4" fill="#8B6914"/>
+      <rect x="11" y="27" width="3" height="1" fill="#A67E1A" fill-opacity="0.4"/>
+      <!-- Left gun body -->
+      <rect x="2" y="26" width="9" height="5" fill="#475569"/>
+      <rect x="2" y="26" width="9" height="1" fill="#64748B"/>
+      <rect x="2" y="30" width="9" height="1" fill="#334155"/>
+      <!-- Left gun rear housing -->
+      <rect x="9" y="26" width="2" height="5" fill="#334155"/>
+      <!-- Left gun energy cell -->
+      <rect x="6" y="27" width="3" height="2" fill="#22D3EE" fill-opacity="0.6"/>
+      <rect x="7" y="27" width="1" height="1" fill="#67E8F9" fill-opacity="0.8"/>
+      <!-- Left gun barrel -->
+      <rect x="2" y="26" width="2" height="5" fill="#334155"/>
+      <rect x="2" y="27" width="2" height="3" fill="#1E293B"/>
+      <rect x="1" y="27" width="1" height="3" fill="#0F172A"/>
+      <rect x="1" y="27" width="2" height="3" fill="#22D3EE" fill-opacity="0.3"/>
+      <!-- Left gun panel line -->
+      <rect x="3" y="28" width="7" height="1" fill="#334155" fill-opacity="0.4"/>
+      <!-- Right hand -->
+      <rect x="45" y="27" width="3" height="4" fill="#8B6914"/>
+      <rect x="45" y="27" width="3" height="1" fill="#A67E1A" fill-opacity="0.4"/>
+      <!-- Right gun body -->
+      <rect x="48" y="26" width="10" height="5" fill="#475569"/>
+      <rect x="48" y="26" width="10" height="1" fill="#64748B"/>
+      <rect x="48" y="30" width="10" height="1" fill="#334155"/>
+      <!-- Right gun rear housing -->
+      <rect x="48" y="26" width="2" height="5" fill="#334155"/>
+      <!-- Right gun energy cell -->
+      <rect x="51" y="27" width="3" height="2" fill="#22D3EE" fill-opacity="0.6"/>
+      <rect x="52" y="27" width="1" height="1" fill="#67E8F9" fill-opacity="0.8"/>
+      <!-- Right gun barrel -->
+      <rect x="56" y="26" width="2" height="5" fill="#334155"/>
+      <rect x="56" y="27" width="2" height="3" fill="#1E293B"/>
+      <rect x="58" y="27" width="1" height="3" fill="#0F172A"/>
+      <rect x="58" y="27" width="2" height="3" fill="#22D3EE" fill-opacity="0.3"/>
+      <!-- Right gun panel line -->
+      <rect x="49" y="28" width="8" height="1" fill="#334155" fill-opacity="0.4"/>
     </g>
-    <g id="ag-up"> <!-- guns raised (victory/ult peak) -->
-      <rect x="17" y="22" width="3" height="7" fill="#1E293B"/>
-      <rect x="44" y="22" width="3" height="7" fill="#1E293B"/>
-      <rect x="16" y="20" width="3" height="3" fill="#8B6914"/>
-      <rect x="45" y="20" width="3" height="3" fill="#8B6914"/>
-      <!-- guns up -->
-      <rect x="16" y="14" width="3" height="6" fill="#475569"/>
-      <rect x="45" y="14" width="3" height="6" fill="#475569"/>
-      <rect x="17" y="14" width="1" height="4" fill="#22D3EE" fill-opacity="0.6"/>
-      <rect x="46" y="14" width="1" height="4" fill="#22D3EE" fill-opacity="0.6"/>
+    <g id="ag-up"> <!-- guns raised (victory/ult peak) — detailed -->
+      <!-- Arms up -->
+      <rect x="16" y="22" width="4" height="7" fill="#1E293B"/>
+      <rect x="44" y="22" width="4" height="7" fill="#1E293B"/>
+      <rect x="16" y="22" width="4" height="1" fill="#334155"/>
+      <rect x="44" y="22" width="4" height="1" fill="#334155"/>
+      <!-- Hands -->
+      <rect x="15" y="19" width="4" height="3" fill="#8B6914"/>
+      <rect x="45" y="19" width="4" height="3" fill="#8B6914"/>
+      <rect x="15" y="19" width="4" height="1" fill="#A67E1A" fill-opacity="0.4"/>
+      <rect x="45" y="19" width="4" height="1" fill="#A67E1A" fill-opacity="0.4"/>
+      <!-- Guns up — detailed -->
+      <rect x="15" y="12" width="4" height="7" fill="#475569"/>
+      <rect x="45" y="12" width="4" height="7" fill="#475569"/>
+      <!-- Gun highlight -->
+      <rect x="15" y="12" width="1" height="7" fill="#64748B" fill-opacity="0.5"/>
+      <rect x="45" y="12" width="1" height="7" fill="#64748B" fill-opacity="0.5"/>
+      <!-- Gun shadow -->
+      <rect x="18" y="12" width="1" height="7" fill="#334155" fill-opacity="0.5"/>
+      <rect x="48" y="12" width="1" height="7" fill="#334155" fill-opacity="0.5"/>
+      <!-- Energy cell glow -->
+      <rect x="16" y="15" width="2" height="2" fill="#22D3EE" fill-opacity="0.6"/>
+      <rect x="46" y="15" width="2" height="2" fill="#22D3EE" fill-opacity="0.6"/>
+      <rect x="17" y="15" width="1" height="1" fill="#67E8F9" fill-opacity="0.7"/>
+      <rect x="47" y="15" width="1" height="1" fill="#67E8F9" fill-opacity="0.7"/>
+      <!-- Muzzle tips -->
+      <rect x="15" y="12" width="4" height="1" fill="#334155"/>
+      <rect x="45" y="12" width="4" height="1" fill="#334155"/>
+      <rect x="16" y="11" width="2" height="1" fill="#22D3EE" fill-opacity="0.4"/>
+      <rect x="46" y="11" width="2" height="1" fill="#22D3EE" fill-opacity="0.4"/>
     </g>
     <g id="ax"> <!-- arms crossed -->
       <rect x="22" y="32" width="8" height="3" fill="#1E293B"/>
@@ -281,31 +472,58 @@
       <rect x="28" y="33" width="8" height="3" fill="#1E293B" fill-opacity="0.7"/>
     </g>
 
-    <!-- MUZZLE FLASH — bright orange/white fire burst -->
+    <!-- MUZZLE FLASH — premium multi-layer burst with spark pixels -->
     <g id="mf-r">
-      <rect x="57" y="25" width="3" height="1" fill="#FFF" fill-opacity="0.95"/>
-      <rect x="56" y="26" width="5" height="1" fill="#FBBF24"/>
-      <rect x="57" y="27" width="4" height="1" fill="#F97316"/>
-      <rect x="56" y="28" width="5" height="1" fill="#FBBF24"/>
-      <rect x="57" y="29" width="3" height="1" fill="#FFF" fill-opacity="0.95"/>
-      <rect x="58" y="24" width="1" height="6" fill="#FFF" fill-opacity="0.6"/>
-      <rect x="60" y="26" width="2" height="3" fill="#F97316" fill-opacity="0.5"/>
+      <!-- Core white-hot center -->
+      <rect x="58" y="27" width="2" height="3" fill="#FFF" fill-opacity="0.95"/>
+      <!-- Cross pattern flash -->
+      <rect x="56" y="25" width="3" height="1" fill="#FFF" fill-opacity="0.8"/>
+      <rect x="55" y="26" width="6" height="1" fill="#FBBF24"/>
+      <rect x="56" y="27" width="5" height="1" fill="#FFF" fill-opacity="0.9"/>
+      <rect x="56" y="28" width="5" height="1" fill="#F97316"/>
+      <rect x="55" y="29" width="6" height="1" fill="#FBBF24"/>
+      <rect x="56" y="30" width="3" height="1" fill="#FFF" fill-opacity="0.8"/>
+      <!-- Vertical cross beam -->
+      <rect x="59" y="24" width="1" height="8" fill="#FFF" fill-opacity="0.5"/>
+      <!-- Outer glow -->
+      <rect x="61" y="26" width="2" height="4" fill="#F97316" fill-opacity="0.45"/>
+      <rect x="60" y="25" width="1" height="6" fill="#FBBF24" fill-opacity="0.35"/>
+      <!-- Spark pixels -->
+      <rect x="62" y="24" width="1" height="1" fill="#FBBF24" fill-opacity="0.7"/>
+      <rect x="61" y="31" width="1" height="1" fill="#F97316" fill-opacity="0.6"/>
+      <rect x="63" y="27" width="1" height="1" fill="#FFF" fill-opacity="0.5"/>
     </g>
     <g id="mf-l">
-      <rect x="0" y="25" width="3" height="1" fill="#FFF" fill-opacity="0.95"/>
-      <rect x="0" y="26" width="5" height="1" fill="#FBBF24"/>
-      <rect x="0" y="27" width="4" height="1" fill="#F97316"/>
-      <rect x="0" y="28" width="5" height="1" fill="#FBBF24"/>
-      <rect x="0" y="29" width="3" height="1" fill="#FFF" fill-opacity="0.95"/>
-      <rect x="2" y="24" width="1" height="6" fill="#FFF" fill-opacity="0.6"/>
+      <!-- Core white-hot center -->
+      <rect x="0" y="27" width="2" height="3" fill="#FFF" fill-opacity="0.95"/>
+      <!-- Cross pattern flash -->
+      <rect x="1" y="25" width="3" height="1" fill="#FFF" fill-opacity="0.8"/>
+      <rect x="0" y="26" width="6" height="1" fill="#FBBF24"/>
+      <rect x="0" y="27" width="5" height="1" fill="#FFF" fill-opacity="0.9"/>
+      <rect x="0" y="28" width="5" height="1" fill="#F97316"/>
+      <rect x="0" y="29" width="6" height="1" fill="#FBBF24"/>
+      <rect x="1" y="30" width="3" height="1" fill="#FFF" fill-opacity="0.8"/>
+      <!-- Vertical cross beam -->
+      <rect x="2" y="24" width="1" height="8" fill="#FFF" fill-opacity="0.5"/>
+      <!-- Spark pixels -->
+      <rect x="0" y="24" width="1" height="1" fill="#FBBF24" fill-opacity="0.7"/>
+      <rect x="1" y="31" width="1" height="1" fill="#F97316" fill-opacity="0.6"/>
     </g>
     <g id="mf-dual">
-      <rect x="57" y="26" width="4" height="1" fill="#FBBF24"/>
-      <rect x="57" y="27" width="5" height="1" fill="#FFF" fill-opacity="0.9"/>
-      <rect x="57" y="28" width="4" height="1" fill="#F97316"/>
-      <rect x="0" y="26" width="4" height="1" fill="#FBBF24"/>
-      <rect x="0" y="27" width="5" height="1" fill="#FFF" fill-opacity="0.9"/>
-      <rect x="0" y="28" width="4" height="1" fill="#F97316"/>
+      <!-- Right muzzle -->
+      <rect x="58" y="27" width="2" height="2" fill="#FFF" fill-opacity="0.95"/>
+      <rect x="56" y="26" width="5" height="1" fill="#FBBF24"/>
+      <rect x="57" y="27" width="5" height="1" fill="#FFF" fill-opacity="0.85"/>
+      <rect x="56" y="28" width="5" height="1" fill="#F97316"/>
+      <rect x="57" y="29" width="3" height="1" fill="#FBBF24" fill-opacity="0.7"/>
+      <rect x="60" y="26" width="2" height="3" fill="#F97316" fill-opacity="0.4"/>
+      <rect x="62" y="27" width="1" height="1" fill="#FFF" fill-opacity="0.4"/>
+      <!-- Left muzzle -->
+      <rect x="0" y="27" width="2" height="2" fill="#FFF" fill-opacity="0.95"/>
+      <rect x="0" y="26" width="5" height="1" fill="#FBBF24"/>
+      <rect x="0" y="27" width="5" height="1" fill="#FFF" fill-opacity="0.85"/>
+      <rect x="0" y="28" width="5" height="1" fill="#F97316"/>
+      <rect x="1" y="29" width="3" height="1" fill="#FBBF24" fill-opacity="0.7"/>
     </g>
 
     <!-- BULLET TRAILS — bright cyan streaks -->
