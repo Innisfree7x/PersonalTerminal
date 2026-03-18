@@ -546,346 +546,190 @@ function ChampionOverlay({
             className="absolute"
             style={{ left: effect.x, top: effect.y }}
           >
+            {/* Q — Piercing Light: sharp laser line */}
             {effect.type === 'q' && (
               <motion.div
                 className="absolute"
                 initial={{ scaleX: 0, rotate: effect.angle ?? 0 }}
                 animate={{ scaleX: 1, rotate: effect.angle ?? 0 }}
-                transition={{ duration: 0.16, ease: 'easeOut' }}
+                transition={{ duration: 0.1, ease: 'easeOut' }}
                 style={{ transformOrigin: 'left center' }}
               >
-                {/* Outer diffuse glow */}
+                {/* Outer glow */}
                 <div
-                  className="absolute rounded-full"
+                  className="absolute"
                   style={{
-                    width: effect.distance ?? 900,
-                    height: 30,
-                    top: -6,
+                    width: effect.distance ?? 640,
+                    height: 16,
+                    top: -4,
                     left: 0,
-                    background: `linear-gradient(to right, ${hexToRgba(abilityColors.q, 0.38)}, ${hexToRgba(abilityColors.q, 0.12)}, transparent)`,
-                    filter: 'blur(6px)',
+                    borderRadius: 999,
+                    background: `linear-gradient(to right, ${hexToRgba(abilityColors.q, 0.5)}, ${hexToRgba(abilityColors.q, 0.2)}, transparent)`,
+                    filter: 'blur(4px)',
                   }}
                 />
-                {/* Main beam */}
+                {/* Main laser */}
                 <div
-                  className="absolute rounded-full"
+                  className="absolute"
                   style={{
-                    width: effect.distance ?? 900,
-                    height: 14,
+                    width: effect.distance ?? 640,
+                    height: 6,
                     top: 0,
                     left: 0,
-                    background: `linear-gradient(to right, ${hexToRgba(abilityColors.q, 0.98)}, ${hexToRgba(abilityColors.q, 0.68)}, transparent)`,
-                    boxShadow: `0 0 28px ${hexToRgba(abilityColors.q, 0.72)}, inset 0 0 14px ${hexToRgba('#FFFFFF', 0.42)}`,
+                    borderRadius: 999,
+                    background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 0.98)}, ${hexToRgba(abilityColors.q, 0.95)}, ${hexToRgba(abilityColors.q, 0.4)}, transparent)`,
+                    boxShadow: `0 0 12px ${hexToRgba(abilityColors.q, 0.8)}`,
                   }}
                 />
                 {/* White-hot core */}
                 <div
-                  className="absolute rounded-full"
+                  className="absolute"
                   style={{
-                    width: (effect.distance ?? 900) - 22,
-                    height: 4,
-                    top: 5,
-                    left: 4,
-                    background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 0.98)}, ${hexToRgba('#FFFFFF', 0.7)}, transparent)`,
-                    boxShadow: `0 0 14px ${hexToRgba('#FFFFFF', 0.6)}`,
+                    width: (effect.distance ?? 640) * 0.7,
+                    height: 2,
+                    top: 2,
+                    left: 0,
+                    borderRadius: 999,
+                    background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 1)}, ${hexToRgba('#FFFFFF', 0.6)}, transparent)`,
                   }}
                 />
               </motion.div>
             )}
-            {effect.type === 'q-arc' && (
-              <motion.div
-                className="absolute origin-left"
-                initial={{ opacity: 0.85, scaleX: 0.2 }}
-                animate={{ opacity: [0.85, 0.55, 0], scaleX: [0.2, 1, 1.05] }}
-                transition={{ duration: 0.44, ease: 'easeOut' }}
-                style={{
-                  transform: `rotate(${effect.angle ?? 0}deg) translateY(${effect.size ?? 0}px)`,
-                  width: effect.distance ?? 640,
-                  height: 8,
-                  borderRadius: 999,
-                  background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 0.62)}, ${hexToRgba(abilityColors.q, 0.7)}, ${hexToRgba(abilityColors.q, 0.18)}, transparent)`,
-                  boxShadow: `0 0 18px ${hexToRgba(abilityColors.q, 0.6)}, inset 0 0 10px ${hexToRgba('#FFFFFF', 0.2)}`,
-                }}
-              />
-            )}
-            {effect.type === 'q-spark' && (
-              <motion.div
-                className="h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                initial={{ opacity: 1, scale: 0.5 }}
-                animate={{
-                  opacity: [1, 0.4, 0],
-                  scale: [0.5, 1.3, 1.7],
-                  x: Math.cos(((effect.angle ?? 0) * Math.PI) / 180) * (effect.distance ?? 60),
-                  y: Math.sin(((effect.angle ?? 0) * Math.PI) / 180) * (effect.distance ?? 60),
-                }}
-                transition={{ duration: 0.42, ease: 'easeOut' }}
-                style={{
-                  backgroundColor: hexToRgba(abilityColors.q, 0.98),
-                  boxShadow: `0 0 18px ${hexToRgba(abilityColors.q, 0.9)}, 0 0 6px ${hexToRgba('#FFFFFF', 0.6)}`,
-                }}
-              />
-            )}
-            {effect.type === 'q-flare' && (
-              <motion.div
-                className="absolute -translate-x-1/2 -translate-y-1/2"
-                initial={{ opacity: 0.85, scale: 0.6 }}
-                animate={{ opacity: 0, scale: 1.35 }}
-                transition={{ duration: 0.35, ease: 'easeOut' }}
-              >
-                <div
-                  className="relative"
-                  style={{
-                    width: effect.size ?? 18,
-                    height: effect.size ?? 18,
-                  }}
-                >
-                  <div
-                    className="absolute inset-0 rounded-full"
-                    style={{
-                      backgroundColor: hexToRgba('#FFFFFF', 0.9),
-                      boxShadow: `0 0 16px ${hexToRgba('#FFFFFF', 0.7)}`,
-                    }}
-                  />
-                  <div
-                    className="absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2"
-                    style={{ backgroundColor: hexToRgba(abilityColors.q, 0.9) }}
-                  />
-                  <div
-                    className="absolute top-1/2 left-0 h-[2px] w-full -translate-y-1/2"
-                    style={{ backgroundColor: hexToRgba(abilityColors.q, 0.9) }}
-                  />
-                </div>
-              </motion.div>
-            )}
-            {effect.type === 'w' && (
-              <motion.div
-                className="absolute -translate-x-1/2 -translate-y-1/2"
-                initial={{ opacity: 0.9, scale: 0.75 }}
-                animate={{ opacity: [0.9, 0.45, 0], scale: [0.75, 1.05, 1.2] }}
-                transition={{ duration: 0.28, ease: 'easeOut' }}
-              >
-                <div className="relative h-11 w-11">
-                  <div
-                    className="absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2"
-                    style={{ backgroundColor: hexToRgba(abilityColors.w, 0.92) }}
-                  />
-                  <div
-                    className="absolute top-1/2 left-0 h-[2px] w-full -translate-y-1/2"
-                    style={{ backgroundColor: hexToRgba(abilityColors.w, 0.92) }}
-                  />
-                  <div
-                    className="absolute left-1/2 top-1/2 h-full w-[2px] -translate-x-1/2 -translate-y-1/2 rotate-45"
-                    style={{ backgroundColor: hexToRgba('#FFFFFF', 0.8) }}
-                  />
-                  <div
-                    className="absolute left-1/2 top-1/2 h-full w-[2px] -translate-x-1/2 -translate-y-1/2 -rotate-45"
-                    style={{ backgroundColor: hexToRgba('#FFFFFF', 0.8) }}
-                  />
-                </div>
-              </motion.div>
-            )}
+            {/* W — Ardent Blaze: projectile + star explosion */}
             {effect.type === 'w-bolt' && (
               <motion.div
-                className="origin-left rounded-full"
-                initial={{ opacity: 0.98, scaleX: 0.15 }}
-                animate={{ opacity: [0.98, 0.7, 0], scaleX: [0.15, 1, 1.06] }}
-                transition={{ duration: 0.36, ease: 'easeOut' }}
+                className="origin-left"
+                initial={{ opacity: 0.95, scaleX: 0.1 }}
+                animate={{ opacity: [0.95, 0.6, 0], scaleX: [0.1, 1, 1.02] }}
+                transition={{ duration: 0.28, ease: 'easeOut' }}
                 style={{
                   transform: `rotate(${effect.angle ?? 0}deg)`,
                   width: effect.distance ?? 320,
-                  height: 13,
-                  background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 0.9)}, ${hexToRgba(abilityColors.w, 0.9)}, ${hexToRgba(abilityColors.q, 0.55)}, transparent)`,
-                  boxShadow: `0 0 22px ${hexToRgba(abilityColors.w, 0.72)}, 0 0 8px ${hexToRgba('#FFFFFF', 0.5)}`,
+                  height: 8,
+                  borderRadius: 999,
+                  background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 0.95)}, ${hexToRgba(abilityColors.w, 0.9)}, ${hexToRgba(abilityColors.w, 0.3)}, transparent)`,
+                  boxShadow: `0 0 14px ${hexToRgba(abilityColors.w, 0.7)}`,
                 }}
               />
             )}
             {effect.type === 'w-mark' && (
               <motion.div
                 className="absolute -translate-x-1/2 -translate-y-1/2"
-                initial={{ opacity: 1, scale: 0.5, rotate: -12 }}
-                animate={{ opacity: 0, scale: 1.5, rotate: 14 }}
-                transition={{ duration: 0.5, ease: 'easeOut' }}
+                initial={{ opacity: 1, scale: 0.3 }}
+                animate={{ opacity: 0, scale: 1.6 }}
+                transition={{ duration: 0.45, ease: 'easeOut' }}
               >
-                {/* Outer expansion ring */}
-                <div
-                  className="absolute inset-0 rounded-full border-2"
-                  style={{
-                    borderColor: hexToRgba(abilityColors.w, 0.6),
-                    boxShadow: `0 0 18px ${hexToRgba(abilityColors.w, 0.45)}`,
-                    margin: '-10px',
-                  }}
-                />
-                <div className="relative h-12 w-12">
-                  <div className="absolute left-1/2 top-0 h-full w-[3px] -translate-x-1/2 rounded-full" style={{ backgroundColor: hexToRgba(abilityColors.w, 0.98), boxShadow: `0 0 8px ${hexToRgba(abilityColors.w, 0.7)}` }} />
-                  <div className="absolute top-1/2 left-0 h-[3px] w-full -translate-y-1/2 rounded-full" style={{ backgroundColor: hexToRgba(abilityColors.w, 0.98), boxShadow: `0 0 8px ${hexToRgba(abilityColors.w, 0.7)}` }} />
+                {/* Star burst — 6 rays radiating outward */}
+                <div className="relative" style={{ width: 64, height: 64 }}>
+                  {[0, 60, 120, 180, 240, 300].map((deg) => (
+                    <div
+                      key={`w-ray-${deg}`}
+                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                      style={{
+                        width: 3,
+                        height: 32,
+                        borderRadius: 999,
+                        transform: `rotate(${deg}deg)`,
+                        background: `linear-gradient(to bottom, ${hexToRgba(abilityColors.w, 0.95)}, ${hexToRgba(abilityColors.w, 0.3)})`,
+                        boxShadow: `0 0 8px ${hexToRgba(abilityColors.w, 0.6)}`,
+                      }}
+                    />
+                  ))}
+                  {/* Center glow */}
                   <div
-                    className="absolute left-1/2 top-1/2 h-full w-[2px] -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full"
-                    style={{ backgroundColor: hexToRgba('#FFFFFF', 0.85), boxShadow: `0 0 6px ${hexToRgba('#FFFFFF', 0.6)}` }}
-                  />
-                  <div
-                    className="absolute left-1/2 top-1/2 h-full w-[2px] -translate-x-1/2 -translate-y-1/2 -rotate-45 rounded-full"
-                    style={{ backgroundColor: hexToRgba('#FFFFFF', 0.85), boxShadow: `0 0 6px ${hexToRgba('#FFFFFF', 0.6)}` }}
+                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                    style={{
+                      width: 12,
+                      height: 12,
+                      backgroundColor: hexToRgba('#FFFFFF', 0.95),
+                      boxShadow: `0 0 20px ${hexToRgba(abilityColors.w, 0.9)}, 0 0 40px ${hexToRgba(abilityColors.w, 0.4)}`,
+                    }}
                   />
                 </div>
               </motion.div>
             )}
-            {effect.type === 'w-shockwave' && (
+            {/* E — Relentless Pursuit: dash */}
+            {effect.type === 'e' && (
               <motion.div
-                className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-[2px]"
-                initial={{ opacity: 0.9, scale: 0.2 }}
-                animate={{ opacity: [0.9, 0.55, 0], scale: [0.2, 1, 1.18] }}
-                transition={{ duration: 0.46, ease: 'easeOut' }}
+                className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
+                initial={{ opacity: 0.8, scale: 0.3 }}
+                animate={{ opacity: 0, scale: 1.5 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
                 style={{
-                  width: effect.size ?? 88,
-                  height: effect.size ?? 88,
-                  borderColor: hexToRgba(abilityColors.w, 0.72),
-                  boxShadow: `0 0 24px ${hexToRgba(abilityColors.w, 0.58)}, inset 0 0 18px ${hexToRgba(abilityColors.w, 0.18)}`,
+                  width: 48,
+                  height: 48,
+                  backgroundColor: hexToRgba(abilityColors.e, 0.2),
+                  boxShadow: `0 0 16px ${hexToRgba(abilityColors.e, 0.5)}`,
                 }}
               />
             )}
-            {effect.type === 'e' && (
-              <>
-                {/* Expanding impact ring */}
-                <motion.div
-                  className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px]"
-                  initial={{ opacity: 0.95, scale: 0.15 }}
-                  animate={{ opacity: 0, scale: 1.8 }}
-                  transition={{ duration: 0.32, ease: 'easeOut' }}
-                  style={{
-                    width: 72,
-                    height: 72,
-                    borderColor: hexToRgba(abilityColors.e, 0.95),
-                    boxShadow: `0 0 24px ${hexToRgba(abilityColors.e, 0.7)}, inset 0 0 16px ${hexToRgba(abilityColors.e, 0.3)}`,
-                  }}
-                />
-                {/* Inner flash bloom */}
-                <motion.div
-                  className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
-                  initial={{ opacity: 0.55, scale: 0.2 }}
-                  animate={{ opacity: 0, scale: 1.15 }}
-                  transition={{ duration: 0.22, ease: 'easeOut' }}
-                  style={{
-                    width: 44,
-                    height: 44,
-                    backgroundColor: hexToRgba(abilityColors.e, 0.28),
-                    filter: 'blur(8px)',
-                  }}
-                />
-              </>
-            )}
             {effect.type === 'e-streak' && (
               <motion.div
-                className="absolute origin-left rounded-full"
-                initial={{ opacity: 0.85, scaleX: 0.08 }}
-                animate={{ opacity: [0.85, 0.55, 0], scaleX: [0.08, 1, 1.03] }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="absolute origin-left"
+                initial={{ opacity: 0.9, scaleX: 0.05 }}
+                animate={{ opacity: [0.9, 0.4, 0], scaleX: [0.05, 1, 1.01] }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
                 style={{
                   transform: `rotate(${effect.angle ?? 0}deg)`,
                   width: effect.distance ?? 220,
-                  height: 14,
-                  background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 0.9)}, ${hexToRgba(abilityColors.e, 0.82)}, ${hexToRgba(abilityColors.e, 0.22)}, transparent)`,
-                  boxShadow: `0 0 20px ${hexToRgba(abilityColors.e, 0.66)}, 0 0 8px ${hexToRgba('#FFFFFF', 0.45)}`,
+                  height: 4,
+                  borderRadius: 999,
+                  background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 0.8)}, ${hexToRgba(abilityColors.e, 0.7)}, transparent)`,
+                  boxShadow: `0 0 10px ${hexToRgba(abilityColors.e, 0.5)}`,
                 }}
               />
             )}
             {effect.type === 'dash-ghost' && (
               <motion.div
-                className="-translate-x-1/2 -translate-y-1/2 rounded-full border-2"
-                initial={{ opacity: 0.7, scale: 0.75 }}
-                animate={{ opacity: 0, scale: 1.25 }}
-                transition={{ duration: 0.32, ease: 'easeOut' }}
-                style={{
-                  width: 68,
-                  height: 68,
-                  borderColor: hexToRgba(abilityColors.e, 0.75),
-                  background: `radial-gradient(circle, ${hexToRgba(abilityColors.e, 0.38)} 0%, ${hexToRgba(abilityColors.e, 0.1)} 60%, transparent 80%)`,
-                  boxShadow: `0 0 20px ${hexToRgba(abilityColors.e, 0.45)}, inset 0 0 14px ${hexToRgba(abilityColors.e, 0.22)}`,
-                }}
-              />
-            )}
-            {effect.type === 'r' && (
-              <motion.div
-                className="rounded-full"
-                initial={{ scaleX: 0, rotate: effect.angle ?? 0 }}
-                animate={{ scaleX: 1, rotate: effect.angle ?? 0 }}
+                className="-translate-x-1/2 -translate-y-1/2 rounded-sm"
+                initial={{ opacity: 0.5, scale: 0.8 }}
+                animate={{ opacity: 0, scale: 1.1 }}
                 transition={{ duration: 0.22, ease: 'easeOut' }}
                 style={{
-                  transformOrigin: 'left center',
-                  width: 560,
-                  height: 56,
-                  marginTop: -24,
-                  background: `linear-gradient(to right, ${hexToRgba(abilityColors.r, 0.28)}, ${hexToRgba(abilityColors.r, 0.12)}, transparent)`,
-                  boxShadow: `0 0 28px ${hexToRgba(abilityColors.r, 0.22)}`,
+                  width: 28,
+                  height: 36,
+                  background: `linear-gradient(to bottom, ${hexToRgba(abilityColors.e, 0.4)}, ${hexToRgba(abilityColors.e, 0.1)})`,
+                  boxShadow: `0 0 10px ${hexToRgba(abilityColors.e, 0.3)}`,
                 }}
               />
             )}
-            {effect.type === 'r-lane' && (
-              <motion.div
-                className="origin-left rounded-full"
-                initial={{ opacity: 0.98, scaleX: 0.2 }}
-                animate={{ opacity: [0.98, 0.6, 0], scaleX: [0.2, 1, 1.04] }}
-                transition={{ duration: 0.28, ease: 'easeOut' }}
-                style={{
-                  transform: `rotate(${effect.angle ?? 0}deg) translateY(${effect.size ?? 0}px)`,
-                  width: effect.distance ?? 520,
-                  height: 14,
-                  background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 1)}, ${hexToRgba(abilityColors.r, 0.85)}, ${hexToRgba(abilityColors.r, 0.4)}, transparent)`,
-                  boxShadow: `0 0 26px ${hexToRgba(abilityColors.r, 0.75)}, 0 0 8px ${hexToRgba('#FFFFFF', 0.5)}`,
-                }}
-              />
-            )}
+            {/* R — The Culling: rapid-fire bullets */}
             {effect.type === 'r-bullet' && (
               <motion.div
                 className="origin-left"
-                initial={{ opacity: 0.95, x: 0, y: 0, scale: 0.9 }}
+                initial={{ opacity: 1, x: 0, y: 0 }}
                 animate={{
-                  opacity: [0.95, 0.9, 0],
-                  x: Math.cos(((effect.angle ?? 0) * Math.PI) / 180) * (effect.distance ?? 420),
-                  y: Math.sin(((effect.angle ?? 0) * Math.PI) / 180) * (effect.distance ?? 420),
-                  scale: [0.9, 1, 0.95],
+                  opacity: [1, 0.85, 0],
+                  x: Math.cos(((effect.angle ?? 0) * Math.PI) / 180) * (effect.distance ?? 480),
+                  y: Math.sin(((effect.angle ?? 0) * Math.PI) / 180) * (effect.distance ?? 480),
                 }}
-                transition={{ duration: 0.42, ease: 'easeOut' }}
+                transition={{ duration: 0.26, ease: 'linear' }}
               >
                 <div
-                  className="h-[7px] w-20 rounded-full"
                   style={{
+                    width: 14,
+                    height: 3,
+                    borderRadius: 999,
                     transform: `rotate(${effect.angle ?? 0}deg)`,
-                    background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 1)}, ${hexToRgba('#FFFFFF', 0.9)}, ${hexToRgba(abilityColors.r, 0.72)}, ${hexToRgba(abilityColors.r, 0.18)})`,
-                    boxShadow: `0 0 20px ${hexToRgba(abilityColors.r, 0.85)}, 0 0 6px ${hexToRgba('#FFFFFF', 0.7)}`,
+                    background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 1)}, ${hexToRgba(abilityColors.r, 0.9)})`,
+                    boxShadow: `0 0 8px ${hexToRgba(abilityColors.r, 0.8)}, 0 0 3px ${hexToRgba('#FFFFFF', 0.7)}`,
                   }}
                 />
               </motion.div>
             )}
             {effect.type === 'r-muzzle' && (
               <motion.div
-                className="absolute -translate-x-1/2 -translate-y-1/2"
-                initial={{ opacity: 1, scale: 0.7 }}
-                animate={{ opacity: [1, 0.7, 0], scale: [0.7, 1.2, 1.6] }}
-                transition={{ duration: 0.26, ease: 'easeOut' }}
-              >
-                <div
-                  className="relative"
-                  style={{
-                    width: 68,
-                    height: 68,
-                    transform: `rotate(${effect.angle ?? 0}deg)`,
-                  }}
-                >
-                  <div
-                    className="absolute left-1/2 top-1/2 h-3 w-14 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                    style={{
-                      background: `linear-gradient(to right, ${hexToRgba('#FFFFFF', 1)}, ${hexToRgba(abilityColors.r, 0.82)}, transparent)`,
-                      boxShadow: `0 0 22px ${hexToRgba(abilityColors.r, 0.8)}`,
-                    }}
-                  />
-                  <div
-                    className="absolute left-1/2 top-1/2 h-14 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                    style={{
-                      background: `linear-gradient(to bottom, ${hexToRgba('#FFFFFF', 0.95)}, ${hexToRgba(abilityColors.r, 0.72)}, transparent)`,
-                    }}
-                  />
-                </div>
-              </motion.div>
+                className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
+                initial={{ opacity: 1, scale: 0.5 }}
+                animate={{ opacity: 0, scale: 1.8 }}
+                transition={{ duration: 0.16, ease: 'easeOut' }}
+                style={{
+                  width: 24,
+                  height: 24,
+                  backgroundColor: hexToRgba('#FFFFFF', 0.9),
+                  boxShadow: `0 0 20px ${hexToRgba(abilityColors.r, 0.9)}, 0 0 40px ${hexToRgba(abilityColors.r, 0.4)}`,
+                }}
+              />
             )}
             {effect.type === 'move' && (
               <motion.div
@@ -1252,40 +1096,15 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (ability === 'q') {
+      // Piercing Light — sharp laser line, fast and clean
       startLockedAnimation(ABILITY_CAST_ANIMATION.q, ABILITY_ANIMATION_LOCK_MS.q);
       const center = { x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 };
       const angle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
       const beamDistance = 640;
-      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 34, tone: abilityColors.q }, scaleEffectTtl(220));
-      addEffect({ type: 'q', x: center.x, y: center.y, angle, distance: beamDistance }, scaleEffectTtl(450));
-      addEffect({ type: 'q-arc', x: center.x, y: center.y, angle, distance: beamDistance, size: -10 }, scaleEffectTtl(460));
-      addEffect({ type: 'q-arc', x: center.x, y: center.y, angle, distance: beamDistance, size: 10 }, scaleEffectTtl(520));
-      for (let i = 0; i < vfxPresetProfile.qSparkCount; i += 1) {
-        const spread = (Math.random() - 0.5) * 16;
-        addEffect(
-          {
-            type: 'q-spark',
-            x: center.x,
-            y: center.y,
-            angle: angle + spread,
-            distance: 50 + Math.random() * 95,
-          },
-          scaleEffectTtl(380)
-        );
-      }
-      const flares = [160, 320, 520];
-      flares.forEach((distance, idx) => {
-        const rad = (angle * Math.PI) / 180;
-        addEffect(
-          {
-            type: 'q-flare',
-            x: center.x + Math.cos(rad) * distance,
-            y: center.y + Math.sin(rad) * distance,
-            size: 14 + idx * 4,
-          },
-          scaleEffectTtl(320)
-        );
-      });
+      // Muzzle flash at gun
+      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 28, tone: abilityColors.q }, scaleEffectTtl(150));
+      // Single sharp laser beam
+      addEffect({ type: 'q', x: center.x, y: center.y, angle, distance: beamDistance }, scaleEffectTtl(350));
       markElementsOnBeam(angle);
       fireLightslinger(center, angle, scaleEffectTtl(320));
       startCooldown('q');
@@ -1293,6 +1112,7 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (ability === 'w') {
+      // Ardent Blaze — projectile that explodes in a star shape
       startLockedAnimation(ABILITY_CAST_ANIMATION.w, ABILITY_ANIMATION_LOCK_MS.w);
       const center = { x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 };
       const angle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
@@ -1302,14 +1122,13 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
       const hitX = center.x + Math.cos(rad) * boltDistance;
       const hitY = center.y + Math.sin(rad) * boltDistance;
 
-      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 26, tone: abilityColors.w }, scaleEffectTtl(200));
-      addEffect({ type: 'w', x: center.x, y: center.y }, scaleEffectTtl(260));
-      addEffect({ type: 'w-bolt', x: center.x, y: center.y, angle, distance: boltDistance }, scaleEffectTtl(360));
-      addEffect({ type: 'origin-flash', x: hitX, y: hitY, size: 42, tone: abilityColors.w }, scaleEffectTtl(380));
-      addEffect({ type: 'w-mark', x: hitX, y: hitY }, scaleEffectTtl(450));
-      addEffect({ type: 'w-mark', x: hitX, y: hitY, angle: 45 }, scaleEffectTtl(450));
-      addEffect({ type: 'w-shockwave', x: hitX, y: hitY, size: 82 }, scaleEffectTtl(420));
-      addEffect({ type: 'w-shockwave', x: hitX, y: hitY, size: 118 }, scaleEffectTtl(520));
+      // Muzzle flash
+      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 22, tone: abilityColors.w }, scaleEffectTtl(150));
+      // Projectile trail
+      addEffect({ type: 'w-bolt', x: center.x, y: center.y, angle, distance: boltDistance }, scaleEffectTtl(320));
+      // Star explosion at impact
+      addEffect({ type: 'origin-flash', x: hitX, y: hitY, size: 36, tone: abilityColors.w }, scaleEffectTtl(350));
+      addEffect({ type: 'w-mark', x: hitX, y: hitY }, scaleEffectTtl(500));
       fireLightslinger(center, angle, scaleEffectTtl(320));
       startCooldown('w');
       return;
@@ -1351,28 +1170,18 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (ability === 'r') {
+      // The Culling — rapid-fire machine gun barrage in one direction
       const castToken = startLockedAnimation(ABILITY_CAST_ANIMATION.r, ABILITY_ANIMATION_LOCK_MS.r);
       const center = { x: positionRef.current.x + championSize / 2, y: positionRef.current.y + championSize / 2 };
       const baseAngle = (Math.atan2(pointerRef.current.y - center.y, pointerRef.current.x - center.x) * 180) / Math.PI;
-      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 60, tone: abilityColors.r }, scaleEffectTtl(160));
-      addEffect({ type: 'r-muzzle', x: center.x, y: center.y, angle: baseAngle }, scaleEffectTtl(260));
-      addEffect({ type: 'r', x: center.x, y: center.y, angle: baseAngle }, scaleEffectTtl(1100));
-      for (let lane = -1; lane <= 1; lane += 2) {
-        addEffect(
-          {
-            type: 'r-lane',
-            x: center.x,
-            y: center.y,
-            angle: baseAngle,
-            distance: 520,
-            size: lane * 8,
-          },
-          scaleEffectTtl(380)
-        );
-      }
-      for (let i = 0; i < vfxPresetProfile.rBulletCount; i += 1) {
-        const angle = baseAngle + (Math.random() - 0.5) * 8;
-        const laneOffset = i % 2 === 0 ? -8 : 8;
+      // Initial muzzle flash burst
+      addEffect({ type: 'origin-flash', x: center.x, y: center.y, size: 44, tone: abilityColors.r }, scaleEffectTtl(160));
+      addEffect({ type: 'r-muzzle', x: center.x, y: center.y, angle: baseAngle }, scaleEffectTtl(220));
+      // Rapid-fire bullets — tight spread, fast interval (machine gun feel)
+      const bulletCount = vfxPresetProfile.rBulletCount;
+      for (let i = 0; i < bulletCount; i += 1) {
+        const angle = baseAngle + (Math.random() - 0.5) * 4;
+        const laneOffset = (Math.random() - 0.5) * 10;
         window.setTimeout(() => {
           addEffect(
             {
@@ -1380,11 +1189,15 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
               x: center.x + Math.cos(((baseAngle + 90) * Math.PI) / 180) * laneOffset,
               y: center.y + Math.sin(((baseAngle + 90) * Math.PI) / 180) * laneOffset,
               angle,
-              distance: 420 + Math.random() * 140,
+              distance: 480 + Math.random() * 120,
             },
-            scaleEffectTtl(560)
+            scaleEffectTtl(380)
           );
-        }, i * 95);
+          // Repeating muzzle flash every few bullets
+          if (i % 4 === 0) {
+            addEffect({ type: 'r-muzzle', x: center.x, y: center.y, angle: baseAngle }, scaleEffectTtl(140));
+          }
+        }, i * 55);
       }
       const elements = document.querySelectorAll<HTMLElement>('[data-interactive]');
       elements.forEach((element) => {

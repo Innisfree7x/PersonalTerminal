@@ -389,7 +389,7 @@
   <!-- ======== Row 0: IDLE (4 frames) — standing ready ======== -->
   <g transform="translate(0,0)"><use href="#shadow"/><use href="#armor"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#helm"/><use href="#ec"/><use href="#mn"/></g>
   <g transform="translate(64,0)"><use href="#shadow"/><use href="#armor"/><use href="#ls"/><use href="#ad"/><use href="#face" transform="translate(0,1)"/><use href="#helm" transform="translate(0,1)"/><use href="#ec" transform="translate(0,1)"/><use href="#mc" transform="translate(0,1)"/></g>
-  <g transform="translate(128,0)"><use href="#shadow"/><use href="#armor"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#helm"/><use href="#ex"/><use href="#mn"/></g>
+  <g transform="translate(128,0)"><use href="#shadow"/><use href="#armor"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#helm"/><use href="#ec"/><use href="#mc"/></g>
   <g transform="translate(192,0)"><use href="#shadow"/><use href="#armor"/><use href="#ls"/><use href="#ad"/><use href="#face" transform="translate(0,1)"/><use href="#helm" transform="translate(0,1)"/><use href="#ec" transform="translate(0,1)"/><use href="#mh" transform="translate(0,1)"/></g>
 
   <!-- ======== Row 1: WALK (6 frames) ======== -->
