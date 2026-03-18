@@ -88,7 +88,13 @@ export default function SettingsPage() {
         setNotificationSound,
     } = useAppSound();
     const { summonerSpells, setSummonerSpell } = usePowerHotkeys();
-    const { settings: championSettings, updateSettings: updateChampionSettings, stats: championStats } = useChampion();
+    const {
+        settings: championSettings,
+        updateSettings: updateChampionSettings,
+        resetPosition: resetChampionPosition,
+        restoreDefaults: restoreChampionDefaults,
+        stats: championStats,
+    } = useChampion();
     const [displayName, setDisplayName] = useState('');
     const [savingProfile, setSavingProfile] = useState(false);
     const [lucianMuted, setLucianMuted] = useState(false);
@@ -764,6 +770,27 @@ export default function SettingsPage() {
                         >
                             Champion SFX: {championSettings.soundsEnabled ? 'On' : 'Off'}
                         </button>
+                    </div>
+
+                    <div className="grid gap-3 md:grid-cols-2">
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                resetChampionPosition();
+                                toast.success('Champion-Position zurückgesetzt.');
+                            }}
+                        >
+                            Position zurücksetzen
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            onClick={() => {
+                                restoreChampionDefaults();
+                                toast.success('Lucian-Defaults wiederhergestellt.');
+                            }}
+                        >
+                            Lucian wiederherstellen
+                        </Button>
                     </div>
 
                     <div className="rounded-lg border border-border bg-background/40 p-4">
