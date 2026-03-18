@@ -22,7 +22,7 @@ export const CHAMPION_CONFIG: Record<
 > = {
   lucian: {
     name: 'Lucian',
-    spriteSheet: '/sprites/lucian-sprites-v2.svg',
+    spriteSheet: '/sprites/lucian-sprites-v3.svg',
     frameSize: 64,
     sheetColumns: 8,
     sheetRows: 10,

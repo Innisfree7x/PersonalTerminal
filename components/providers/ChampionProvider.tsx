@@ -13,8 +13,14 @@ import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { isTypingTarget } from '@/lib/hotkeys/guards';
 import { dispatchChampionEvent, subscribeChampionEvent, type ChampionEvent } from '@/lib/champion/championEvents';
-import { CHAMPION_CONFIG, type ChampionId } from '@/lib/champion/config';
-import { CHAMPION_VFX_CONFIG, type ChampionVfxPreset } from '@/lib/champion/vfxConfig';
+import { CHAMPION_CONFIG } from '@/lib/champion/config';
+import { CHAMPION_VFX_CONFIG } from '@/lib/champion/vfxConfig';
+import {
+  DEFAULT_CHAMPION_SETTINGS,
+  sanitizeChampionSettings,
+  type ChampionScale,
+  type ChampionSettings,
+} from '@/lib/champion/settings';
 import { useAppSound } from '@/lib/hooks/useAppSound';
 import { trackAppEvent } from '@/lib/analytics/client';
 import { LEGACY_STORAGE_KEYS, readStorageValueWithLegacy, STORAGE_KEYS } from '@/lib/storage/keys';
@@ -32,22 +38,7 @@ type ChampionAnimation =
   | 'meditate'
   | 'recall';
 
-type ChampionScale = 'small' | 'normal' | 'large';
-type EventReactionMode = 'all' | 'none';
-type PassiveBehavior = 'active' | 'idle-only';
 type AbilityKey = 'q' | 'w' | 'e' | 'r';
-
-interface ChampionSettings {
-  enabled: boolean;
-  champion: ChampionId;
-  vfxPreset: ChampionVfxPreset;
-  renderScale: ChampionScale;
-  passiveBehavior: PassiveBehavior;
-  eventReactions: EventReactionMode;
-  rangeRadius: number;
-  showCooldowns: boolean;
-  soundsEnabled: boolean;
-}
 
 interface ChampionStats {
   level: number;
@@ -58,6 +49,8 @@ interface ChampionStats {
 interface ChampionContextValue {
   settings: ChampionSettings;
   updateSettings: (next: Partial<ChampionSettings>) => void;
+  resetPosition: () => void;
+  restoreDefaults: () => void;
   stats: ChampionStats;
   mode: ChampionMode;
 }
@@ -114,17 +107,7 @@ const REACTION_ANIMATION_DURATION_MS = CHAMPION_VFX_CONFIG.reactionAnimationDura
 const MOVE_COMMAND_COLOR = '#22C55E';
 const INITIAL_POSITION: Position = { x: 120, y: 120 };
 
-const DEFAULT_SETTINGS: ChampionSettings = {
-  enabled: true,
-  champion: 'lucian',
-  vfxPreset: 'balanced',
-  renderScale: 'normal',
-  passiveBehavior: 'active',
-  eventReactions: 'all',
-  rangeRadius: 300,
-  showCooldowns: true,
-  soundsEnabled: true,
-};
+const DEFAULT_SETTINGS = DEFAULT_CHAMPION_SETTINGS;
 
 const XP_FOR_ACTION: Record<string, number> = {
   TASK_COMPLETED: 10,
@@ -134,10 +117,6 @@ const XP_FOR_ACTION: Record<string, number> = {
   FOCUS_END: 50,
   DONE_FOR_TODAY: 35,
 };
-
-function isChampionVfxPreset(value: unknown): value is ChampionVfxPreset {
-  return value === 'performance' || value === 'balanced' || value === 'cinematic';
-}
 
 const ChampionContext = createContext<ChampionContextValue | undefined>(undefined);
 
@@ -1070,11 +1049,27 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
 
   const updateSettings = useCallback((next: Partial<ChampionSettings>) => {
     setSettings((prev) => {
-      const merged = { ...prev, ...next };
+      const merged = sanitizeChampionSettings({ ...prev, ...next });
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(merged));
       return merged;
     });
   }, []);
+
+  const resetPosition = useCallback(() => {
+    const nextPosition = clampToViewport(nearestViewportPosition(), championSize);
+    positionRef.current = nextPosition;
+    setPosition(nextPosition);
+    setTargetPosition(nextPosition);
+    localStorage.setItem(POSITION_KEY, JSON.stringify(nextPosition));
+  }, [championSize]);
+
+  const restoreDefaults = useCallback(() => {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(DEFAULT_SETTINGS));
+    setSettings(DEFAULT_SETTINGS);
+    setMode('passive');
+    setRangeActive(false);
+    resetPosition();
+  }, [resetPosition]);
 
   const addEffect = useCallback((effect: Omit<EffectState, 'id'>, ttl = 700) => {
     const id = `${effect.type}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -1443,11 +1438,9 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings) as Partial<ChampionSettings>;
-        setSettings({
-          ...DEFAULT_SETTINGS,
-          ...parsed,
-          vfxPreset: isChampionVfxPreset(parsed.vfxPreset) ? parsed.vfxPreset : DEFAULT_SETTINGS.vfxPreset,
-        });
+        const sanitized = sanitizeChampionSettings(parsed);
+        setSettings(sanitized);
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(sanitized));
       } catch {
         // ignore
       }
@@ -1768,9 +1761,11 @@ export function ChampionProvider({ children }: { children: React.ReactNode }) {
   const contextValue = useMemo<ChampionContextValue>(() => ({
     settings,
     updateSettings,
+    resetPosition,
+    restoreDefaults,
     stats,
     mode,
-  }), [mode, settings, stats, updateSettings]);
+  }), [mode, resetPosition, restoreDefaults, settings, stats, updateSettings]);
 
   return (
     <ChampionContext.Provider value={contextValue}>
