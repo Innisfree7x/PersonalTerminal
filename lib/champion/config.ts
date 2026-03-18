@@ -27,12 +27,12 @@ export const CHAMPION_CONFIG: Record<
     sheetColumns: 8,
     sheetRows: 10,
     colors: {
-      primaryFrom: 'from-sky-300',
-      primaryTo: 'to-blue-500',
-      q: '#7CC7FF',
-      w: '#BFE4FF',
-      e: '#7EF0D6',
-      r: '#B9DFFF',
+      primaryFrom: 'from-cyan-400',
+      primaryTo: 'to-orange-500',
+      q: '#F97316',
+      w: '#FBBF24',
+      e: '#22D3EE',
+      r: '#F97316',
     },
   },
   aphelios: {
