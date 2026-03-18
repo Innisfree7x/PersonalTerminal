@@ -1,255 +1,326 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="640" viewBox="0 0 512 640" shape-rendering="crispEdges">
   <defs>
-    <!-- Reusable parts as <g> (not <symbol>) to avoid viewBox/dimension issues in background-image context -->
+    <!-- Lucian Gunslinger — pixel art spritesheet 8×10 grid, 64×64 frames -->
 
     <!-- SHADOW -->
     <g id="shadow">
       <ellipse cx="32" cy="57" rx="10" ry="3" fill="#000" fill-opacity="0.15"/>
     </g>
 
-    <!-- HAIR -->
+    <!-- HAIR — short silver-white swept back -->
     <g id="hair">
-      <rect x="22" y="8" width="20" height="3" fill="#1E293B"/>
-      <rect x="21" y="10" width="22" height="2" fill="#1E293B"/>
-      <rect x="20" y="12" width="24" height="2" fill="#1E293B"/>
-      <rect x="19" y="13" width="3" height="4" fill="#1E293B"/>
-      <rect x="42" y="13" width="3" height="4" fill="#1E293B"/>
-      <rect x="26" y="9" width="4" height="1" fill="#334155"/>
-      <rect x="34" y="10" width="3" height="1" fill="#334155"/>
-      <rect x="30" y="6" width="2" height="3" fill="#1E293B"/>
-      <rect x="31" y="5" width="2" height="2" fill="#1E293B"/>
+      <rect x="22" y="9" width="20" height="3" fill="#E2E8F0"/>
+      <rect x="21" y="11" width="22" height="2" fill="#CBD5E1"/>
+      <rect x="20" y="12" width="24" height="3" fill="#94A3B8"/>
+      <rect x="19" y="14" width="3" height="3" fill="#64748B"/>
+      <rect x="42" y="14" width="3" height="3" fill="#64748B"/>
+      <!-- highlights -->
+      <rect x="26" y="9" width="4" height="1" fill="#F8FAFC"/>
+      <rect x="34" y="10" width="3" height="1" fill="#F1F5F9"/>
     </g>
 
-    <!-- FACE BASE -->
+    <!-- FACE — dark skin tone -->
     <g id="face">
-      <rect x="21" y="14" width="22" height="14" fill="#E8B4A0"/>
-      <rect x="21" y="14" width="1" height="14" fill="#D4956B" fill-opacity="0.3"/>
-      <rect x="42" y="14" width="1" height="14" fill="#D4956B" fill-opacity="0.3"/>
-      <rect x="22" y="23" width="3" height="2" fill="#F0A0A0" fill-opacity="0.45"/>
-      <rect x="39" y="23" width="3" height="2" fill="#F0A0A0" fill-opacity="0.45"/>
+      <rect x="21" y="15" width="22" height="13" fill="#8B6914"/>
+      <rect x="21" y="15" width="1" height="13" fill="#7A5A10" fill-opacity="0.4"/>
+      <rect x="42" y="15" width="1" height="13" fill="#7A5A10" fill-opacity="0.4"/>
+      <!-- jaw line -->
+      <rect x="22" y="27" width="20" height="1" fill="#7A5A10" fill-opacity="0.3"/>
     </g>
 
-    <!-- EYES -->
-    <g id="ec"> <!-- eyes cyan -->
-      <rect x="25" y="18" width="4" height="4" fill="#0D1119"/>
-      <rect x="26" y="19" width="3" height="3" fill="#22D3EE"/>
-      <rect x="26" y="19" width="2" height="2" fill="#06B6D4"/>
-      <rect x="28" y="18" width="1" height="1" fill="#FFF" fill-opacity="0.9"/>
-      <rect x="35" y="18" width="4" height="4" fill="#0D1119"/>
-      <rect x="36" y="19" width="3" height="3" fill="#22D3EE"/>
-      <rect x="36" y="19" width="2" height="2" fill="#06B6D4"/>
-      <rect x="38" y="18" width="1" height="1" fill="#FFF" fill-opacity="0.9"/>
+    <!-- EYES — cyan glow (Sentinel light) -->
+    <g id="ec">
+      <rect x="25" y="19" width="4" height="4" fill="#0D1119"/>
+      <rect x="26" y="20" width="3" height="3" fill="#22D3EE"/>
+      <rect x="26" y="20" width="2" height="2" fill="#06B6D4"/>
+      <rect x="28" y="19" width="1" height="1" fill="#FFF" fill-opacity="0.9"/>
+      <rect x="35" y="19" width="4" height="4" fill="#0D1119"/>
+      <rect x="36" y="20" width="3" height="3" fill="#22D3EE"/>
+      <rect x="36" y="20" width="2" height="2" fill="#06B6D4"/>
+      <rect x="38" y="19" width="1" height="1" fill="#FFF" fill-opacity="0.9"/>
     </g>
-    <g id="ea"> <!-- eyes amber -->
-      <rect x="25" y="18" width="4" height="4" fill="#0D1119"/>
-      <rect x="26" y="19" width="3" height="3" fill="#F59E0B"/>
-      <rect x="26" y="19" width="2" height="2" fill="#D97706"/>
-      <rect x="28" y="18" width="1" height="1" fill="#FFF" fill-opacity="0.9"/>
-      <rect x="35" y="18" width="4" height="4" fill="#0D1119"/>
-      <rect x="36" y="19" width="3" height="3" fill="#F59E0B"/>
-      <rect x="36" y="19" width="2" height="2" fill="#D97706"/>
-      <rect x="38" y="18" width="1" height="1" fill="#FFF" fill-opacity="0.9"/>
-    </g>
-    <g id="er"> <!-- eyes red -->
-      <rect x="25" y="18" width="4" height="4" fill="#0D1119"/>
-      <rect x="26" y="19" width="3" height="3" fill="#EF4444"/>
-      <rect x="26" y="19" width="2" height="2" fill="#DC2626"/>
-      <rect x="28" y="18" width="1" height="1" fill="#FFF" fill-opacity="0.9"/>
-      <rect x="35" y="18" width="4" height="4" fill="#0D1119"/>
-      <rect x="36" y="19" width="3" height="3" fill="#EF4444"/>
-      <rect x="36" y="19" width="2" height="2" fill="#DC2626"/>
-      <rect x="38" y="18" width="1" height="1" fill="#FFF" fill-opacity="0.9"/>
+    <g id="ea"> <!-- eyes amber/fire -->
+      <rect x="25" y="19" width="4" height="4" fill="#0D1119"/>
+      <rect x="26" y="20" width="3" height="3" fill="#F59E0B"/>
+      <rect x="26" y="20" width="2" height="2" fill="#D97706"/>
+      <rect x="28" y="19" width="1" height="1" fill="#FFF" fill-opacity="0.9"/>
+      <rect x="35" y="19" width="4" height="4" fill="#0D1119"/>
+      <rect x="36" y="20" width="3" height="3" fill="#F59E0B"/>
+      <rect x="36" y="20" width="2" height="2" fill="#D97706"/>
+      <rect x="38" y="19" width="1" height="1" fill="#FFF" fill-opacity="0.9"/>
     </g>
     <g id="ex"> <!-- eyes closed -->
+      <rect x="25" y="21" width="4" height="1" fill="#0D1119"/>
+      <rect x="35" y="21" width="4" height="1" fill="#0D1119"/>
+    </g>
+    <g id="eh"> <!-- eyes happy ∪ -->
       <rect x="25" y="20" width="4" height="1" fill="#0D1119"/>
+      <rect x="25" y="19" width="1" height="2" fill="#0D1119"/>
+      <rect x="28" y="19" width="1" height="2" fill="#0D1119"/>
       <rect x="35" y="20" width="4" height="1" fill="#0D1119"/>
-      <rect x="24" y="19" width="1" height="1" fill="#0D1119" fill-opacity="0.4"/>
-      <rect x="29" y="19" width="1" height="1" fill="#0D1119" fill-opacity="0.4"/>
-      <rect x="34" y="19" width="1" height="1" fill="#0D1119" fill-opacity="0.4"/>
-      <rect x="39" y="19" width="1" height="1" fill="#0D1119" fill-opacity="0.4"/>
+      <rect x="35" y="19" width="1" height="2" fill="#0D1119"/>
+      <rect x="38" y="19" width="1" height="2" fill="#0D1119"/>
     </g>
-    <g id="eh"> <!-- eyes happy -->
-      <rect x="25" y="19" width="4" height="1" fill="#0D1119"/>
-      <rect x="25" y="18" width="1" height="2" fill="#0D1119"/>
-      <rect x="28" y="18" width="1" height="2" fill="#0D1119"/>
-      <rect x="35" y="19" width="4" height="1" fill="#0D1119"/>
-      <rect x="35" y="18" width="1" height="2" fill="#0D1119"/>
-      <rect x="38" y="18" width="1" height="2" fill="#0D1119"/>
+    <g id="ew"> <!-- eyes determined/angry -->
+      <rect x="25" y="19" width="4" height="4" fill="#0D1119"/>
+      <rect x="26" y="20" width="2" height="2" fill="#22D3EE"/>
+      <rect x="28" y="19" width="1" height="1" fill="#FFF" fill-opacity="0.7"/>
+      <rect x="35" y="19" width="4" height="4" fill="#0D1119"/>
+      <rect x="36" y="20" width="2" height="2" fill="#22D3EE"/>
+      <rect x="38" y="19" width="1" height="1" fill="#FFF" fill-opacity="0.7"/>
+      <!-- angled brows -->
+      <rect x="24" y="17" width="5" height="1" fill="#64748B"/>
+      <rect x="35" y="17" width="5" height="1" fill="#64748B"/>
+      <rect x="24" y="16" width="2" height="1" fill="#64748B"/>
+      <rect x="38" y="16" width="2" height="1" fill="#64748B"/>
     </g>
-    <g id="ew"> <!-- eyes worried -->
-      <rect x="25" y="18" width="4" height="4" fill="#0D1119"/>
-      <rect x="26" y="19" width="2" height="2" fill="#EF4444"/>
-      <rect x="28" y="18" width="1" height="1" fill="#FFF" fill-opacity="0.7"/>
-      <rect x="35" y="18" width="4" height="4" fill="#0D1119"/>
-      <rect x="36" y="19" width="2" height="2" fill="#EF4444"/>
-      <rect x="38" y="18" width="1" height="1" fill="#FFF" fill-opacity="0.7"/>
-      <rect x="24" y="16" width="5" height="1" fill="#1E293B"/>
-      <rect x="35" y="16" width="5" height="1" fill="#1E293B"/>
-      <rect x="24" y="15" width="2" height="1" fill="#1E293B"/>
-      <rect x="38" y="15" width="2" height="1" fill="#1E293B"/>
-    </g>
-    <g id="es"> <!-- eyes sparkle -->
-      <rect x="24" y="17" width="5" height="5" fill="#0D1119"/>
-      <rect x="25" y="18" width="4" height="4" fill="#22D3EE"/>
-      <rect x="25" y="18" width="2" height="2" fill="#FFF" fill-opacity="0.7"/>
-      <rect x="28" y="21" width="1" height="1" fill="#FFF" fill-opacity="0.5"/>
-      <rect x="35" y="17" width="5" height="5" fill="#0D1119"/>
-      <rect x="36" y="18" width="4" height="4" fill="#22D3EE"/>
-      <rect x="36" y="18" width="2" height="2" fill="#FFF" fill-opacity="0.7"/>
-      <rect x="39" y="21" width="1" height="1" fill="#FFF" fill-opacity="0.5"/>
+    <g id="es"> <!-- eyes glowing (ult) -->
+      <rect x="24" y="18" width="5" height="5" fill="#0D1119"/>
+      <rect x="25" y="19" width="4" height="4" fill="#22D3EE"/>
+      <rect x="25" y="19" width="2" height="2" fill="#FFF" fill-opacity="0.7"/>
+      <rect x="28" y="22" width="1" height="1" fill="#FFF" fill-opacity="0.5"/>
+      <rect x="35" y="18" width="5" height="5" fill="#0D1119"/>
+      <rect x="36" y="19" width="4" height="4" fill="#22D3EE"/>
+      <rect x="36" y="19" width="2" height="2" fill="#FFF" fill-opacity="0.7"/>
+      <rect x="39" y="22" width="1" height="1" fill="#FFF" fill-opacity="0.5"/>
     </g>
 
     <!-- MOUTHS -->
-    <g id="mn"><rect x="30" y="24" width="4" height="1" fill="#A0695C"/></g>
+    <g id="mn"><rect x="30" y="25" width="4" height="1" fill="#5C3A08"/></g>
     <g id="mh">
-      <rect x="29" y="24" width="6" height="1" fill="#A0695C"/>
-      <rect x="30" y="25" width="4" height="1" fill="#A0695C"/>
+      <rect x="29" y="25" width="6" height="1" fill="#5C3A08"/>
+      <rect x="30" y="26" width="4" height="1" fill="#5C3A08"/>
     </g>
-    <g id="mg">
-      <rect x="28" y="24" width="8" height="1" fill="#A0695C"/>
-      <rect x="29" y="25" width="6" height="1" fill="#C06060"/>
-      <rect x="30" y="26" width="4" height="1" fill="#A0695C"/>
+    <g id="mg"> <!-- grin/battle cry -->
+      <rect x="28" y="25" width="8" height="1" fill="#5C3A08"/>
+      <rect x="29" y="26" width="6" height="1" fill="#7A4A10"/>
+      <rect x="30" y="27" width="4" height="1" fill="#5C3A08"/>
     </g>
-    <g id="mw">
-      <rect x="29" y="25" width="6" height="1" fill="#A0695C"/>
-      <rect x="30" y="24" width="4" height="1" fill="#A0695C"/>
+    <g id="mo"> <!-- open -->
+      <rect x="30" y="25" width="4" height="2" fill="#5C3A08"/>
+      <rect x="31" y="26" width="2" height="1" fill="#7A4A10"/>
     </g>
-    <g id="mo">
-      <rect x="30" y="24" width="4" height="2" fill="#A0695C"/>
-      <rect x="31" y="25" width="2" height="1" fill="#C06060"/>
-    </g>
-    <g id="mc">
-      <rect x="30" y="24" width="1" height="1" fill="#A0695C"/>
-      <rect x="33" y="24" width="1" height="1" fill="#A0695C"/>
-      <rect x="31" y="25" width="2" height="1" fill="#A0695C"/>
+    <g id="mc"> <!-- confident smirk -->
+      <rect x="30" y="25" width="4" height="1" fill="#5C3A08"/>
+      <rect x="33" y="24" width="2" height="1" fill="#5C3A08"/>
     </g>
 
-    <!-- HOODIE -->
-    <g id="hb"> <!-- hoodie body -->
-      <rect x="23" y="28" width="18" height="14" fill="#4A5568"/>
-      <rect x="22" y="29" width="1" height="12" fill="#2D3748"/>
-      <rect x="41" y="29" width="1" height="12" fill="#2D3748"/>
-      <rect x="25" y="27" width="14" height="3" fill="#4A5568"/>
-      <rect x="26" y="27" width="12" height="1" fill="#718096"/>
-      <rect x="32" y="29" width="1" height="13" fill="#2D3748"/>
-      <rect x="25" y="36" width="6" height="3" fill="#2D3748" fill-opacity="0.4"/>
-      <rect x="33" y="36" width="6" height="3" fill="#2D3748" fill-opacity="0.4"/>
+    <!-- COAT — white/silver long coat (Sentinel of Light) -->
+    <g id="coat">
+      <rect x="23" y="28" width="18" height="14" fill="#E2E8F0"/>
+      <rect x="22" y="29" width="1" height="12" fill="#CBD5E1"/>
+      <rect x="41" y="29" width="1" height="12" fill="#CBD5E1"/>
+      <!-- collar -->
+      <rect x="25" y="27" width="14" height="3" fill="#F1F5F9"/>
+      <rect x="26" y="27" width="12" height="1" fill="#FFFFFF"/>
+      <!-- center seam -->
+      <rect x="32" y="29" width="1" height="13" fill="#CBD5E1"/>
+      <!-- coat tails -->
+      <rect x="23" y="42" width="5" height="5" fill="#E2E8F0"/>
+      <rect x="36" y="42" width="5" height="5" fill="#E2E8F0"/>
+      <rect x="23" y="42" width="5" height="1" fill="#CBD5E1"/>
+      <rect x="36" y="42" width="5" height="1" fill="#CBD5E1"/>
+      <!-- dark undershirt visible -->
+      <rect x="28" y="30" width="8" height="5" fill="#1E293B"/>
     </g>
-    <g id="hl"> <!-- hoodie lean left -->
-      <rect x="22" y="28" width="18" height="14" fill="#4A5568"/>
-      <rect x="21" y="29" width="1" height="12" fill="#2D3748"/>
-      <rect x="40" y="29" width="1" height="12" fill="#2D3748"/>
-      <rect x="24" y="27" width="14" height="3" fill="#4A5568"/>
-      <rect x="25" y="27" width="12" height="1" fill="#718096"/>
-      <rect x="31" y="29" width="1" height="13" fill="#2D3748"/>
+    <g id="coat-l"> <!-- coat lean left -->
+      <rect x="22" y="28" width="18" height="14" fill="#E2E8F0"/>
+      <rect x="21" y="29" width="1" height="12" fill="#CBD5E1"/>
+      <rect x="40" y="29" width="1" height="12" fill="#CBD5E1"/>
+      <rect x="24" y="27" width="14" height="3" fill="#F1F5F9"/>
+      <rect x="25" y="27" width="12" height="1" fill="#FFFFFF"/>
+      <rect x="31" y="29" width="1" height="13" fill="#CBD5E1"/>
+      <rect x="22" y="42" width="5" height="5" fill="#E2E8F0"/>
+      <rect x="35" y="42" width="5" height="5" fill="#E2E8F0"/>
+      <rect x="27" y="30" width="8" height="5" fill="#1E293B"/>
     </g>
-    <g id="hr"> <!-- hoodie lean right -->
-      <rect x="24" y="28" width="18" height="14" fill="#4A5568"/>
-      <rect x="23" y="29" width="1" height="12" fill="#2D3748"/>
-      <rect x="42" y="29" width="1" height="12" fill="#2D3748"/>
-      <rect x="26" y="27" width="14" height="3" fill="#4A5568"/>
-      <rect x="27" y="27" width="12" height="1" fill="#718096"/>
-      <rect x="33" y="29" width="1" height="13" fill="#2D3748"/>
+    <g id="coat-r"> <!-- coat lean right -->
+      <rect x="24" y="28" width="18" height="14" fill="#E2E8F0"/>
+      <rect x="23" y="29" width="1" height="12" fill="#CBD5E1"/>
+      <rect x="42" y="29" width="1" height="12" fill="#CBD5E1"/>
+      <rect x="26" y="27" width="14" height="3" fill="#F1F5F9"/>
+      <rect x="27" y="27" width="12" height="1" fill="#FFFFFF"/>
+      <rect x="33" y="29" width="1" height="13" fill="#CBD5E1"/>
+      <rect x="24" y="42" width="5" height="5" fill="#E2E8F0"/>
+      <rect x="37" y="42" width="5" height="5" fill="#E2E8F0"/>
+      <rect x="29" y="30" width="8" height="5" fill="#1E293B"/>
     </g>
 
-    <!-- LEGS -->
-    <g id="ls"> <!-- legs stand -->
+    <!-- LEGS — dark pants + boots -->
+    <g id="ls">
       <rect x="25" y="42" width="5" height="8" fill="#1E293B"/>
       <rect x="34" y="42" width="5" height="8" fill="#1E293B"/>
       <rect x="24" y="50" width="7" height="3" fill="#0F172A"/>
       <rect x="33" y="50" width="7" height="3" fill="#0F172A"/>
-      <rect x="24" y="50" width="7" height="1" fill="#1E293B"/>
-      <rect x="33" y="50" width="7" height="1" fill="#1E293B"/>
+      <rect x="24" y="50" width="7" height="1" fill="#334155"/>
+      <rect x="33" y="50" width="7" height="1" fill="#334155"/>
     </g>
-    <g id="la"> <!-- legs walk a -->
+    <g id="la"> <!-- walk a -->
       <rect x="24" y="42" width="5" height="7" fill="#1E293B"/>
       <rect x="35" y="42" width="5" height="9" fill="#1E293B"/>
       <rect x="23" y="49" width="7" height="3" fill="#0F172A"/>
       <rect x="34" y="51" width="7" height="3" fill="#0F172A"/>
     </g>
-    <g id="lb"> <!-- legs walk b -->
+    <g id="lb"> <!-- walk b -->
       <rect x="26" y="42" width="5" height="9" fill="#1E293B"/>
       <rect x="33" y="42" width="5" height="7" fill="#1E293B"/>
       <rect x="25" y="51" width="7" height="3" fill="#0F172A"/>
       <rect x="32" y="49" width="7" height="3" fill="#0F172A"/>
     </g>
-    <g id="lj"> <!-- legs jump -->
+    <g id="lj"> <!-- jump -->
       <rect x="25" y="42" width="5" height="6" fill="#1E293B"/>
       <rect x="34" y="42" width="5" height="6" fill="#1E293B"/>
       <rect x="24" y="48" width="7" height="3" fill="#0F172A"/>
       <rect x="33" y="48" width="7" height="3" fill="#0F172A"/>
     </g>
-    <g id="lx"> <!-- legs sit -->
+    <g id="lx"> <!-- sit/crouch -->
       <rect x="24" y="42" width="16" height="4" fill="#1E293B"/>
       <rect x="23" y="44" width="6" height="4" fill="#0F172A"/>
       <rect x="35" y="44" width="6" height="4" fill="#0F172A"/>
     </g>
 
-    <!-- ARMS -->
-    <g id="ad"> <!-- arms down -->
-      <rect x="19" y="29" width="4" height="8" fill="#4A5568"/>
-      <rect x="41" y="29" width="4" height="8" fill="#4A5568"/>
-      <rect x="19" y="37" width="4" height="3" fill="#E8B4A0"/>
-      <rect x="41" y="37" width="4" height="3" fill="#E8B4A0"/>
+    <!-- ARMS — skin + coat sleeve + GUNS -->
+    <g id="ad"> <!-- arms down, guns at sides -->
+      <rect x="19" y="29" width="4" height="7" fill="#E2E8F0"/>
+      <rect x="41" y="29" width="4" height="7" fill="#E2E8F0"/>
+      <rect x="19" y="36" width="4" height="2" fill="#8B6914"/>
+      <rect x="41" y="36" width="4" height="2" fill="#8B6914"/>
+      <!-- pistols pointing down -->
+      <rect x="19" y="38" width="2" height="4" fill="#475569"/>
+      <rect x="43" y="38" width="2" height="4" fill="#475569"/>
+      <rect x="19" y="38" width="2" height="1" fill="#94A3B8"/>
+      <rect x="43" y="38" width="2" height="1" fill="#94A3B8"/>
     </g>
-    <g id="asa"> <!-- arms swing a -->
-      <rect x="18" y="29" width="4" height="7" fill="#4A5568"/>
-      <rect x="42" y="30" width="4" height="6" fill="#4A5568"/>
-      <rect x="18" y="36" width="4" height="3" fill="#E8B4A0"/>
-      <rect x="42" y="36" width="4" height="3" fill="#E8B4A0"/>
+    <g id="asa"> <!-- arms swing a (walk), guns visible -->
+      <rect x="18" y="29" width="4" height="6" fill="#E2E8F0"/>
+      <rect x="42" y="30" width="4" height="5" fill="#E2E8F0"/>
+      <rect x="18" y="35" width="4" height="2" fill="#8B6914"/>
+      <rect x="42" y="35" width="4" height="2" fill="#8B6914"/>
+      <rect x="18" y="37" width="2" height="4" fill="#475569"/>
+      <rect x="44" y="37" width="2" height="4" fill="#475569"/>
     </g>
     <g id="asb"> <!-- arms swing b -->
-      <rect x="19" y="30" width="4" height="6" fill="#4A5568"/>
-      <rect x="41" y="29" width="4" height="7" fill="#4A5568"/>
-      <rect x="19" y="36" width="4" height="3" fill="#E8B4A0"/>
-      <rect x="41" y="36" width="4" height="3" fill="#E8B4A0"/>
+      <rect x="19" y="30" width="4" height="5" fill="#E2E8F0"/>
+      <rect x="41" y="29" width="4" height="6" fill="#E2E8F0"/>
+      <rect x="19" y="35" width="4" height="2" fill="#8B6914"/>
+      <rect x="41" y="35" width="4" height="2" fill="#8B6914"/>
+      <rect x="19" y="37" width="2" height="4" fill="#475569"/>
+      <rect x="43" y="37" width="2" height="4" fill="#475569"/>
     </g>
-    <g id="au"> <!-- arms up -->
-      <rect x="17" y="22" width="4" height="8" fill="#4A5568"/>
-      <rect x="43" y="22" width="4" height="8" fill="#4A5568"/>
-      <rect x="16" y="20" width="4" height="3" fill="#E8B4A0"/>
-      <rect x="44" y="20" width="4" height="3" fill="#E8B4A0"/>
+    <g id="ag-fwd"> <!-- arms guns forward (Q cast) -->
+      <rect x="19" y="29" width="4" height="6" fill="#E2E8F0"/>
+      <rect x="41" y="28" width="4" height="4" fill="#E2E8F0"/>
+      <!-- right hand + gun pointing forward -->
+      <rect x="45" y="28" width="3" height="3" fill="#8B6914"/>
+      <rect x="48" y="28" width="6" height="2" fill="#475569"/>
+      <rect x="48" y="28" width="2" height="1" fill="#94A3B8"/>
+      <rect x="53" y="28" width="1" height="2" fill="#94A3B8"/>
+      <!-- left hand stays down -->
+      <rect x="19" y="35" width="4" height="2" fill="#8B6914"/>
+      <rect x="19" y="37" width="2" height="4" fill="#475569"/>
     </g>
-    <g id="ao"> <!-- arms out -->
-      <rect x="14" y="29" width="8" height="4" fill="#4A5568"/>
-      <rect x="42" y="29" width="8" height="4" fill="#4A5568"/>
-      <rect x="12" y="29" width="3" height="4" fill="#E8B4A0"/>
-      <rect x="49" y="29" width="3" height="4" fill="#E8B4A0"/>
+    <g id="ag-dual"> <!-- both guns out (W / R cast) -->
+      <rect x="14" y="28" width="4" height="3" fill="#E2E8F0"/>
+      <rect x="42" y="28" width="4" height="3" fill="#E2E8F0"/>
+      <!-- left gun -->
+      <rect x="11" y="28" width="3" height="3" fill="#8B6914"/>
+      <rect x="5" y="28" width="6" height="2" fill="#475569"/>
+      <rect x="5" y="28" width="1" height="2" fill="#94A3B8"/>
+      <rect x="9" y="28" width="2" height="1" fill="#94A3B8"/>
+      <!-- right gun -->
+      <rect x="46" y="28" width="3" height="3" fill="#8B6914"/>
+      <rect x="49" y="28" width="6" height="2" fill="#475569"/>
+      <rect x="49" y="28" width="2" height="1" fill="#94A3B8"/>
+      <rect x="54" y="28" width="1" height="2" fill="#94A3B8"/>
+    </g>
+    <g id="ag-up"> <!-- arms+guns raised (victory/ult) -->
+      <rect x="17" y="22" width="4" height="7" fill="#E2E8F0"/>
+      <rect x="43" y="22" width="4" height="7" fill="#E2E8F0"/>
+      <rect x="16" y="20" width="4" height="3" fill="#8B6914"/>
+      <rect x="44" y="20" width="4" height="3" fill="#8B6914"/>
+      <!-- guns pointing up -->
+      <rect x="17" y="16" width="2" height="4" fill="#475569"/>
+      <rect x="45" y="16" width="2" height="4" fill="#475569"/>
+      <rect x="17" y="16" width="2" height="1" fill="#94A3B8"/>
+      <rect x="45" y="16" width="2" height="1" fill="#94A3B8"/>
     </g>
     <g id="ax"> <!-- arms crossed -->
-      <rect x="22" y="32" width="8" height="3" fill="#4A5568"/>
-      <rect x="34" y="32" width="8" height="3" fill="#4A5568"/>
-      <rect x="28" y="33" width="8" height="3" fill="#4A5568" fill-opacity="0.7"/>
-    </g>
-    <g id="af"> <!-- arms cast forward -->
-      <rect x="19" y="29" width="4" height="8" fill="#4A5568"/>
-      <rect x="42" y="27" width="4" height="4" fill="#4A5568"/>
-      <rect x="46" y="27" width="4" height="4" fill="#E8B4A0"/>
-      <rect x="19" y="37" width="4" height="3" fill="#E8B4A0"/>
-    </g>
-    <g id="ab"> <!-- arms cast both -->
-      <rect x="18" y="27" width="4" height="4" fill="#4A5568"/>
-      <rect x="42" y="27" width="4" height="4" fill="#4A5568"/>
-      <rect x="14" y="27" width="4" height="4" fill="#E8B4A0"/>
-      <rect x="46" y="27" width="4" height="4" fill="#E8B4A0"/>
+      <rect x="22" y="32" width="8" height="3" fill="#E2E8F0"/>
+      <rect x="34" y="32" width="8" height="3" fill="#E2E8F0"/>
+      <rect x="28" y="33" width="8" height="3" fill="#E2E8F0" fill-opacity="0.7"/>
     </g>
 
-    <!-- FX -->
-    <g id="sp1"> <!-- sparkle small -->
-      <rect x="14" y="10" width="1" height="3" fill="#FFD166"/><rect x="13" y="11" width="3" height="1" fill="#FFD166"/>
-      <rect x="49" y="14" width="1" height="3" fill="#FFD166"/><rect x="48" y="15" width="3" height="1" fill="#FFD166"/>
+    <!-- MUZZLE FLASH FX -->
+    <g id="mf-r"> <!-- muzzle flash right -->
+      <rect x="54" y="27" width="4" height="1" fill="#FFF" fill-opacity="0.9"/>
+      <rect x="55" y="26" width="2" height="3" fill="#FFD166" fill-opacity="0.8"/>
+      <rect x="56" y="25" width="1" height="5" fill="#FFF" fill-opacity="0.6"/>
     </g>
-    <g id="sp2"> <!-- sparkle big -->
-      <rect x="12" y="8" width="1" height="5" fill="#FFD166"/><rect x="10" y="10" width="5" height="1" fill="#FFD166"/>
-      <rect x="50" y="12" width="1" height="5" fill="#FFD166"/><rect x="48" y="14" width="5" height="1" fill="#FFD166"/>
-      <rect x="46" y="6" width="1" height="3" fill="#FFF2A8"/><rect x="45" y="7" width="3" height="1" fill="#FFF2A8"/>
-      <rect x="16" y="46" width="1" height="3" fill="#FFF2A8"/><rect x="15" y="47" width="3" height="1" fill="#FFF2A8"/>
+    <g id="mf-l"> <!-- muzzle flash left -->
+      <rect x="2" y="27" width="4" height="1" fill="#FFF" fill-opacity="0.9"/>
+      <rect x="3" y="26" width="2" height="3" fill="#FFD166" fill-opacity="0.8"/>
+      <rect x="3" y="25" width="1" height="5" fill="#FFF" fill-opacity="0.6"/>
     </g>
-    <g id="swt"> <!-- sweat -->
-      <rect x="44" y="16" width="2" height="3" fill="#60A5FA" fill-opacity="0.7"/>
-      <rect x="44" y="19" width="1" height="1" fill="#60A5FA" fill-opacity="0.5"/>
+    <g id="mf-dual"> <!-- dual muzzle flash -->
+      <rect x="54" y="27" width="4" height="1" fill="#FFF" fill-opacity="0.9"/>
+      <rect x="55" y="26" width="2" height="3" fill="#FFD166" fill-opacity="0.8"/>
+      <rect x="2" y="27" width="4" height="1" fill="#FFF" fill-opacity="0.9"/>
+      <rect x="3" y="26" width="2" height="3" fill="#FFD166" fill-opacity="0.8"/>
     </g>
+
+    <!-- BULLET TRAILS -->
+    <g id="bt-r"> <!-- bullet trail right -->
+      <rect x="56" y="28" width="6" height="1" fill="#7CC7FF" fill-opacity="0.7"/>
+      <rect x="58" y="29" width="4" height="1" fill="#7CC7FF" fill-opacity="0.4"/>
+    </g>
+    <g id="bt-l"> <!-- bullet trail left -->
+      <rect x="0" y="28" width="6" height="1" fill="#7CC7FF" fill-opacity="0.7"/>
+      <rect x="0" y="29" width="4" height="1" fill="#7CC7FF" fill-opacity="0.4"/>
+    </g>
+
+    <!-- LIGHT SENTINELS GLOW -->
+    <g id="sentinel-glow">
+      <rect x="20" y="14" width="24" height="2" fill="#22D3EE" fill-opacity="0.12"/>
+      <rect x="18" y="16" width="28" height="30" fill="#22D3EE" fill-opacity="0.06"/>
+      <rect x="20" y="46" width="24" height="2" fill="#22D3EE" fill-opacity="0.12"/>
+    </g>
+
+    <!-- DASH AFTERIMAGE -->
+    <g id="dsh">
+      <rect x="8" y="28" width="3" height="8" fill="#7EF0D6" fill-opacity="0.15"/>
+      <rect x="12" y="26" width="3" height="12" fill="#7EF0D6" fill-opacity="0.1"/>
+      <rect x="4" y="30" width="3" height="4" fill="#7EF0D6" fill-opacity="0.08"/>
+    </g>
+
+    <!-- GOLD ULT AURA -->
+    <g id="gld">
+      <rect x="16" y="10" width="32" height="2" fill="#F59E0B" fill-opacity="0.2"/>
+      <rect x="14" y="12" width="36" height="36" fill="#F59E0B" fill-opacity="0.08"/>
+      <rect x="16" y="48" width="32" height="2" fill="#F59E0B" fill-opacity="0.2"/>
+      <rect x="14" y="12" width="2" height="36" fill="#F59E0B" fill-opacity="0.15"/>
+      <rect x="48" y="12" width="2" height="36" fill="#F59E0B" fill-opacity="0.15"/>
+    </g>
+
+    <!-- RECALL RING -->
+    <g id="rcl">
+      <rect x="18" y="52" width="28" height="1" fill="#A78BFA" fill-opacity="0.5"/>
+      <rect x="16" y="53" width="32" height="2" fill="#A78BFA" fill-opacity="0.3"/>
+      <rect x="18" y="55" width="28" height="1" fill="#A78BFA" fill-opacity="0.5"/>
+      <rect x="24" y="51" width="16" height="1" fill="#C4B5FD" fill-opacity="0.3"/>
+    </g>
+
+    <!-- CONFETTI -->
+    <g id="cft">
+      <rect x="14" y="6" width="2" height="2" fill="#EF4444" fill-opacity="0.7"/>
+      <rect x="22" y="4" width="2" height="2" fill="#F59E0B" fill-opacity="0.7"/>
+      <rect x="40" y="5" width="2" height="2" fill="#22D3EE" fill-opacity="0.7"/>
+      <rect x="48" y="8" width="2" height="2" fill="#A78BFA" fill-opacity="0.7"/>
+      <rect x="10" y="14" width="1" height="2" fill="#34D399" fill-opacity="0.6"/>
+      <rect x="52" y="12" width="1" height="2" fill="#F472B6" fill-opacity="0.6"/>
+    </g>
+
+    <!-- ZZZ -->
     <g id="zzz">
       <rect x="44" y="10" width="4" height="1" fill="#94A3B8" fill-opacity="0.5"/>
       <rect x="46" y="11" width="1" height="1" fill="#94A3B8" fill-opacity="0.5"/>
@@ -258,116 +329,86 @@
       <rect x="49" y="7" width="1" height="1" fill="#94A3B8" fill-opacity="0.35"/>
       <rect x="48" y="8" width="3" height="1" fill="#94A3B8" fill-opacity="0.35"/>
     </g>
-    <g id="exc"> <!-- exclamation -->
+
+    <!-- SWEAT -->
+    <g id="swt">
+      <rect x="44" y="17" width="2" height="3" fill="#60A5FA" fill-opacity="0.7"/>
+      <rect x="44" y="20" width="1" height="1" fill="#60A5FA" fill-opacity="0.5"/>
+    </g>
+
+    <!-- EXCLAMATION -->
+    <g id="exc">
       <rect x="46" y="8" width="2" height="6" fill="#EF4444"/>
       <rect x="46" y="16" width="2" height="2" fill="#EF4444"/>
     </g>
-    <g id="orb"> <!-- energy orb -->
-      <rect x="48" y="25" width="6" height="6" fill="#22D3EE" fill-opacity="0.3"/>
-      <rect x="49" y="26" width="4" height="4" fill="#22D3EE" fill-opacity="0.6"/>
-      <rect x="50" y="27" width="2" height="2" fill="#FFF" fill-opacity="0.5"/>
-    </g>
-    <g id="shd"> <!-- shield glow -->
-      <rect x="18" y="16" width="28" height="2" fill="#60A5FA" fill-opacity="0.15"/>
-      <rect x="17" y="18" width="30" height="28" fill="#60A5FA" fill-opacity="0.08"/>
-      <rect x="18" y="46" width="28" height="2" fill="#60A5FA" fill-opacity="0.15"/>
-      <rect x="17" y="18" width="2" height="28" fill="#60A5FA" fill-opacity="0.15"/>
-      <rect x="45" y="18" width="2" height="28" fill="#60A5FA" fill-opacity="0.15"/>
-    </g>
-    <g id="dsh"> <!-- dash trail -->
-      <rect x="8" y="28" width="3" height="8" fill="#22D3EE" fill-opacity="0.15"/>
-      <rect x="12" y="26" width="3" height="12" fill="#22D3EE" fill-opacity="0.1"/>
-      <rect x="4" y="30" width="3" height="4" fill="#22D3EE" fill-opacity="0.08"/>
-    </g>
-    <g id="gld"> <!-- gold aura -->
-      <rect x="16" y="10" width="32" height="2" fill="#F59E0B" fill-opacity="0.2"/>
-      <rect x="14" y="12" width="36" height="36" fill="#F59E0B" fill-opacity="0.08"/>
-      <rect x="16" y="48" width="32" height="2" fill="#F59E0B" fill-opacity="0.2"/>
-      <rect x="14" y="12" width="2" height="36" fill="#F59E0B" fill-opacity="0.15"/>
-      <rect x="48" y="12" width="2" height="36" fill="#F59E0B" fill-opacity="0.15"/>
-    </g>
-    <g id="rcl"> <!-- recall ring -->
-      <rect x="18" y="52" width="28" height="1" fill="#A78BFA" fill-opacity="0.5"/>
-      <rect x="16" y="53" width="32" height="2" fill="#A78BFA" fill-opacity="0.3"/>
-      <rect x="18" y="55" width="28" height="1" fill="#A78BFA" fill-opacity="0.5"/>
-      <rect x="24" y="51" width="16" height="1" fill="#C4B5FD" fill-opacity="0.3"/>
-    </g>
-    <g id="cft"> <!-- confetti -->
-      <rect x="14" y="6" width="2" height="2" fill="#EF4444" fill-opacity="0.7"/>
-      <rect x="22" y="4" width="2" height="2" fill="#F59E0B" fill-opacity="0.7"/>
-      <rect x="40" y="5" width="2" height="2" fill="#22D3EE" fill-opacity="0.7"/>
-      <rect x="48" y="8" width="2" height="2" fill="#A78BFA" fill-opacity="0.7"/>
-      <rect x="10" y="14" width="1" height="2" fill="#34D399" fill-opacity="0.6"/>
-      <rect x="52" y="12" width="1" height="2" fill="#F472B6" fill-opacity="0.6"/>
-    </g>
   </defs>
 
-  <!-- Row 0: IDLE (4 frames) -->
-  <g transform="translate(0,0)"><use href="#shadow"/><use href="#hb"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mn"/></g>
-  <g transform="translate(64,0)"><use href="#shadow"/><use href="#hb"/><use href="#ls"/><use href="#ad"/><use href="#face" transform="translate(0,1)"/><use href="#hair" transform="translate(0,1)"/><use href="#ec" transform="translate(0,1)"/><use href="#mc" transform="translate(0,1)"/></g>
-  <g transform="translate(128,0)"><use href="#shadow"/><use href="#hb"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#hair"/><use href="#ex"/><use href="#mn"/></g>
-  <g transform="translate(192,0)"><use href="#shadow"/><use href="#hb"/><use href="#ls"/><use href="#ad"/><use href="#face" transform="translate(0,1)"/><use href="#hair" transform="translate(0,1)"/><use href="#ec" transform="translate(0,1)"/><use href="#mh" transform="translate(0,1)"/></g>
+  <!-- ======== Row 0: IDLE (4 frames) — standing confident, guns holstered ======== -->
+  <g transform="translate(0,0)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mn"/></g>
+  <g transform="translate(64,0)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#ad"/><use href="#face" transform="translate(0,1)"/><use href="#hair" transform="translate(0,1)"/><use href="#ec" transform="translate(0,1)"/><use href="#mc" transform="translate(0,1)"/></g>
+  <g transform="translate(128,0)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#hair"/><use href="#ex"/><use href="#mn"/></g>
+  <g transform="translate(192,0)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#ad"/><use href="#face" transform="translate(0,1)"/><use href="#hair" transform="translate(0,1)"/><use href="#ec" transform="translate(0,1)"/><use href="#mh" transform="translate(0,1)"/></g>
 
-  <!-- Row 1: WALK (6 frames) -->
-  <g transform="translate(0,64)"><use href="#shadow"/><use href="#hl"/><use href="#la"/><use href="#asa"/><use href="#face" transform="translate(-1,0)"/><use href="#hair" transform="translate(-1,0)"/><use href="#ec" transform="translate(-1,0)"/><use href="#mh" transform="translate(-1,0)"/></g>
-  <g transform="translate(64,64)"><use href="#shadow"/><use href="#hb"/><use href="#ls"/><use href="#asb"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mh"/></g>
-  <g transform="translate(128,64)"><use href="#shadow"/><use href="#hr"/><use href="#lb"/><use href="#asb"/><use href="#face" transform="translate(1,0)"/><use href="#hair" transform="translate(1,0)"/><use href="#ec" transform="translate(1,0)"/><use href="#mh" transform="translate(1,0)"/></g>
-  <g transform="translate(192,64)"><use href="#shadow"/><use href="#hb"/><use href="#ls"/><use href="#asa"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mn"/></g>
-  <g transform="translate(256,64)"><use href="#shadow"/><use href="#hl"/><use href="#la"/><use href="#asa"/><use href="#face" transform="translate(-1,1)"/><use href="#hair" transform="translate(-1,1)"/><use href="#ec" transform="translate(-1,1)"/><use href="#mh" transform="translate(-1,1)"/></g>
-  <g transform="translate(320,64)"><use href="#shadow"/><use href="#hr"/><use href="#lb"/><use href="#asb"/><use href="#face" transform="translate(1,1)"/><use href="#hair" transform="translate(1,1)"/><use href="#ec" transform="translate(1,1)"/><use href="#mn" transform="translate(1,1)"/></g>
+  <!-- ======== Row 1: WALK (6 frames) — striding with coat flowing ======== -->
+  <g transform="translate(0,64)"><use href="#shadow"/><use href="#coat-l"/><use href="#la"/><use href="#asa"/><use href="#face" transform="translate(-1,0)"/><use href="#hair" transform="translate(-1,0)"/><use href="#ec" transform="translate(-1,0)"/><use href="#mn" transform="translate(-1,0)"/></g>
+  <g transform="translate(64,64)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#asb"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mn"/></g>
+  <g transform="translate(128,64)"><use href="#shadow"/><use href="#coat-r"/><use href="#lb"/><use href="#asb"/><use href="#face" transform="translate(1,0)"/><use href="#hair" transform="translate(1,0)"/><use href="#ec" transform="translate(1,0)"/><use href="#mn" transform="translate(1,0)"/></g>
+  <g transform="translate(192,64)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#asa"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mn"/></g>
+  <g transform="translate(256,64)"><use href="#shadow"/><use href="#coat-l"/><use href="#la"/><use href="#asa"/><use href="#face" transform="translate(-1,1)"/><use href="#hair" transform="translate(-1,1)"/><use href="#ec" transform="translate(-1,1)"/><use href="#mn" transform="translate(-1,1)"/></g>
+  <g transform="translate(320,64)"><use href="#shadow"/><use href="#coat-r"/><use href="#lb"/><use href="#asb"/><use href="#face" transform="translate(1,1)"/><use href="#hair" transform="translate(1,1)"/><use href="#ec" transform="translate(1,1)"/><use href="#mn" transform="translate(1,1)"/></g>
 
-  <!-- Row 2: CAST_Q (4 frames) -->
-  <g transform="translate(0,128)"><use href="#shadow"/><use href="#hb"/><use href="#ls"/><use href="#af"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mo"/></g>
-  <g transform="translate(64,128)"><use href="#shadow"/><use href="#hr"/><use href="#ls"/><use href="#af"/><use href="#orb"/><use href="#face" transform="translate(1,0)"/><use href="#hair" transform="translate(1,0)"/><use href="#ec" transform="translate(1,0)"/><use href="#mo" transform="translate(1,0)"/><use href="#sp1"/></g>
-  <g transform="translate(128,128)"><use href="#shadow"/><use href="#hb"/><use href="#ls"/><use href="#af"/><use href="#orb"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mh"/><use href="#sp2"/></g>
-  <g transform="translate(192,128)"><use href="#shadow"/><use href="#hb"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mh"/></g>
+  <!-- ======== Row 2: CAST_Q (4 frames) — Piercing Light: one gun forward, fires beam ======== -->
+  <g transform="translate(0,128)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#ag-fwd"/><use href="#face"/><use href="#hair"/><use href="#ew"/><use href="#mo"/></g>
+  <g transform="translate(64,128)"><use href="#shadow"/><use href="#coat-r"/><use href="#ls"/><use href="#ag-fwd"/><use href="#mf-r"/><use href="#bt-r"/><use href="#face" transform="translate(1,0)"/><use href="#hair" transform="translate(1,0)"/><use href="#ew" transform="translate(1,0)"/><use href="#mo" transform="translate(1,0)"/></g>
+  <g transform="translate(128,128)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#ag-fwd"/><use href="#bt-r"/><use href="#face"/><use href="#hair"/><use href="#ew"/><use href="#mg"/></g>
+  <g transform="translate(192,128)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mc"/></g>
 
-  <!-- Row 3: CAST_W (3 frames) -->
-  <g transform="translate(0,192)"><use href="#shadow"/><use href="#shd"/><use href="#hb"/><use href="#ls"/><use href="#ab"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mo"/></g>
-  <g transform="translate(64,192)"><use href="#shadow"/><use href="#shd"/><use href="#hb"/><use href="#ls"/><use href="#au"/><use href="#face" transform="translate(0,1)"/><use href="#hair" transform="translate(0,1)"/><use href="#ec" transform="translate(0,1)"/><use href="#mh" transform="translate(0,1)"/><use href="#sp1"/></g>
-  <g transform="translate(128,192)"><use href="#shadow"/><use href="#hb"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mh"/></g>
+  <!-- ======== Row 3: CAST_W (3 frames) — Ardent Blaze: dual gun shot upward ======== -->
+  <g transform="translate(0,192)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#ag-dual"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mo"/></g>
+  <g transform="translate(64,192)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#ag-dual"/><use href="#mf-dual"/><use href="#face" transform="translate(0,1)"/><use href="#hair" transform="translate(0,1)"/><use href="#ec" transform="translate(0,1)"/><use href="#mg" transform="translate(0,1)"/></g>
+  <g transform="translate(128,192)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mh"/></g>
 
-  <!-- Row 4: CAST_E (4 frames) -->
-  <g transform="translate(0,256)"><use href="#shadow"/><use href="#hr"/><use href="#la"/><use href="#asa"/><use href="#face" transform="translate(1,0)"/><use href="#hair" transform="translate(1,0)"/><use href="#ec" transform="translate(1,0)"/><use href="#mo" transform="translate(1,0)"/></g>
-  <g transform="translate(64,256)"><use href="#shadow"/><use href="#dsh"/><use href="#hr"/><use href="#lb"/><use href="#asb"/><use href="#face" transform="translate(2,-1)"/><use href="#hair" transform="translate(2,-1)"/><use href="#ec" transform="translate(2,-1)"/><use href="#mh" transform="translate(2,-1)"/></g>
-  <g transform="translate(128,256)"><use href="#shadow"/><use href="#dsh"/><use href="#hr"/><use href="#la"/><use href="#asa"/><use href="#face" transform="translate(3,0)"/><use href="#hair" transform="translate(3,0)"/><use href="#eh" transform="translate(3,0)"/><use href="#mh" transform="translate(3,0)"/><use href="#sp1"/></g>
-  <g transform="translate(192,256)"><use href="#shadow"/><use href="#hb"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mh"/></g>
+  <!-- ======== Row 4: CAST_E (4 frames) — Relentless Pursuit: dash forward ======== -->
+  <g transform="translate(0,256)"><use href="#shadow"/><use href="#coat-r"/><use href="#la"/><use href="#asa"/><use href="#face" transform="translate(1,0)"/><use href="#hair" transform="translate(1,0)"/><use href="#ew" transform="translate(1,0)"/><use href="#mo" transform="translate(1,0)"/></g>
+  <g transform="translate(64,256)"><use href="#shadow"/><use href="#dsh"/><use href="#coat-r"/><use href="#lb"/><use href="#asb"/><use href="#face" transform="translate(2,-1)"/><use href="#hair" transform="translate(2,-1)"/><use href="#ew" transform="translate(2,-1)"/><use href="#mn" transform="translate(2,-1)"/></g>
+  <g transform="translate(128,256)"><use href="#shadow"/><use href="#dsh"/><use href="#coat-r"/><use href="#la"/><use href="#asa"/><use href="#face" transform="translate(3,0)"/><use href="#hair" transform="translate(3,0)"/><use href="#eh" transform="translate(3,0)"/><use href="#mc" transform="translate(3,0)"/></g>
+  <g transform="translate(192,256)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mc"/></g>
 
-  <!-- Row 5: CAST_R (8 frames) -->
-  <g transform="translate(0,320)"><use href="#shadow"/><use href="#hb"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#hair"/><use href="#ea"/><use href="#mo"/></g>
-  <g transform="translate(64,320)"><use href="#shadow"/><use href="#gld"/><use href="#hb"/><use href="#ls"/><use href="#au"/><use href="#face" transform="translate(0,-1)"/><use href="#hair" transform="translate(0,-1)"/><use href="#ea" transform="translate(0,-1)"/><use href="#mo" transform="translate(0,-1)"/></g>
-  <g transform="translate(128,320)"><use href="#shadow"/><use href="#gld"/><use href="#hb"/><use href="#lj"/><use href="#au"/><use href="#face" transform="translate(0,-3)"/><use href="#hair" transform="translate(0,-3)"/><use href="#es" transform="translate(0,-3)"/><use href="#mg" transform="translate(0,-3)"/><use href="#sp2"/></g>
-  <g transform="translate(192,320)"><use href="#shadow"/><use href="#gld"/><use href="#hb"/><use href="#lj"/><use href="#ab"/><use href="#face" transform="translate(0,-2)"/><use href="#hair" transform="translate(0,-2)"/><use href="#es" transform="translate(0,-2)"/><use href="#mg" transform="translate(0,-2)"/><use href="#sp2"/><use href="#cft"/></g>
-  <g transform="translate(256,320)"><use href="#shadow"/><use href="#gld"/><use href="#hb"/><use href="#ls"/><use href="#au"/><use href="#face" transform="translate(0,-1)"/><use href="#hair" transform="translate(0,-1)"/><use href="#es" transform="translate(0,-1)"/><use href="#mg" transform="translate(0,-1)"/><use href="#cft"/></g>
-  <g transform="translate(320,320)"><use href="#shadow"/><use href="#gld"/><use href="#hb"/><use href="#ls"/><use href="#ab"/><use href="#face"/><use href="#hair"/><use href="#ea"/><use href="#mg"/><use href="#sp2"/></g>
-  <g transform="translate(384,320)"><use href="#shadow"/><use href="#hb"/><use href="#ls"/><use href="#au"/><use href="#face" transform="translate(0,1)"/><use href="#hair" transform="translate(0,1)"/><use href="#ea" transform="translate(0,1)"/><use href="#mh" transform="translate(0,1)"/><use href="#sp1"/></g>
-  <g transform="translate(448,320)"><use href="#shadow"/><use href="#hb"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mh"/></g>
+  <!-- ======== Row 5: CAST_R (8 frames) — The Culling: dual guns blazing, bullet storm ======== -->
+  <g transform="translate(0,320)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#hair"/><use href="#ew"/><use href="#mo"/></g>
+  <g transform="translate(64,320)"><use href="#shadow"/><use href="#gld"/><use href="#coat"/><use href="#ls"/><use href="#ag-dual"/><use href="#face" transform="translate(0,-1)"/><use href="#hair" transform="translate(0,-1)"/><use href="#es" transform="translate(0,-1)"/><use href="#mg" transform="translate(0,-1)"/></g>
+  <g transform="translate(128,320)"><use href="#shadow"/><use href="#gld"/><use href="#coat"/><use href="#ls"/><use href="#ag-dual"/><use href="#mf-dual"/><use href="#face" transform="translate(0,-1)"/><use href="#hair" transform="translate(0,-1)"/><use href="#es" transform="translate(0,-1)"/><use href="#mg" transform="translate(0,-1)"/></g>
+  <g transform="translate(192,320)"><use href="#shadow"/><use href="#gld"/><use href="#coat"/><use href="#ls"/><use href="#ag-dual"/><use href="#mf-dual"/><use href="#bt-r"/><use href="#bt-l"/><use href="#face" transform="translate(0,-1)"/><use href="#hair" transform="translate(0,-1)"/><use href="#es" transform="translate(0,-1)"/><use href="#mg" transform="translate(0,-1)"/></g>
+  <g transform="translate(256,320)"><use href="#shadow"/><use href="#gld"/><use href="#coat"/><use href="#ls"/><use href="#ag-dual"/><use href="#mf-dual"/><use href="#bt-r"/><use href="#bt-l"/><use href="#face" transform="translate(0,-1)"/><use href="#hair" transform="translate(0,-1)"/><use href="#es" transform="translate(0,-1)"/><use href="#mg" transform="translate(0,-1)"/></g>
+  <g transform="translate(320,320)"><use href="#shadow"/><use href="#gld"/><use href="#coat"/><use href="#ls"/><use href="#ag-dual"/><use href="#mf-dual"/><use href="#face"/><use href="#hair"/><use href="#es"/><use href="#mg"/></g>
+  <g transform="translate(384,320)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#ag-dual"/><use href="#face" transform="translate(0,1)"/><use href="#hair" transform="translate(0,1)"/><use href="#ea" transform="translate(0,1)"/><use href="#mh" transform="translate(0,1)"/></g>
+  <g transform="translate(448,320)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mc"/></g>
 
-  <!-- Row 6: VICTORY (6 frames) -->
-  <g transform="translate(0,384)"><use href="#shadow"/><use href="#hb"/><use href="#ls"/><use href="#au"/><use href="#face" transform="translate(0,-1)"/><use href="#hair" transform="translate(0,-1)"/><use href="#es" transform="translate(0,-1)"/><use href="#mg" transform="translate(0,-1)"/><use href="#cft"/></g>
-  <g transform="translate(64,384)"><use href="#shadow"/><use href="#hb"/><use href="#lj"/><use href="#au"/><use href="#face" transform="translate(0,-3)"/><use href="#hair" transform="translate(0,-3)"/><use href="#eh" transform="translate(0,-3)"/><use href="#mg" transform="translate(0,-3)"/><use href="#cft"/><use href="#sp2"/></g>
-  <g transform="translate(128,384)"><use href="#shadow"/><use href="#hr"/><use href="#ls"/><use href="#au"/><use href="#face" transform="translate(1,-1)"/><use href="#hair" transform="translate(1,-1)"/><use href="#es" transform="translate(1,-1)"/><use href="#mg" transform="translate(1,-1)"/><use href="#sp1"/></g>
-  <g transform="translate(192,384)"><use href="#shadow"/><use href="#hl"/><use href="#ls"/><use href="#au"/><use href="#face" transform="translate(-1,-1)"/><use href="#hair" transform="translate(-1,-1)"/><use href="#eh" transform="translate(-1,-1)"/><use href="#mg" transform="translate(-1,-1)"/><use href="#cft"/></g>
-  <g transform="translate(256,384)"><use href="#shadow"/><use href="#hb"/><use href="#lj"/><use href="#au"/><use href="#face" transform="translate(0,-3)"/><use href="#hair" transform="translate(0,-3)"/><use href="#es" transform="translate(0,-3)"/><use href="#mg" transform="translate(0,-3)"/><use href="#cft"/><use href="#sp2"/></g>
-  <g transform="translate(320,384)"><use href="#shadow"/><use href="#hb"/><use href="#ls"/><use href="#au"/><use href="#face"/><use href="#hair"/><use href="#es"/><use href="#mh"/></g>
+  <!-- ======== Row 6: VICTORY (6 frames) — guns up, celebrating ======== -->
+  <g transform="translate(0,384)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#ag-up"/><use href="#face" transform="translate(0,-1)"/><use href="#hair" transform="translate(0,-1)"/><use href="#eh" transform="translate(0,-1)"/><use href="#mg" transform="translate(0,-1)"/><use href="#cft"/></g>
+  <g transform="translate(64,384)"><use href="#shadow"/><use href="#coat"/><use href="#lj"/><use href="#ag-up"/><use href="#face" transform="translate(0,-3)"/><use href="#hair" transform="translate(0,-3)"/><use href="#eh" transform="translate(0,-3)"/><use href="#mg" transform="translate(0,-3)"/><use href="#cft"/></g>
+  <g transform="translate(128,384)"><use href="#shadow"/><use href="#coat-r"/><use href="#ls"/><use href="#ag-up"/><use href="#face" transform="translate(1,-1)"/><use href="#hair" transform="translate(1,-1)"/><use href="#es" transform="translate(1,-1)"/><use href="#mg" transform="translate(1,-1)"/></g>
+  <g transform="translate(192,384)"><use href="#shadow"/><use href="#coat-l"/><use href="#ls"/><use href="#ag-up"/><use href="#face" transform="translate(-1,-1)"/><use href="#hair" transform="translate(-1,-1)"/><use href="#eh" transform="translate(-1,-1)"/><use href="#mg" transform="translate(-1,-1)"/><use href="#cft"/></g>
+  <g transform="translate(256,384)"><use href="#shadow"/><use href="#coat"/><use href="#lj"/><use href="#ag-up"/><use href="#face" transform="translate(0,-3)"/><use href="#hair" transform="translate(0,-3)"/><use href="#es" transform="translate(0,-3)"/><use href="#mg" transform="translate(0,-3)"/><use href="#cft"/></g>
+  <g transform="translate(320,384)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#ag-up"/><use href="#face"/><use href="#hair"/><use href="#eh"/><use href="#mh"/></g>
 
-  <!-- Row 7: PANIC (4 frames) -->
-  <g transform="translate(0,448)"><use href="#shadow"/><use href="#hl"/><use href="#la"/><use href="#ao"/><use href="#face" transform="translate(-1,0)"/><use href="#hair" transform="translate(-1,0)"/><use href="#ew" transform="translate(-1,0)"/><use href="#mw" transform="translate(-1,0)"/><use href="#swt"/><use href="#exc"/></g>
-  <g transform="translate(64,448)"><use href="#shadow"/><use href="#hr"/><use href="#lb"/><use href="#ao"/><use href="#face" transform="translate(1,0)"/><use href="#hair" transform="translate(1,0)"/><use href="#ew" transform="translate(1,0)"/><use href="#mo" transform="translate(1,0)"/><use href="#swt"/></g>
-  <g transform="translate(128,448)"><use href="#shadow"/><use href="#hb"/><use href="#ls"/><use href="#ao"/><use href="#face" transform="translate(0,1)"/><use href="#hair" transform="translate(0,1)"/><use href="#ew" transform="translate(0,1)"/><use href="#mw" transform="translate(0,1)"/><use href="#exc"/></g>
-  <g transform="translate(192,448)"><use href="#shadow"/><use href="#hl"/><use href="#la"/><use href="#ao"/><use href="#face" transform="translate(-1,1)"/><use href="#hair" transform="translate(-1,1)"/><use href="#er" transform="translate(-1,1)"/><use href="#mo" transform="translate(-1,1)"/><use href="#swt"/></g>
+  <!-- ======== Row 7: PANIC (4 frames) — running scared, guns waving ======== -->
+  <g transform="translate(0,448)"><use href="#shadow"/><use href="#coat-l"/><use href="#la"/><use href="#asa"/><use href="#face" transform="translate(-1,0)"/><use href="#hair" transform="translate(-1,0)"/><use href="#ew" transform="translate(-1,0)"/><use href="#mo" transform="translate(-1,0)"/><use href="#swt"/><use href="#exc"/></g>
+  <g transform="translate(64,448)"><use href="#shadow"/><use href="#coat-r"/><use href="#lb"/><use href="#asb"/><use href="#face" transform="translate(1,0)"/><use href="#hair" transform="translate(1,0)"/><use href="#ew" transform="translate(1,0)"/><use href="#mo" transform="translate(1,0)"/><use href="#swt"/></g>
+  <g transform="translate(128,448)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#ad"/><use href="#face" transform="translate(0,1)"/><use href="#hair" transform="translate(0,1)"/><use href="#ew" transform="translate(0,1)"/><use href="#mo" transform="translate(0,1)"/><use href="#exc"/></g>
+  <g transform="translate(192,448)"><use href="#shadow"/><use href="#coat-l"/><use href="#la"/><use href="#asa"/><use href="#face" transform="translate(-1,1)"/><use href="#hair" transform="translate(-1,1)"/><use href="#ew" transform="translate(-1,1)"/><use href="#mo" transform="translate(-1,1)"/><use href="#swt"/></g>
 
-  <!-- Row 8: MEDITATE (4 frames) -->
-  <g transform="translate(0,512)"><use href="#shadow"/><use href="#hb"/><use href="#lx"/><use href="#ax"/><use href="#face"/><use href="#hair"/><use href="#ex"/><use href="#mc"/><use href="#zzz"/></g>
-  <g transform="translate(64,512)"><use href="#shadow"/><use href="#hb"/><use href="#lx"/><use href="#ax"/><use href="#face" transform="translate(0,1)"/><use href="#hair" transform="translate(0,1)"/><use href="#ex" transform="translate(0,1)"/><use href="#mc" transform="translate(0,1)"/><use href="#zzz"/></g>
-  <g transform="translate(128,512)"><use href="#shadow"/><use href="#hb"/><use href="#lx"/><use href="#ax"/><use href="#face"/><use href="#hair"/><use href="#ex"/><use href="#mn"/></g>
-  <g transform="translate(192,512)"><use href="#shadow"/><use href="#hb"/><use href="#lx"/><use href="#ax"/><use href="#face" transform="translate(0,1)"/><use href="#hair" transform="translate(0,1)"/><use href="#ex" transform="translate(0,1)"/><use href="#mc" transform="translate(0,1)"/><use href="#zzz"/></g>
+  <!-- ======== Row 8: MEDITATE (4 frames) — sitting, guns crossed, eyes closed ======== -->
+  <g transform="translate(0,512)"><use href="#shadow"/><use href="#coat"/><use href="#lx"/><use href="#ax"/><use href="#face"/><use href="#hair"/><use href="#ex"/><use href="#mn"/><use href="#zzz"/></g>
+  <g transform="translate(64,512)"><use href="#shadow"/><use href="#coat"/><use href="#lx"/><use href="#ax"/><use href="#face" transform="translate(0,1)"/><use href="#hair" transform="translate(0,1)"/><use href="#ex" transform="translate(0,1)"/><use href="#mn" transform="translate(0,1)"/><use href="#zzz"/></g>
+  <g transform="translate(128,512)"><use href="#shadow"/><use href="#coat"/><use href="#lx"/><use href="#ax"/><use href="#face"/><use href="#hair"/><use href="#ex"/><use href="#mn"/></g>
+  <g transform="translate(192,512)"><use href="#shadow"/><use href="#coat"/><use href="#lx"/><use href="#ax"/><use href="#face" transform="translate(0,1)"/><use href="#hair" transform="translate(0,1)"/><use href="#ex" transform="translate(0,1)"/><use href="#mn" transform="translate(0,1)"/><use href="#zzz"/></g>
 
-  <!-- Row 9: RECALL (6 frames) -->
-  <g transform="translate(0,576)"><use href="#shadow"/><use href="#rcl"/><use href="#hb"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mn"/></g>
-  <g transform="translate(64,576)"><use href="#shadow"/><use href="#rcl"/><use href="#hb"/><use href="#ls"/><use href="#ab"/><use href="#face" transform="translate(0,-1)"/><use href="#hair" transform="translate(0,-1)"/><use href="#ex" transform="translate(0,-1)"/><use href="#mn" transform="translate(0,-1)"/><use href="#sp1"/></g>
-  <g transform="translate(128,576)"><use href="#shadow"/><use href="#rcl"/><use href="#hb"/><use href="#ls"/><use href="#au"/><use href="#face" transform="translate(0,-2)"/><use href="#hair" transform="translate(0,-2)"/><use href="#ex" transform="translate(0,-2)"/><use href="#mc" transform="translate(0,-2)"/><use href="#sp2"/></g>
-  <g transform="translate(192,576)"><use href="#shadow"/><use href="#rcl"/><use href="#hb"/><use href="#lj"/><use href="#au"/><use href="#face" transform="translate(0,-3)"/><use href="#hair" transform="translate(0,-3)"/><use href="#ec" transform="translate(0,-3)"/><use href="#mh" transform="translate(0,-3)"/><use href="#sp2"/></g>
-  <g transform="translate(256,576)"><use href="#shadow"/><use href="#rcl"/><use href="#hb"/><use href="#ls"/><use href="#ab"/><use href="#face" transform="translate(0,-1)"/><use href="#hair" transform="translate(0,-1)"/><use href="#ex" transform="translate(0,-1)"/><use href="#mn" transform="translate(0,-1)"/></g>
-  <g transform="translate(320,576)"><use href="#shadow"/><use href="#hb"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mh"/></g>
+  <!-- ======== Row 9: RECALL (6 frames) — channeling, rising light ======== -->
+  <g transform="translate(0,576)"><use href="#shadow"/><use href="#rcl"/><use href="#coat"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mn"/></g>
+  <g transform="translate(64,576)"><use href="#shadow"/><use href="#rcl"/><use href="#coat"/><use href="#ls"/><use href="#ag-dual"/><use href="#face" transform="translate(0,-1)"/><use href="#hair" transform="translate(0,-1)"/><use href="#ex" transform="translate(0,-1)"/><use href="#mn" transform="translate(0,-1)"/></g>
+  <g transform="translate(128,576)"><use href="#shadow"/><use href="#rcl"/><use href="#coat"/><use href="#ls"/><use href="#ag-up"/><use href="#face" transform="translate(0,-2)"/><use href="#hair" transform="translate(0,-2)"/><use href="#ex" transform="translate(0,-2)"/><use href="#mn" transform="translate(0,-2)"/></g>
+  <g transform="translate(192,576)"><use href="#shadow"/><use href="#rcl"/><use href="#coat"/><use href="#lj"/><use href="#ag-up"/><use href="#face" transform="translate(0,-3)"/><use href="#hair" transform="translate(0,-3)"/><use href="#ec" transform="translate(0,-3)"/><use href="#mh" transform="translate(0,-3)"/></g>
+  <g transform="translate(256,576)"><use href="#shadow"/><use href="#rcl"/><use href="#coat"/><use href="#ls"/><use href="#ag-dual"/><use href="#face" transform="translate(0,-1)"/><use href="#hair" transform="translate(0,-1)"/><use href="#ex" transform="translate(0,-1)"/><use href="#mn" transform="translate(0,-1)"/></g>
+  <g transform="translate(320,576)"><use href="#shadow"/><use href="#coat"/><use href="#ls"/><use href="#ad"/><use href="#face"/><use href="#hair"/><use href="#ec"/><use href="#mh"/></g>
 </svg>
