@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -18,6 +19,7 @@ import toast from 'react-hot-toast';
 import { DecisionSurfaceCard } from '@/components/ui/DecisionSurfaceCard';
 import { buildOpportunityRadarInsight } from '@/lib/career/radarInsights';
 import { buildOpportunityFitReadout, toDisplayFitIndex } from '@/lib/career/opportunityReadout';
+import { buildOpportunityTrajectoryHref } from '@/lib/career/opportunityActions';
 
 interface OpportunityRadarProps {
   onAdoptToPipeline: (prefill: CreateApplicationInput) => void;
@@ -518,6 +520,7 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
             {results.map((item) => {
               const fitReadout = buildOpportunityFitReadout(item, priorityTrack, meta);
+              const trajectoryHref = buildOpportunityTrajectoryHref(item);
 
               return (
                 <article
@@ -633,6 +636,14 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
                   ) : null}
 
                   <div className="mt-3 flex flex-wrap justify-end gap-2">
+                    {trajectoryHref ? (
+                      <Link
+                        href={trajectoryHref}
+                        className="inline-flex h-8 items-center justify-center rounded-md border border-success/35 bg-success/10 px-3 text-xs font-medium text-emerald-300 transition-colors hover:border-success hover:bg-success/15"
+                      >
+                        Als Prep-Block planen
+                      </Link>
+                    ) : null}
                     {item.jobUrl ? (
                       <a
                         href={item.jobUrl}

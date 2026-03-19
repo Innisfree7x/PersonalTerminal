@@ -3,6 +3,9 @@
 Status: Delivered
 Owner: Core
 
+Follow-up:
+- Die Folge-Welle fuer `Gap -> Trajectory` und das proof-first ProductShowcase ist in `docs/PHASE33_SHOWCASE_AND_CAREER_BRIDGE_2026-03-19.md` dokumentiert.
+
 ## Ziel
 
 Die erste Landing-Experience soll INNIS in unter 10 Sekunden verstaendlich machen, waehrend der Career-Radar nicht mehr wie ein dekoratives Matching-Widget wirkt, sondern wie eine nachvollziehbare Entscheidungsflaeche.
@@ -128,4 +131,3 @@ Gruen ausgefuehrt:
    - company/job detail layer
 3. Daily Core danach zusammenziehen:
    - Morning Briefing + Momentum noch kompakter als eine einzige Operations-Leiste
-

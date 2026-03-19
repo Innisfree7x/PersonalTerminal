@@ -1,64 +1,80 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Route, CalendarDays, Command, Briefcase } from 'lucide-react';
+import { Briefcase, CalendarDays, Command, Route } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
-interface Pillar {
+interface ShowcaseSurface {
   icon: LucideIcon;
   number: string;
   title: string;
-  description: string;
-  highlights: string[];
+  claim: string;
+  shift: string;
+  proofLabel: string;
+  proofValue: string;
+  proofDetail: string;
+  signals: string[];
 }
 
-const pillars: Pillar[] = [
+const surfaces: ShowcaseSurface[] = [
   {
     icon: Route,
     number: '01',
     title: 'Trajectory',
-    description:
-      'Dein strategisches Konfliktmodell. Startfenster, Buffer und Risk-Status für alle parallelen Ziele — aus einer einzigen Logik.',
-    highlights: [
-      'Milestones für Thesis, GMAT, Praktika, Master-Apps',
-      'Automatische Kollisionserkennung mit Risk-Ampel',
-      'Opportunity Windows statt verstreuter Reminder',
+    claim: 'Du siehst nicht nur Deadlines. Du siehst Startfenster, Buffer und Konflikte in derselben Logik.',
+    shift: 'Aus verstreuten Semester-Deadlines wird ein strategischer Startplan.',
+    proofLabel: 'Sichtbarer Output',
+    proofValue: 'Startdatum + Risiko',
+    proofDetail: 'Ein Blick reicht, um zu sehen, wann die Vorbereitung wirklich beginnen muss und wo dein Plan kippt.',
+    signals: [
+      'Milestones fuer Thesis, GMAT, Praktika und Master-Apps',
+      'Risk-Ampel statt Bauchgefuehl',
+      'Opportunity Windows fuer echte Bewerbungsfenster',
     ],
   },
   {
     icon: CalendarDays,
     number: '02',
     title: 'Today',
-    description:
-      'Dein strategischer Plan wird jeden Morgen in einen konkreten Move verdichtet — kein offener Task-Wust, keine Dashboard-Unruhe.',
-    highlights: [
+    claim: 'INNIS reduziert den Tag nicht auf mehr Widgets, sondern auf den naechsten sinnvollen Move.',
+    shift: 'Aus offenem Task-Lärm wird ein taeglicher Operations-Flow.',
+    proofLabel: 'Sichtbarer Output',
+    proofValue: 'Morning Briefing',
+    proofDetail: 'Trajectory-Kontext, Momentum und heutiger Fokus sitzen in einer einzigen Zeile statt in fuenf losen Karten.',
+    signals: [
       'Morning Briefing mit Strategie-Kontext',
-      'Top-Moves statt endloser To-do-Listen',
-      'Fokus-Sessions mit klarer Rückmeldung',
-    ],
-  },
-  {
-    icon: Command,
-    number: '03',
-    title: 'Command Rail',
-    description:
-      'Deterministische Commands statt Klick-Menüs. Career, Uni und Goals im selben System — kein Tab-Switching.',
-    highlights: [
-      'Natürliche Sprache: "create task GMAT block tomorrow"',
-      'Career-Pipeline parallel zur Studienplanung',
-      'Keyboard-first für schnelle Ausführung',
+      'Fokus-Sessions mit klarem Startpunkt',
+      'Daily-Flaechen, die wirklich handlungsfaehig bleiben',
     ],
   },
   {
     icon: Briefcase,
-    number: '04',
+    number: '03',
     title: 'Career Intelligence',
-    description:
-      'CV-Upload, Opportunity Radar und Gap-Signale in derselben Oberfläche. Nicht nur Jobs finden, sondern sofort verstehen, was realistisch ist.',
-    highlights: [
+    claim: 'Jobs werden nicht blind gesammelt, sondern gegen dein Profil, deine Gaps und deine echte Reach eingeordnet.',
+    shift: 'Aus Keyword-Suche wird ein realistischer Bewerbungs-Radar.',
+    proofLabel: 'Sichtbarer Output',
+    proofValue: 'Fit + Gap + Next Move',
+    proofDetail: 'Du bekommst Markt-Passung, Gruende, Luecken und direkt den naechsten sinnvollen Schritt fuer jede Rolle.',
+    signals: [
       'CV-Intelligence mit Strengths, Gaps und Rank-Tier',
-      'Opportunity Radar mit Reach-Bands statt blindem Keyword-Matching',
-      'Career-Pipeline direkt neben Trajectory und Today',
+      'Reach-Bands statt pseudo-präziser 99/100 Scores',
+      'Gap direkt als Today-Task oder Prep-Block uebernehmbar',
+    ],
+  },
+  {
+    icon: Command,
+    number: '04',
+    title: 'Command Rail',
+    claim: 'Wenn alles parallel laeuft, darf Ausfuehrung nicht an Menues, Tabs und Kontextwechseln haengen.',
+    shift: 'Aus Klicken in mehreren Bereichen wird ein gemeinsames Ausfuehrungssystem.',
+    proofLabel: 'Sichtbarer Output',
+    proofValue: 'Eine Eingabe, ein Move',
+    proofDetail: 'Tasks, Goals und Navigation laufen ueber dieselbe Command-Surface und bleiben damit konsistent.',
+    signals: [
+      'Deterministische Preview vor Ausfuehrung',
+      'Career, Uni und Daily im selben Rail',
+      'Keyboard-first statt Tab-Switching',
     ],
   },
 ];
@@ -74,64 +90,72 @@ export function ProductShowcase() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="mx-auto mb-20 max-w-3xl text-center"
+          className="mx-auto mb-20 max-w-4xl text-center"
         >
-          <p className="premium-kicker">Das System</p>
+          <p className="premium-kicker">Was INNIS konkret anders macht</p>
           <h2 className="premium-heading text-[clamp(2.2rem,5vw,4rem)] font-semibold text-[#FAF0E6]">
-            Kein Sammelsurium
+            Vier Flaechen.
             <br />
-            aus Features.
+            Ein sichtbarer Vorteil pro Flaeche.
           </h2>
-          <p className="mt-6 text-lg text-zinc-600">Ein System mit klarer Reihenfolge.</p>
+          <p className="mt-6 text-lg leading-[1.7] text-zinc-500">
+            Nicht mehr Features, sondern klarere Outputs: was driftet, was heute zaehlt, welche Rolle realistisch ist und was du als Naechstes ausfuehrst.
+          </p>
         </motion.div>
 
-        <div className="mx-auto max-w-5xl space-y-6">
-          {pillars.map((pillar, i) => (
-            <motion.div
-              key={pillar.number}
-              initial={{ opacity: 0, y: 20 }}
+        <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-2">
+          {surfaces.map((surface, index) => (
+            <motion.article
+              key={surface.number}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.08 }}
-              className="group premium-card overflow-hidden rounded-2xl"
+              transition={{ duration: 0.5, delay: index * 0.08 }}
+              className="premium-card rounded-[28px] p-7 md:p-8"
             >
-              <div className="grid md:grid-cols-[1fr_1.1fr]">
-                {/* Left: meta + description */}
-                <div className="p-8 md:p-10">
-                  <div className="mb-6 flex items-center gap-4">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#E8B930]/10 bg-[#E8B930]/[0.04]">
-                      <pillar.icon className="h-5 w-5 text-[#E8B930]/70" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
-                        {pillar.number}
-                      </p>
-                      <h3 className="text-xl font-semibold tracking-tight text-[#FAF0E6]">
-                        {pillar.title}
-                      </h3>
-                    </div>
-                  </div>
-                  <p className="text-[15px] leading-[1.7] text-zinc-400">
-                    {pillar.description}
-                  </p>
+              <div className="mb-6 flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#E8B930]/12 bg-[#E8B930]/[0.05]">
+                  <surface.icon className="h-5 w-5 text-[#E8B930]/75" />
                 </div>
-
-                {/* Right: highlights */}
-                <div className="border-t border-white/[0.04] bg-white/[0.01] p-8 md:border-l md:border-t-0 md:p-10">
-                  <div className="space-y-4">
-                    {pillar.highlights.map((point) => (
-                      <div
-                        key={point}
-                        className="flex items-start gap-3"
-                      >
-                        <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-[#E8B930]/50" />
-                        <span className="text-[14px] leading-[1.7] text-zinc-400">{point}</span>
-                      </div>
-                    ))}
-                  </div>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
+                    Surface {surface.number}
+                  </p>
+                  <h3 className="text-xl font-semibold tracking-tight text-[#FAF0E6]">
+                    {surface.title}
+                  </h3>
                 </div>
               </div>
-            </motion.div>
+
+              <div className="grid gap-5 md:grid-cols-[1.05fr_0.95fr]">
+                <div>
+                  <p className="text-[16px] leading-[1.7] text-zinc-300">{surface.claim}</p>
+                  <p className="mt-3 text-sm leading-[1.7] text-zinc-500">{surface.shift}</p>
+                </div>
+
+                <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
+                    {surface.proofLabel}
+                  </p>
+                  <p className="mt-3 text-2xl font-semibold tracking-tight text-[#FAF0E6]">
+                    {surface.proofValue}
+                  </p>
+                  <p className="mt-2 text-sm leading-[1.7] text-zinc-500">{surface.proofDetail}</p>
+                </div>
+              </div>
+
+              <div className="mt-6 space-y-3">
+                {surface.signals.map((signal) => (
+                  <div
+                    key={signal}
+                    className="flex items-start gap-3 rounded-xl border border-white/[0.05] bg-white/[0.015] px-4 py-3"
+                  >
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#E8B930]/55" />
+                    <span className="text-sm leading-[1.7] text-zinc-400">{signal}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.article>
           ))}
         </div>
       </div>
