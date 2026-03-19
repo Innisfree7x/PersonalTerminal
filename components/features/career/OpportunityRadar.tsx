@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -17,6 +17,7 @@ import type {
 import { AlertTriangle, MapPin, Radar, Search, Sparkles, Target } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { DecisionSurfaceCard } from '@/components/ui/DecisionSurfaceCard';
+import { buildOpportunityDossier } from '@/lib/career/opportunityDossier';
 import { buildOpportunityRadarInsight } from '@/lib/career/radarInsights';
 import { buildOpportunityFitReadout, toDisplayFitIndex } from '@/lib/career/opportunityReadout';
 import { buildOpportunityTrajectoryHref } from '@/lib/career/opportunityActions';
@@ -89,11 +90,25 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
   const [results, setResults] = useState<OpportunitySearchItem[]>([]);
   const [meta, setMeta] = useState<OpportunitySearchResponse['meta'] | null>(null);
   const [committingGapId, setCommittingGapId] = useState<string | null>(null);
+  const [selectedOpportunityId, setSelectedOpportunityId] = useState<string | null>(null);
+  const dossierRef = useRef<HTMLDivElement | null>(null);
 
   const serializedLocations = useMemo(() => selectedLocations.join(','), [selectedLocations]);
   const serializedBands = useMemo(() => selectedBands.join(','), [selectedBands]);
   const radarInsight = useMemo(() => buildOpportunityRadarInsight(results, meta, priorityTrack), [results, meta, priorityTrack]);
   const cvRankLabel = useMemo(() => formatCvRankTier(meta?.cvRankTier), [meta?.cvRankTier]);
+  const selectedOpportunity = useMemo(
+    () => results.find((item) => item.id === selectedOpportunityId) ?? results[0] ?? null,
+    [results, selectedOpportunityId]
+  );
+  const selectedDossier = useMemo(
+    () => (selectedOpportunity ? buildOpportunityDossier(selectedOpportunity, priorityTrack, meta) : null),
+    [selectedOpportunity, priorityTrack, meta]
+  );
+  const selectedTrajectoryHref = useMemo(
+    () => (selectedOpportunity ? buildOpportunityTrajectoryHref(selectedOpportunity) : null),
+    [selectedOpportunity]
+  );
   const hasCustomQuery = query.trim().length > 0;
   const allLocationsSelected = selectedLocations.length === LOCATION_FILTERS.length;
   const allBandsSelected = selectedBands.length === BAND_FILTERS.length;
@@ -145,6 +160,15 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
     };
   }, [priorityTrack, query, refreshNonce, serializedBands, serializedLocations, externalRefreshToken]);
 
+  useEffect(() => {
+    if (results.length === 0) {
+      setSelectedOpportunityId(null);
+      return;
+    }
+
+    setSelectedOpportunityId((current) => (current && results.some((item) => item.id === current) ? current : results[0]!.id));
+  }, [results]);
+
   const toggleLocation = (location: DachLocation) => {
     setSelectedLocations((prev) => {
       if (prev.includes(location)) {
@@ -170,6 +194,12 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
   const handleBroadenLocations = () => setSelectedLocations([...LOCATION_FILTERS]);
   const handleSwitchTrack = () => setPriorityTrack((current) => nextTrack(current));
   const handleRetry = () => setRefreshNonce((prev) => prev + 1);
+  const handleSelectOpportunity = (opportunityId: string) => {
+    setSelectedOpportunityId(opportunityId);
+    window.requestAnimationFrame(() => {
+      dossierRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  };
   const handleResetRadar = () => {
     setQuery('');
     setPriorityTrack('M&A');
@@ -517,15 +547,160 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
             />
           ) : null}
 
+          {selectedOpportunity && selectedDossier ? (
+            <div
+              ref={dossierRef}
+              className="rounded-2xl border border-border bg-gradient-to-br from-surface/60 via-surface/35 to-background/55 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm md:p-5"
+            >
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <div className="max-w-3xl">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">Career Dossier</p>
+                  <h3 className="mt-2 text-xl font-semibold text-text-primary">{selectedOpportunity.title}</h3>
+                  <p className="mt-1 text-sm text-text-secondary">
+                    {selectedOpportunity.company} · {selectedOpportunity.city}, {selectedOpportunity.country} · {selectedOpportunity.track}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {selectedDossier.chips.map((chip) => (
+                      <Badge
+                        key={`${selectedOpportunity.id}-${chip.label}`}
+                        variant={
+                          chip.tone === 'success'
+                            ? 'success'
+                            : chip.tone === 'warning'
+                              ? 'warning'
+                              : chip.tone === 'error'
+                                ? 'error'
+                                : 'default'
+                        }
+                        size="sm"
+                      >
+                        {chip.label}
+                      </Badge>
+                    ))}
+                    {selectedOpportunity.sourceLabels.map((source) => (
+                      <Badge key={`${selectedOpportunity.id}-dossier-${source}`} variant="default" size="sm">
+                        {source}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:min-w-[420px]">
+                  {selectedDossier.metrics.map((metric) => (
+                    <div
+                      key={`${selectedOpportunity.id}-${metric.label}`}
+                      className="rounded-xl border border-border/80 bg-background/35 px-3 py-3"
+                    >
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-tertiary">{metric.label}</p>
+                      <p
+                        className={`mt-2 text-sm font-semibold ${
+                          metric.tone === 'success'
+                            ? 'text-emerald-300'
+                            : metric.tone === 'warning'
+                              ? 'text-warning'
+                              : metric.tone === 'error'
+                                ? 'text-error'
+                                : 'text-sky-300'
+                        }`}
+                      >
+                        {metric.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+                <DecisionSurfaceCard
+                  eyebrow="Warum dieser Lead jetzt Sinn macht"
+                  title={`${selectedOpportunity.company} ist aktuell dein klarster Decision-Lead`}
+                  summary={selectedDossier.summary}
+                  bullets={selectedDossier.bullets}
+                  tone={selectedDossier.tone}
+                  icon={<Sparkles className="h-4 w-4" />}
+                />
+
+                <div className="space-y-3">
+                  <div className="rounded-xl border border-border bg-background/35 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">Top Gründe</p>
+                    <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-text-secondary">
+                      {selectedOpportunity.topReasons.map((reason) => (
+                        <li key={`${selectedOpportunity.id}-reason-${reason}`}>• {reason}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="rounded-xl border border-border bg-background/35 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">Hauptlücken</p>
+                    <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-text-secondary">
+                      {selectedOpportunity.topGaps.map((gap) => (
+                        <li key={`${selectedOpportunity.id}-gap-${gap}`}>• {gap}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {selectedOpportunity.nextAction ? (
+                    <div className="rounded-xl border border-primary/20 bg-primary/10 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">Nächster sinnvoller Move</p>
+                      <p className="mt-1 text-xs leading-relaxed text-text-secondary">{selectedOpportunity.nextAction}</p>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-border/80 pt-4">
+                {selectedOpportunity.jobUrl ? (
+                  <a
+                    href={selectedOpportunity.jobUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-8 items-center justify-center rounded-md border border-border bg-surface-hover px-3 text-xs font-medium text-text-primary transition-colors hover:border-primary hover:bg-primary/10"
+                  >
+                    Stelle öffnen
+                  </a>
+                ) : null}
+                {selectedTrajectoryHref ? (
+                  <Link
+                    href={selectedTrajectoryHref}
+                    className="inline-flex h-8 items-center justify-center rounded-md border border-success/35 bg-success/10 px-3 text-xs font-medium text-emerald-300 transition-colors hover:border-success hover:bg-success/15"
+                  >
+                    Als Prep-Block planen
+                  </Link>
+                ) : null}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  loading={committingGapId === selectedOpportunity.id}
+                  onClick={() => commitPrimaryGapTask(selectedOpportunity)}
+                  aria-label={`Gap als Task übernehmen: ${selectedOpportunity.title} bei ${selectedOpportunity.company}`}
+                >
+                  Gap als Task
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => onAdoptToPipeline(buildApplicationPrefill(selectedOpportunity))}
+                  aria-label={`In Pipeline übernehmen: ${selectedOpportunity.title} bei ${selectedOpportunity.company}`}
+                >
+                  In Pipeline übernehmen
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
             {results.map((item) => {
               const fitReadout = buildOpportunityFitReadout(item, priorityTrack, meta);
-              const trajectoryHref = buildOpportunityTrajectoryHref(item);
+              const isSelected = item.id === selectedOpportunity?.id;
 
               return (
                 <article
                   key={item.id}
-                  className="rounded-xl border border-border bg-surface/35 p-4 backdrop-blur-sm"
+                  className={`rounded-xl border p-4 backdrop-blur-sm transition-colors ${
+                    isSelected
+                      ? 'border-primary/40 bg-primary/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]'
+                      : 'border-border bg-surface/35'
+                  }`}
                   aria-label={`Opportunity ${item.title} at ${item.company}`}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -538,8 +713,8 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-3xl font-black tabular-nums text-career-accent">{toDisplayFitIndex(item.fitScore)}</p>
-                      <p className="text-[11px] uppercase tracking-wide text-text-tertiary">Relative Markt-Passung</p>
+                      <p className="text-2xl font-black tabular-nums text-career-accent">{toDisplayFitIndex(item.fitScore)}</p>
+                      <p className="text-[10px] uppercase tracking-[0.16em] text-text-tertiary">Fit</p>
                     </div>
                   </div>
 
@@ -576,74 +751,30 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
                     ))}
                   </div>
 
-                  <div className="mt-3 rounded-lg border border-border/80 bg-background/35 p-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">Warum dieser Fit nicht blind ist</p>
-                    <p className="mt-1 text-xs leading-relaxed text-text-secondary">{fitReadout.summary}</p>
-                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
-                      {fitReadout.signals.map((signal) => (
-                        <div key={signal.label} className="rounded-lg border border-border/70 bg-surface/30 px-3 py-2">
-                          <p className="text-[10px] uppercase tracking-[0.16em] text-text-tertiary">{signal.label}</p>
-                          <p
-                            className={`mt-1 text-xs font-semibold ${
-                              signal.tone === 'success'
-                                ? 'text-emerald-300'
-                                : signal.tone === 'warning'
-                                  ? 'text-warning'
-                                  : signal.tone === 'error'
-                                    ? 'text-error'
-                                    : 'text-sky-300'
-                            }`}
-                          >
-                            {signal.value}
-                          </p>
-                        </div>
-                      ))}
+                  <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <div className="rounded-lg border border-border/80 bg-background/35 p-3">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-tertiary">Kurzreadout</p>
+                      <p className="mt-1 text-xs leading-relaxed text-text-secondary">{fitReadout.summary}</p>
+                    </div>
+                    <div className="rounded-lg border border-border/80 bg-background/35 p-3">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-tertiary">Schnellblick</p>
+                      <div className="mt-1 space-y-1 text-xs text-text-secondary">
+                        <p>Grund: {item.topReasons[0] ?? 'Kein Primärgrund verfügbar.'}</p>
+                        <p>Lücke: {item.topGaps[0] ?? 'Keine Hauptlücke erkannt.'}</p>
+                        {item.nextAction ? <p>Move: {item.nextAction}</p> : null}
+                      </div>
                     </div>
                   </div>
-
-                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div className="rounded-lg border border-border/80 bg-background/35 p-3">
-                      <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-text-tertiary">
-                        <Sparkles className="h-3.5 w-3.5" />
-                        Warum das passt
-                      </p>
-                      <ul className="mt-2 space-y-1.5 text-xs text-text-secondary">
-                        {item.topReasons.map((reason) => (
-                          <li key={reason} className="leading-relaxed">
-                            • {reason}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div className="rounded-lg border border-border/80 bg-background/35 p-3">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">Was noch fehlt</p>
-                      <ul className="mt-2 space-y-1.5 text-xs text-text-secondary">
-                        {item.topGaps.map((gap) => (
-                          <li key={gap} className="leading-relaxed">
-                            • {gap}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
-                  {item.nextAction ? (
-                    <div className="mt-3 rounded-lg border border-primary/20 bg-primary/10 p-3">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">Naechster sinnvoller Move</p>
-                      <p className="mt-1 text-xs leading-relaxed text-text-secondary">{item.nextAction}</p>
-                    </div>
-                  ) : null}
 
                   <div className="mt-3 flex flex-wrap justify-end gap-2">
-                    {trajectoryHref ? (
-                      <Link
-                        href={trajectoryHref}
-                        className="inline-flex h-8 items-center justify-center rounded-md border border-success/35 bg-success/10 px-3 text-xs font-medium text-emerald-300 transition-colors hover:border-success hover:bg-success/15"
-                      >
-                        Als Prep-Block planen
-                      </Link>
-                    ) : null}
+                    <Button
+                      variant={isSelected ? 'primary' : 'secondary'}
+                      size="sm"
+                      onClick={() => handleSelectOpportunity(item.id)}
+                      aria-label={`Dossier öffnen: ${item.title} bei ${item.company}`}
+                    >
+                      {isSelected ? 'Dossier aktiv' : 'Dossier öffnen'}
+                    </Button>
                     {item.jobUrl ? (
                       <a
                         href={item.jobUrl}
@@ -656,15 +787,6 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
                     ) : null}
                     <Button
                       variant="secondary"
-                      size="sm"
-                      loading={committingGapId === item.id}
-                      onClick={() => commitPrimaryGapTask(item)}
-                      aria-label={`Gap als Task übernehmen: ${item.title} bei ${item.company}`}
-                    >
-                      Gap als Task
-                    </Button>
-                    <Button
-                      variant="primary"
                       size="sm"
                       onClick={() => onAdoptToPipeline(buildApplicationPrefill(item))}
                       aria-label={`In Pipeline übernehmen: ${item.title} bei ${item.company}`}
