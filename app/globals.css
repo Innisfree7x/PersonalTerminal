@@ -695,7 +695,7 @@
   }
 
   .marketing-container {
-    @apply mx-auto w-full max-w-6xl px-6 sm:px-10;
+    @apply mx-auto w-full max-w-7xl px-6 sm:px-10;
   }
 
   /* Shimmer animation for badges */
@@ -723,13 +723,30 @@
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.06),
       0 24px 80px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(16px);
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+  }
+
+  .premium-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(232, 185, 48, 0.14);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 32px 100px rgba(0, 0, 0, 0.55),
+      0 0 60px rgba(232, 185, 48, 0.06);
   }
 
   .premium-card-soft {
     background: rgba(255, 255, 255, 0.025);
     border: 1px solid rgba(255, 255, 255, 0.06);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+
+  .premium-card-soft:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
   }
 
   .premium-heading {
@@ -755,17 +772,96 @@
   }
 
   .premium-cta-primary {
-    @apply inline-flex items-center justify-center gap-2.5 rounded-full bg-[#E8B930] px-8 py-4 text-[15px] font-semibold text-[#0A0A0C] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#F0CA50] hover:shadow-2xl hover:shadow-[#E8B930]/30 active:scale-[0.97];
+    @apply inline-flex items-center justify-center gap-2.5 rounded-full bg-[#E8B930] px-8 py-4 text-[15px] font-semibold text-[#0A0A0C] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#F0CA50] active:scale-[0.97];
+    position: relative;
+    isolation: isolate;
+  }
+
+  .premium-cta-primary::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    background: radial-gradient(ellipse at center, rgba(232, 185, 48, 0.45), transparent 70%);
+    opacity: 0;
+    z-index: -1;
+    filter: blur(16px);
+    transition: opacity 0.35s ease;
+  }
+
+  .premium-cta-primary:hover::after {
+    opacity: 1;
   }
 
   .premium-cta-secondary {
-    @apply inline-flex items-center justify-center gap-2.5 rounded-full border border-white/[0.10] bg-white/[0.04] px-8 py-4 text-[15px] font-medium text-zinc-300 transition-all duration-300 hover:border-[#E8B930]/30 hover:bg-white/[0.08] hover:text-[#FAF0E6] active:scale-[0.97];
+    @apply inline-flex items-center justify-center gap-2.5 rounded-full border border-white/[0.10] bg-white/[0.04] px-8 py-4 text-[15px] font-medium text-zinc-300 transition-all duration-300 hover:border-[#E8B930]/25 hover:bg-white/[0.07] hover:text-[#FAF0E6] active:scale-[0.97];
   }
 
-  /* Section divider */
+  /* Section divider — line + soft glow halo */
   .premium-divider {
+    position: relative;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(232, 185, 48, 0.18), transparent);
+    background: linear-gradient(90deg, transparent, rgba(232, 185, 48, 0.22), transparent);
+  }
+
+  .premium-divider::before {
+    content: '';
+    position: absolute;
+    top: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 55%;
+    height: 48px;
+    background: radial-gradient(ellipse at center, rgba(232, 185, 48, 0.06), transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Scroll progress bar */
+  .scroll-progress-track {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    z-index: 100;
+    pointer-events: none;
+  }
+
+  .scroll-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #E8B930, #F5D565, #E8B930);
+    transform-origin: left;
+    will-change: transform;
+  }
+
+  /* Interactive row hover — for table-like sections */
+  .premium-row {
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+  }
+
+  .premium-row:hover {
+    background-color: rgba(255, 255, 255, 0.025);
+  }
+
+  /* Footer link hover */
+  .marketing-footer-link {
+    position: relative;
+    transition: color 0.25s ease;
+  }
+
+  .marketing-footer-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: rgba(232, 185, 48, 0.4);
+    transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .marketing-footer-link:hover::after {
+    width: 100%;
   }
 
   .settings-chip {

@@ -30,7 +30,7 @@ const proofPanels = [
 
 export function SocialProof() {
   return (
-    <section className="relative py-28 md:py-36">
+    <section className="relative py-36 md:py-44">
       <div className="premium-divider" />
 
       <div className="marketing-container mt-16">
@@ -65,7 +65,7 @@ export function SocialProof() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.06 }}
-                className="bg-white/[0.015] p-7 md:p-8"
+                className="bg-white/[0.015] p-7 transition-colors duration-300 hover:bg-white/[0.035] md:p-8"
               >
                 <div className="text-3xl font-bold tracking-tight text-[#FAF0E6] md:text-4xl">{stat.value}</div>
                 <div className="mt-2 text-sm font-medium text-zinc-300">{stat.label}</div>
@@ -83,7 +83,7 @@ export function SocialProof() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 + i * 0.1 }}
-              className="rounded-2xl border border-white/[0.05] bg-white/[0.015] p-7"
+              className="rounded-2xl border border-white/[0.05] bg-white/[0.015] p-7 transition-all duration-300 hover:-translate-y-1 hover:border-white/[0.09] hover:bg-white/[0.03]"
             >
               <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#E8B930]/10 bg-[#E8B930]/[0.04]">
                 <panel.icon className="h-5 w-5 text-[#E8B930]/75" />

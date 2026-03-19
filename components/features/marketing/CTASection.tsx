@@ -8,7 +8,7 @@ const trustItems = ['Keine Kreditkarte', 'Konto in 2 Minuten', 'Public Beta'];
 
 export function CTASection() {
   return (
-    <section className="relative overflow-hidden py-32 md:py-44">
+    <section className="relative overflow-hidden py-40 md:py-52">
       <div className="premium-divider" />
 
       {/* Central glow — gold + red accent */}

@@ -22,7 +22,7 @@ const contrasts = [
 
 export function ProblemStrip() {
   return (
-    <section className="relative py-28 md:py-36">
+    <section className="relative py-36 md:py-44">
       <div className="premium-divider" />
 
       <div className="marketing-container relative z-10 mt-16">
@@ -42,28 +42,28 @@ export function ProblemStrip() {
           <p className="mt-6 text-lg text-zinc-500">INNIS verwaltet Konflikte.</p>
         </motion.div>
 
-        <div className="mx-auto max-w-4xl space-y-px overflow-hidden rounded-2xl border border-white/[0.05]">
+        <div className="mx-auto max-w-5xl space-y-px overflow-hidden rounded-2xl border border-white/[0.05]">
           {contrasts.map((row, i) => (
             <motion.div
               key={row.label}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
+              initial={{ opacity: 0, x: -12 }}
+              whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.1 }}
-              className="grid gap-px bg-white/[0.03] md:grid-cols-[120px_1fr_1fr]"
+              transition={{ duration: 0.45, delay: i * 0.1 }}
+              className="premium-row grid gap-px bg-white/[0.03] md:grid-cols-[140px_1fr_1fr]"
             >
-              <div className="flex items-center bg-[#0A0A0C] px-6 py-5">
+              <div className="flex items-center bg-[#0A0A0C] px-6 py-6">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
                   {row.label}
                 </span>
               </div>
-              <div className="bg-[#0A0A0C] px-6 py-5">
+              <div className="bg-[#0A0A0C] px-6 py-6">
                 <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-red-400/60">
                   Vorher
                 </p>
                 <p className="text-[14px] leading-relaxed text-zinc-500">{row.problem}</p>
               </div>
-              <div className="bg-[#0A0A0C] px-6 py-5">
+              <div className="bg-[#0A0A0C] px-6 py-6">
                 <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#E8B930]/60">
                   Mit INNIS
                 </p>

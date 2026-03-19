@@ -25,8 +25,8 @@ export function MarketingNavbar() {
   ] as const;
 
   return (
-    <header className={`sticky top-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-white/[0.04] bg-[#0A0A0C]/80 backdrop-blur-2xl' : 'bg-transparent'}`}>
-      <div className="mx-auto w-full max-w-6xl px-6 sm:px-10 h-16 flex items-center justify-between">
+    <header className={`sticky top-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-white/[0.05] bg-[#0A0A0C]/85 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-2xl' : 'bg-transparent'}`}>
+      <div className={`mx-auto w-full max-w-7xl px-6 sm:px-10 flex items-center justify-between transition-all duration-500 ${scrolled ? 'h-14' : 'h-16'}`}>
         {/* Logo */}
         <Link href="/" className="group flex items-center gap-3">
           <BrandLockup

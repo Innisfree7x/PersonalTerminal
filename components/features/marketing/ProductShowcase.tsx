@@ -81,7 +81,7 @@ const surfaces: ShowcaseSurface[] = [
 
 export function ProductShowcase() {
   return (
-    <section className="relative py-28 md:py-36">
+    <section className="relative py-36 md:py-44">
       <div className="premium-divider" />
 
       <div className="marketing-container mt-16">
@@ -103,7 +103,7 @@ export function ProductShowcase() {
           </p>
         </motion.div>
 
-        <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-2">
+        <div className="mx-auto grid max-w-7xl gap-7 lg:grid-cols-2">
           {surfaces.map((surface, index) => (
             <motion.article
               key={surface.number}
@@ -148,7 +148,7 @@ export function ProductShowcase() {
                 {surface.signals.map((signal) => (
                   <div
                     key={signal}
-                    className="flex items-start gap-3 rounded-xl border border-white/[0.05] bg-white/[0.015] px-4 py-3"
+                    className="flex items-start gap-3 rounded-xl border border-white/[0.05] bg-white/[0.015] px-4 py-3 transition-all duration-250 hover:border-white/[0.1] hover:bg-white/[0.03]"
                   >
                     <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#E8B930]/55" />
                     <span className="text-sm leading-[1.7] text-zinc-400">{signal}</span>

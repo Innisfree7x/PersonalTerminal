@@ -83,13 +83,13 @@ export function HeroSection() {
 
   return (
     <>
-      <section className="relative overflow-hidden pb-8 pt-12 md:pb-16 md:pt-20">
+      <section className="relative overflow-hidden pb-12 pt-16 md:pb-24 md:pt-28">
         <div className="pointer-events-none absolute left-1/2 top-[15%] h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8B930]/[0.08] blur-[150px]" />
         <div className="pointer-events-none absolute left-[15%] top-[10%] h-[400px] w-[400px] rounded-full bg-[#DC3232]/[0.08] blur-[130px]" />
         <div className="pointer-events-none absolute right-[10%] top-[20%] h-[300px] w-[350px] rounded-full bg-[#FF7832]/[0.05] blur-[120px]" />
 
         <div className="marketing-container relative z-10">
-          <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-16">
+          <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-20">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -170,7 +170,7 @@ export function HeroSection() {
                 {proofTiles.map((tile) => (
                   <div
                     key={tile.eyebrow}
-                    className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"
+                    className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-all duration-300 hover:-translate-y-0.5 hover:border-white/[0.1] hover:bg-white/[0.035]"
                   >
                     <div className="flex items-center gap-2">
                       <tile.icon className="h-4 w-4 text-[#E8B930]/75" />
@@ -195,7 +195,7 @@ export function HeroSection() {
         </div>
       </section>
 
-      <section id="hero-proof" className="relative py-24 md:py-32">
+      <section id="hero-proof" className="relative py-32 md:py-40">
         <div className="premium-divider" />
 
         <div className="mx-auto mt-16 max-w-3xl px-6 sm:px-10">
