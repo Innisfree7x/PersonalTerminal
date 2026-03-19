@@ -3,6 +3,9 @@
 Status: Implemented  
 Scope: Marketing-Relaunch fuer `/`, `/features`, `/pricing`, `/about` inkl. Designphilosophie-Shift und SEO-Erweiterung fuer `/for-students`.
 
+Follow-up:
+- Der nachgelagerte Conversion-/Proof-Sprint ist in `docs/PHASE32_MARKETING_CONVERSION_AND_CAREER_TRUST_2026-03-19.md` dokumentiert.
+
 ## Ziel
 
 Die Marketing-Site soll sich weniger wie "polished student SaaS" und mehr wie ein praezises High-End-Instrument anfuehlen.

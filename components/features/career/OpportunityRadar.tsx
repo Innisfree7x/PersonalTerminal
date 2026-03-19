@@ -17,6 +17,7 @@ import { AlertTriangle, MapPin, Radar, Search, Sparkles, Target } from 'lucide-r
 import toast from 'react-hot-toast';
 import { DecisionSurfaceCard } from '@/components/ui/DecisionSurfaceCard';
 import { buildOpportunityRadarInsight } from '@/lib/career/radarInsights';
+import { buildOpportunityFitReadout, toDisplayFitIndex } from '@/lib/career/opportunityReadout';
 
 interface OpportunityRadarProps {
   onAdoptToPipeline: (prefill: CreateApplicationInput) => void;
@@ -42,12 +43,6 @@ function formatBand(band: RadarBand): string {
   if (band === 'realistic') return 'Realistic';
   if (band === 'target') return 'Target';
   return 'Stretch';
-}
-
-function toDisplayFitIndex(score: number): string {
-  // Keep internal 0-100 scoring for sorting/bands, but present a realistic market index.
-  const capped = Math.min(89, Math.max(0, score));
-  return (capped / 10).toFixed(1);
 }
 
 function formatCvRankTier(rankTier?: OpportunitySearchResponse['meta']['cvRankTier']): string | null {
@@ -521,101 +516,154 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
           ) : null}
 
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-            {results.map((item) => (
-              <article
-                key={item.id}
-                className="rounded-xl border border-border bg-surface/35 p-4 backdrop-blur-sm"
-                aria-label={`Opportunity ${item.title} at ${item.company}`}
-              >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-base font-semibold text-text-primary">{item.title}</h3>
-                  <p className="mt-0.5 text-sm text-text-secondary">{item.company}</p>
-                  <p className="mt-1 flex items-center gap-1 text-xs text-text-tertiary">
-                    <MapPin className="h-3.5 w-3.5" />
-                    {item.city}, {item.country} · {item.track}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-3xl font-black tabular-nums text-career-accent">{toDisplayFitIndex(item.fitScore)}</p>
-                  <p className="text-[11px] uppercase tracking-wide text-text-tertiary">Fit Index / 10</p>
-                </div>
-              </div>
+            {results.map((item) => {
+              const fitReadout = buildOpportunityFitReadout(item, priorityTrack, meta);
 
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <Badge variant={bandToBadgeVariant(item.band)} size="sm">
-                  {formatBand(item.band)}
-                </Badge>
-                <Badge variant="career" size="sm">
-                  {item.track}
-                </Badge>
-                {item.targetFirm ? (
-                  <Badge variant="success" size="sm">
-                    Target Firm
-                  </Badge>
-                ) : null}
-                {item.sourceLabels.map((source) => (
-                  <Badge key={`${item.id}-${source}`} variant="default" size="sm">
-                    {source}
-                  </Badge>
-                ))}
-              </div>
-
-              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="rounded-lg border border-border/80 bg-background/35 p-3">
-                  <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-text-tertiary">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Top-3 Gründe
-                  </p>
-                  <ul className="mt-2 space-y-1.5 text-xs text-text-secondary">
-                    {item.topReasons.map((reason) => (
-                      <li key={reason} className="leading-relaxed">
-                        • {reason}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="rounded-lg border border-border/80 bg-background/35 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">Gaps</p>
-                  <ul className="mt-2 space-y-1.5 text-xs text-text-secondary">
-                    {item.topGaps.map((gap) => (
-                      <li key={gap} className="leading-relaxed">
-                        • {gap}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {item.nextAction ? (
-                <div className="mt-3 rounded-lg border border-primary/20 bg-primary/10 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">Nächster Schritt</p>
-                  <p className="mt-1 text-xs leading-relaxed text-text-secondary">{item.nextAction}</p>
-                </div>
-              ) : null}
-
-              <div className="mt-3 flex flex-wrap justify-end gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  loading={committingGapId === item.id}
-                  onClick={() => commitPrimaryGapTask(item)}
-                  aria-label={`Gap als Task übernehmen: ${item.title} bei ${item.company}`}
+              return (
+                <article
+                  key={item.id}
+                  className="rounded-xl border border-border bg-surface/35 p-4 backdrop-blur-sm"
+                  aria-label={`Opportunity ${item.title} at ${item.company}`}
                 >
-                  Gap als Task
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => onAdoptToPipeline(buildApplicationPrefill(item))}
-                  aria-label={`In Pipeline übernehmen: ${item.title} bei ${item.company}`}
-                >
-                  In Pipeline übernehmen
-                </Button>
-              </div>
-              </article>
-            ))}
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-base font-semibold text-text-primary">{item.title}</h3>
+                      <p className="mt-0.5 text-sm text-text-secondary">{item.company}</p>
+                      <p className="mt-1 flex items-center gap-1 text-xs text-text-tertiary">
+                        <MapPin className="h-3.5 w-3.5" />
+                        {item.city}, {item.country} · {item.track}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-3xl font-black tabular-nums text-career-accent">{toDisplayFitIndex(item.fitScore)}</p>
+                      <p className="text-[11px] uppercase tracking-wide text-text-tertiary">Relative Markt-Passung</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Badge variant={bandToBadgeVariant(item.band)} size="sm">
+                      {formatBand(item.band)}
+                    </Badge>
+                    <Badge variant="career" size="sm">
+                      {item.track}
+                    </Badge>
+                    <Badge
+                      variant={
+                        fitReadout.confidenceTone === 'success'
+                          ? 'success'
+                          : fitReadout.confidenceTone === 'warning'
+                            ? 'warning'
+                            : fitReadout.confidenceTone === 'error'
+                              ? 'error'
+                              : 'default'
+                      }
+                      size="sm"
+                    >
+                      {fitReadout.confidenceLabel}
+                    </Badge>
+                    {item.targetFirm ? (
+                      <Badge variant="success" size="sm">
+                        Target Firm
+                      </Badge>
+                    ) : null}
+                    {item.sourceLabels.map((source) => (
+                      <Badge key={`${item.id}-${source}`} variant="default" size="sm">
+                        {source}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  <div className="mt-3 rounded-lg border border-border/80 bg-background/35 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">Warum dieser Fit nicht blind ist</p>
+                    <p className="mt-1 text-xs leading-relaxed text-text-secondary">{fitReadout.summary}</p>
+                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                      {fitReadout.signals.map((signal) => (
+                        <div key={signal.label} className="rounded-lg border border-border/70 bg-surface/30 px-3 py-2">
+                          <p className="text-[10px] uppercase tracking-[0.16em] text-text-tertiary">{signal.label}</p>
+                          <p
+                            className={`mt-1 text-xs font-semibold ${
+                              signal.tone === 'success'
+                                ? 'text-emerald-300'
+                                : signal.tone === 'warning'
+                                  ? 'text-warning'
+                                  : signal.tone === 'error'
+                                    ? 'text-error'
+                                    : 'text-sky-300'
+                            }`}
+                          >
+                            {signal.value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="rounded-lg border border-border/80 bg-background/35 p-3">
+                      <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-text-tertiary">
+                        <Sparkles className="h-3.5 w-3.5" />
+                        Warum das passt
+                      </p>
+                      <ul className="mt-2 space-y-1.5 text-xs text-text-secondary">
+                        {item.topReasons.map((reason) => (
+                          <li key={reason} className="leading-relaxed">
+                            • {reason}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="rounded-lg border border-border/80 bg-background/35 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">Was noch fehlt</p>
+                      <ul className="mt-2 space-y-1.5 text-xs text-text-secondary">
+                        {item.topGaps.map((gap) => (
+                          <li key={gap} className="leading-relaxed">
+                            • {gap}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {item.nextAction ? (
+                    <div className="mt-3 rounded-lg border border-primary/20 bg-primary/10 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">Naechster sinnvoller Move</p>
+                      <p className="mt-1 text-xs leading-relaxed text-text-secondary">{item.nextAction}</p>
+                    </div>
+                  ) : null}
+
+                  <div className="mt-3 flex flex-wrap justify-end gap-2">
+                    {item.jobUrl ? (
+                      <a
+                        href={item.jobUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex h-8 items-center justify-center rounded-md border border-border bg-surface-hover px-3 text-xs font-medium text-text-primary transition-colors hover:border-primary hover:bg-primary/10"
+                      >
+                        Stelle oeffnen
+                      </a>
+                    ) : null}
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      loading={committingGapId === item.id}
+                      onClick={() => commitPrimaryGapTask(item)}
+                      aria-label={`Gap als Task übernehmen: ${item.title} bei ${item.company}`}
+                    >
+                      Gap als Task
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => onAdoptToPipeline(buildApplicationPrefill(item))}
+                      aria-label={`In Pipeline übernehmen: ${item.title} bei ${item.company}`}
+                    >
+                      In Pipeline übernehmen
+                    </Button>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </div>
       )}

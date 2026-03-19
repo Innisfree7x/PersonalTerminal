@@ -3,6 +3,9 @@
 Status: Delivered
 Owner: Core
 
+Follow-up:
+- Der Explainability-/Trust-Sprint fuer Radar und Landing ist in `docs/PHASE32_MARKETING_CONVERSION_AND_CAREER_TRUST_2026-03-19.md` dokumentiert.
+
 ## Ziel
 Career-Intelligence Flows gegen Abuse, Kosten-Spikes und Duplicate-Actions haerten, ohne den bestehenden UX-Flow zu brechen.
 

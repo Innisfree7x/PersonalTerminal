@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Radar, Route, Target } from 'lucide-react';
 import { ProductMockup } from './ProductMockup';
 import { TrackedCtaLink } from './TrackedCtaLink';
 import { trackMarketingEvent } from '@/lib/analytics/marketing';
@@ -43,6 +43,27 @@ export function HeroSection() {
         ? { border: 'border-[#E8B930]/25', bg: 'bg-[#E8B930]/8', text: 'text-[#E8B930]' }
         : { border: 'border-red-500/25', bg: 'bg-red-500/8', text: 'text-red-400' };
 
+  const proofTiles = [
+    {
+      icon: Route,
+      eyebrow: 'Trajectory',
+      title: `Prep startet ${prepStartLabel}`,
+      detail: `${dueDays} Tage bis zur Deadline · Buffer 2 Wochen`,
+    },
+    {
+      icon: Target,
+      eyebrow: 'Risk',
+      title: formatTrajectoryRiskLabel(preview.status),
+      detail: 'Du siehst den Konflikt, bevor er dich in den Tag zwingt.',
+    },
+    {
+      icon: Radar,
+      eyebrow: 'Career',
+      title: 'CV -> Radar -> Gap -> Task',
+      detail: 'Nicht nur Jobs finden, sondern den naechsten sinnvollen Move kennen.',
+    },
+  ];
+
   const trackSimulationOnce = (nextCapacity: number, nextEffort: number) => {
     if (trackedSimulationRef.current) return;
     trackedSimulationRef.current = true;
@@ -62,22 +83,18 @@ export function HeroSection() {
 
   return (
     <>
-      {/* Hero — side by side */}
       <section className="relative overflow-hidden pb-8 pt-12 md:pb-16 md:pt-20">
-        {/* Ambient glows */}
         <div className="pointer-events-none absolute left-1/2 top-[15%] h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8B930]/[0.08] blur-[150px]" />
         <div className="pointer-events-none absolute left-[15%] top-[10%] h-[400px] w-[400px] rounded-full bg-[#DC3232]/[0.08] blur-[130px]" />
         <div className="pointer-events-none absolute right-[10%] top-[20%] h-[300px] w-[350px] rounded-full bg-[#FF7832]/[0.05] blur-[120px]" />
 
         <div className="marketing-container relative z-10">
           <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-16">
-            {/* Left — text content */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              {/* Shimmer badge */}
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -87,36 +104,34 @@ export function HeroSection() {
                 <span className="shimmer-badge inline-flex items-center gap-2.5 rounded-full border border-[#E8B930]/15 bg-[#E8B930]/[0.05] px-4 py-2">
                   <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-[#E8B930]" />
                   <span className="text-[12px] font-medium tracking-[0.08em] text-[#E8B930]/90">
-                    Public Beta
+                    Public Beta · Trajectory-first Career OS
                   </span>
                 </span>
               </motion.div>
 
-              {/* Headline */}
               <motion.h1
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1, duration: 0.6 }}
-                className="premium-heading text-[clamp(2.2rem,4.8vw,4.2rem)] font-semibold text-[#FAF0E6]"
+                className="premium-heading text-[clamp(2.3rem,5vw,4.4rem)] font-semibold text-[#FAF0E6]"
               >
-                Das persönliche Terminal für{' '}
+                Sieh sofort, ob{' '}
                 <span className="bg-gradient-to-r from-[#E8B930] via-[#F5D565] to-[#E8B930] bg-clip-text italic text-transparent">
-                  ambitionierte Studenten.
-                </span>
+                  Thesis, GMAT und Praktikum
+                </span>{' '}
+                gleichzeitig realistisch sind.
               </motion.h1>
 
-              {/* Subline */}
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.25 }}
-                className="mt-5 max-w-lg text-[16px] leading-[1.75] text-zinc-400"
+                className="mt-5 max-w-xl text-[16px] leading-[1.75] text-zinc-400"
               >
-                Thesis, GMAT, Praktika und Master-Apps in einem System.
-                INNIS übersetzt Strategie direkt in den nächsten sinnvollen Tageszug.
+                INNIS verbindet Trajectory, Today und Career Intelligence in einem System. Du bekommst erst den Risk-Status,
+                dann den naechsten Tageszug und schliesslich die Rollen, die zu deinem Profil wirklich passen.
               </motion.p>
 
-              {/* CTAs */}
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -132,18 +147,42 @@ export function HeroSection() {
                   Kostenlos starten
                   <ArrowRight className="h-4 w-4" />
                 </TrackedCtaLink>
-                <TrackedCtaLink
-                  href="/auth/login"
-                  eventName="landing_cta_secondary_clicked"
-                  eventPayload={{ source: 'hero', variant: 'login' }}
+                <a
+                  href="#hero-proof"
+                  onClick={() => {
+                    void trackMarketingEvent('landing_cta_secondary_clicked', {
+                      source: 'hero',
+                      variant: 'proof',
+                    });
+                  }}
                   className="premium-cta-secondary"
                 >
-                  Login
-                </TrackedCtaLink>
+                  Live-Beweis ansehen
+                </a>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.48, duration: 0.55 }}
+                className="mt-8 grid gap-3 sm:grid-cols-3"
+              >
+                {proofTiles.map((tile) => (
+                  <div
+                    key={tile.eyebrow}
+                    className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"
+                  >
+                    <div className="flex items-center gap-2">
+                      <tile.icon className="h-4 w-4 text-[#E8B930]/75" />
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">{tile.eyebrow}</p>
+                    </div>
+                    <p className="mt-3 text-sm font-semibold text-[#FAF0E6]">{tile.title}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-zinc-500">{tile.detail}</p>
+                  </div>
+                ))}
               </motion.div>
             </motion.div>
 
-            {/* Right — product mockup */}
             <motion.div
               initial={{ opacity: 0, y: 32, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -156,8 +195,7 @@ export function HeroSection() {
         </div>
       </section>
 
-      {/* Interactive Simulator */}
-      <section className="relative py-24 md:py-32">
+      <section id="hero-proof" className="relative py-24 md:py-32">
         <div className="premium-divider" />
 
         <div className="mx-auto mt-16 max-w-3xl px-6 sm:px-10">
@@ -170,7 +208,7 @@ export function HeroSection() {
             <div className="mb-10 text-center">
               <p className="premium-kicker">Interaktiver Beweis</p>
               <h2 className="premium-heading text-[clamp(1.8rem,4vw,3rem)] font-semibold text-[#FAF0E6]">
-                Teste, ab wann dein Plan kippt.
+                Verschiebe eine Variable und du siehst sofort, wann dein Plan kippt.
               </h2>
             </div>
 
@@ -185,7 +223,7 @@ export function HeroSection() {
                 <div className="space-y-6">
                   <label className="block">
                     <span className="flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-zinc-500">
-                      Kapazität
+                      Kapazitaet
                       <span className="font-semibold text-zinc-400">{capacityHoursPerWeek}h / Woche</span>
                     </span>
                     <input
@@ -228,7 +266,7 @@ export function HeroSection() {
                   {[
                     { label: 'Deadline', value: `${dueDays} Tage` },
                     { label: 'Prep Start', value: prepStartLabel },
-                    { label: 'Benötigte Wochen', value: String(preview.requiredWeeks) },
+                    { label: 'Benoetigte Wochen', value: String(preview.requiredWeeks) },
                     { label: 'Buffer', value: '2 Wochen' },
                   ].map((row, i) => (
                     <div
