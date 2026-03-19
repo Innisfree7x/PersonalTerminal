@@ -19,7 +19,7 @@ export function MarketingFooter() {
               />
             </Link>
             <p className="max-w-[220px] text-[13px] leading-relaxed text-zinc-600">
-              Das persoenliche Dashboard fuer Studenten mit parallelen High-Stakes-Zielen.
+              Das persönliche Dashboard für Studenten mit parallelen High-Stakes-Zielen.
             </p>
           </div>
 
@@ -30,7 +30,7 @@ export function MarketingFooter() {
               {[
                 { href: '/features', label: 'Features' },
                 { href: '/pricing', label: 'Preise' },
-                { href: '/about', label: 'Ueber INNIS' },
+                { href: '/about', label: 'Über INNIS' },
               ].map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className={linkClass}>
@@ -79,7 +79,7 @@ export function MarketingFooter() {
         <div className="flex flex-col items-center justify-between gap-4 border-t border-white/[0.05] pt-10 sm:flex-row">
           <p className="text-[12px] text-zinc-600">&copy; 2026 INNIS. Alle Rechte vorbehalten.</p>
           <div className="flex flex-col items-center gap-2 sm:items-end">
-            <p className="text-[12px] text-zinc-600">Fuer Studenten gebaut &middot; WS 2025/26</p>
+            <p className="text-[12px] text-zinc-600">Für Studenten gebaut &middot; WS 2025/26</p>
             <a
               href="mailto:vietdobusiness@gmail.com"
               className="marketing-footer-link text-[12px] text-zinc-600 transition-colors hover:text-zinc-400"
