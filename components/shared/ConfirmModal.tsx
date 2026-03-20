@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { X, AlertTriangle } from 'lucide-react';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import { useAppLanguage } from '@/components/providers/LanguageProvider';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -22,15 +23,18 @@ export function ConfirmModal({
   isOpen,
   title,
   description,
-  confirmLabel = 'Bestätigen',
-  cancelLabel = 'Abbrechen',
+  confirmLabel,
+  cancelLabel,
   dangerous = false,
   loading = false,
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
   const { play } = useAppSound();
+  const { language } = useAppLanguage();
   const prevOpenRef = useRef(false);
+  const resolvedConfirmLabel = confirmLabel ?? (language === 'de' ? 'Bestätigen' : 'Confirm');
+  const resolvedCancelLabel = cancelLabel ?? (language === 'de' ? 'Abbrechen' : 'Cancel');
 
   useEffect(() => {
     if (isOpen && !prevOpenRef.current) play('modal-open');
@@ -100,7 +104,7 @@ export function ConfirmModal({
                 <button
                   onClick={onCancel}
                   className="w-7 h-7 rounded-lg flex items-center justify-center text-text-tertiary hover:text-text-primary hover:bg-surface-hover transition-all flex-shrink-0"
-                  aria-label="Schließen"
+                  aria-label={language === 'de' ? 'Schließen' : 'Close'}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -114,7 +118,7 @@ export function ConfirmModal({
                   onClick={onCancel}
                   disabled={loading}
                 >
-                  {cancelLabel}
+                  {resolvedCancelLabel}
                 </Button>
                 <Button
                   variant={dangerous ? 'danger' : 'primary'}
@@ -123,7 +127,7 @@ export function ConfirmModal({
                   loading={loading}
                   disabled={loading}
                 >
-                  {confirmLabel}
+                  {resolvedConfirmLabel}
                 </Button>
               </div>
             </div>

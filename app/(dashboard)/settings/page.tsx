@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import { useAppLanguage } from '@/components/providers/LanguageProvider';
 import { updateProfileAction } from '@/app/actions/profile';
 import { fetchDemoDataIdsAction } from '@/app/actions/profile';
 import toast from 'react-hot-toast';
@@ -72,14 +73,22 @@ const accents = [
 ] as const satisfies ReadonlyArray<{ id: AccentColor; name: string; swatch: string }>;
 
 const championVfxPresetDescriptions = {
-    performance: 'Lowest VFX load for older devices and maximum smoothness.',
-    balanced: 'Default preset with strong readability and stable performance.',
-    cinematic: 'Heavier spell polish with denser particles and longer afterglow.',
+    de: {
+        performance: 'Niedrigste VFX-Last für ältere Geräte und maximale Flüssigkeit.',
+        balanced: 'Standard-Preset mit starker Lesbarkeit und stabiler Performance.',
+        cinematic: 'Aufwendigeres Spell-Polish mit dichteren Partikeln und längerem Nachglühen.',
+    },
+    en: {
+        performance: 'Lowest VFX load for older devices and maximum smoothness.',
+        balanced: 'Default preset with strong readability and stable performance.',
+        cinematic: 'Heavier spell polish with denser particles and longer afterglow.',
+    },
 } as const;
 
 export default function SettingsPage() {
     const { user, signOut, refreshUser } = useAuth();
     const { theme, setTheme, accentColor, setAccentColor } = useTheme();
+    const { language, setLanguage, copy } = useAppLanguage();
     const {
         play,
         settings: soundSettings,
@@ -102,6 +111,7 @@ export default function SettingsPage() {
     const [hasDemoDataState, setHasDemoDataState] = useState(false);
     const [showDemoConfirm, setShowDemoConfirm] = useState(false);
     const [removingDemo, setRemovingDemo] = useState(false);
+    const isGerman = language === 'de';
 
     useEffect(() => {
         const name =
@@ -154,11 +164,11 @@ export default function SettingsPage() {
         try {
             await updateProfileAction({ emailNotifications: next });
             await refreshUser();
-            toast.success(next ? 'E-Mail-Benachrichtigungen aktiviert.' : 'E-Mail-Benachrichtigungen deaktiviert.');
+            toast.success(next ? (isGerman ? 'E-Mail-Benachrichtigungen aktiviert.' : 'Email notifications enabled.') : (isGerman ? 'E-Mail-Benachrichtigungen deaktiviert.' : 'Email notifications disabled.'));
         } catch {
             // revert on error
             setEmailNotifications(!next);
-            toast.error('Einstellung konnte nicht gespeichert werden.');
+            toast.error(isGerman ? 'Einstellung konnte nicht gespeichert werden.' : 'Setting could not be saved.');
         }
     };
 
@@ -168,37 +178,98 @@ export default function SettingsPage() {
             const trimmedName = displayName.trim();
             await updateProfileAction(trimmedName ? { fullName: trimmedName } : {});
             await refreshUser();
-            toast.success('Profile updated');
+            toast.success(isGerman ? 'Profil aktualisiert.' : 'Profile updated.');
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Profil konnte nicht gespeichert werden. Bitte erneut versuchen.');
+            toast.error(error instanceof Error ? error.message : isGerman ? 'Profil konnte nicht gespeichert werden. Bitte erneut versuchen.' : 'Profile could not be saved. Please try again.');
         } finally {
             setSavingProfile(false);
         }
     };
 
     const summonerOptions: Array<{ value: SummonerSpellAction; label: string; description: string }> = [
-        { value: 'quick-capture', label: 'Quick Capture', description: 'Open quick task input on Today' },
-        { value: 'focus-toggle', label: 'Focus Toggle', description: 'Start/pause/resume focus timer' },
-        { value: 'command-bar', label: 'Command Bar', description: 'Open the global command palette' },
-        { value: 'go-today', label: 'Go to Today', description: 'Jump directly to Today dashboard' },
-        { value: 'new-task', label: 'New Task', description: 'Create a new task action' },
-        { value: 'new-goal', label: 'New Goal', description: 'Open goal creation action' },
-        { value: 'start-next-best', label: 'Start Next Best', description: 'Execute next best action on Today' },
+        {
+            value: 'quick-capture',
+            label: isGerman ? 'Quick Capture' : 'Quick Capture',
+            description: isGerman ? 'Öffnet die schnelle Aufgabenerfassung in Heute' : 'Open quick task input on Today',
+        },
+        {
+            value: 'focus-toggle',
+            label: isGerman ? 'Fokus umschalten' : 'Focus Toggle',
+            description: isGerman ? 'Startet, pausiert oder setzt den Fokus-Timer fort' : 'Start, pause, or resume focus timer',
+        },
+        {
+            value: 'command-bar',
+            label: isGerman ? 'Command Bar' : 'Command Bar',
+            description: isGerman ? 'Öffnet die globale Command-Palette' : 'Open the global command palette',
+        },
+        {
+            value: 'go-today',
+            label: isGerman ? 'Zu Heute' : 'Go to Today',
+            description: isGerman ? 'Springt direkt ins Heute-Dashboard' : 'Jump directly to Today dashboard',
+        },
+        {
+            value: 'new-task',
+            label: isGerman ? 'Neue Aufgabe' : 'New Task',
+            description: isGerman ? 'Öffnet die Aktion zum Anlegen einer Aufgabe' : 'Create a new task action',
+        },
+        {
+            value: 'new-goal',
+            label: isGerman ? 'Neues Ziel' : 'New Goal',
+            description: isGerman ? 'Öffnet die Aktion zum Anlegen eines Ziels' : 'Open goal creation action',
+        },
+        {
+            value: 'start-next-best',
+            label: isGerman ? 'Nächste beste Aktion' : 'Start Next Best',
+            description: isGerman ? 'Führt die nächste beste Aktion in Heute aus' : 'Execute next best action on Today',
+        },
     ];
 
     return (
         <div className="space-y-8 pb-12">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold text-text-primary mb-2">Settings</h1>
-                <p className="text-text-secondary">Manage your preferences and account settings.</p>
+                <h1 className="text-3xl font-bold text-text-primary mb-2">{copy.settings.title}</h1>
+                <p className="text-text-secondary">{copy.settings.description}</p>
             </div>
+
+            <section className="space-y-4">
+                <h2 className="text-xl font-semibold text-text-primary flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5" />
+                    {copy.settings.languageTitle}
+                </h2>
+                <div className="p-6 bg-surface border border-border rounded-xl space-y-4">
+                    <div>
+                        <p className="text-sm text-text-secondary">
+                            {copy.settings.languageDescription}
+                        </p>
+                    </div>
+                    <div className="inline-flex rounded-xl border border-border bg-surface-hover/60 p-1">
+                        {(['de', 'en'] as const).map((value) => {
+                            const isActive = language === value;
+                            return (
+                                <button
+                                    key={value}
+                                    type="button"
+                                    onClick={() => setLanguage(value)}
+                                    className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                                        isActive
+                                            ? 'bg-primary/20 text-primary border border-primary/25 shadow-[0_0_16px_rgb(var(--primary)/0.12)]'
+                                            : 'border border-transparent text-text-secondary hover:text-text-primary'
+                                    }`}
+                                >
+                                    {value === 'de' ? copy.settings.german : copy.settings.english}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            </section>
 
             {/* Account Section */}
             <section className="space-y-4">
                 <h2 className="text-xl font-semibold text-text-primary flex items-center gap-2">
                     <User className="w-5 h-5" />
-                    Account
+                    {copy.settings.account}
                 </h2>
                 <div className="p-6 bg-surface border border-border rounded-xl">
                     <div className="flex items-center gap-4 mb-6">
@@ -207,7 +278,7 @@ export default function SettingsPage() {
                         </div>
                         <div>
                             <h3 className="text-lg font-medium text-text-primary">
-                                {user?.user_metadata?.full_name || 'INNIS User'}
+                                {user?.user_metadata?.full_name || (isGerman ? 'INNIS Nutzer' : 'INNIS User')}
                             </h3>
                             <div className="flex items-center gap-2 text-text-tertiary">
                                 <Mail className="w-4 h-4" />
@@ -219,14 +290,14 @@ export default function SettingsPage() {
                     <div className="grid gap-3 md:grid-cols-[1fr_auto] mb-6">
                         <div>
                             <label className="block text-sm font-medium text-text-secondary mb-2">
-                                Display Name
+                                {copy.settings.displayName}
                             </label>
                             <input
                                 id="settings-display-name"
                                 data-testid="settings-display-name"
                                 value={displayName}
                                 onChange={(e) => setDisplayName(e.target.value)}
-                                placeholder="Your name"
+                                placeholder={copy.settings.yourName}
                                 className="w-full px-3 py-2 bg-surface-hover text-text-primary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                             />
                         </div>
@@ -237,7 +308,7 @@ export default function SettingsPage() {
                                 onClick={handleSaveProfile}
                                 disabled={savingProfile}
                             >
-                                {savingProfile ? 'Saving...' : 'Save Profile'}
+                                {savingProfile ? copy.settings.savingProfile : copy.settings.saveProfile}
                             </Button>
                         </div>
                     </div>
@@ -248,7 +319,7 @@ export default function SettingsPage() {
                         className="text-error hover:text-error hover:bg-error/10 border border-error/30 hover:border-error"
                     >
                         <LogOut className="w-4 h-4 mr-2" />
-                        Sign Out
+                        {copy.settings.signOut}
                     </Button>
                 </div>
             </section>
@@ -258,10 +329,10 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-semibold text-text-primary flex items-center gap-2">
                         <Palette className="w-5 h-5" />
-                        Appearance
+                        {copy.settings.appearance}
                     </h2>
                     <span className="settings-chip">
-                        Saved to local storage
+                        {copy.settings.savedLocal}
                     </span>
                 </div>
 
@@ -269,10 +340,12 @@ export default function SettingsPage() {
                 <div className="space-y-3 rounded-2xl border border-border bg-surface/60 p-4 sm:p-5">
                     <label className="text-sm font-medium text-text-secondary flex items-center gap-2">
                         <Monitor className="w-4 h-4" />
-                        Interface Theme
+                        {copy.settings.interfaceTheme}
                     </label>
                     <p className="text-xs text-text-tertiary">
-                        Premium themes stay visually consistent across desktop and tablet layouts.
+                        {isGerman
+                            ? 'Premium-Themes bleiben über Desktop- und Tablet-Layouts hinweg visuell konsistent.'
+                            : 'Premium themes stay visually consistent across desktop and tablet layouts.'}
                     </p>
                     <div className="settings-theme-grid">
                         {themes.map((t) => (
@@ -322,7 +395,7 @@ export default function SettingsPage() {
                                         )}
                                     </div>
                                     <span className="mt-1 block text-[11px] text-text-tertiary">
-                                        {theme === t.id ? 'Aktiv' : 'Select'}
+                                        {theme === t.id ? copy.settings.active : copy.settings.select}
                                     </span>
                                 </div>
                             </motion.button>
@@ -334,7 +407,7 @@ export default function SettingsPage() {
                 <div className="space-y-3 border-t border-border pt-5">
                     <label className="text-sm font-medium text-text-secondary flex items-center gap-2">
                         <Sparkles className="w-4 h-4" />
-                        Accent Color
+                        {copy.settings.accentColor}
                     </label>
                     <div className="settings-accent-grid">
                         {accents.map((a) => (
@@ -371,10 +444,10 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-semibold text-text-primary flex items-center gap-2">
                         <Music className="w-5 h-5" />
-                        Sound
+                        {copy.settings.sound}
                     </h2>
                     <span className="settings-chip">
-                        Saved to local storage
+                        {copy.settings.savedLocal}
                     </span>
                 </div>
 
@@ -382,13 +455,13 @@ export default function SettingsPage() {
                     {/* On/Off toggle */}
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-text-primary">Interaction Sounds</p>
-                            <p className="text-xs text-text-tertiary mt-0.5">Subtle audio feedback for UI actions</p>
+                            <p className="text-sm font-medium text-text-primary">{isGerman ? 'Interaktionssounds' : 'Interaction Sounds'}</p>
+                            <p className="text-xs text-text-tertiary mt-0.5">{isGerman ? 'Subtiles Audio-Feedback für UI-Aktionen' : 'Subtle audio feedback for UI actions'}</p>
                         </div>
                         <ToggleSwitch
                             enabled={soundSettings.enabled}
                             onChange={(v) => setSoundEnabled(v)}
-                            ariaLabel={soundSettings.enabled ? 'Disable sounds' : 'Enable sounds'}
+                            ariaLabel={soundSettings.enabled ? (isGerman ? 'Sounds deaktivieren' : 'Disable sounds') : (isGerman ? 'Sounds aktivieren' : 'Enable sounds')}
                         />
                     </div>
 
@@ -401,7 +474,7 @@ export default function SettingsPage() {
                                 ) : (
                                     <Volume2 className="w-4 h-4" />
                                 )}
-                                Master Volume
+                                {isGerman ? 'Master-Lautstärke' : 'Master Volume'}
                             </label>
                             <span className="text-xs font-mono text-text-tertiary">
                                 {Math.round(soundSettings.masterVolume * 100)}%
@@ -420,9 +493,9 @@ export default function SettingsPage() {
 
                     {/* Preview buttons */}
                     <div className={`space-y-2 pt-4 border-t border-border transition-opacity ${soundSettings.enabled ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
-                        <p className="text-xs font-medium text-text-tertiary uppercase tracking-wider mb-3">Preview</p>
+                        <p className="text-xs font-medium text-text-tertiary uppercase tracking-wider mb-3">{isGerman ? 'Vorschau' : 'Preview'}</p>
                         <div className="space-y-2 mb-3">
-                            <p className="text-xs font-medium text-text-tertiary uppercase tracking-wider">Notification Tone</p>
+                            <p className="text-xs font-medium text-text-tertiary uppercase tracking-wider">{isGerman ? 'Benachrichtigungston' : 'Notification Tone'}</p>
                             <div className="flex flex-wrap gap-2">
                                 <button
                                     type="button"
@@ -436,7 +509,7 @@ export default function SettingsPage() {
                                             : 'border-border bg-surface-hover text-text-secondary hover:border-primary/35'
                                     }`}
                                 >
-                                    Teams Kit
+                                    {isGerman ? 'Teams-Kit' : 'Teams Kit'}
                                 </button>
                                 <button
                                     type="button"
@@ -450,29 +523,35 @@ export default function SettingsPage() {
                                             : 'border-border bg-surface-hover text-text-secondary hover:border-primary/35'
                                     }`}
                                 >
-                                    Classic Synth
+                                    {isGerman ? 'Classic Synth' : 'Classic Synth'}
                                 </button>
                             </div>
                             <p className="text-[11px] text-text-tertiary">
-                                Teams kit covers notification, swoosh and click. Sourced from the linked community pack for personal use.
+                                {isGerman
+                                    ? 'Das Teams-Kit deckt Benachrichtigung, Swoosh und Click ab. Quelle ist das verlinkte Community-Pack für die private Nutzung.'
+                                    : 'Teams kit covers notification, swoosh and click. Sourced from the linked community pack for personal use.'}
                             </p>
                         </div>
                         <div className="flex flex-wrap gap-3">
                             {([
                                 {
                                     event: 'pop' as const,
-                                    label: 'Notification',
+                                    label: isGerman ? 'Benachrichtigung' : 'Notification',
                                     description: soundSettings.notificationSound === 'teams-default' ? 'Teams kit' : 'Classic synth',
                                 },
                                 {
                                     event: 'swoosh' as const,
                                     label: 'Swoosh',
-                                    description: soundSettings.notificationSound === 'teams-default' ? 'Teams move cue' : 'Send / move',
+                                    description: soundSettings.notificationSound === 'teams-default'
+                                        ? (isGerman ? 'Teams Bewegungs-Cue' : 'Teams move cue')
+                                        : (isGerman ? 'Senden / verschieben' : 'Send / move'),
                                 },
                                 {
                                     event: 'click' as const,
                                     label: 'Click',
-                                    description: soundSettings.notificationSound === 'teams-default' ? 'Teams UI tick' : 'Toggle / select',
+                                    description: soundSettings.notificationSound === 'teams-default'
+                                        ? (isGerman ? 'Teams UI-Tick' : 'Teams UI tick')
+                                        : (isGerman ? 'Umschalten / auswählen' : 'Toggle / select'),
                                 },
                             ] as const).map(({ event, label, description }) => (
                                 <motion.button
@@ -503,25 +582,25 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-semibold text-text-primary flex items-center gap-2">
                         <MessageSquare className="w-5 h-5" />
-                        Lucian Companion
+                        {copy.settings.lucian}
                     </h2>
                     <span className="settings-chip">
-                        Saved to local storage
+                        {copy.settings.savedLocal}
                     </span>
                 </div>
 
                 <div className="p-6 bg-surface border border-border rounded-xl">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-text-primary">Lucian aktiv</p>
+                            <p className="text-sm font-medium text-text-primary">{isGerman ? 'Lucian aktiv' : 'Lucian enabled'}</p>
                             <p className="text-xs text-text-tertiary mt-0.5">
-                                Kontextuelle Hinweise von deinem Execution Companion
+                                {isGerman ? 'Kontextuelle Hinweise von deinem Execution Companion' : 'Contextual hints from your execution companion'}
                             </p>
                         </div>
                         <ToggleSwitch
                             enabled={!lucianMuted}
                             onChange={() => toggleLucianMuted()}
-                            ariaLabel={lucianMuted ? 'Lucian aktivieren' : 'Lucian deaktivieren'}
+                            ariaLabel={lucianMuted ? (isGerman ? 'Lucian aktivieren' : 'Enable Lucian') : (isGerman ? 'Lucian deaktivieren' : 'Disable Lucian')}
                         />
                     </div>
                 </div>
@@ -532,15 +611,16 @@ export default function SettingsPage() {
                 <section className="space-y-6">
                     <div className="flex items-center gap-2">
                         <Database className="w-5 h-5 text-text-secondary" />
-                        <h2 className="text-xl font-semibold text-text-primary">Demo-Daten</h2>
+                        <h2 className="text-xl font-semibold text-text-primary">{isGerman ? 'Demo-Daten' : 'Demo Data'}</h2>
                     </div>
 
                     <div className="p-6 bg-red-500/5 border border-red-500/20 rounded-xl space-y-4">
                         <div>
-                            <p className="text-sm font-medium text-text-primary mb-1">Beispieldaten aktiv</p>
+                            <p className="text-sm font-medium text-text-primary mb-1">{isGerman ? 'Beispieldaten aktiv' : 'Sample data active'}</p>
                             <p className="text-sm text-text-secondary leading-relaxed">
-                                Dein Dashboard enthält Demo-Kurse, -Ziele und -Aufgaben zum Ausprobieren.
-                                Du kannst sie jederzeit entfernen — deine eigenen Daten bleiben erhalten.
+                                {isGerman
+                                    ? 'Dein Dashboard enthält Demo-Kurse, -Ziele und -Aufgaben zum Ausprobieren. Du kannst sie jederzeit entfernen — deine eigenen Daten bleiben erhalten.'
+                                    : 'Your dashboard currently contains demo courses, goals, and tasks for exploration. You can remove them at any time — your own data stays untouched.'}
                             </p>
                         </div>
                         <Button
@@ -549,15 +629,15 @@ export default function SettingsPage() {
                             onClick={() => setShowDemoConfirm(true)}
                             leftIcon={<Trash2 className="w-3.5 h-3.5" />}
                         >
-                            Demo-Daten entfernen
+                            {isGerman ? 'Demo-Daten entfernen' : 'Remove Demo Data'}
                         </Button>
                     </div>
 
                     <ConfirmModal
                         isOpen={showDemoConfirm}
-                        title="Demo-Daten entfernen?"
-                        description="Alle Beispielkurse, -ziele und -aufgaben werden unwiderruflich gelöscht. Deine eigenen Daten bleiben erhalten."
-                        confirmLabel="Ja, entfernen"
+                        title={isGerman ? 'Demo-Daten entfernen?' : 'Remove demo data?'}
+                        description={isGerman ? 'Alle Beispielkurse, -ziele und -aufgaben werden unwiderruflich gelöscht. Deine eigenen Daten bleiben erhalten.' : 'All sample courses, goals, and tasks will be deleted permanently. Your own data will stay untouched.'}
+                        confirmLabel={isGerman ? 'Ja, entfernen' : 'Yes, remove'}
                         dangerous
                         loading={removingDemo}
                         onCancel={() => setShowDemoConfirm(false)}
@@ -567,9 +647,9 @@ export default function SettingsPage() {
                                 await removeDemoData();
                                 setHasDemoDataState(false);
                                 setShowDemoConfirm(false);
-                                toast.success('Demo-Daten wurden entfernt.');
+                                toast.success(isGerman ? 'Demo-Daten wurden entfernt.' : 'Demo data was removed.');
                             } catch {
-                                toast.error('Fehler beim Entfernen der Demo-Daten.');
+                                toast.error(isGerman ? 'Fehler beim Entfernen der Demo-Daten.' : 'Failed to remove demo data.');
                             } finally {
                                 setRemovingDemo(false);
                             }
@@ -583,16 +663,16 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-semibold text-text-primary flex items-center gap-2">
                         <Sparkles className="w-5 h-5" />
-                        Power Hotkeys
+                        {copy.settings.powerHotkeys}
                     </h2>
                     <span className="settings-chip">
-                        LoL-style controls
+                        {isGerman ? 'LoL-inspirierte Steuerung' : 'LoL-style controls'}
                     </span>
                 </div>
 
                 <div className="p-6 bg-surface border border-border rounded-xl space-y-6">
                     <p className="text-sm text-text-secondary">
-                        Global keys: <span className="font-mono text-text-primary">1-7</span>,{' '}
+                        {isGerman ? 'Globale Tasten:' : 'Global keys:'} <span className="font-mono text-text-primary">1-7</span>,{' '}
                         <span className="font-mono text-text-primary">B</span>,{' '}
                         <span className="font-mono text-text-primary">P</span>,{' '}
                         <span className="font-mono text-text-primary">QWER</span>,{' '}
@@ -602,7 +682,7 @@ export default function SettingsPage() {
 
                     <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-text-secondary">Summoner Spell D</label>
+                            <label className="text-sm font-medium text-text-secondary">{isGerman ? 'Summoner Spell D' : 'Summoner Spell D'}</label>
                             <select
                                 value={summonerSpells.d}
                                 onChange={(event) => setSummonerSpell('d', event.target.value as SummonerSpellAction)}
@@ -620,7 +700,7 @@ export default function SettingsPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-text-secondary">Summoner Spell F</label>
+                            <label className="text-sm font-medium text-text-secondary">{isGerman ? 'Summoner Spell F' : 'Summoner Spell F'}</label>
                             <select
                                 value={summonerSpells.f}
                                 onChange={(event) => setSummonerSpell('f', event.target.value as SummonerSpellAction)}
@@ -645,26 +725,26 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-semibold text-text-primary flex items-center gap-2">
                         <Sparkles className="w-5 h-5" />
-                        Terminal Champion
+                        {copy.settings.champion}
                     </h2>
                 </div>
 
                 <div className="p-6 bg-surface border border-border rounded-xl space-y-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-text-primary">Champion enabled</p>
-                            <p className="text-xs text-text-tertiary mt-0.5">Desktop pet overlay with LoL controls</p>
+                            <p className="text-sm font-medium text-text-primary">{isGerman ? 'Champion aktiv' : 'Champion enabled'}</p>
+                            <p className="text-xs text-text-tertiary mt-0.5">{isGerman ? 'Desktop-Pet-Overlay mit LoL-Steuerung' : 'Desktop pet overlay with LoL controls'}</p>
                         </div>
                         <ToggleSwitch
                             enabled={championSettings.enabled}
                             onChange={(v) => updateChampionSettings({ enabled: v })}
-                            ariaLabel={championSettings.enabled ? 'Disable champion' : 'Enable champion'}
+                            ariaLabel={championSettings.enabled ? (isGerman ? 'Champion deaktivieren' : 'Disable champion') : (isGerman ? 'Champion aktivieren' : 'Enable champion')}
                         />
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-text-secondary">Champion</label>
+                            <label className="text-sm font-medium text-text-secondary">{isGerman ? 'Champion' : 'Champion'}</label>
                             <select
                                 value={championSettings.champion}
                                 onChange={(event) =>
@@ -678,7 +758,7 @@ export default function SettingsPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-text-secondary">Sprite size</label>
+                            <label className="text-sm font-medium text-text-secondary">{isGerman ? 'Sprite-Größe' : 'Sprite size'}</label>
                             <select
                                 value={championSettings.renderScale}
                                 onChange={(event) =>
@@ -686,16 +766,16 @@ export default function SettingsPage() {
                                 }
                                 className="w-full px-3 py-2 bg-surface-hover text-text-primary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                             >
-                                <option value="small">Small</option>
-                                <option value="normal">Normal</option>
-                                <option value="large">Large</option>
+                                <option value="small">{isGerman ? 'Klein' : 'Small'}</option>
+                                <option value="normal">{isGerman ? 'Normal' : 'Normal'}</option>
+                                <option value="large">{isGerman ? 'Groß' : 'Large'}</option>
                             </select>
                         </div>
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-text-secondary">Passive behavior</label>
+                            <label className="text-sm font-medium text-text-secondary">{isGerman ? 'Passives Verhalten' : 'Passive behavior'}</label>
                             <select
                                 value={championSettings.passiveBehavior}
                                 onChange={(event) =>
@@ -703,13 +783,13 @@ export default function SettingsPage() {
                                 }
                                 className="w-full px-3 py-2 bg-surface-hover text-text-primary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                             >
-                                <option value="active">Idle + random walk</option>
-                                <option value="idle-only">Idle only</option>
+                                <option value="active">{isGerman ? 'Idle + Zufallsbewegung' : 'Idle + random walk'}</option>
+                                <option value="idle-only">{isGerman ? 'Nur Idle' : 'Idle only'}</option>
                             </select>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-text-secondary">Event reactions</label>
+                            <label className="text-sm font-medium text-text-secondary">{isGerman ? 'Event-Reaktionen' : 'Event reactions'}</label>
                             <select
                                 value={championSettings.eventReactions}
                                 onChange={(event) =>
@@ -717,14 +797,14 @@ export default function SettingsPage() {
                                 }
                                 className="w-full px-3 py-2 bg-surface-hover text-text-primary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                             >
-                                <option value="all">All reactions</option>
-                                <option value="none">No reactions</option>
+                                <option value="all">{isGerman ? 'Alle Reaktionen' : 'All reactions'}</option>
+                                <option value="none">{isGerman ? 'Keine Reaktionen' : 'No reactions'}</option>
                             </select>
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-text-secondary">VFX preset</label>
+                        <label className="text-sm font-medium text-text-secondary">{isGerman ? 'VFX-Preset' : 'VFX preset'}</label>
                         <select
                             value={championSettings.vfxPreset}
                             onChange={(event) =>
@@ -732,18 +812,18 @@ export default function SettingsPage() {
                             }
                             className="w-full px-3 py-2 bg-surface-hover text-text-primary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                         >
-                            <option value="performance">Performance</option>
-                            <option value="balanced">Balanced</option>
-                            <option value="cinematic">Cinematic</option>
+                            <option value="performance">{isGerman ? 'Performance' : 'Performance'}</option>
+                            <option value="balanced">{isGerman ? 'Ausgewogen' : 'Balanced'}</option>
+                            <option value="cinematic">{isGerman ? 'Cinematic' : 'Cinematic'}</option>
                         </select>
                         <p className="text-xs text-text-tertiary">
-                            {championVfxPresetDescriptions[championSettings.vfxPreset]}
+                            {championVfxPresetDescriptions[language][championSettings.vfxPreset]}
                         </p>
                     </div>
 
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <label className="text-sm font-medium text-text-secondary">Range indicator radius</label>
+                            <label className="text-sm font-medium text-text-secondary">{isGerman ? 'Reichweitenradius' : 'Range indicator radius'}</label>
                             <span className="text-xs font-mono text-text-tertiary">{championSettings.rangeRadius}px</span>
                         </div>
                         <input
@@ -762,13 +842,13 @@ export default function SettingsPage() {
                             onClick={() => updateChampionSettings({ showCooldowns: !championSettings.showCooldowns })}
                             className="rounded-lg border border-border bg-surface-hover px-3 py-2 text-sm text-text-primary hover:border-primary/40"
                         >
-                            Cooldown HUD: {championSettings.showCooldowns ? 'On' : 'Off'}
+                            {isGerman ? 'Cooldown-HUD' : 'Cooldown HUD'}: {championSettings.showCooldowns ? (isGerman ? 'An' : 'On') : (isGerman ? 'Aus' : 'Off')}
                         </button>
                         <button
                             onClick={() => updateChampionSettings({ soundsEnabled: !championSettings.soundsEnabled })}
                             className="rounded-lg border border-border bg-surface-hover px-3 py-2 text-sm text-text-primary hover:border-primary/40"
                         >
-                            Champion SFX: {championSettings.soundsEnabled ? 'On' : 'Off'}
+                            {isGerman ? 'Champion-SFX' : 'Champion SFX'}: {championSettings.soundsEnabled ? (isGerman ? 'An' : 'On') : (isGerman ? 'Aus' : 'Off')}
                         </button>
                     </div>
 
@@ -777,26 +857,26 @@ export default function SettingsPage() {
                             variant="secondary"
                             onClick={() => {
                                 resetChampionPosition();
-                                toast.success('Champion-Position zurückgesetzt.');
+                                toast.success(isGerman ? 'Champion-Position zurückgesetzt.' : 'Champion position reset.');
                             }}
                         >
-                            Position zurücksetzen
+                            {isGerman ? 'Position zurücksetzen' : 'Reset position'}
                         </Button>
                         <Button
                             variant="ghost"
                             onClick={() => {
                                 restoreChampionDefaults();
-                                toast.success('Lucian-Defaults wiederhergestellt.');
+                                toast.success(isGerman ? 'Lucian-Standards wiederhergestellt.' : 'Lucian defaults restored.');
                             }}
                         >
-                            Lucian wiederherstellen
+                            {isGerman ? 'Lucian wiederherstellen' : 'Restore Lucian'}
                         </Button>
                     </div>
 
                     <div className="rounded-lg border border-border bg-background/40 p-4">
-                        <p className="text-xs uppercase tracking-wider text-text-tertiary mb-2">Champion stats</p>
+                        <p className="text-xs uppercase tracking-wider text-text-tertiary mb-2">{isGerman ? 'Champion-Statistiken' : 'Champion stats'}</p>
                         <p className="text-sm text-text-primary font-medium">
-                            Level {championStats.level} · XP {championStats.xp}/{championStats.nextLevelXp}
+                            {isGerman ? 'Level' : 'Level'} {championStats.level} · XP {championStats.xp}/{championStats.nextLevelXp}
                         </p>
                     </div>
                 </div>
@@ -806,7 +886,7 @@ export default function SettingsPage() {
             <section className="space-y-4">
                 <h2 className="text-xl font-semibold text-text-primary flex items-center gap-2">
                     <ShieldCheck className="w-5 h-5" />
-                    Datenschutz & Benachrichtigungen
+                    {copy.settings.privacy}
                 </h2>
 
                 {/* Email notifications toggle */}
@@ -815,33 +895,41 @@ export default function SettingsPage() {
                         <div className="flex items-start gap-3">
                             <Bell className="w-4 h-4 text-text-secondary mt-0.5 shrink-0" />
                             <div>
-                                <p className="text-sm font-medium text-text-primary">E-Mail-Benachrichtigungen</p>
+                                <p className="text-sm font-medium text-text-primary">{isGerman ? 'E-Mail-Benachrichtigungen' : 'Email notifications'}</p>
                                 <p className="text-xs text-text-tertiary mt-0.5 leading-relaxed">
-                                    Prüfungs-Erinnerungen (3, 7 und 14 Tage vorher) sowie
-                                    wöchentliche Fortschritts-Reports.
+                                    {isGerman
+                                        ? 'Prüfungs-Erinnerungen (3, 7 und 14 Tage vorher) sowie wöchentliche Fortschritts-Reports.'
+                                        : 'Exam reminders (3, 7, and 14 days ahead) plus weekly progress reports.'}
                                 </p>
                             </div>
                         </div>
                         <ToggleSwitch
                             enabled={emailNotifications}
                             onChange={() => void toggleEmailNotifications()}
-                            ariaLabel={emailNotifications ? 'E-Mail-Benachrichtigungen deaktivieren' : 'E-Mail-Benachrichtigungen aktivieren'}
+                            ariaLabel={emailNotifications ? (isGerman ? 'E-Mail-Benachrichtigungen deaktivieren' : 'Disable email notifications') : (isGerman ? 'E-Mail-Benachrichtigungen aktivieren' : 'Enable email notifications')}
                         />
                     </div>
 
                     <div className="border-t border-border pt-4">
                         <p className="text-xs text-text-tertiary leading-relaxed">
-                            INNIS nutzt{' '}
-                            <span className="text-text-secondary font-medium">Vercel Analytics</span>
-                            {' '}für anonymisierte Nutzungsdaten (z.B. ob das Onboarding abgeschlossen
-                            wurde). Keine Inhalte, keine Cookies, keine IP-Speicherung.
+                            {isGerman ? (
+                                <>
+                                    INNIS nutzt <span className="text-text-secondary font-medium">Vercel Analytics</span> für anonymisierte Nutzungsdaten
+                                    (z.B. ob das Onboarding abgeschlossen wurde). Keine Inhalte, keine Cookies, keine IP-Speicherung.
+                                </>
+                            ) : (
+                                <>
+                                    INNIS uses <span className="text-text-secondary font-medium">Vercel Analytics</span> for anonymized usage data
+                                    (for example, whether onboarding was completed). No content, no cookies, no IP storage.
+                                </>
+                            )}
                         </p>
                         <a
                             href="/privacy"
                             className="inline-flex items-center gap-1.5 text-xs text-text-tertiary hover:text-text-secondary transition-colors mt-2"
                         >
                             <ExternalLink className="w-3 h-3" />
-                            Datenschutzerklärung lesen
+                            {isGerman ? 'Datenschutzerklärung lesen' : 'Read privacy policy'}
                         </a>
                     </div>
                 </div>

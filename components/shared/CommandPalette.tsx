@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import { useTheme } from '@/components/providers/ThemeProvider';
+import { useAppLanguage } from '@/components/providers/LanguageProvider';
 import {
   dispatchPrismCommandAction,
   dispatchIntentExecute,
@@ -56,37 +57,6 @@ type CommandItem = {
 
 const THEME_CYCLE = ['gold', 'platinum', 'sapphire', 'copper', 'amethyst', 'midnight'] as const;
 
-// ── Intent icon + accent per intent kind ──────────────────────────────────────
-const intentMeta: Record<
-  ParsedIntent['kind'],
-  { label: string; accent: string; border: string; bg: string }
-> = {
-  'create-task': {
-    label: 'Task erstellen',
-    accent: 'text-cyan-300',
-    border: 'border-cyan-300/25',
-    bg: 'bg-cyan-500/10',
-  },
-  'plan-focus': {
-    label: 'Focus starten',
-    accent: 'text-amber-300',
-    border: 'border-amber-300/25',
-    bg: 'bg-amber-500/10',
-  },
-  'create-goal': {
-    label: 'Goal erstellen',
-    accent: 'text-emerald-300',
-    border: 'border-emerald-300/25',
-    bg: 'bg-emerald-500/10',
-  },
-  'open-page': {
-    label: 'Navigieren',
-    accent: 'text-violet-300',
-    border: 'border-violet-300/25',
-    bg: 'bg-violet-500/10',
-  },
-};
-
 export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -101,7 +71,37 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     setIsExpanded: setTimerExpanded,
   } = useFocusTimer();
   const { setTheme, theme } = useTheme();
+  const { copy } = useAppLanguage();
   const { play } = useAppSound();
+  const intentMeta: Record<
+    ParsedIntent['kind'],
+    { label: string; accent: string; border: string; bg: string }
+  > = {
+    'create-task': {
+      label: copy.command.addDailyTask,
+      accent: 'text-cyan-300',
+      border: 'border-cyan-300/25',
+      bg: 'bg-cyan-500/10',
+    },
+    'plan-focus': {
+      label: copy.command.startFocusTimer,
+      accent: 'text-amber-300',
+      border: 'border-amber-300/25',
+      bg: 'bg-amber-500/10',
+    },
+    'create-goal': {
+      label: copy.command.addNewGoal,
+      accent: 'text-emerald-300',
+      border: 'border-emerald-300/25',
+      bg: 'bg-emerald-500/10',
+    },
+    'open-page': {
+      label: copy.command.navigate,
+      accent: 'text-violet-300',
+      border: 'border-violet-300/25',
+      bg: 'bg-violet-500/10',
+    },
+  };
 
   // ── Intent parsing ──────────────────────────────────────────────────────────
   const intentResult = useMemo(() => parseCommand(search), [search]);
@@ -141,88 +141,88 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   const navigationCommands: CommandItem[] = [
     {
       id: 'nav-today',
-      label: 'Dashboard',
+      label: copy.command.dashboard,
       icon: Home,
       action: () => router.push('/today'),
-      keywords: ['dashboard', 'today', 'home', 'overview'],
+      keywords: ['dashboard', 'today', 'heute', 'home', 'overview'],
     },
     {
       id: 'nav-goals',
-      label: 'Goals',
+      label: copy.command.goals,
       icon: Target,
       action: () => router.push('/goals'),
-      keywords: ['goals', 'objectives', 'targets'],
+      keywords: ['goals', 'ziele', 'objectives', 'targets'],
     },
     {
       id: 'nav-career',
-      label: 'Career',
+      label: copy.command.career,
       icon: Briefcase,
       action: () => router.push('/career'),
-      keywords: ['career', 'jobs', 'applications', 'interviews'],
+      keywords: ['career', 'karriere', 'jobs', 'applications', 'bewerbungen', 'interviews'],
     },
     {
       id: 'nav-university',
-      label: 'University',
+      label: copy.command.university,
       icon: GraduationCap,
       action: () => router.push('/university'),
-      keywords: ['university', 'courses', 'studies', 'exercises'],
+      keywords: ['university', 'uni', 'courses', 'kurse', 'studies', 'exercises'],
     },
     {
       id: 'nav-calendar',
-      label: 'Calendar',
+      label: copy.command.calendar,
       icon: Calendar,
       action: () => router.push('/calendar'),
-      keywords: ['calendar', 'schedule', 'events'],
+      keywords: ['calendar', 'kalender', 'schedule', 'events'],
     },
     {
       id: 'nav-analytics',
-      label: 'Analytics',
+      label: copy.command.analytics,
       icon: BarChart3,
       action: () => router.push('/analytics'),
-      keywords: ['analytics', 'stats', 'focus', 'charts', 'productivity'],
+      keywords: ['analytics', 'analysen', 'stats', 'focus', 'charts', 'productivity'],
     },
     {
       id: 'nav-focus',
-      label: 'Focus Mode',
+      label: copy.command.focusMode,
       icon: Timer,
       action: () => navigateToFocusWithTransition(router),
-      keywords: ['focus', 'deep work', 'zen', 'study mode', 'timer screen'],
+      keywords: ['focus', 'fokus', 'deep work', 'zen', 'study mode', 'timer screen'],
     },
     {
       id: 'nav-trajectory',
-      label: 'Trajectory',
+      label: copy.command.trajectory,
       icon: Route,
       action: () => router.push('/trajectory'),
-      keywords: ['trajectory', 'timeline', 'career plan', 'milestone', 'roadmap'],
+      keywords: ['trajectory', 'timeline', 'career plan', 'karriereplan', 'milestone', 'roadmap'],
     },
     {
       id: 'nav-ops-health',
-      label: 'Ops Health',
+      label: copy.command.opsHealth,
       icon: ShieldCheck,
       action: () => router.push('/analytics/ops'),
       keywords: ['ops', 'health', 'monitoring', 'incidents', 'admin'],
     },
     {
       id: 'nav-settings',
-      label: 'Settings',
+      label: copy.command.settings,
       icon: Settings,
       action: () => router.push('/settings'),
-      keywords: ['settings', 'preferences', 'config', 'account'],
+      keywords: ['settings', 'einstellungen', 'preferences', 'config', 'account'],
     },
   ];
 
   // ── Theme commands ──────────────────────────────────────────────────────────
   const themeCommands: CommandItem[] = [
-    { id: 'theme-midnight', label: 'Theme: Midnight', icon: Moon, action: () => setTheme('midnight'), keywords: ['theme', 'dark', 'midnight'] },
-    { id: 'theme-nord', label: 'Theme: Nord', icon: Palette, action: () => setTheme('nord'), keywords: ['theme', 'nord', 'blue', 'gray'] },
-    { id: 'theme-gold', label: 'Theme: Gold', icon: Palette, action: () => setTheme('gold'), keywords: ['theme', 'gold', 'premium', 'warm'] },
-    { id: 'theme-platinum', label: 'Theme: Platinum', icon: Palette, action: () => setTheme('platinum'), keywords: ['theme', 'platinum', 'premium', 'silver', 'metal'] },
-    { id: 'theme-sapphire', label: 'Theme: Sapphire', icon: Palette, action: () => setTheme('sapphire'), keywords: ['theme', 'sapphire', 'premium', 'blue', 'metal'] },
-    { id: 'theme-copper', label: 'Theme: Copper', icon: Palette, action: () => setTheme('copper'), keywords: ['theme', 'copper', 'premium', 'bronze', 'warm'] },
-    { id: 'theme-amethyst', label: 'Theme: Amethyst', icon: Palette, action: () => setTheme('amethyst'), keywords: ['theme', 'amethyst', 'premium', 'violet'] },
-    { id: 'theme-dracula', label: 'Theme: Dracula', icon: Palette, action: () => setTheme('dracula'), keywords: ['theme', 'dracula', 'purple', 'vampire'] },
-    { id: 'theme-ocean', label: 'Theme: Ocean', icon: Palette, action: () => setTheme('ocean'), keywords: ['theme', 'ocean', 'blue', 'deep'] },
-    { id: 'theme-emerald', label: 'Theme: Emerald', icon: Palette, action: () => setTheme('emerald'), keywords: ['theme', 'emerald', 'green', 'nature'] },
+    { id: 'theme-midnight', label: copy.command.themeMidnight, icon: Moon, action: () => setTheme('midnight'), keywords: ['theme', 'dark', 'midnight'] },
+    { id: 'theme-nord', label: copy.command.themeNord, icon: Palette, action: () => setTheme('nord'), keywords: ['theme', 'nord', 'blue', 'gray'] },
+    { id: 'theme-gold', label: copy.command.themeGold, icon: Palette, action: () => setTheme('gold'), keywords: ['theme', 'gold', 'premium', 'warm'] },
+    { id: 'theme-platinum', label: copy.command.themePlatinum, icon: Palette, action: () => setTheme('platinum'), keywords: ['theme', 'platinum', 'premium', 'silver', 'metal'] },
+    { id: 'theme-sapphire', label: copy.command.themeSapphire, icon: Palette, action: () => setTheme('sapphire'), keywords: ['theme', 'sapphire', 'premium', 'blue', 'metal'] },
+    { id: 'theme-copper', label: copy.command.themeCopper, icon: Palette, action: () => setTheme('copper'), keywords: ['theme', 'copper', 'premium', 'bronze', 'warm'] },
+    { id: 'theme-amethyst', label: copy.command.themeAmethyst, icon: Palette, action: () => setTheme('amethyst'), keywords: ['theme', 'amethyst', 'premium', 'violet'] },
+    { id: 'theme-dracula', label: copy.command.themeDracula, icon: Palette, action: () => setTheme('dracula'), keywords: ['theme', 'dracula', 'purple', 'vampire'] },
+    { id: 'theme-ocean', label: copy.command.themeOcean, icon: Palette, action: () => setTheme('ocean'), keywords: ['theme', 'ocean', 'blue', 'deep'] },
+    { id: 'theme-emerald', label: copy.command.themeEmerald, icon: Palette, action: () => setTheme('emerald'), keywords: ['theme', 'emerald', 'green', 'nature'] },
   ];
 
   const triggerPageAction = useCallback(
@@ -241,47 +241,47 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   const quickActions: CommandItem[] = [
     {
       id: 'action-add-task',
-      label: 'Add Daily Task',
+      label: copy.command.addDailyTask,
       icon: Plus,
       action: () => triggerPageAction('/today', 'open-new-task'),
-      keywords: ['add', 'new', 'create', 'task', 'todo', 'today'],
+      keywords: ['add', 'new', 'create', 'task', 'todo', 'today', 'aufgabe', 'heute'],
       shortcut: 'D',
     },
     {
       id: 'action-add-goal',
-      label: 'Add New Goal',
+      label: copy.command.addNewGoal,
       icon: Plus,
       action: () => triggerPageAction('/goals', 'open-new-goal'),
-      keywords: ['add', 'new', 'create', 'goal'],
+      keywords: ['add', 'new', 'create', 'goal', 'ziel'],
       shortcut: 'G',
     },
     {
       id: 'action-add-application',
-      label: 'Add Job Application',
+      label: copy.command.addJobApplication,
       icon: Plus,
       action: () => triggerPageAction('/career', 'open-new-application'),
-      keywords: ['add', 'new', 'create', 'job', 'application'],
+      keywords: ['add', 'new', 'create', 'job', 'application', 'bewerbung'],
       shortcut: 'A',
     },
     {
       id: 'action-add-course',
-      label: 'Add Course',
+      label: copy.command.addCourse,
       icon: Plus,
       action: () => triggerPageAction('/university', 'open-new-course'),
-      keywords: ['add', 'new', 'create', 'course'],
+      keywords: ['add', 'new', 'create', 'course', 'kurs'],
       shortcut: 'C',
     },
     {
       id: 'action-next-best',
-      label: 'Start Next Best Action',
+      label: copy.command.startNextBestAction,
       icon: Zap,
       action: () => triggerPageAction('/today', 'start-next-best-action'),
-      keywords: ['next', 'best', 'action', 'execute', 'priority', 'today'],
+      keywords: ['next', 'best', 'action', 'execute', 'priority', 'today', 'nächste', 'beste', 'aktion'],
       shortcut: 'N',
     },
     {
       id: 'action-theme-cycle',
-      label: 'Cycle Premium Themes',
+      label: copy.command.cyclePremiumThemes,
       icon: Palette,
       action: () => {
         const currentIndex = THEME_CYCLE.indexOf(theme as (typeof THEME_CYCLE)[number]);
@@ -293,18 +293,18 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     },
     {
       id: 'action-focus-25',
-      label: 'Start Focus Session (25m)',
+      label: copy.command.startFocus25,
       icon: Play,
       action: () => { startTimer(); setTimerExpanded(true); },
-      keywords: ['focus', 'start', 'pomodoro', '25', 'study'],
+      keywords: ['focus', 'fokus', 'start', 'pomodoro', '25', 'study'],
       shortcut: 'F',
     },
     {
       id: 'action-focus-50',
-      label: 'Start Deep Focus (50m)',
+      label: copy.command.startFocus50,
       icon: Zap,
       action: () => { startTimer({ duration: 50 }); setTimerExpanded(true); },
-      keywords: ['focus', 'start', 'deep', '50', 'work'],
+      keywords: ['focus', 'fokus', 'start', 'deep', '50', 'work'],
     },
   ];
 
@@ -313,38 +313,38 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     ...(timerStatus === 'idle'
       ? [{
           id: 'focus-start',
-          label: 'Start Focus Timer',
+          label: copy.command.startFocusTimer,
           icon: Play,
           action: () => { startTimer(); setTimerExpanded(true); },
-          keywords: ['focus', 'timer', 'start', 'pomodoro', 'study'],
+          keywords: ['focus', 'fokus', 'timer', 'start', 'pomodoro', 'study'],
           shortcut: 'Alt+F',
         }]
       : []),
     ...(timerStatus === 'running' || timerStatus === 'break'
       ? [{
           id: 'focus-pause',
-          label: 'Pause Timer',
+          label: copy.command.pauseTimer,
           icon: Pause,
           action: () => pauseTimer(),
-          keywords: ['focus', 'timer', 'pause'],
+          keywords: ['focus', 'fokus', 'timer', 'pause', 'pausieren'],
         }]
       : []),
     ...(timerStatus === 'paused' || timerStatus === 'break_paused'
       ? [{
           id: 'focus-resume',
-          label: 'Resume Timer',
+          label: copy.command.resumeTimer,
           icon: Play,
           action: () => resumeTimer(),
-          keywords: ['focus', 'timer', 'resume', 'continue'],
+          keywords: ['focus', 'fokus', 'timer', 'resume', 'continue', 'fortsetzen'],
         }]
       : []),
     ...(timerStatus !== 'idle'
       ? [{
           id: 'focus-stop',
-          label: 'Stop Timer',
+          label: copy.command.stopTimer,
           icon: Square,
           action: () => stopTimer(),
-          keywords: ['focus', 'timer', 'stop', 'end'],
+          keywords: ['focus', 'fokus', 'timer', 'stop', 'end', 'beenden'],
         }]
       : []),
   ];
@@ -427,7 +427,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                     <Search className="h-4 w-4 flex-shrink-0 text-zinc-500" />
                   )}
                   <Command.Input
-                    placeholder="Suchen oder Befehl eingeben…  (erstelle task, fokus 25, open goals)"
+                    placeholder={copy.command.placeholder}
                     className="flex-1 bg-transparent text-[14px] text-zinc-100 placeholder:text-zinc-600 outline-none"
                     autoFocus
                     value={search}
@@ -469,7 +469,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                             className={`flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${intentMeta[intentResult.intent.kind].border} ${intentMeta[intentResult.intent.kind].bg} ${intentMeta[intentResult.intent.kind].accent} hover:brightness-125`}
                           >
                             <span>↵</span>
-                            <span>Bestätigen</span>
+                            <span>{copy.command.confirm}</span>
                           </button>
                         </div>
                       ) : (
@@ -487,12 +487,12 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                 <Command.List className="max-h-[360px] overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
                   <Command.Empty className="flex flex-col items-center gap-2 py-10 text-center text-sm text-text-tertiary">
                     <Search className="h-7 w-7 opacity-20" />
-                    <span>Keine Ergebnisse.</span>
+                    <span>{copy.command.noResults}</span>
                   </Command.Empty>
 
                   {/* Navigation */}
                   <Command.Group
-                    heading="Navigation"
+                    heading={copy.command.navigation}
                     className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary"
                   >
                     {navigationCommands.map((cmd) => {
@@ -513,7 +513,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
 
                   {/* Themes */}
                   <Command.Group
-                    heading="Themes"
+                    heading={copy.command.themes}
                     className="mt-1 px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary"
                   >
                     {themeCommands.map((cmd) => {
@@ -530,7 +530,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                           <span className="flex-1">{cmd.label}</span>
                           {isActive && (
                             <span className="rounded-full border border-primary/25 bg-primary/15 px-2 py-0.5 text-[10px] text-primary">
-                              Aktiv
+                              {copy.command.active}
                             </span>
                           )}
                         </Command.Item>
@@ -541,7 +541,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                   {/* Focus Timer (context-sensitive) */}
                   {focusCommands.length > 0 && (
                     <Command.Group
-                      heading="Focus Timer"
+                      heading={copy.command.focusTimer}
                       className="mt-1 px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary"
                     >
                       {focusCommands.map((cmd) => {
@@ -568,7 +568,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
 
                   {/* Quick Actions */}
                   <Command.Group
-                    heading="Quick Actions"
+                    heading={copy.command.quickActions}
                     className="mt-1 px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary"
                   >
                     {quickActions.map((cmd) => {
@@ -598,22 +598,22 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                   <div className="flex items-center gap-4 text-[10px] text-text-tertiary">
                     <span className="flex items-center gap-1">
                       <kbd className="rounded border border-border bg-surface-hover px-1 py-0.5 text-[9px]">↑↓</kbd>
-                      Navigieren
+                      {copy.command.navigate}
                     </span>
                     <span className="flex items-center gap-1">
                       <kbd className="rounded border border-border bg-surface-hover px-1 py-0.5 text-[9px]">↵</kbd>
-                      Ausführen
+                      {copy.command.execute}
                     </span>
                     {isIntentMode && (
                       <span className="flex items-center gap-1 text-amber-500/70">
                         <Terminal className="h-3 w-3" />
-                        Intent-Modus
+                        {copy.command.intentMode}
                       </span>
                     )}
                   </div>
                   <div className="flex items-center gap-1 text-[10px] text-text-tertiary">
                     <Zap className="h-3 w-3" />
-                    INNIS Command
+                    {copy.command.commandBrand}
                   </div>
                 </div>
               </Command>

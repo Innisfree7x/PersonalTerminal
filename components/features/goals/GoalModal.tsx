@@ -6,6 +6,7 @@ import { CreateGoalInput } from '@/lib/schemas/goal.schema';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import { useAppLanguage } from '@/components/providers/LanguageProvider';
 
 interface GoalModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ export default function GoalModal({
   layoutId,
 }: GoalModalProps) {
   const { play } = useAppSound();
+  const { language } = useAppLanguage();
   const prevOpenRef = useRef(false);
 
   useEffect(() => {
@@ -65,14 +67,20 @@ export default function GoalModal({
               {/* Header */}
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
                 <h2 className="text-2xl font-bold text-text-primary">
-                  {isEdit ? 'Edit Goal' : 'Create New Goal'}
+                  {isEdit
+                    ? language === 'de'
+                      ? 'Ziel bearbeiten'
+                      : 'Edit Goal'
+                    : language === 'de'
+                      ? 'Neues Ziel erstellen'
+                      : 'Create New Goal'}
                 </h2>
                 <motion.button
                   onClick={onClose}
                   className="p-2 text-text-tertiary hover:text-text-primary hover:bg-surface-hover rounded-lg transition-colors"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  aria-label="Close"
+                  aria-label={language === 'de' ? 'Schließen' : 'Close'}
                 >
                   <X className="w-5 h-5" />
                 </motion.button>

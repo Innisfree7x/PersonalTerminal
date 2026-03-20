@@ -8,21 +8,11 @@ import { useState, useEffect, useRef } from 'react';
 import { useCommandPalette } from '@/components/shared/CommandPaletteProvider';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import { format } from 'date-fns';
+import { de as deLocale, enUS } from 'date-fns/locale';
 import { fetchDashboardStatsAction } from '@/app/actions/dashboard';
+import { useAppLanguage } from '@/components/providers/LanguageProvider';
 
-const routeTitles: Record<string, string> = {
-  '/today': 'Today',
-  '/calendar': 'Calendar',
-  '/goals': 'Goals',
-  '/university': 'University',
-  '/career': 'Career',
-  '/analytics': 'Analytics',
-  '/strategy': 'Strategy',
-  '/trajectory': 'Trajectory',
-  '/focus': 'Focus',
-};
-
-function HeaderClock() {
+function HeaderClock({ language }: { language: 'de' | 'en' }) {
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -33,12 +23,15 @@ function HeaderClock() {
     return () => clearInterval(timer);
   }, []);
 
+  const locale = language === 'de' ? deLocale : enUS;
+  const datePattern = language === 'de' ? 'EEEE, d. MMMM' : 'EEEE, MMMM d';
+
   return (
     <div className="hidden md:flex items-center gap-3 rounded-lg border border-primary/24 bg-surface/70 px-4 py-1.5 relative overflow-hidden shadow-[0_0_0_1px_rgb(var(--primary)/0.05)]">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/28 to-transparent" />
       <div className="flex flex-col">
         <span className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary" suppressHydrationWarning>
-          {currentTime ? format(currentTime, 'EEEE, MMMM d') : '\u00A0'}
+          {currentTime ? format(currentTime, datePattern, { locale }) : '\u00A0'}
         </span>
         <span className="text-base font-bold text-text-primary font-mono tabular-nums tracking-tight leading-tight" suppressHydrationWarning>
           {currentTime ? format(currentTime, 'HH:mm:ss') : '--:--:--'}
@@ -53,6 +46,7 @@ export default function Header() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const notificationsRef = useRef<HTMLDivElement | null>(null);
   const { open: openCommandPalette } = useCommandPalette();
+  const { copy, language } = useAppLanguage();
   const { status: timerStatus, timeLeft: timerTimeLeft, sessionType, setIsExpanded: setTimerExpanded } = useFocusTimer();
   
   const { data: stats } = useQuery({
@@ -73,7 +67,20 @@ export default function Header() {
     (stats?.goals.overdue !== undefined && stats.goals.overdue > 0) ||
     false;
 
-  const currentTitle = routeTitles[pathname] || 'Dashboard';
+  const routeTitles: Record<string, string> = {
+    '/today': copy.header.today,
+    '/calendar': copy.header.calendar,
+    '/goals': copy.header.goals,
+    '/university': copy.header.university,
+    '/career': copy.header.career,
+    '/analytics': copy.header.analytics,
+    '/strategy': copy.header.strategy,
+    '/trajectory': copy.header.trajectory,
+    '/focus': copy.header.focus,
+    '/settings': copy.header.settings,
+  };
+
+  const currentTitle = routeTitles[pathname] || copy.header.dashboard;
 
   useEffect(() => {
     if (!notificationsOpen) return;
@@ -114,7 +121,7 @@ export default function Header() {
           </div>
 
           {/* Date & Time */}
-          <HeaderClock />
+          <HeaderClock language={language} />
         </div>
 
         {/* Right: Actions */}
@@ -127,7 +134,7 @@ export default function Header() {
             onClick={openCommandPalette}
           >
             <Search className="w-4 h-4" />
-            <span className="hidden sm:inline text-[11px] font-medium">Search</span>
+            <span className="hidden sm:inline text-[11px] font-medium">{copy.header.search}</span>
             <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-surface-hover px-1.5 py-0.5 text-[10px]">
               <Command className="w-2.5 h-2.5" />
               K
@@ -163,7 +170,7 @@ export default function Header() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={openCommandPalette}
-            aria-label="Quick add"
+            aria-label={copy.header.quickAdd}
           >
             <Plus className="w-4 h-4" />
           </motion.button>
@@ -175,7 +182,7 @@ export default function Header() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setNotificationsOpen(!notificationsOpen)}
-              aria-label="Notifications"
+              aria-label={copy.header.notifications}
             >
               <Bell className="w-4 h-4" />
               {hasUrgent && (
@@ -187,7 +194,7 @@ export default function Header() {
             {notificationsOpen && (
               <div className="absolute top-full right-0 mt-2 w-80 card-surface dashboard-premium-card-soft rounded-lg p-3">
                 <div className="text-xs text-text-tertiary text-center py-4">
-                  No new notifications
+                  {copy.header.noNotifications}
                 </div>
               </div>
             )}

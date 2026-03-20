@@ -27,18 +27,7 @@ import { fetchGoalsAction } from '@/app/actions/goals';
 import { fetchCoursesAction } from '@/app/actions/university';
 import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 import { BrandLockup, BrandMark } from '@/components/shared/BrandLogo';
-
-const baseNavigation = [
-  { name: 'Today', href: '/today', icon: LayoutDashboard, shortcut: '1' },
-  { name: 'Calendar', href: '/calendar', icon: Calendar, shortcut: '2' },
-  { name: 'Goals', href: '/goals', icon: Target, shortcut: '3' },
-  { name: 'University', href: '/university', icon: GraduationCap, shortcut: '4' },
-  { name: 'Career', href: '/career', icon: Briefcase, shortcut: '5' },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3, shortcut: '6' },
-  { name: 'Strategy', href: '/strategy', icon: FlaskConical, shortcut: '7' },
-  { name: 'Trajectory', href: '/trajectory', icon: Route, shortcut: '8' },
-  { name: 'Focus', href: '/focus', icon: Timer, shortcut: 'F' },
-];
+import { useAppLanguage } from '@/components/providers/LanguageProvider';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -47,20 +36,32 @@ export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const { user, signOut } = useAuth();
+  const { copy, language } = useAppLanguage();
   const isAdmin = isAdminUser(user);
   const navigation = useMemo(
     () =>
-      isAdmin
-        ? [...baseNavigation, { name: 'Ops Health', href: '/analytics/ops', icon: ShieldCheck, shortcut: '8' }]
-        : baseNavigation,
-    [isAdmin]
+      [
+        { name: copy.nav.today, href: '/today', icon: LayoutDashboard, shortcut: '1' },
+        { name: copy.nav.calendar, href: '/calendar', icon: Calendar, shortcut: '2' },
+        { name: copy.nav.goals, href: '/goals', icon: Target, shortcut: '3' },
+        { name: copy.nav.university, href: '/university', icon: GraduationCap, shortcut: '4' },
+        { name: copy.nav.career, href: '/career', icon: Briefcase, shortcut: '5' },
+        { name: copy.nav.analytics, href: '/analytics', icon: BarChart3, shortcut: '6' },
+        { name: copy.nav.strategy, href: '/strategy', icon: FlaskConical, shortcut: '7' },
+        { name: copy.nav.trajectory, href: '/trajectory', icon: Route, shortcut: '8' },
+        { name: copy.nav.focus, href: '/focus', icon: Timer, shortcut: 'F' },
+        ...(isAdmin
+          ? [{ name: copy.nav.opsHealth, href: '/analytics/ops', icon: ShieldCheck, shortcut: 'O' }]
+          : []),
+      ],
+    [copy.nav, isAdmin]
   );
 
   // Extract display name from user metadata or email
   const displayName = user?.user_metadata?.full_name
     || user?.user_metadata?.name
     || user?.email?.split('@')[0]
-    || 'User';
+    || (language === 'de' ? 'Nutzer' : 'User');
   const displayEmail = user?.email || '';
   const avatarInitial = displayName.charAt(0).toUpperCase();
 
@@ -160,7 +161,7 @@ export default function Sidebar() {
         <motion.button
           onClick={() => setIsOpen(!isOpen)}
           className="rounded-lg border border-border bg-surface p-2.5 text-text-primary transition-colors hover:border-primary hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          aria-label="Toggle menu"
+          aria-label={copy.header.toggleMenu}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -240,7 +241,7 @@ export default function Sidebar() {
               <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background lg:inline-flex"
-                aria-label="Collapse sidebar"
+                aria-label={copy.header.collapseSidebar}
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -253,7 +254,7 @@ export default function Sidebar() {
               <button
                 onClick={() => setIsCollapsed(false)}
                 className="inline-flex h-9 w-9 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                aria-label="Expand sidebar"
+                aria-label={copy.header.expandSidebar}
               >
                 <ChevronLeft className="w-4 h-4 rotate-180" />
               </button>
@@ -343,11 +344,11 @@ export default function Sidebar() {
                   } ${isCollapsed ? 'justify-center' : ''}`}
               >
                 <Settings className={`w-4 h-4 flex-shrink-0 ${pathname === '/settings' ? 'text-primary' : ''}`} />
-                {!isCollapsed && <span className="truncate">Settings</span>}
+                {!isCollapsed && <span className="truncate">{copy.nav.settings}</span>}
               </div>
               {isCollapsed && (
                 <div className="pointer-events-none absolute left-full z-50 ml-2 whitespace-nowrap rounded-md border border-border bg-surface px-2 py-1 text-xs text-text-primary opacity-0 transition-opacity group-hover:opacity-100">
-                  Settings
+                  {copy.nav.settings}
                 </div>
               )}
             </Link>
@@ -378,8 +379,8 @@ export default function Sidebar() {
                       signOut();
                     }}
                     className="rounded-md p-1.5 text-text-tertiary transition-colors hover:bg-error/10 hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                    aria-label="Sign out"
-                    title="Sign out"
+                    aria-label={copy.settings.signOut}
+                    title={copy.settings.signOut}
                   >
                     <LogOut className="w-4 h-4" />
                   </button>

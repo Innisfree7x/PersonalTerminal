@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import ApplicationForm from './ApplicationForm';
 import { CreateApplicationInput } from '@/lib/schemas/application.schema';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import { useAppLanguage } from '@/components/providers/LanguageProvider';
 
 interface ApplicationModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export default function ApplicationModal({
   error = null,
 }: ApplicationModalProps) {
   const { play } = useAppSound();
+  const { language } = useAppLanguage();
   const prevOpenRef = useRef(false);
 
   useEffect(() => {
@@ -56,12 +58,18 @@ export default function ApplicationModal({
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {isEdit ? 'Edit Application' : 'New Application'}
+              {isEdit
+                ? language === 'de'
+                  ? 'Bewerbung bearbeiten'
+                  : 'Edit Application'
+                : language === 'de'
+                  ? 'Neue Bewerbung'
+                  : 'New Application'}
             </h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-              aria-label="Close"
+              aria-label={language === 'de' ? 'Schließen' : 'Close'}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path

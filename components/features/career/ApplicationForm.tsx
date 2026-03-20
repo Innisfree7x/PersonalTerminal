@@ -7,6 +7,7 @@ import {
   createApplicationSchema,
   CreateApplicationInput,
 } from '@/lib/schemas/application.schema';
+import { useAppLanguage } from '@/components/providers/LanguageProvider';
 
 interface ApplicationFormProps {
   onSubmit: (data: CreateApplicationInput) => void;
@@ -35,6 +36,8 @@ export default function ApplicationForm({
   isEdit = false,
   submitDisabled = false,
 }: ApplicationFormProps) {
+  const { language } = useAppLanguage();
+  const isGerman = language === 'de';
   const {
     register,
     handleSubmit,
@@ -87,7 +90,7 @@ export default function ApplicationForm({
           htmlFor="company"
           className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
         >
-          Company <span className="text-red-500">*</span>
+          {isGerman ? 'Unternehmen' : 'Company'} <span className="text-red-500">*</span>
         </label>
         <input
           id="company"
@@ -96,7 +99,7 @@ export default function ApplicationForm({
           className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 ${
             errors.company ? 'border-red-500' : 'border-gray-300'
           }`}
-          placeholder="Enter company name"
+          placeholder={isGerman ? 'Unternehmensname eingeben' : 'Enter company name'}
         />
         {errors.company && (
           <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.company.message}</p>
@@ -109,7 +112,7 @@ export default function ApplicationForm({
           htmlFor="position"
           className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
         >
-          Position <span className="text-red-500">*</span>
+          {isGerman ? 'Position' : 'Position'} <span className="text-red-500">*</span>
         </label>
         <input
           id="position"
@@ -118,7 +121,7 @@ export default function ApplicationForm({
           className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 ${
             errors.position ? 'border-red-500' : 'border-gray-300'
           }`}
-          placeholder="Enter position title"
+          placeholder={isGerman ? 'Stellenbezeichnung eingeben' : 'Enter position title'}
         />
         {errors.position && (
           <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.position.message}</p>
@@ -131,7 +134,7 @@ export default function ApplicationForm({
           htmlFor="status"
           className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
         >
-          Status <span className="text-red-500">*</span>
+          {isGerman ? 'Status' : 'Status'} <span className="text-red-500">*</span>
         </label>
         <select
           id="status"
@@ -140,17 +143,17 @@ export default function ApplicationForm({
             errors.status ? 'border-red-500' : 'border-gray-300'
           }`}
         >
-          <option value="applied">Applied</option>
-          <option value="interview">Interview</option>
-          <option value="offer">Offer</option>
-          <option value="rejected">Rejected</option>
+          <option value="applied">{isGerman ? 'Beworben' : 'Applied'}</option>
+          <option value="interview">{isGerman ? 'Interview' : 'Interview'}</option>
+          <option value="offer">{isGerman ? 'Angebot' : 'Offer'}</option>
+          <option value="rejected">{isGerman ? 'Abgelehnt' : 'Rejected'}</option>
         </select>
         {errors.status && (
           <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.status.message}</p>
         )}
         {statusValue === 'offer' && (
           <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-400">
-            Offer selected. You can still edit details before finalizing.
+            {isGerman ? 'Angebot gewählt. Du kannst die Details vor dem Finalisieren noch anpassen.' : 'Offer selected. You can still edit details before finalizing.'}
           </p>
         )}
       </div>
@@ -161,7 +164,7 @@ export default function ApplicationForm({
           htmlFor="applicationDate"
           className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
         >
-          Application Date <span className="text-red-500">*</span>
+          {isGerman ? 'Bewerbungsdatum' : 'Application Date'} <span className="text-red-500">*</span>
         </label>
         <input
           id="applicationDate"
@@ -183,7 +186,7 @@ export default function ApplicationForm({
       {/* Interview Date */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Interview
+          {isGerman ? 'Interview' : 'Interview'}
         </label>
         <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 mb-3">
           <input
@@ -202,7 +205,7 @@ export default function ApplicationForm({
             }}
             className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
           />
-          Interview scheduled
+          {isGerman ? 'Interview terminiert' : 'Interview scheduled'}
         </label>
 
         {hasInterviewScheduled ? (
@@ -211,7 +214,7 @@ export default function ApplicationForm({
               htmlFor="interviewDate"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
-              Interview Date
+              {isGerman ? 'Interviewdatum' : 'Interview Date'}
             </label>
             <input
               id="interviewDate"
@@ -231,7 +234,7 @@ export default function ApplicationForm({
             )}
           </>
         ) : (
-          <p className="text-xs text-gray-500 dark:text-gray-400">No interview date yet.</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{isGerman ? 'Noch kein Interviewdatum.' : 'No interview date yet.'}</p>
         )}
       </div>
 
@@ -241,14 +244,14 @@ export default function ApplicationForm({
           htmlFor="location"
           className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
         >
-          Location
+          {isGerman ? 'Standort' : 'Location'}
         </label>
         <input
           id="location"
           type="text"
           {...register('location')}
           className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-gray-100"
-          placeholder="e.g., San Francisco, CA"
+          placeholder={isGerman ? 'z.B. Frankfurt, DE' : 'e.g., San Francisco, CA'}
         />
       </div>
 
@@ -258,14 +261,14 @@ export default function ApplicationForm({
           htmlFor="salaryRange"
           className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
         >
-          Salary Range
+          {isGerman ? 'Gehaltsrahmen' : 'Salary Range'}
         </label>
         <input
           id="salaryRange"
           type="text"
           {...register('salaryRange')}
           className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-gray-100"
-          placeholder="e.g., $100k - $150k"
+          placeholder={isGerman ? 'z.B. 20€/h oder 45k - 55k' : 'e.g., $100k - $150k'}
         />
       </div>
 
@@ -275,7 +278,7 @@ export default function ApplicationForm({
           htmlFor="jobUrl"
           className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
         >
-          Job URL
+          {isGerman ? 'Job-URL' : 'Job URL'}
         </label>
         <input
           id="jobUrl"
@@ -292,14 +295,14 @@ export default function ApplicationForm({
           htmlFor="notes"
           className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
         >
-          Notes
+          {isGerman ? 'Notizen' : 'Notes'}
         </label>
         <textarea
           id="notes"
           {...register('notes')}
           rows={4}
           className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-gray-100"
-          placeholder="Additional notes..."
+          placeholder={isGerman ? 'Zusätzliche Notizen…' : 'Additional notes...'}
         />
       </div>
 
@@ -310,14 +313,14 @@ export default function ApplicationForm({
           onClick={onCancel}
           className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
-          Cancel
+          {isGerman ? 'Abbrechen' : 'Cancel'}
         </button>
         <button
           type="submit"
           disabled={isSubmitting || submitDisabled}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {isSubmitting ? 'Saving...' : isEdit ? 'Update' : 'Create'}
+          {isSubmitting ? (isGerman ? 'Speichere…' : 'Saving...') : isEdit ? (isGerman ? 'Aktualisieren' : 'Update') : (isGerman ? 'Erstellen' : 'Create')}
         </button>
       </div>
     </form>

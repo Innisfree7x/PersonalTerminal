@@ -10,6 +10,7 @@ import type { CourseWithExercises } from '@/lib/schemas/course.schema';
 import { Badge } from '@/components/ui/Badge';
 import { BookOpen } from 'lucide-react';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import { useAppLanguage } from '@/components/providers/LanguageProvider';
 
 interface CourseModalProps {
   isOpen: boolean;
@@ -42,6 +43,8 @@ export default function CourseModal({
   layoutId,
   layoutCourse = null,
 }: CourseModalProps) {
+  const { language } = useAppLanguage();
+  const isGerman = language === 'de';
   const {
     register,
     handleSubmit,
@@ -99,7 +102,7 @@ export default function CourseModal({
             {...(layoutId ? { layoutId } : {})}
             role="dialog"
             aria-modal="true"
-            aria-label={isEdit ? 'Edit Course' : 'Add New Course'}
+            aria-label={isEdit ? (isGerman ? 'Kurs bearbeiten' : 'Edit Course') : (isGerman ? 'Neuen Kurs hinzufügen' : 'Add New Course')}
             className="bg-gray-900 dark:bg-gray-800 rounded-xl border border-gray-700 dark:border-gray-700 p-6 max-w-2xl w-full mx-4"
             initial={{ scale: 0.95, opacity: 0, y: 12 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -121,7 +124,7 @@ export default function CourseModal({
                   </motion.div>
                 </div>
                 <div className="text-xs text-gray-400 mb-2">
-                  {completedCount}/{totalCount} exercises completed
+                  {completedCount}/{totalCount} {isGerman ? 'Übungen abgeschlossen' : 'exercises completed'}
                 </div>
                 <motion.div
                   layoutId={`course-progress-shell-${layoutCourse.id}`}
@@ -137,7 +140,7 @@ export default function CourseModal({
             )}
 
             <h2 className="text-xl font-semibold text-gray-100 dark:text-gray-100 mb-4">
-              {isEdit ? 'Edit Course' : 'Add New Course'}
+              {isEdit ? (isGerman ? 'Kurs bearbeiten' : 'Edit Course') : (isGerman ? 'Neuen Kurs hinzufügen' : 'Add New Course')}
             </h2>
 
             {error && (
@@ -150,7 +153,7 @@ export default function CourseModal({
           {/* Course Name */}
           <div>
             <label htmlFor="course-name" className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-1">
-              Course Name <span className="text-red-400">*</span>
+              {isGerman ? 'Kursname' : 'Course Name'} <span className="text-red-400">*</span>
             </label>
             <input
               id="course-name"
@@ -166,7 +169,7 @@ export default function CourseModal({
           {/* ECTS */}
           <div>
             <label htmlFor="course-ects" className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-1">
-              ECTS <span className="text-red-400">*</span>
+              {isGerman ? 'ECTS' : 'ECTS'} <span className="text-red-400">*</span>
             </label>
             <input
               id="course-ects"
@@ -184,7 +187,7 @@ export default function CourseModal({
           {/* Number of Exercises */}
           <div>
             <label htmlFor="course-num-exercises" className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-1">
-              Number of Exercises <span className="text-red-400">*</span>
+              {isGerman ? 'Anzahl Übungen' : 'Number of Exercises'} <span className="text-red-400">*</span>
             </label>
             <input
               id="course-num-exercises"
@@ -202,7 +205,7 @@ export default function CourseModal({
           {/* Exam Date */}
           <div>
             <label htmlFor="course-exam-date" className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-1">
-              Exam Date (optional)
+              {isGerman ? 'Klausurdatum (optional)' : 'Exam Date (optional)'}
             </label>
             <input
               id="course-exam-date"
@@ -219,17 +222,17 @@ export default function CourseModal({
           {examWrittenForModal && (
             <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.06] p-3">
               <label htmlFor="course-expected-grade" className="block text-sm font-medium text-emerald-400 mb-1">
-                Erwartete Note
-                <span className="ml-1.5 text-[10px] font-normal text-gray-400">(Klausur geschrieben)</span>
+                {isGerman ? 'Erwartete Note' : 'Expected grade'}
+                <span className="ml-1.5 text-[10px] font-normal text-gray-400">{isGerman ? '(Klausur geschrieben)' : '(exam already taken)'}</span>
               </label>
               <select
                 id="course-expected-grade"
                 {...register('expectedGrade', { setValueAs: (v) => v === '' ? undefined : parseFloat(v) })}
                 className="w-full px-3 py-2 bg-gray-800 dark:bg-gray-900 text-gray-100 border border-gray-700 rounded focus:outline-none focus:border-emerald-500 font-mono"
               >
-                <option value="">— Note noch nicht bekannt —</option>
+                <option value="">{isGerman ? '— Note noch nicht bekannt —' : '— Grade not known yet —'}</option>
                 {[1.0, 1.3, 1.7, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0, 5.0].map((g) => (
-                  <option key={g} value={g}>{g.toFixed(1)}{g === 5.0 ? ' (Nicht bestanden)' : ''}</option>
+                  <option key={g} value={g}>{g.toFixed(1)}{g === 5.0 ? (isGerman ? ' (Nicht bestanden)' : ' (Failed)') : ''}</option>
                 ))}
               </select>
             </div>
@@ -238,7 +241,7 @@ export default function CourseModal({
           {/* Semester */}
           <div>
             <label htmlFor="course-semester" className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-1">
-              Semester <span className="text-red-400">*</span>
+              {isGerman ? 'Semester' : 'Semester'} <span className="text-red-400">*</span>
             </label>
             <input
               id="course-semester"
@@ -259,14 +262,14 @@ export default function CourseModal({
                   data-testid="course-modal-submit"
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {isSaving ? 'Saving...' : isEdit ? 'Save Changes' : 'Add Course'}
+                  {isSaving ? (isGerman ? 'Speichere…' : 'Saving...') : isEdit ? (isGerman ? 'Änderungen speichern' : 'Save Changes') : (isGerman ? 'Kurs hinzufügen' : 'Add Course')}
                 </button>
                 <button
                   type="button"
                   onClick={handleClose}
                   className="flex-1 px-4 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600 transition-colors"
                 >
-                  Cancel
+                  {isGerman ? 'Abbrechen' : 'Cancel'}
                 </button>
               </div>
             </form>

@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import PowerHotkeysProvider from '@/components/providers/PowerHotkeysProvider';
 import { ChampionProvider } from '@/components/providers/ChampionProvider';
+import { useAppLanguage } from '@/components/providers/LanguageProvider';
 
 const pageVariants = {
   initial: {
@@ -38,13 +39,14 @@ function DashboardLayoutInner({
 }) {
   const pathname = usePathname();
   const { isCollapsed } = useSidebar();
+  const { copy } = useAppLanguage();
   const isFocusRoute = pathname === '/focus';
 
   if (isFocusRoute) {
     return (
       <ErrorBoundary
-        fallbackTitle="Focus Screen Error"
-        fallbackMessage="The focus screen failed to load. Please return to your dashboard."
+        fallbackTitle={copy.header.focusScreenErrorTitle}
+        fallbackMessage={copy.header.focusScreenErrorMessage}
       >
         <div className="min-h-screen bg-[#05080f]">{children}</div>
       </ErrorBoundary>
@@ -53,8 +55,8 @@ function DashboardLayoutInner({
 
   return (
     <ErrorBoundary
-      fallbackTitle="Dashboard Error"
-      fallbackMessage="Something went wrong while loading the dashboard. Don't worry, your data is safe."
+      fallbackTitle={copy.header.dashboardErrorTitle}
+      fallbackMessage={copy.header.dashboardErrorMessage}
     >
       <div className="min-h-screen">
         <Sidebar />

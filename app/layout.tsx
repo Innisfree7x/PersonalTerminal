@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { SoundProvider } from "@/components/providers/SoundProvider";
 import PerformanceMonitor from "@/components/providers/PerformanceMonitor";
 import { LucianBubbleProvider } from "@/components/providers/LucianBubbleProvider";
+import { LanguageProvider } from "@/components/providers/LanguageProvider";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -48,23 +49,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="de" className="dark" suppressHydrationWarning>
       <body className="font-sans antialiased">
         <AuthProvider>
-          <ThemeProvider>
-            <SoundProvider>
-              <QueryProvider>
-                <FocusTimerProvider>
-                  <LucianBubbleProvider>
-                    <CommandPaletteProvider>
-                      {children}
-                    </CommandPaletteProvider>
-                    <PerformanceMonitor />
-                  </LucianBubbleProvider>
-                </FocusTimerProvider>
-              </QueryProvider>
-            </SoundProvider>
-          </ThemeProvider>
+          <LanguageProvider>
+            <ThemeProvider>
+              <SoundProvider>
+                <QueryProvider>
+                  <FocusTimerProvider>
+                    <LucianBubbleProvider>
+                      <CommandPaletteProvider>
+                        {children}
+                      </CommandPaletteProvider>
+                      <PerformanceMonitor />
+                    </LucianBubbleProvider>
+                  </FocusTimerProvider>
+                </QueryProvider>
+              </SoundProvider>
+            </ThemeProvider>
+          </LanguageProvider>
         </AuthProvider>
         <ToastProvider />
         <Analytics />

@@ -25,15 +25,15 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <html lang="en" className="dark">
+    <html lang="de" className="dark" suppressHydrationWarning>
       <body className="bg-background text-text-primary p-8">
         <div className="max-w-xl mx-auto mt-24 rounded-xl border border-error/30 bg-surface p-8 space-y-4">
-          <h2 className="text-2xl font-bold">Critical Application Error</h2>
+          <h2 className="text-2xl font-bold">Kritischer Anwendungsfehler</h2>
           <p className="text-text-secondary">
-            Something unexpected happened. The incident was captured for analysis.
+            Es ist ein unerwarteter Fehler aufgetreten. Der Vorfall wurde zur Analyse erfasst.
           </p>
           <Button variant="primary" onClick={() => reset()}>
-            Retry
+            Erneut versuchen
           </Button>
         </div>
       </body>
