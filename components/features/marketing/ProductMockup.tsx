@@ -59,7 +59,7 @@ export function ProductMockup() {
               >
                 <div>
                   <p className="text-xs font-semibold text-[#FAF0E6]">Trajectory - Today - Career</p>
-                  <p className="mt-0.5 text-[10px] uppercase tracking-[0.18em] text-zinc-600">ein durchgaengiger Plan</p>
+                  <p className="mt-0.5 text-[10px] uppercase tracking-[0.18em] text-zinc-600">ein durchgängiger Plan</p>
                 </div>
                 <div className="rounded-md border border-white/10 bg-[#1C1C1C] px-2 py-0.5">
                   <p className="font-mono text-[10px] text-zinc-500">Risk live</p>
@@ -195,7 +195,7 @@ export function ProductMockup() {
                     </div>
                     <div className="mt-3 rounded-xl border border-[#E8B930]/20 bg-[#E8B930]/8 p-3">
                       <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-600">Next Action</p>
-                      <p className="mt-1 text-[11px] text-[#FAF0E6]">Gap direkt als Today-Task uebernehmen und heute im CV fixen.</p>
+                      <p className="mt-1 text-[11px] text-[#FAF0E6]">Gap direkt als Today-Task übernehmen und heute im CV fixen.</p>
                     </div>
                   </motion.div>
 
@@ -217,7 +217,7 @@ export function ProductMockup() {
                         <Sparkles className="h-3.5 w-3.5 text-violet-300" />
                         <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-600">Intent preview</p>
                       </div>
-                      <p className="mt-2 text-[11px] text-zinc-300">Task wird morgen angelegt und mit Career Gap verknuepft.</p>
+                      <p className="mt-2 text-[11px] text-zinc-300">Task wird morgen angelegt und mit Career Gap verknüpft.</p>
                     </div>
                     <div className="mt-3 flex items-center justify-between rounded-xl border border-white/8 bg-black/20 px-3 py-2.5">
                       <div className="flex items-center gap-2">

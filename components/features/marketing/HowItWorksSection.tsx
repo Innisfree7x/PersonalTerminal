@@ -9,11 +9,11 @@ const steps = [
     icon: UserPlus,
     title: 'Setze eine echte Deadline.',
     description:
-      'Nicht "ich will mal den GMAT machen", sondern ein klares Ziel mit Termin und realistischer Kapazitaet.',
+      'Nicht "ich will mal den GMAT machen", sondern ein klares Ziel mit Termin und realistischer Kapazität.',
     preview: (
       <div className="rounded-2xl border border-white/8 bg-white/[0.02] p-4">
         <div className="space-y-2">
-          {['Ziel: GMAT 2027', 'Deadline: 01.03.2027', 'Kapazitaet: 18h/Woche'].map((field) => (
+          {['Ziel: GMAT 2027', 'Deadline: 01.03.2027', 'Kapazität: 18h/Woche'].map((field) => (
             <div key={field} className="rounded-xl border border-white/8 bg-black/20 px-3 py-2">
               <span className="text-xs text-zinc-400">{field}</span>
             </div>
@@ -27,7 +27,7 @@ const steps = [
     icon: Gauge,
     title: 'Sieh, wo der Buffer bricht.',
     description:
-      'INNIS rechnet rueckwaerts. Du siehst frueh, ob dein Plan on track ist oder ob du nur beschaeftigt wirkst.',
+      'INNIS rechnet rückwärts. Du siehst früh, ob dein Plan on track ist oder ob du nur beschäftigt wirkst.',
     preview: (
       <div className="space-y-2">
         {[
@@ -48,12 +48,12 @@ const steps = [
     icon: ArrowRight,
     title: 'Trage den Plan in den Tag.',
     description:
-      'Morning Briefing, Today, Fokus und Career greifen ineinander, statt neue Oberflaechenarbeit zu produzieren.',
+      'Morning Briefing, Today, Fokus und Career greifen ineinander, statt neue Oberflächenarbeit zu produzieren.',
     preview: (
       <div className="space-y-2">
         <div className="rounded-xl border border-white/8 bg-black/20 px-3 py-2.5">
           <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-500">Morning Briefing</p>
-          <p className="mt-1 text-sm text-zinc-300">Naechster kritischer Move: GMAT verbal block</p>
+          <p className="mt-1 text-sm text-zinc-300">Nächster kritischer Move: GMAT verbal block</p>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-xl border border-white/8 bg-black/20 px-3 py-2.5">

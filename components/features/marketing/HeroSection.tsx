@@ -60,7 +60,7 @@ export function HeroSection() {
       icon: Radar,
       eyebrow: 'Career',
       title: 'CV -> Radar -> Gap -> Task',
-      detail: 'Nicht nur Jobs finden, sondern den naechsten sinnvollen Move kennen.',
+      detail: 'Nicht nur Jobs finden, sondern den nächsten sinnvollen Move kennen.',
     },
   ];
 
@@ -129,7 +129,7 @@ export function HeroSection() {
                 className="mt-5 max-w-xl text-[16px] leading-[1.75] text-zinc-400"
               >
                 INNIS verbindet Trajectory, Today und Career Intelligence in einem System. Du bekommst erst den Risk-Status,
-                dann den naechsten Tageszug und schliesslich die Rollen, die zu deinem Profil wirklich passen.
+                dann den nächsten Tageszug und schließlich die Rollen, die zu deinem Profil wirklich passen.
               </motion.p>
 
               <motion.div
@@ -223,7 +223,7 @@ export function HeroSection() {
                 <div className="space-y-6">
                   <label className="block">
                     <span className="flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-zinc-500">
-                      Kapazitaet
+                      Kapazität
                       <span className="font-semibold text-zinc-400">{capacityHoursPerWeek}h / Woche</span>
                     </span>
                     <input
@@ -266,7 +266,7 @@ export function HeroSection() {
                   {[
                     { label: 'Deadline', value: `${dueDays} Tage` },
                     { label: 'Prep Start', value: prepStartLabel },
-                    { label: 'Benoetigte Wochen', value: String(preview.requiredWeeks) },
+                    { label: 'Benötigte Wochen', value: String(preview.requiredWeeks) },
                     { label: 'Buffer', value: '2 Wochen' },
                   ].map((row, i) => (
                     <div

@@ -27,24 +27,24 @@ const surfaces: ShowcaseSurface[] = [
     proofValue: 'Startdatum + Risiko',
     proofDetail: 'Ein Blick reicht, um zu sehen, wann die Vorbereitung wirklich beginnen muss und wo dein Plan kippt.',
     signals: [
-      'Milestones fuer Thesis, GMAT, Praktika und Master-Apps',
-      'Risk-Ampel statt Bauchgefuehl',
-      'Opportunity Windows fuer echte Bewerbungsfenster',
+      'Milestones für Thesis, GMAT, Praktika und Master-Apps',
+      'Risk-Ampel statt Bauchgefühl',
+      'Opportunity Windows für echte Bewerbungsfenster',
     ],
   },
   {
     icon: CalendarDays,
     number: '02',
     title: 'Today',
-    claim: 'INNIS reduziert den Tag nicht auf mehr Widgets, sondern auf den naechsten sinnvollen Move.',
-    shift: 'Aus offenem Task-Lärm wird ein taeglicher Operations-Flow.',
+    claim: 'INNIS reduziert den Tag nicht auf mehr Widgets, sondern auf den nächsten sinnvollen Move.',
+    shift: 'Aus offenem Task-Lärm wird ein täglicher Operations-Flow.',
     proofLabel: 'Sichtbarer Output',
     proofValue: 'Morning Briefing',
-    proofDetail: 'Trajectory-Kontext, Momentum und heutiger Fokus sitzen in einer einzigen Zeile statt in fuenf losen Karten.',
+    proofDetail: 'Trajectory-Kontext, Momentum und heutiger Fokus sitzen in einer einzigen Zeile statt in fünf losen Karten.',
     signals: [
       'Morning Briefing mit Strategie-Kontext',
       'Fokus-Sessions mit klarem Startpunkt',
-      'Daily-Flaechen, die wirklich handlungsfaehig bleiben',
+      'Daily-Flächen, die wirklich handlungsfähig bleiben',
     ],
   },
   {
@@ -55,24 +55,24 @@ const surfaces: ShowcaseSurface[] = [
     shift: 'Aus Keyword-Suche wird ein realistischer Bewerbungs-Radar.',
     proofLabel: 'Sichtbarer Output',
     proofValue: 'Fit + Gap + Next Move',
-    proofDetail: 'Du bekommst Markt-Passung, Gruende, Luecken und direkt den naechsten sinnvollen Schritt fuer jede Rolle.',
+    proofDetail: 'Du bekommst Markt-Passung, Gründe, Lücken und direkt den nächsten sinnvollen Schritt für jede Rolle.',
     signals: [
       'CV-Intelligence mit Strengths, Gaps und Rank-Tier',
       'Reach-Bands statt pseudo-präziser 99/100 Scores',
-      'Gap direkt als Today-Task oder Prep-Block uebernehmbar',
+      'Gap direkt als Today-Task oder Prep-Block übernehmbar',
     ],
   },
   {
     icon: Command,
     number: '04',
     title: 'Command Rail',
-    claim: 'Wenn alles parallel laeuft, darf Ausfuehrung nicht an Menues, Tabs und Kontextwechseln haengen.',
-    shift: 'Aus Klicken in mehreren Bereichen wird ein gemeinsames Ausfuehrungssystem.',
+    claim: 'Wenn alles parallel läuft, darf Ausführung nicht an Menüs, Tabs und Kontextwechseln hängen.',
+    shift: 'Aus Klicken in mehreren Bereichen wird ein gemeinsames Ausführungssystem.',
     proofLabel: 'Sichtbarer Output',
     proofValue: 'Eine Eingabe, ein Move',
-    proofDetail: 'Tasks, Goals und Navigation laufen ueber dieselbe Command-Surface und bleiben damit konsistent.',
+    proofDetail: 'Tasks, Goals und Navigation laufen über dieselbe Command-Surface und bleiben damit konsistent.',
     signals: [
-      'Deterministische Preview vor Ausfuehrung',
+      'Deterministische Preview vor Ausführung',
       'Career, Uni und Daily im selben Rail',
       'Keyboard-first statt Tab-Switching',
     ],
@@ -94,12 +94,12 @@ export function ProductShowcase() {
         >
           <p className="premium-kicker">Was INNIS konkret anders macht</p>
           <h2 className="premium-heading text-[clamp(2.2rem,5vw,4rem)] font-semibold text-[#FAF0E6]">
-            Vier Flaechen.
+            Vier Flächen.
             <br />
-            Ein sichtbarer Vorteil pro Flaeche.
+            Ein sichtbarer Vorteil pro Fläche.
           </h2>
           <p className="mt-6 text-lg leading-[1.7] text-zinc-500">
-            Nicht mehr Features, sondern klarere Outputs: was driftet, was heute zaehlt, welche Rolle realistisch ist und was du als Naechstes ausfuehrst.
+            Nicht mehr Features, sondern klarere Outputs: was driftet, was heute zählt, welche Rolle realistisch ist und was du als Nächstes ausführst.
           </p>
         </motion.div>
 

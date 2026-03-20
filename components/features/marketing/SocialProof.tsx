@@ -6,7 +6,7 @@ import { BriefcaseBusiness, Command, Route } from 'lucide-react';
 const stats = [
   { value: '-47%', label: 'weniger Deadline-Risiko', detail: 'durch Backward Planning + Buffer' },
   { value: '+7h', label: 'mehr Fokuszeit / Woche', detail: 'durch Morning Brief + Focus Flow' },
-  { value: '86%', label: 'Wochen mit klarem Next Move', detail: 'statt taeglichem Neuplanen' },
+  { value: '86%', label: 'Wochen mit klarem Next Move', detail: 'statt täglichem Neuplanen' },
   { value: '1 System', label: 'Plan, Day und Karriere', detail: 'statt verteiltem Tool-Chaos' },
 ];
 
@@ -19,12 +19,12 @@ const proofPanels = [
   {
     icon: Command,
     title: 'Today ist keine zweite To-do-Liste',
-    copy: 'Morning Briefing, Focus und Command Rail ziehen den naechsten Move direkt aus dem strategischen Plan, statt ihn jeden Morgen neu zu raten.',
+    copy: 'Morning Briefing, Focus und Command Rail ziehen den nächsten Move direkt aus dem strategischen Plan, statt ihn jeden Morgen neu zu raten.',
   },
   {
     icon: BriefcaseBusiness,
     title: 'Career ist nicht nur Jobsuche',
-    copy: 'CV-Upload, Match-Signal, Gaps und konkrete Aktionen liegen in derselben Oberflaeche. Dadurch wird aus "passt vielleicht" ein klarer Bewerbungszug.',
+    copy: 'CV-Upload, Match-Signal, Gaps und konkrete Aktionen liegen in derselben Oberfläche. Dadurch wird aus "passt vielleicht" ein klarer Bewerbungszug.',
   },
 ];
 
@@ -46,7 +46,7 @@ export function SocialProof() {
             Kein Motivations-Tool. Ein System mit messbarer Klarheit.
           </h2>
           <p className="mt-5 text-base leading-[1.8] text-zinc-500 md:text-lg">
-            Die staerksten Stellen von INNIS sind nicht Features fuer sich, sondern die Logik dazwischen: erst Risiko sehen, dann priorisieren, dann handeln.
+            Die stärksten Stellen von INNIS sind nicht Features für sich, sondern die Logik dazwischen: erst Risiko sehen, dann priorisieren, dann handeln.
           </p>
         </motion.div>
 

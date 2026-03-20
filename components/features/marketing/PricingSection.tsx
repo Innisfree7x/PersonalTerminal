@@ -5,7 +5,7 @@ import { Check, Sparkles } from 'lucide-react';
 import { TrackedCtaLink } from './TrackedCtaLink';
 
 const FREE_FEATURES = [
-  'Trajectory-Grundlage fuer ein aktives Ziel',
+  'Trajectory-Grundlage für ein aktives Ziel',
   'Today, Tasks und Fokus-Timer',
   'University Tracking und Calendar',
   'Career Board im selben System',
@@ -18,7 +18,7 @@ const PRO_FEATURES = [
   'Task-Pakete direkt aus Trajectory',
   'Erweiterte Analytics und Exporte',
   'Strategische Reports und Bridges',
-  'Fast Feature Access fuer Power User',
+  'Fast Feature Access für Power User',
 ];
 
 export function PricingSection() {
@@ -36,11 +36,11 @@ export function PricingSection() {
         >
           <p className="premium-kicker">Preise</p>
           <h2 className="premium-heading mb-4 text-3xl font-semibold text-[#FAF0E6] md:text-5xl">
-            Free muss schon nuetzlich sein.
+            Free muss schon nützlich sein.
             <span className="block text-zinc-500">Pro vertieft die Strategie.</span>
           </h2>
           <p className="premium-subtext mx-auto max-w-md">
-            Keine kuenstliche Abo-Dramatik. Du sollst zuerst merken, ob das System fuer dich funktioniert.
+            Keine künstliche Abo-Dramatik. Du sollst zuerst merken, ob das System für dich funktioniert.
           </p>
         </motion.div>
 
@@ -57,10 +57,10 @@ export function PricingSection() {
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-400">Free</p>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-5xl font-bold text-[#FAF0E6]">0€</span>
-                <span className="text-sm text-zinc-500">/ fuer immer</span>
+                <span className="text-sm text-zinc-500">/ für immer</span>
               </div>
               <p className="mt-3 text-sm leading-relaxed text-zinc-500">
-                Alles, was du brauchst, um aus Ambition tatsaechliche Tagesausfuehrung zu machen.
+                Alles, was du brauchst, um aus Ambition tatsächliche Tagesausführung zu machen.
               </p>
             </div>
 
@@ -94,7 +94,7 @@ export function PricingSection() {
             <div className="absolute right-5 top-5">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-yellow-500/25 bg-yellow-500/10 px-2.5 py-1 text-xs font-medium text-yellow-400">
                 <Sparkles className="h-3 w-3" />
-                Demnaechst
+                Demnächst
               </span>
             </div>
 
@@ -102,10 +102,10 @@ export function PricingSection() {
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-yellow-500">Pro</p>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-5xl font-bold text-[#FAF0E6]">Bald</span>
-                <span className="text-sm text-zinc-500">/ verfuegbar</span>
+                <span className="text-sm text-zinc-500">/ verfügbar</span>
               </div>
               <p className="mt-3 text-sm leading-relaxed text-zinc-500">
-                Fuer Nutzer, die aus INNIS ihre eigentliche Karriere-Konsole machen wollen.
+                Für Nutzer, die aus INNIS ihre eigentliche Karriere-Konsole machen wollen.
               </p>
             </div>
 
@@ -140,8 +140,8 @@ export function PricingSection() {
             Pricing Haltung
           </p>
           <p className="mt-2 text-sm leading-relaxed text-zinc-400">
-            INNIS soll sich nicht durch kuenstliche Sperren teuer anfuehlen.
-            Free loest das Kernproblem. Pro macht die Planung tiefer, nicht die Basis erst benutzbar.
+            INNIS soll sich nicht durch künstliche Sperren teuer anfühlen.
+            Free löst das Kernproblem. Pro macht die Planung tiefer, nicht die Basis erst benutzbar.
           </p>
         </motion.div>
       </div>

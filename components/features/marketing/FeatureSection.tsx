@@ -12,7 +12,7 @@ const pillars = [
     description:
       'Die App beginnt nicht mit einer To-do-Liste, sondern mit deinem strategischen Konfliktmodell.',
     points: [
-      'Milestones fuer Thesis, GMAT, Praktika und Master-Apps',
+      'Milestones für Thesis, GMAT, Praktika und Master-Apps',
       'Startfenster, Buffer und Risk-Status aus einer gemeinsamen Logik',
       'Opportunity Windows statt verstreuter Reminder',
     ],
@@ -26,9 +26,9 @@ const pillars = [
     id: 'today',
     number: '02',
     icon: CalendarDays,
-    title: 'Today ist die Uebersetzung.',
+    title: 'Today ist die Übersetzung.',
     description:
-      'Der Wert entsteht nicht im Plan allein, sondern in der taeglichen Verdichtung auf das, was heute wirklich zaehlt.',
+      'Der Wert entsteht nicht im Plan allein, sondern in der täglichen Verdichtung auf das, was heute wirklich zählt.',
     points: [
       'Morning Briefing verbindet Strategie und Tagesarbeit',
       'Top-Moves statt offenem Task-Wust',
@@ -46,10 +46,10 @@ const pillars = [
     icon: Command,
     title: 'Execution bleibt ruhig.',
     description:
-      'Command Rail, Fokus und Career sind keine Spielerei, sondern machen Ambition ausfuehrbar ohne mehr Oberflaechenstress.',
+      'Command Rail, Fokus und Career sind keine Spielerei, sondern machen Ambition ausführbar ohne mehr Oberflächenstress.',
     points: [
-      'Deterministische Commands statt menuebasiertem Klicken',
-      'Fokus-Sessions mit klarer Rueckmeldung und Persistenz',
+      'Deterministische Commands statt menübasiertem Klicken',
+      'Fokus-Sessions mit klarer Rückmeldung und Persistenz',
       'Career bleibt im selben System wie die Studienplanung',
     ],
     preview: [
@@ -62,11 +62,11 @@ const pillars = [
     id: 'reliability',
     number: '04',
     icon: ShieldCheck,
-    title: 'Premium heisst auch verlaesslich.',
+    title: 'Premium heißt auch verlässlich.',
     description:
-      'Wenn das Produkt ernst wirken soll, darf es nicht an Build-Qualitaet, OAuth oder Hotpaths zerfasern.',
+      'Wenn das Produkt ernst wirken soll, darf es nicht an Build-Qualität, OAuth oder Hotpaths zerfasern.',
     points: [
-      'CI-Gates fuer Type, Lint, Build und blocker E2E',
+      'CI-Gates für Type, Lint, Build und blocker E2E',
       'Ops-Metriken und Route-Latenzen statt stiller Drift',
       'Security- und Tenant-Isolation-Hardening im Kernscope',
     ],
@@ -91,14 +91,14 @@ export function FeatureSection() {
           transition={{ duration: 0.5 }}
           className="mx-auto mb-16 max-w-3xl text-center"
         >
-          <p className="premium-kicker">Warum es sich anders anfuehlt</p>
+          <p className="premium-kicker">Warum es sich anders anfühlt</p>
           <h2 className="premium-heading mb-4 text-3xl font-semibold text-[#FAF0E6] md:text-5xl">
             Kein Sammelsurium aus Features.
             <span className="block text-zinc-500">Ein System mit klarer Reihenfolge.</span>
           </h2>
           <p className="premium-subtext mx-auto max-w-xl">
             Erst verstehen, wo dein Plan kollidiert. Dann den Tag so verdichten,
-            dass aus Ambition tatsaechliche Ausfuehrung wird.
+            dass aus Ambition tatsächliche Ausführung wird.
           </p>
         </motion.div>
 
