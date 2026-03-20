@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'INNIS — Strategie und Daily Execution für Studenten',
     description:
-      'Trajectory, Today und Focus in einem System fuer Studenten mit parallelen High-Stakes-Zielen.',
+      'Trajectory, Today und Focus in einem System für Studenten mit parallelen High-Stakes-Zielen.',
     url: '/',
   },
 };

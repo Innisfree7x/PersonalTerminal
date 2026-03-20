@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react';
 
 export const metadata = {
   title: 'About — INNIS',
-  description: 'Warum INNIS gebaut wurde: aus echter Frustration ueber zu viele Tools und zu wenig Prioritaetsklarheit im Studienalltag.',
+  description: 'Warum INNIS gebaut wurde: aus echter Frustration über zu viele Tools und zu wenig Prioritätsklarheit im Studienalltag.',
 };
 
 export default function AboutPage() {
@@ -12,7 +12,7 @@ export default function AboutPage() {
       <div className="mx-auto max-w-3xl px-5 sm:px-8">
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-red-400">About</p>
         <h1 className="premium-heading mb-8 text-4xl font-semibold text-[#FAF0E6] md:text-6xl">
-          Gebaut aus echter Ueberforderung.
+          Gebaut aus echter Überforderung.
           <span className="block text-zinc-500">Nicht aus Marktanalyse.</span>
         </h1>
 
@@ -26,24 +26,24 @@ export default function AboutPage() {
 
           <p className="premium-card-soft rounded-[1.75rem] p-6 text-base leading-relaxed text-zinc-300">
             Deshalb ist INNIS nicht als generisches Productivity-Tool gedacht.
-            Es ist ein System fuer Studenten mit parallelen High-Stakes-Zielen:
+            Es ist ein System für Studenten mit parallelen High-Stakes-Zielen:
             zuerst Trajectory, dann Today, dann Fokus und Career.
           </p>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="premium-card-soft rounded-[1.75rem] p-6">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">Wofuer INNIS steht</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">Wofür INNIS steht</p>
               <ul className="mt-4 space-y-3 text-sm leading-relaxed text-zinc-300">
-                <li>Strategische Klarheit vor dekorativer Produktivitaet.</li>
-                <li>Echte Priorisierung statt Dashboard-Lautstaerke.</li>
-                <li>Ein bewusstes Produkt fuer Studenten, nicht fuer Enterprise-Teams.</li>
+                <li>Strategische Klarheit vor dekorativer Produktivität.</li>
+                <li>Echte Priorisierung statt Dashboard-Lautstärke.</li>
+                <li>Ein bewusstes Produkt für Studenten, nicht für Enterprise-Teams.</li>
               </ul>
             </div>
 
             <div className="premium-card-soft rounded-[1.75rem] p-6">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">Wofuer INNIS nicht gebaut ist</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">Wofür INNIS nicht gebaut ist</p>
               <ul className="mt-4 space-y-3 text-sm leading-relaxed text-zinc-300">
-                <li>Nicht fuer beliebige Team-Workflows.</li>
+                <li>Nicht für beliebige Team-Workflows.</li>
                 <li>Nicht als another pretty to-do app.</li>
                 <li>Nicht als Featuresammlung ohne Haltung.</li>
               </ul>
@@ -51,7 +51,7 @@ export default function AboutPage() {
           </div>
 
           <p className="premium-card-soft rounded-[1.75rem] p-6 text-base leading-relaxed text-zinc-300">
-            Das Projekt ist persoenlich, kostenlos startbar und wird aktiv weiterentwickelt.
+            Das Projekt ist persönlich, kostenlos startbar und wird aktiv weiterentwickelt.
             Feedback ist willkommen, aber die Richtung bleibt bewusst klar:
             weniger Tool-Chaos, mehr strategische Wahrheit.
           </p>
@@ -59,7 +59,7 @@ export default function AboutPage() {
           <div className="border-t border-white/10 pt-4">
             <p className="mb-6 text-sm text-zinc-500">
               INNIS ist kein VC-getriebenes Storytelling-Produkt. Es ist ein ernst gemeintes Werkzeug
-              fuer den echten Studienalltag.
+              für den echten Studienalltag.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link

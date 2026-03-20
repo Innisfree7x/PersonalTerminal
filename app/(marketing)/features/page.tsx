@@ -5,21 +5,21 @@ import { FeatureSection } from '@/components/features/marketing/FeatureSection';
 export const metadata = {
   title: 'Features — INNIS',
   description:
-    'Trajectory, Today, Command Rail und Reliability: die vier Ebenen von INNIS fuer Studenten mit parallelen High-Stakes-Zielen.',
+    'Trajectory, Today, Command Rail und Reliability: die vier Ebenen von INNIS für Studenten mit parallelen High-Stakes-Zielen.',
 };
 
 const FEATURE_GROUPS = [
   {
     icon: Route,
     title: 'Strategische Ebene',
-    tagline: 'Trajectory statt Bauchgefuehl.',
+    tagline: 'Trajectory statt Bauchgefühl.',
     points: [
-      'Milestone-Planung fuer Thesis, GMAT, Master-Apps und Praktika',
+      'Milestone-Planung für Thesis, GMAT, Master-Apps und Praktika',
       'Horizon-Simulation mit Stunden/Woche oder Monatsplanung',
       'Risk Console mit on track, tight und at risk',
-      'Opportunity Windows mit Prioritaetsstufen',
-      'Task-Package Generation fuer konkrete Execution-Bloecke',
-      'Trajectory-Status als taeglicher Briefing-Input',
+      'Opportunity Windows mit Prioritätsstufen',
+      'Task-Package Generation für konkrete Execution-Blöcke',
+      'Trajectory-Status als täglicher Briefing-Input',
     ],
   },
   {
@@ -28,9 +28,9 @@ const FEATURE_GROUPS = [
     tagline: 'Today verdichtet den Tag.',
     points: [
       'Task-Panel, Kalender, Fokus-Timer und Study Progress in einem Screen',
-      'Morning Briefing zeigt den naechsten strategischen Meilenstein',
-      'Urgency-orientierte Priorisierung fuer exam-nahe Aufgaben',
-      'Quick Actions fuer Task, Goal, Course und Event',
+      'Morning Briefing zeigt den nächsten strategischen Meilenstein',
+      'Urgency-orientierte Priorisierung für exam-nahe Aufgaben',
+      'Quick Actions für Task, Goal, Course und Event',
       'Direct handoff in den Vollbild-Focus-Screen',
       'Live-Daten statt statischer Tagesplanung',
     ],
@@ -40,25 +40,25 @@ const FEATURE_GROUPS = [
     title: 'Execution Ebene',
     tagline: 'Commands, Fokus und Career greifen ineinander.',
     points: [
-      'Deterministischer Parser fuer Tasks, Goals und Navigation',
-      'Intent Preview vor Ausfuehrung statt Blind-Commands',
+      'Deterministischer Parser für Tasks, Goals und Navigation',
+      'Intent Preview vor Ausführung statt Blind-Commands',
       'Syntax-Feedback bei fehlerhaften Eingaben',
       'Enter-to-confirm mit klarer Aktionstransparenz',
       'Fokus-Sessions und Career-Board im selben Workflow',
-      'Schneller als menuebasierte CRUD-Flows',
+      'Schneller als menübasierte CRUD-Flows',
     ],
   },
   {
     icon: ShieldCheck,
     title: 'Vertrauens Ebene',
-    tagline: 'Premium heisst auch verlaesslich.',
+    tagline: 'Premium heißt auch verlässlich.',
     points: [
       'Ops-Flow-Metriken mit p95 und Error-Budget Tracking',
-      'Cron-Health-Sichtbarkeit fuer Reminder und Reports',
-      'CI-Gates fuer type-check, lint, build und blocker E2E',
-      'OAuth Redirect-Haertung fuer stabile Google-Integrationen',
-      'Incident Templates plus CODEOWNERS fuer schnelle Eskalation',
-      'Dokumentierte Release-Audits fuer agentenuebergreifende Sicherheit',
+      'Cron-Health-Sichtbarkeit für Reminder und Reports',
+      'CI-Gates für type-check, lint, build und blocker E2E',
+      'OAuth Redirect-Härtung für stabile Google-Integrationen',
+      'Incident Templates plus CODEOWNERS für schnelle Eskalation',
+      'Dokumentierte Release-Audits für agentenübergreifende Sicherheit',
     ],
   },
 ];
@@ -69,11 +69,11 @@ export default function FeaturesPage() {
       <section className="mx-auto max-w-4xl px-5 py-20 text-center sm:px-8 md:py-28">
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-red-400">Features</p>
         <h1 className="premium-heading mb-6 text-4xl font-semibold text-[#FAF0E6] md:text-6xl">
-          INNIS ist kein Feature-Buendel.
+          INNIS ist kein Feature-Bündel.
           <span className="block text-zinc-500">Es ist ein System in vier Ebenen.</span>
         </h1>
         <p className="premium-subtext mx-auto max-w-2xl text-lg">
-          Genau deshalb fuehlt es sich anders an als ein klassisches Productivity-Tool:
+          Genau deshalb fühlt es sich anders an als ein klassisches Productivity-Tool:
           Strategie, Day-to-day und Reliability greifen hier bewusst ineinander.
         </p>
       </section>
