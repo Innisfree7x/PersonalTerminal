@@ -145,6 +145,7 @@ export default function TodayPage() {
     const messages = parseOAuthCallbackParams();
 
     if (messages.error) {
+      play('error');
       toast.error(messages.error);
     }
 
@@ -156,7 +157,7 @@ export default function TodayPage() {
         checkGoogleCalendarConnectionAction().then(setIsConnected);
       }, 1000);
     }
-  }, [queryClient]);
+  }, [queryClient, play]);
 
   // Check connection status on mount
   useEffect(() => {
@@ -203,6 +204,7 @@ export default function TodayPage() {
       toast.success('Successfully disconnected from Google Calendar.');
     },
     onError: () => {
+      play('error');
       toast.error('Verbindung konnte nicht getrennt werden. Bitte erneut versuchen.');
     },
   });

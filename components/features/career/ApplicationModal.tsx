@@ -1,7 +1,9 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import ApplicationForm from './ApplicationForm';
 import { CreateApplicationInput } from '@/lib/schemas/application.schema';
+import { useAppSound } from '@/lib/hooks/useAppSound';
 
 interface ApplicationModalProps {
   isOpen: boolean;
@@ -22,6 +24,15 @@ export default function ApplicationModal({
   submitDisabled = false,
   error = null,
 }: ApplicationModalProps) {
+  const { play } = useAppSound();
+  const prevOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (isOpen && !prevOpenRef.current) play('modal-open');
+    if (!isOpen && prevOpenRef.current) play('modal-close');
+    prevOpenRef.current = isOpen;
+  }, [isOpen, play]);
+
   if (!isOpen) return null;
 
   const handleSubmit = (data: CreateApplicationInput) => {

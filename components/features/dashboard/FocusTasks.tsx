@@ -156,6 +156,7 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
       if (context?.previousDailyTasks) {
         queryClient.setQueryData(['daily-tasks', today], context.previousDailyTasks);
       }
+      play('error');
       toast.error('Task konnte nicht erstellt werden. Bitte erneut versuchen.');
     },
   });
@@ -388,6 +389,7 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
             queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
             toast.success('Ping: snoozed to tomorrow');
           } catch {
+            play('error');
             toast.error('Aufgabe konnte nicht verschoben werden. Bitte erneut versuchen.');
           }
           return;
@@ -401,7 +403,7 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
     return subscribePingAction((action) => {
       void executePing(action);
     });
-  }, [focusedId, handleCheck, queryClient, sortedTasks]);
+  }, [focusedId, handleCheck, play, queryClient, sortedTasks]);
 
   const renderTaskRow = (task: TaskItem, index: number) => (
     <motion.div

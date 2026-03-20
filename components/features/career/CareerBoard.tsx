@@ -269,6 +269,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
             startTransition(() => {
                 dispatchOptimistic({ type: 'replace', apps: previousApplications });
             });
+            play('error');
             toast.error('Bewerbung konnte nicht gespeichert werden. Bitte erneut versuchen.');
         }
     };
@@ -302,6 +303,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
             startTransition(() => {
                 dispatchOptimistic({ type: 'replace', apps: previousApplications });
             });
+            play('error');
             toast.error('Änderungen konnten nicht gespeichert werden. Bitte erneut versuchen.');
         }
         setEditingApplication(null);
@@ -330,6 +332,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
             startTransition(() => {
                 dispatchOptimistic({ type: 'replace', apps: previousApplications });
             });
+            play('error');
             toast.error('Bewerbung konnte nicht gelöscht werden. Bitte erneut versuchen.');
         }
     };
@@ -382,6 +385,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                 startTransition(() => {
                     dispatchOptimistic({ type: 'replace', apps: previousApplications });
                 });
+                play('error');
                 toast.error('Status konnte nicht geändert werden — Karte wurde zurückgesetzt.');
             }
         }

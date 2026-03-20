@@ -16,6 +16,7 @@ import { Plus, Target, Filter } from 'lucide-react';
 import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
 import { useListNavigation } from '@/lib/hooks/useListNavigation';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
+import { useAppSound } from '@/lib/hooks/useAppSound';
 
 type SortOption = 'date' | 'progress' | 'title';
 type FilterOption = GoalCategory | 'all';
@@ -44,6 +45,7 @@ export default function GoalsPage() {
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('date');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
+  const { play } = useAppSound();
 
   // Fetch goals with React Query
   const {
@@ -86,12 +88,14 @@ export default function GoalsPage() {
       setIsModalOpen(false);
       setEditingGoal(null);
       dispatchChampionEvent({ type: 'GOAL_CREATED' });
+      play('goal-created');
       toast.success('Goal created!');
     },
     onError: (err: Error, _variables, context) => {
       if (context?.previousGoals) {
         queryClient.setQueryData(['goals'], context.previousGoals);
       }
+      play('error');
       toast.error(err.message || 'Ziel konnte nicht erstellt werden. Bitte erneut versuchen.');
     },
   });
@@ -125,6 +129,7 @@ export default function GoalsPage() {
       if (context?.previousGoals) {
         queryClient.setQueryData(['goals'], context.previousGoals);
       }
+      play('error');
       toast.error(err.message || 'Ziel konnte nicht aktualisiert werden. Bitte erneut versuchen.');
     },
   });
@@ -148,6 +153,7 @@ export default function GoalsPage() {
       if (context?.previousGoals) {
         queryClient.setQueryData(['goals'], context.previousGoals);
       }
+      play('error');
       toast.error(err.message || 'Ziel konnte nicht gelöscht werden. Bitte erneut versuchen.');
     },
   });

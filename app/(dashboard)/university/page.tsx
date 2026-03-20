@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/Badge';
 import { DecisionSurfaceCard } from '@/components/ui/DecisionSurfaceCard';
 import { Plus, GraduationCap, BookOpen, Calendar, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAppSound } from '@/lib/hooks/useAppSound';
 import AnimatedCounter from '@/components/ui/AnimatedCounter';
 import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
 import { useListNavigation } from '@/lib/hooks/useListNavigation';
@@ -71,6 +72,7 @@ export default function UniversityPage() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<CourseWithExercises | null>(null);
+  const { play } = useAppSound();
 
   const { data: courses = [], isLoading, error } = useQuery({
     queryKey: ['courses'],
@@ -127,6 +129,7 @@ export default function UniversityPage() {
       if (context?.previousCourses) {
         queryClient.setQueryData(['courses'], context.previousCourses);
       }
+      play('error');
       toast.error(error.message || 'Kurs konnte nicht erstellt werden. Bitte erneut versuchen.');
     },
   });
@@ -161,6 +164,7 @@ export default function UniversityPage() {
       if (context?.previousCourses) {
         queryClient.setQueryData(['courses'], context.previousCourses);
       }
+      play('error');
       toast.error(error.message || 'Kurs konnte nicht aktualisiert werden. Bitte erneut versuchen.');
     },
   });
@@ -183,6 +187,7 @@ export default function UniversityPage() {
       if (context?.previousCourses) {
         queryClient.setQueryData(['courses'], context.previousCourses);
       }
+      play('error');
       toast.error(error.message || 'Kurs konnte nicht gelöscht werden. Bitte erneut versuchen.');
     },
   });

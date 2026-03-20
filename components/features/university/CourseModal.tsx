@@ -9,6 +9,7 @@ import { createCourseSchema, type CreateCourseInput } from '@/lib/schemas/course
 import type { CourseWithExercises } from '@/lib/schemas/course.schema';
 import { Badge } from '@/components/ui/Badge';
 import { BookOpen } from 'lucide-react';
+import { useAppSound } from '@/lib/hooks/useAppSound';
 
 interface CourseModalProps {
   isOpen: boolean;
@@ -51,13 +52,18 @@ export default function CourseModal({
     defaultValues: DEFAULT_COURSE_FORM_VALUES,
   });
 
+  const { play } = useAppSound();
   const prevIsOpenRef = useRef(false);
   useEffect(() => {
     if (isOpen && !prevIsOpenRef.current) {
       reset(initialData ?? DEFAULT_COURSE_FORM_VALUES);
+      play('modal-open');
+    }
+    if (!isOpen && prevIsOpenRef.current) {
+      play('modal-close');
     }
     prevIsOpenRef.current = isOpen;
-  }, [isOpen, initialData, reset]);
+  }, [isOpen, initialData, reset, play]);
 
   const handleFormSubmit = (data: CreateCourseInput) => {
     onSubmit(data);

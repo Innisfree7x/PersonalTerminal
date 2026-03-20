@@ -1,9 +1,11 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import GoalForm from './GoalForm';
 import { CreateGoalInput } from '@/lib/schemas/goal.schema';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
+import { useAppSound } from '@/lib/hooks/useAppSound';
 
 interface GoalModalProps {
   isOpen: boolean;
@@ -26,6 +28,15 @@ export default function GoalModal({
   isSaving = false,
   layoutId,
 }: GoalModalProps) {
+  const { play } = useAppSound();
+  const prevOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (isOpen && !prevOpenRef.current) play('modal-open');
+    if (!isOpen && prevOpenRef.current) play('modal-close');
+    prevOpenRef.current = isOpen;
+  }, [isOpen, play]);
+
   return (
     <AnimatePresence>
       {isOpen && (

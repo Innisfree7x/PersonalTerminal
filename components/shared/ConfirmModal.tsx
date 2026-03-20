@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { X, AlertTriangle } from 'lucide-react';
+import { useAppSound } from '@/lib/hooks/useAppSound';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -28,6 +29,15 @@ export function ConfirmModal({
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
+  const { play } = useAppSound();
+  const prevOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (isOpen && !prevOpenRef.current) play('modal-open');
+    if (!isOpen && prevOpenRef.current) play('modal-close');
+    prevOpenRef.current = isOpen;
+  }, [isOpen, play]);
+
   // Close on ESC
   useEffect(() => {
     if (!isOpen) return;

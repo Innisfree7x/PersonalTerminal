@@ -1,4 +1,6 @@
+import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useAppSound } from '@/lib/hooks/useAppSound';
 
 interface StreakResponse {
   streak: number;
@@ -6,7 +8,12 @@ interface StreakResponse {
   activeDaysLast30?: number;
 }
 
+const STREAK_MILESTONES = [7, 14, 21, 30, 50, 100];
+
 export function useStreak() {
+  const { play } = useAppSound();
+  const prevStreakRef = useRef<number | null>(null);
+
   const { data, isLoading } = useQuery<StreakResponse>({
     queryKey: ['user', 'streak'],
     queryFn: async () => {
@@ -19,8 +26,21 @@ export function useStreak() {
     refetchOnReconnect: false,
   });
 
+  const streak = data?.streak ?? 0;
+
+  useEffect(() => {
+    if (isLoading || prevStreakRef.current === null) {
+      prevStreakRef.current = streak;
+      return;
+    }
+    if (streak > prevStreakRef.current && STREAK_MILESTONES.includes(streak)) {
+      play('streak-milestone');
+    }
+    prevStreakRef.current = streak;
+  }, [streak, isLoading, play]);
+
   return {
-    streak: data?.streak ?? 0,
+    streak,
     activeDaysLast30: data?.activeDaysLast30 ?? 0,
     isLoading,
   };
