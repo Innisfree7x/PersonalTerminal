@@ -20,7 +20,7 @@ test.describe('@blocker exercise toggle', () => {
     await page.getByTestId('add-course-button').waitFor({ state: 'visible', timeout: 30_000 });
 
     await page.getByTestId('add-course-button').click({ timeout: 30_000 });
-    const dialog = page.getByRole('dialog', { name: /add new course/i });
+    const dialog = page.getByRole('dialog', { name: /add new course|neuen kurs hinzufügen/i });
     await expect(dialog).toBeVisible({ timeout: 10_000 });
 
     // Fill form with retry — animation and render passes can occasionally clear input state.
@@ -37,10 +37,10 @@ test.describe('@blocker exercise toggle', () => {
     // Wait for modal animation + initial useEffect reset to settle
     await page.waitForTimeout(1000);
 
-    await fillAndVerify(dialog.getByLabel(/course name/i), courseName);
-    await fillAndVerify(dialog.getByLabel(/ects/i), '6');
-    await fillAndVerify(dialog.getByLabel(/number of exercises/i), '3');
-    await fillAndVerify(dialog.getByLabel(/semester/i), 'WS 2025/26');
+    await fillAndVerify(dialog.locator('#course-name'), courseName);
+    await fillAndVerify(dialog.locator('#course-ects'), '6');
+    await fillAndVerify(dialog.locator('#course-num-exercises'), '3');
+    await fillAndVerify(dialog.locator('#course-semester'), 'WS 2025/26');
 
     await dialog.getByTestId('course-modal-submit').click();
 
@@ -58,8 +58,8 @@ test.describe('@blocker exercise toggle', () => {
       .first();
 
     await expect(card).toBeVisible({ timeout: 15_000 });
-    await card.getByRole('button', { name: /expand/i }).click();
-    await card.getByText('Blatt 1').click();
+    await card.getByTestId('course-expand-button').click();
+    await card.getByTestId('course-exercise-1').click();
     await expect(card.getByText(/1\/3/)).toBeVisible({ timeout: 10_000 });
 
     // Poll exercise completion state via API before reloading
@@ -76,7 +76,7 @@ test.describe('@blocker exercise toggle', () => {
       .locator('[data-interactive="course"]')
       .filter({ has: page.getByRole('heading', { name: courseName }) })
       .first();
-    await cardAfterReload.getByRole('button', { name: /expand/i }).click();
+    await cardAfterReload.getByTestId('course-expand-button').click();
     await expect(cardAfterReload.getByText(/1\/3/)).toBeVisible({ timeout: 10_000 });
   });
 });

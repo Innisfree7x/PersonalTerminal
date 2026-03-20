@@ -242,6 +242,7 @@ export default function CourseCard({
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               aria-label={isExpanded ? "Collapse" : "Expand"}
+              data-testid="course-expand-button"
             >
               {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
             </motion.button>
@@ -290,6 +291,7 @@ export default function CourseCard({
                 {course.exercises.map((exercise, index) => (
                   <motion.div
                     key={exercise.id}
+                    data-testid={`course-exercise-${exercise.exerciseNumber}`}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.02 }}
