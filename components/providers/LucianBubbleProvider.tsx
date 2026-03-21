@@ -15,6 +15,11 @@ import {
 import { LucianBubble } from '@/components/features/lucian/LucianBubble';
 import { LucianBreakOverlay } from '@/components/features/lucian/LucianBreakOverlay';
 import type { DrillResult } from '@/lib/lucian/game/targetDrill';
+import {
+  getYesterdayReaction,
+  hasShownYesterdayMemory,
+  markYesterdayMemoryShown,
+} from '@/lib/lucian/memory';
 
 // ─── localStorage / sessionStorage keys ─────────────────────────────────────
 const KEY_MUTED       = 'innis_lucian_muted';      // '1' = globally muted
@@ -254,6 +259,9 @@ function messageFromEvent(event: ChampionEvent): QueuedMessage | null {
     case 'STREAK_BROKEN':
       return pickMessage('recovery', 2);
 
+    case 'STREAK_MILESTONE':
+      return pickMessage('celebrate', 1, { n: event.streak });
+
     case 'DEADLINE_WARNING': {
       const days = Math.ceil(event.hoursLeft / 24);
       return event.hoursLeft <= 48
@@ -279,6 +287,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
   const [pendingBreakResult, setPendingBreakResult] = useState<DrillResult | null>(null);
   const queueRef                  = useRef<QueuedMessage[]>([]);
   const contextHintShownRef       = useRef(false);
+  const yesterdayMemoryShownRef   = useRef(false);
   const dismissTimerRef           = useRef<ReturnType<typeof setTimeout> | null>(null);
   const transitionTimerRef        = useRef<ReturnType<typeof setTimeout> | null>(null);
   const remainingRef              = useRef(0);
@@ -482,6 +491,66 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
       ariaRole: hint.priority === 0 ? 'alert' : 'status',
     });
   }, [applicationsData, breakActive, contextHintsActive, nextTasksData, recentSessionsData, showMessage, todayTasksData]);
+
+  // ── Yesterday memory reaction (once per day on /today) ─────────────────────
+  useEffect(() => {
+    if (breakActive) return;
+    if (!contextHintsActive) return;
+    if (yesterdayMemoryShownRef.current) return;
+    if (typeof window === 'undefined') return;
+    if (hasShownYesterdayMemory()) {
+      yesterdayMemoryShownRef.current = true;
+      return;
+    }
+    if (isMuted() || isOnCooldown()) return;
+    if (!todayTasksData || !recentSessionsData) return;
+
+    // Compute yesterday's date
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayIso = formatLocalDateKey(yesterday);
+
+    // Yesterday's tasks
+    const yesterdayTasks = todayTasksData.filter((t) => t.date === yesterdayIso);
+    const tasksCompleted = yesterdayTasks.filter((t) => t.completed).length;
+    const tasksTotal = yesterdayTasks.length;
+
+    // Yesterday's focus minutes
+    const yesterdayStart = new Date(yesterdayIso).getTime();
+    const todayStart = new Date(todayIso).getTime();
+    const focusMinutes = recentSessionsData
+      .filter((s) => {
+        const t = new Date(s.startedAt).getTime();
+        return t >= yesterdayStart && t < todayStart;
+      })
+      .reduce((sum, s) => sum + s.durationSeconds / 60, 0);
+
+    const reaction = getYesterdayReaction({
+      tasksCompleted,
+      tasksTotal,
+      focusMinutes,
+      streakMaintained: true, // conservative default — streak data not available here
+    });
+
+    if (!reaction) {
+      yesterdayMemoryShownRef.current = true;
+      return;
+    }
+
+    yesterdayMemoryShownRef.current = true;
+    markYesterdayMemoryShown();
+
+    // Delay slightly so context hints have priority
+    setTimeout(() => {
+      showMessage({
+        id: `yesterday-memory-${yesterdayIso}`,
+        text: reaction.text,
+        mood: reaction.mood,
+        priority: reaction.priority,
+        ariaRole: 'status',
+      });
+    }, 3000);
+  }, [breakActive, contextHintsActive, recentSessionsData, showMessage, todayIso, todayTasksData]);
 
   // ── Champion event subscription ────────────────────────────────────────────
   useEffect(() => {

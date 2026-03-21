@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { addMonths, differenceInCalendarDays, format, parseISO, startOfDay } from 'date-fns';
 import { motion } from 'framer-motion';
-import toast from 'react-hot-toast';
+import { useSoundToast } from '@/lib/hooks/useSoundToast';
 import { useRouter } from 'next/navigation';
 import {
   AlertTriangle,
@@ -248,6 +248,7 @@ export default function TrajectoryPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { play } = useAppSound();
+  const soundToast = useSoundToast();
   const previousOverallStatusRef = useRef<RiskStatus | null>(null);
   const previousGoalStatusRef = useRef<Record<string, RiskStatus>>({});
   const goalStatusPulseCooldownRef = useRef<Record<string, number>>({});
@@ -265,7 +266,7 @@ export default function TrajectoryPage() {
       link.href = dataUrl;
       link.click();
     } catch {
-      toast.error('Export fehlgeschlagen. Bitte erneut versuchen.');
+      soundToast.error('Export fehlgeschlagen. Bitte erneut versuchen.');
     }
   };
   const [deepLinkedGoalId, setDeepLinkedGoalId] = useState('');
@@ -337,7 +338,7 @@ export default function TrajectoryPage() {
         bufferUnit: 'weeks',
         bufferWeeks: Number.isFinite(prefillBufferWeeks) && prefillBufferWeeks >= 0 ? prefillBufferWeeks : current.bufferWeeks,
       }));
-      toast.success('Strategy-Entscheidung in das Trajectory-Formular übernommen.');
+      soundToast.success('Strategy-Entscheidung in das Trajectory-Formular übernommen.');
 
       ['prefillTitle', 'prefillCategory', 'prefillDueDate', 'prefillEffortHours', 'prefillBufferWeeks'].forEach((key) =>
         url.searchParams.delete(key)
@@ -654,7 +655,7 @@ export default function TrajectoryPage() {
         body: JSON.stringify(payload),
       }),
     onSuccess: () => {
-      toast.success('Milestone added.');
+      soundToast.success('Milestone added.');
       setGoalForm((current) => ({
         ...current,
         title: '',
@@ -662,7 +663,7 @@ export default function TrajectoryPage() {
       queryClient.invalidateQueries({ queryKey: ['trajectory', 'overview'] });
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      soundToast.error(error.message);
     },
   });
 
@@ -672,11 +673,11 @@ export default function TrajectoryPage() {
         method: 'DELETE',
       }),
     onSuccess: () => {
-      toast.success('Milestone removed.');
+      soundToast.success('Milestone removed.');
       queryClient.invalidateQueries({ queryKey: ['trajectory', 'overview'] });
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      soundToast.error(error.message);
     },
   });
 
@@ -687,7 +688,7 @@ export default function TrajectoryPage() {
         body: JSON.stringify(payload),
       }),
     onSuccess: () => {
-      toast.success('Timeline window added.');
+      soundToast.success('Timeline window added.');
       setWindowForm((current) => ({
         ...current,
         title: '',
@@ -696,7 +697,7 @@ export default function TrajectoryPage() {
       queryClient.invalidateQueries({ queryKey: ['trajectory', 'overview'] });
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      soundToast.error(error.message);
     },
   });
 
@@ -706,11 +707,11 @@ export default function TrajectoryPage() {
         method: 'DELETE',
       }),
     onSuccess: () => {
-      toast.success('Timeline window removed.');
+      soundToast.success('Timeline window removed.');
       queryClient.invalidateQueries({ queryKey: ['trajectory', 'overview'] });
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      soundToast.error(error.message);
     },
   });
 
@@ -724,11 +725,11 @@ export default function TrajectoryPage() {
         }),
       }),
     onSuccess: () => {
-      toast.success('Baseline saved.');
+      soundToast.success('Baseline saved.');
       queryClient.invalidateQueries({ queryKey: ['trajectory', 'overview'] });
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      soundToast.error(error.message);
     },
   });
 
@@ -748,11 +749,11 @@ export default function TrajectoryPage() {
         }),
       }),
     onSuccess: () => {
-      toast.success('Plan committed.');
+      soundToast.success('Plan committed.');
       queryClient.invalidateQueries({ queryKey: ['trajectory', 'overview'] });
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      soundToast.error(error.message);
     },
   });
 
@@ -783,9 +784,9 @@ export default function TrajectoryPage() {
     },
     onSuccess: (result, variables) => {
       if (result.skippedExisting) {
-        toast.success('Task package already existed and was reused.');
+        soundToast.success('Task package already existed and was reused.');
       } else {
-        toast.success(`Created ${result.tasks.length} trajectory tasks.`);
+        soundToast.success(`Created ${result.tasks.length} trajectory tasks.`);
       }
       queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['trajectory', 'overview'] });
@@ -794,7 +795,7 @@ export default function TrajectoryPage() {
       }
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      soundToast.error(error.message);
     },
   });
 
@@ -1752,7 +1753,7 @@ export default function TrajectoryPage() {
             size="md"
             onClick={() => {
               void refetchPlan();
-              toast.success('Plan regenerated.');
+              soundToast.success('Plan regenerated.');
             }}
             loading={isPlanFetching}
             leftIcon={<Wand2 className="h-4 w-4" />}

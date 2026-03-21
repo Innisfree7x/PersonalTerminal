@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 
 interface StreakResponse {
   streak: number;
@@ -35,6 +36,7 @@ export function useStreak() {
     }
     if (streak > prevStreakRef.current && STREAK_MILESTONES.includes(streak)) {
       play('streak-milestone');
+      dispatchChampionEvent({ type: 'STREAK_MILESTONE', streak });
     }
     prevStreakRef.current = streak;
   }, [streak, isLoading, play]);

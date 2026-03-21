@@ -8,6 +8,8 @@ import {
   useState,
 } from 'react';
 
+import { getReverbSend } from '@/lib/sound/reverb';
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type SoundEvent =
@@ -247,6 +249,7 @@ function synthClick(ctx: AudioContext, gain: number): void {
 
 function synthFocusEnd(ctx: AudioContext, gain: number): void {
   const now = ctx.currentTime;
+  const { dry, wet } = getReverbSend(ctx, 0.3);
   const notes = [523.25, 659.25, 783.99]; // C5 -> E5 -> G5 (sanfter Abschluss-Chime)
 
   notes.forEach((freq, index) => {
@@ -269,7 +272,8 @@ function synthFocusEnd(ctx: AudioContext, gain: number): void {
 
     osc.connect(filter);
     filter.connect(amp);
-    amp.connect(ctx.destination);
+    amp.connect(dry);
+    amp.connect(wet);
     osc.start(start);
     osc.stop(start + 0.3);
   });
@@ -474,6 +478,7 @@ function synthChampE(ctx: AudioContext, gain: number): void {
  */
 function synthChampR(ctx: AudioContext, gain: number): void {
   const now = ctx.currentTime;
+  const { dry, wet } = getReverbSend(ctx, 0.3);
 
   // Layer 1: Bass impact
   const bass = ctx.createOscillator();
@@ -485,7 +490,7 @@ function synthChampR(ctx: AudioContext, gain: number): void {
   bassAmp.gain.linearRampToValueAtTime(gain * 0.9, now + 0.008);
   bassAmp.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
   bass.connect(bassAmp);
-  bassAmp.connect(ctx.destination);
+  bassAmp.connect(dry);
   bass.start(now);
   bass.stop(now + 0.38);
 
@@ -499,7 +504,8 @@ function synthChampR(ctx: AudioContext, gain: number): void {
   midAmp.gain.linearRampToValueAtTime(gain * 0.45, now + 0.01);
   midAmp.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
   mid.connect(midAmp);
-  midAmp.connect(ctx.destination);
+  midAmp.connect(dry);
+  midAmp.connect(wet);
   mid.start(now);
   mid.stop(now + 0.22);
 
@@ -510,7 +516,7 @@ function synthChampR(ctx: AudioContext, gain: number): void {
   shimmer.type = 'sine';
   shimmer2.type = 'sine';
   shimmer.frequency.setValueAtTime(jitter(1200, 60), now);
-  shimmer2.frequency.setValueAtTime(jitter(1210, 60), now); // slight detune
+  shimmer2.frequency.setValueAtTime(jitter(1210, 60), now);
   shimmer.frequency.exponentialRampToValueAtTime(800, now + 0.35);
   shimmer2.frequency.exponentialRampToValueAtTime(805, now + 0.35);
   shimmerAmp.gain.setValueAtTime(0.0001, now + 0.02);
@@ -518,7 +524,7 @@ function synthChampR(ctx: AudioContext, gain: number): void {
   shimmerAmp.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
   shimmer.connect(shimmerAmp);
   shimmer2.connect(shimmerAmp);
-  shimmerAmp.connect(ctx.destination);
+  shimmerAmp.connect(wet);
   shimmer.start(now + 0.02);
   shimmer2.start(now + 0.02);
   shimmer.stop(now + 0.42);
@@ -539,7 +545,7 @@ function synthChampR(ctx: AudioContext, gain: number): void {
   na.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
   ns.connect(nf);
   nf.connect(na);
-  na.connect(ctx.destination);
+  na.connect(dry);
   ns.start(now);
 }
 
@@ -549,6 +555,7 @@ function synthChampR(ctx: AudioContext, gain: number): void {
  */
 function synthChampPentakill(ctx: AudioContext, gain: number): void {
   const now = ctx.currentTime;
+  const { dry, wet } = getReverbSend(ctx, 0.35);
   const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5]; // C5 E5 G5 C6 E6
 
   notes.forEach((freq, i) => {
@@ -561,14 +568,14 @@ function synthChampPentakill(ctx: AudioContext, gain: number): void {
     osc.type = 'sine';
     osc2.type = 'triangle';
     osc.frequency.setValueAtTime(freq, start);
-    osc2.frequency.setValueAtTime(freq * 1.002, start); // slight detune for richness
+    osc2.frequency.setValueAtTime(freq * 1.002, start);
     osc.frequency.exponentialRampToValueAtTime(freq * 1.01, start + 0.18);
 
     filter.type = 'lowpass';
     filter.frequency.setValueAtTime(4000 + i * 400, start);
     filter.Q.value = 0.6;
 
-    const noteGain = gain * (0.65 + i * 0.07); // each note slightly louder
+    const noteGain = gain * (0.65 + i * 0.07);
     amp.gain.setValueAtTime(0.0001, start);
     amp.gain.linearRampToValueAtTime(noteGain, start + 0.015);
     amp.gain.setValueAtTime(noteGain * 0.9, start + 0.08);
@@ -577,7 +584,8 @@ function synthChampPentakill(ctx: AudioContext, gain: number): void {
     osc.connect(filter);
     osc2.connect(filter);
     filter.connect(amp);
-    amp.connect(ctx.destination);
+    amp.connect(dry);
+    amp.connect(wet);
     osc.start(start);
     osc2.start(start);
     osc.stop(start + 0.24);
@@ -591,12 +599,13 @@ function synthChampPentakill(ctx: AudioContext, gain: number): void {
  */
 function synthChampVictory(ctx: AudioContext, gain: number): void {
   const now = ctx.currentTime;
+  const { dry, wet } = getReverbSend(ctx, 0.3);
   const chord = [261.63, 329.63, 392.0]; // C4 E4 G4
 
   chord.forEach((freq, i) => {
     const osc = ctx.createOscillator();
     const amp = ctx.createGain();
-    osc.type = i === 0 ? 'sine' : 'triangle'; // root = warm sine, others = triangle
+    osc.type = i === 0 ? 'sine' : 'triangle';
     osc.frequency.setValueAtTime(freq, now);
     osc.frequency.exponentialRampToValueAtTime(freq * 1.005, now + 0.3);
 
@@ -606,7 +615,8 @@ function synthChampVictory(ctx: AudioContext, gain: number): void {
     amp.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
 
     osc.connect(amp);
-    amp.connect(ctx.destination);
+    amp.connect(dry);
+    amp.connect(wet);
     osc.start(now);
     osc.stop(now + 0.37);
   });
@@ -615,12 +625,12 @@ function synthChampVictory(ctx: AudioContext, gain: number): void {
   const shimmer = ctx.createOscillator();
   const sAmp = ctx.createGain();
   shimmer.type = 'sine';
-  shimmer.frequency.setValueAtTime(523.25, now); // C5
+  shimmer.frequency.setValueAtTime(523.25, now);
   sAmp.gain.setValueAtTime(0.0001, now + 0.03);
   sAmp.gain.linearRampToValueAtTime(gain * 0.15, now + 0.08);
   sAmp.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
   shimmer.connect(sAmp);
-  sAmp.connect(ctx.destination);
+  sAmp.connect(wet);
   shimmer.start(now + 0.03);
   shimmer.stop(now + 0.34);
 }
@@ -774,6 +784,7 @@ function synthGoalCreated(ctx: AudioContext, gain: number): void {
  */
 function synthGoalCompleted(ctx: AudioContext, gain: number): void {
   const now = ctx.currentTime;
+  const { dry, wet } = getReverbSend(ctx, 0.25);
   const chord = [523.25, 659.25, 783.99]; // C5 E5 G5
 
   chord.forEach((freq, i) => {
@@ -786,7 +797,8 @@ function synthGoalCompleted(ctx: AudioContext, gain: number): void {
     amp.gain.setValueAtTime(gain * (0.5 - i * 0.05), now + 0.15);
     amp.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
     osc.connect(amp);
-    amp.connect(ctx.destination);
+    amp.connect(dry);
+    amp.connect(wet);
     osc.start(now);
     osc.stop(now + 0.32);
   });
@@ -795,43 +807,76 @@ function synthGoalCompleted(ctx: AudioContext, gain: number): void {
   const sparkle = ctx.createOscillator();
   const sAmp = ctx.createGain();
   sparkle.type = 'sine';
-  sparkle.frequency.setValueAtTime(1568, now + 0.05); // G6
+  sparkle.frequency.setValueAtTime(1568, now + 0.05);
   sAmp.gain.setValueAtTime(0.0001, now + 0.05);
   sAmp.gain.linearRampToValueAtTime(gain * 0.15, now + 0.07);
   sAmp.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
   sparkle.connect(sAmp);
-  sAmp.connect(ctx.destination);
+  sAmp.connect(wet);
   sparkle.start(now + 0.05);
   sparkle.stop(now + 0.22);
 }
 
 /**
- * error – Low warning tone, descending sawtooth
- * Filtered, not harsh, ~150ms
+ * error – 3-layer warning: filtered sawtooth sweep + sub-bass thud + noise crack
+ * Urgent but not harsh, ~200ms
  */
 function synthError(ctx: AudioContext, gain: number): void {
   const now = ctx.currentTime;
-  const osc = ctx.createOscillator();
-  const amp = ctx.createGain();
-  const filter = ctx.createBiquadFilter();
+  const { dry, wet } = getReverbSend(ctx, 0.15);
 
+  // Layer 1: Filtered sawtooth descent 300→180Hz
+  const osc = ctx.createOscillator();
+  const oscAmp = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
   osc.type = 'sawtooth';
   osc.frequency.setValueAtTime(jitter(300, 20), now);
-  osc.frequency.exponentialRampToValueAtTime(180, now + 0.12);
-
+  osc.frequency.exponentialRampToValueAtTime(180, now + 0.14);
   filter.type = 'lowpass';
-  filter.frequency.value = 1800;
+  filter.frequency.setValueAtTime(1800, now);
+  filter.frequency.exponentialRampToValueAtTime(900, now + 0.14);
   filter.Q.value = 0.8;
-
-  amp.gain.setValueAtTime(0.0001, now);
-  amp.gain.linearRampToValueAtTime(gain * 0.6, now + 0.01);
-  amp.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
-
+  oscAmp.gain.setValueAtTime(0.0001, now);
+  oscAmp.gain.linearRampToValueAtTime(gain * 0.55, now + 0.01);
+  oscAmp.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
   osc.connect(filter);
-  filter.connect(amp);
-  amp.connect(ctx.destination);
+  filter.connect(oscAmp);
+  oscAmp.connect(dry);
+  oscAmp.connect(wet);
   osc.start(now);
-  osc.stop(now + 0.16);
+  osc.stop(now + 0.2);
+
+  // Layer 2: Sub-bass thud — sine at 80Hz, fast attack
+  const sub = ctx.createOscillator();
+  const subAmp = ctx.createGain();
+  sub.type = 'sine';
+  sub.frequency.setValueAtTime(jitter(80, 8), now);
+  sub.frequency.exponentialRampToValueAtTime(50, now + 0.1);
+  subAmp.gain.setValueAtTime(gain * 0.7, now);
+  subAmp.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+  sub.connect(subAmp);
+  subAmp.connect(dry);
+  sub.start(now);
+  sub.stop(now + 0.14);
+
+  // Layer 3: Noise crack — bandpass at 3kHz, 30ms
+  const bufLen = Math.ceil(ctx.sampleRate * 0.03);
+  const buffer = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufLen; i++) data[i] = Math.random() * 2 - 1;
+  const ns = ctx.createBufferSource();
+  ns.buffer = buffer;
+  const nf = ctx.createBiquadFilter();
+  nf.type = 'bandpass';
+  nf.frequency.value = 3000;
+  nf.Q.value = 2;
+  const na = ctx.createGain();
+  na.gain.setValueAtTime(gain * 0.35, now);
+  na.gain.exponentialRampToValueAtTime(0.0001, now + 0.03);
+  ns.connect(nf);
+  nf.connect(na);
+  na.connect(dry);
+  ns.start(now);
 }
 
 /**
@@ -840,6 +885,7 @@ function synthError(ctx: AudioContext, gain: number): void {
  */
 function synthStreakMilestone(ctx: AudioContext, gain: number): void {
   const now = ctx.currentTime;
+  const { dry, wet } = getReverbSend(ctx, 0.3);
   const notes = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6
 
   notes.forEach((freq, i) => {
@@ -851,7 +897,7 @@ function synthStreakMilestone(ctx: AudioContext, gain: number): void {
     osc.type = 'sine';
     osc2.type = 'triangle';
     osc.frequency.setValueAtTime(freq, start);
-    osc2.frequency.setValueAtTime(freq * 2.005, start); // octave + shimmer
+    osc2.frequency.setValueAtTime(freq * 2.005, start);
     osc.frequency.exponentialRampToValueAtTime(freq * 1.02, start + 0.16);
 
     const noteGain = gain * (0.5 + i * 0.1);
@@ -862,7 +908,8 @@ function synthStreakMilestone(ctx: AudioContext, gain: number): void {
 
     osc.connect(amp);
     osc2.connect(amp);
-    amp.connect(ctx.destination);
+    amp.connect(dry);
+    amp.connect(wet);
     osc.start(start);
     osc2.start(start);
     osc.stop(start + 0.22);
@@ -873,12 +920,12 @@ function synthStreakMilestone(ctx: AudioContext, gain: number): void {
   const shimmer = ctx.createOscillator();
   const shimmerAmp = ctx.createGain();
   shimmer.type = 'sine';
-  shimmer.frequency.setValueAtTime(2093, now + 0.32); // C7
+  shimmer.frequency.setValueAtTime(2093, now + 0.32);
   shimmerAmp.gain.setValueAtTime(0.0001, now + 0.32);
   shimmerAmp.gain.linearRampToValueAtTime(gain * 0.1, now + 0.36);
   shimmerAmp.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
   shimmer.connect(shimmerAmp);
-  shimmerAmp.connect(ctx.destination);
+  shimmerAmp.connect(wet);
   shimmer.start(now + 0.32);
   shimmer.stop(now + 0.52);
 }
@@ -923,23 +970,84 @@ function synthModalClose(ctx: AudioContext, gain: number): void {
   osc.stop(now + 0.065);
 }
 
+/**
+ * trajectory-at-risk – 4-layer ominous warning: filtered sawtooth + detuned sine pair
+ * + double-pulse rhythm + high tension shimmer, ~400ms
+ */
 function synthTrajectoryAtRisk(ctx: AudioContext, gain: number): void {
   const now = ctx.currentTime;
+  const { dry, wet } = getReverbSend(ctx, 0.2);
+
+  // Layer 1: Filtered sawtooth descent with filter sweep
   const osc = ctx.createOscillator();
-  const amp = ctx.createGain();
-
+  const oscAmp = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
   osc.type = 'sawtooth';
-  osc.frequency.setValueAtTime(220, now);
-  osc.frequency.exponentialRampToValueAtTime(170, now + 0.22);
-
-  amp.gain.setValueAtTime(0.0001, now);
-  amp.gain.exponentialRampToValueAtTime(gain * 0.65, now + 0.015);
-  amp.gain.exponentialRampToValueAtTime(0.0001, now + 0.26);
-
-  osc.connect(amp);
-  amp.connect(ctx.destination);
+  osc.frequency.setValueAtTime(jitter(220, 15), now);
+  osc.frequency.exponentialRampToValueAtTime(170, now + 0.35);
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(2000, now);
+  filter.frequency.exponentialRampToValueAtTime(800, now + 0.3);
+  filter.Q.value = 1.2;
+  oscAmp.gain.setValueAtTime(0.0001, now);
+  oscAmp.gain.linearRampToValueAtTime(gain * 0.5, now + 0.015);
+  oscAmp.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
+  osc.connect(filter);
+  filter.connect(oscAmp);
+  oscAmp.connect(dry);
+  oscAmp.connect(wet);
   osc.start(now);
-  osc.stop(now + 0.28);
+  osc.stop(now + 0.4);
+
+  // Layer 2: Detuned sine pair at 165/168Hz — ominous vibrato
+  const sinA = ctx.createOscillator();
+  const sinB = ctx.createOscillator();
+  const pairAmp = ctx.createGain();
+  sinA.type = 'sine';
+  sinB.type = 'sine';
+  sinA.frequency.setValueAtTime(165, now);
+  sinB.frequency.setValueAtTime(168, now); // 3Hz beating
+  pairAmp.gain.setValueAtTime(0.0001, now);
+  pairAmp.gain.linearRampToValueAtTime(gain * 0.35, now + 0.03);
+  pairAmp.gain.setValueAtTime(gain * 0.3, now + 0.2);
+  pairAmp.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+  sinA.connect(pairAmp);
+  sinB.connect(pairAmp);
+  pairAmp.connect(dry);
+  pairAmp.connect(wet);
+  sinA.start(now);
+  sinB.start(now);
+  sinA.stop(now + 0.42);
+  sinB.stop(now + 0.42);
+
+  // Layer 3: Double-pulse rhythm (two hits at 0ms and 140ms)
+  for (let p = 0; p < 2; p++) {
+    const start = now + p * 0.14;
+    const pulse = ctx.createOscillator();
+    const pulseAmp = ctx.createGain();
+    pulse.type = 'triangle';
+    pulse.frequency.setValueAtTime(jitter(280, 15), start);
+    pulse.frequency.exponentialRampToValueAtTime(200, start + 0.06);
+    pulseAmp.gain.setValueAtTime(gain * 0.4, start);
+    pulseAmp.gain.exponentialRampToValueAtTime(0.0001, start + 0.07);
+    pulse.connect(pulseAmp);
+    pulseAmp.connect(dry);
+    pulse.start(start);
+    pulse.stop(start + 0.08);
+  }
+
+  // Layer 4: High tension shimmer — quiet triangle at 880Hz
+  const shimmer = ctx.createOscillator();
+  const shimmerAmp = ctx.createGain();
+  shimmer.type = 'triangle';
+  shimmer.frequency.setValueAtTime(880, now + 0.05);
+  shimmerAmp.gain.setValueAtTime(0.0001, now + 0.05);
+  shimmerAmp.gain.linearRampToValueAtTime(gain * 0.1, now + 0.1);
+  shimmerAmp.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+  shimmer.connect(shimmerAmp);
+  shimmerAmp.connect(wet);
+  shimmer.start(now + 0.05);
+  shimmer.stop(now + 0.42);
 }
 
 const SYNTHS: Record<SoundEvent, (ctx: AudioContext, gain: number) => void> = {

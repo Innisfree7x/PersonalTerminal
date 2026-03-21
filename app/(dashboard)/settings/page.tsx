@@ -28,7 +28,7 @@ import { useAppSound } from '@/lib/hooks/useAppSound';
 import { useAppLanguage } from '@/components/providers/LanguageProvider';
 import { updateProfileAction } from '@/app/actions/profile';
 import { fetchDemoDataIdsAction } from '@/app/actions/profile';
-import toast from 'react-hot-toast';
+import { useSoundToast } from '@/lib/hooks/useSoundToast';
 import { hasDemoData, removeDemoData } from '@/app/onboarding/demoSeedService';
 import { ConfirmModal } from '@/components/shared/ConfirmModal';
 import { usePowerHotkeys, type SummonerSpellAction } from '@/components/providers/PowerHotkeysProvider';
@@ -104,6 +104,7 @@ export default function SettingsPage() {
         restoreDefaults: restoreChampionDefaults,
         stats: championStats,
     } = useChampion();
+    const soundToast = useSoundToast();
     const [displayName, setDisplayName] = useState('');
     const [savingProfile, setSavingProfile] = useState(false);
     const [lucianMuted, setLucianMuted] = useState(false);
@@ -164,11 +165,11 @@ export default function SettingsPage() {
         try {
             await updateProfileAction({ emailNotifications: next });
             await refreshUser();
-            toast.success(next ? (isGerman ? 'E-Mail-Benachrichtigungen aktiviert.' : 'Email notifications enabled.') : (isGerman ? 'E-Mail-Benachrichtigungen deaktiviert.' : 'Email notifications disabled.'));
+            soundToast.success(next ? (isGerman ? 'E-Mail-Benachrichtigungen aktiviert.' : 'Email notifications enabled.') : (isGerman ? 'E-Mail-Benachrichtigungen deaktiviert.' : 'Email notifications disabled.'));
         } catch {
             // revert on error
             setEmailNotifications(!next);
-            toast.error(isGerman ? 'Einstellung konnte nicht gespeichert werden.' : 'Setting could not be saved.');
+            soundToast.error(isGerman ? 'Einstellung konnte nicht gespeichert werden.' : 'Setting could not be saved.');
         }
     };
 
@@ -178,9 +179,9 @@ export default function SettingsPage() {
             const trimmedName = displayName.trim();
             await updateProfileAction(trimmedName ? { fullName: trimmedName } : {});
             await refreshUser();
-            toast.success(isGerman ? 'Profil aktualisiert.' : 'Profile updated.');
+            soundToast.success(isGerman ? 'Profil aktualisiert.' : 'Profile updated.');
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : isGerman ? 'Profil konnte nicht gespeichert werden. Bitte erneut versuchen.' : 'Profile could not be saved. Please try again.');
+            soundToast.error(error instanceof Error ? error.message : isGerman ? 'Profil konnte nicht gespeichert werden. Bitte erneut versuchen.' : 'Profile could not be saved. Please try again.');
         } finally {
             setSavingProfile(false);
         }
@@ -647,9 +648,9 @@ export default function SettingsPage() {
                                 await removeDemoData();
                                 setHasDemoDataState(false);
                                 setShowDemoConfirm(false);
-                                toast.success(isGerman ? 'Demo-Daten wurden entfernt.' : 'Demo data was removed.');
+                                soundToast.success(isGerman ? 'Demo-Daten wurden entfernt.' : 'Demo data was removed.');
                             } catch {
-                                toast.error(isGerman ? 'Fehler beim Entfernen der Demo-Daten.' : 'Failed to remove demo data.');
+                                soundToast.error(isGerman ? 'Fehler beim Entfernen der Demo-Daten.' : 'Failed to remove demo data.');
                             } finally {
                                 setRemovingDemo(false);
                             }
@@ -857,7 +858,7 @@ export default function SettingsPage() {
                             variant="secondary"
                             onClick={() => {
                                 resetChampionPosition();
-                                toast.success(isGerman ? 'Champion-Position zurückgesetzt.' : 'Champion position reset.');
+                                soundToast.success(isGerman ? 'Champion-Position zurückgesetzt.' : 'Champion position reset.');
                             }}
                         >
                             {isGerman ? 'Position zurücksetzen' : 'Reset position'}
@@ -866,7 +867,7 @@ export default function SettingsPage() {
                             variant="ghost"
                             onClick={() => {
                                 restoreChampionDefaults();
-                                toast.success(isGerman ? 'Lucian-Standards wiederhergestellt.' : 'Lucian defaults restored.');
+                                soundToast.success(isGerman ? 'Lucian-Standards wiederhergestellt.' : 'Lucian defaults restored.');
                             }}
                         >
                             {isGerman ? 'Lucian wiederherstellen' : 'Restore Lucian'}

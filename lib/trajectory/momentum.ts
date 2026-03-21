@@ -19,6 +19,8 @@ export interface MomentumScoreInput {
     completed: boolean;
     sessionType?: 'focus' | 'break';
   }>;
+  currentStreak?: number | undefined;
+  taskCompletionRate7d?: number | undefined; // 0..1
   now?: Date;
 }
 
@@ -31,6 +33,8 @@ export interface MomentumScoreResult {
     capacityPoints: number;
     bufferPoints: number;
     trendPoints: number;
+    streakBonus: number;
+    taskBonus: number;
   };
   stats: {
     onTrack: number;
@@ -102,24 +106,32 @@ export function computeMomentumScore(input: MomentumScoreInput): MomentumScoreRe
       ? 0.5
       : input.generatedBlocks.reduce((sum, block) => sum + statusWeight(block.status), 0) /
         input.generatedBlocks.length;
-  const statusPoints = clamp(statusAverage * 50, 0, 50);
+  const statusPoints = clamp(statusAverage * 45, 0, 45);
 
   const last7DaysHours = sumFocusHoursInRange(input.focusSessions, last7Start, nowMs);
   const previous7DaysHours = sumFocusHoursInRange(input.focusSessions, prev7Start, last7Start);
   const capacityRatio = clamp(last7DaysHours / plannedHours, 0, 1.2);
-  const capacityPoints = clamp(Math.min(1, capacityRatio) * 30, 0, 30);
+  const capacityPoints = clamp(Math.min(1, capacityRatio) * 27, 0, 27);
 
   const avgBufferWeeks =
     activeGoals.length === 0
       ? 2
       : activeGoals.reduce((sum, goal) => sum + Math.max(0, goal.bufferWeeks), 0) /
         activeGoals.length;
-  const bufferPoints = clamp((Math.min(8, avgBufferWeeks) / 8) * 10, 0, 10);
+  const bufferPoints = clamp((Math.min(8, avgBufferWeeks) / 8) * 8, 0, 8);
 
   const trendRatio = clamp((last7DaysHours - previous7DaysHours) / plannedHours, -1, 1);
   const trendPoints = trendRatio * 10;
 
-  const rawScore = statusPoints + capacityPoints + bufferPoints + trendPoints;
+  // Streak bonus: caps at 30-day streak → 5 points
+  const streak = input.currentStreak ?? 0;
+  const streakBonus = clamp(Math.min(streak, 30) / 30 * 5, 0, 5);
+
+  // Task completion rate bonus: 100% completion → 5 points
+  const taskRate = input.taskCompletionRate7d ?? 0;
+  const taskBonus = clamp(taskRate * 5, 0, 5);
+
+  const rawScore = statusPoints + capacityPoints + bufferPoints + trendPoints + streakBonus + taskBonus;
   const score = Math.round(clamp(rawScore, 0, 100));
   const delta = Math.round(clamp(trendRatio * 15, -15, 15));
   const trend: MomentumTrend = delta >= 2 ? 'up' : delta <= -2 ? 'down' : 'flat';
@@ -133,6 +145,8 @@ export function computeMomentumScore(input: MomentumScoreInput): MomentumScoreRe
       capacityPoints: Number(capacityPoints.toFixed(2)),
       bufferPoints: Number(bufferPoints.toFixed(2)),
       trendPoints: Number(trendPoints.toFixed(2)),
+      streakBonus: Number(streakBonus.toFixed(2)),
+      taskBonus: Number(taskBonus.toFixed(2)),
     },
     stats: {
       onTrack: statusSummary.onTrack,

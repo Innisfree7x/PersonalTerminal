@@ -9,6 +9,7 @@ export type ChampionEvent =
   | { type: 'FOCUS_END' }
   | { type: 'LEVEL_UP'; newLevel: number }
   | { type: 'STREAK_BROKEN' }
+  | { type: 'STREAK_MILESTONE'; streak: number }
   | { type: 'PAGE_CHANGE'; page: string }
   | { type: 'APPLICATION_SENT' }
   | { type: 'EXERCISE_COMPLETED' }

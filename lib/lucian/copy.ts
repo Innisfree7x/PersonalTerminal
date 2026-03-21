@@ -1,9 +1,11 @@
 export type LucianMood = 'motivate' | 'celebrate' | 'warning' | 'recovery' | 'idle';
+export type TimeSlot = 'morning' | 'afternoon' | 'evening' | 'late-night';
 
 export interface LucianLine {
   id: string;
   mood: LucianMood;
   text: string; // supports {variable} tokens
+  timeSlot?: TimeSlot; // if set, only show during this time window
 }
 
 export const LUCIAN_LINES: LucianLine[] = [
@@ -91,10 +93,53 @@ export const LUCIAN_LINES: LucianLine[] = [
   { id: 'N11', mood: 'idle', text: 'Stille ist kein Fehler. Inaktivität schon.' },
   { id: 'N12', mood: 'idle', text: 'Kein Lärm. Nur Fokus, wenn du bereit bist.' },
   { id: 'N13', mood: 'idle', text: 'Ich bin hier. Nicht aufdringlich. Aber hier.' },
+
+  // ── Time-Aware: Morning (5:00–11:59) ────────────────────────────────────
+  { id: 'TM1', mood: 'motivate', text: 'Morgens ist der Widerstand am größten. Genau deshalb jetzt.', timeSlot: 'morning' },
+  { id: 'TM2', mood: 'motivate', text: 'Neuer Tag. Gleicher Kampf. Aber du bist stärker als gestern.', timeSlot: 'morning' },
+  { id: 'TM3', mood: 'motivate', text: 'Die ersten 25 Minuten entscheiden den Tag. Mach sie zählen.', timeSlot: 'morning' },
+  { id: 'TM4', mood: 'idle', text: 'Guten Morgen. Das System wartet auf dich.', timeSlot: 'morning' },
+  { id: 'TM5', mood: 'celebrate', text: 'Früh dran heute. Das sagt viel über dich.', timeSlot: 'morning' },
+
+  // ── Time-Aware: Afternoon (12:00–17:59) ─────────────────────────────────
+  { id: 'TA1', mood: 'motivate', text: 'Halber Tag vorbei. Was bleibt noch auf der Liste?', timeSlot: 'afternoon' },
+  { id: 'TA2', mood: 'warning', text: 'Nachmittagstief. Kämpf dagegen an oder nutze es für leichte Tasks.', timeSlot: 'afternoon' },
+  { id: 'TA3', mood: 'idle', text: 'Noch genug Tageslicht. Nutze es.', timeSlot: 'afternoon' },
+
+  // ── Time-Aware: Evening (18:00–22:59) ───────────────────────────────────
+  { id: 'TE1', mood: 'warning', text: 'Es ist Abend. Was du heute nicht machst, wird morgen nicht einfacher.', timeSlot: 'evening' },
+  { id: 'TE2', mood: 'celebrate', text: 'Abends noch hier. Dieses Commitment ist selten.', timeSlot: 'evening' },
+  { id: 'TE3', mood: 'idle', text: 'Der Tag endet. Deine Arbeit zählt trotzdem.', timeSlot: 'evening' },
+  { id: 'TE4', mood: 'motivate', text: 'Letzte Runde heute. Mach sie stark.', timeSlot: 'evening' },
+
+  // ── Time-Aware: Late Night (23:00–4:59) ─────────────────────────────────
+  { id: 'TL1', mood: 'warning', text: 'Noch wach? Manchmal ist Schlaf die produktivste Entscheidung.', timeSlot: 'late-night' },
+  { id: 'TL2', mood: 'warning', text: 'Es ist nach Mitternacht. Qualität sinkt. Wissen bleibt nicht hängen.', timeSlot: 'late-night' },
+  { id: 'TL3', mood: 'recovery', text: 'Nachtschicht. Kenn ich. Aber dein Körper kennt Grenzen, die du ignorierst.', timeSlot: 'late-night' },
+  { id: 'TL4', mood: 'motivate', text: 'Wenn du schon wach bist — mach es wenigstens zählen.', timeSlot: 'late-night' },
+  { id: 'TL5', mood: 'idle', text: 'Still hier. Nur du und ich. Und die Deadline.', timeSlot: 'late-night' },
+
+  // ── Streak Milestone Reactions ──────────────────────────────────────────
+  { id: 'SK1', mood: 'celebrate', text: '{n} Tage am Stück. Das ist kein Glück. Das ist Disziplin.' },
+  { id: 'SK2', mood: 'celebrate', text: '{n}-Tage-Streak. Ich bin beeindruckt. Und ich bin schwer zu beeindrucken.' },
+  { id: 'SK3', mood: 'celebrate', text: 'Streak: {n}. Die meisten hätten längst aufgehört.' },
 ];
 
-export function getLinesForMood(mood: LucianMood): LucianLine[] {
-  return LUCIAN_LINES.filter((l) => l.mood === mood);
+function hourToTimeSlot(hour: number): TimeSlot {
+  if (hour >= 5 && hour < 12) return 'morning';
+  if (hour >= 12 && hour < 18) return 'afternoon';
+  if (hour >= 18 && hour < 23) return 'evening';
+  return 'late-night';
+}
+
+export function getLinesForMood(mood: LucianMood, currentHour?: number | undefined): LucianLine[] {
+  const slot = currentHour != null ? hourToTimeSlot(currentHour) : hourToTimeSlot(new Date().getHours());
+  return LUCIAN_LINES.filter((l) => {
+    if (l.mood !== mood) return false;
+    // Lines with a timeSlot only show during that window
+    if (l.timeSlot && l.timeSlot !== slot) return false;
+    return true;
+  });
 }
 
 /** Replace {token} placeholders. Unknown tokens left as-is for later filtering. */

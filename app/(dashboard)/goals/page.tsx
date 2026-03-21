@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Goal, CreateGoalInput, GoalCategory } from '@/lib/schemas/goal.schema';
 import { calculateProgress, goalToCreateInput } from '@/lib/utils/goalUtils';
 import { createGoalAction, updateGoalAction, deleteGoalAction, fetchGoalsAction } from '@/app/actions/goals';
-import toast from 'react-hot-toast';
 import GoalsList from '@/components/features/goals/GoalsList';
 import GoalModal from '@/components/features/goals/GoalModal';
 import { Button } from '@/components/ui/Button';
@@ -17,6 +16,7 @@ import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
 import { useListNavigation } from '@/lib/hooks/useListNavigation';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import { useSoundToast } from '@/lib/hooks/useSoundToast';
 
 type SortOption = 'date' | 'progress' | 'title';
 type FilterOption = GoalCategory | 'all';
@@ -46,6 +46,7 @@ export default function GoalsPage() {
   const [sortBy, setSortBy] = useState<SortOption>('date');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
   const { play } = useAppSound();
+  const soundToast = useSoundToast();
 
   // Fetch goals with React Query
   const {
@@ -89,14 +90,13 @@ export default function GoalsPage() {
       setEditingGoal(null);
       dispatchChampionEvent({ type: 'GOAL_CREATED' });
       play('goal-created');
-      toast.success('Goal created!');
+      soundToast.plain.success('Goal created!');
     },
     onError: (err: Error, _variables, context) => {
       if (context?.previousGoals) {
         queryClient.setQueryData(['goals'], context.previousGoals);
       }
-      play('error');
-      toast.error(err.message || 'Ziel konnte nicht erstellt werden. Bitte erneut versuchen.');
+      soundToast.error(err.message || 'Ziel konnte nicht erstellt werden. Bitte erneut versuchen.');
     },
   });
 
@@ -123,14 +123,13 @@ export default function GoalsPage() {
     onSuccess: () => {
       setIsModalOpen(false);
       setEditingGoal(null);
-      toast.success('Goal updated!');
+      soundToast.success('Goal updated!');
     },
     onError: (err: Error, _variables, context) => {
       if (context?.previousGoals) {
         queryClient.setQueryData(['goals'], context.previousGoals);
       }
-      play('error');
-      toast.error(err.message || 'Ziel konnte nicht aktualisiert werden. Bitte erneut versuchen.');
+      soundToast.error(err.message || 'Ziel konnte nicht aktualisiert werden. Bitte erneut versuchen.');
     },
   });
 
@@ -147,14 +146,13 @@ export default function GoalsPage() {
       return { previousGoals };
     },
     onSuccess: () => {
-      toast.success('Goal deleted');
+      soundToast.success('Goal deleted');
     },
     onError: (err: Error, _variables, context) => {
       if (context?.previousGoals) {
         queryClient.setQueryData(['goals'], context.previousGoals);
       }
-      play('error');
-      toast.error(err.message || 'Ziel konnte nicht gelöscht werden. Bitte erneut versuchen.');
+      soundToast.error(err.message || 'Ziel konnte nicht gelöscht werden. Bitte erneut versuchen.');
     },
   });
 

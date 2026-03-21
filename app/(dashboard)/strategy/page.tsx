@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { CheckCircle2, Flame, Plus, Sparkles, Target, Trash2 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { useSoundToast } from '@/lib/hooks/useSoundToast';
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
@@ -276,6 +276,7 @@ function inferTrajectoryCategory(input: string): TrajectoryGoalCategory {
 export default function StrategyPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const soundToast = useSoundToast();
   const [selectedDecisionId, setSelectedDecisionId] = useState<string>('');
   const [decisionTitle, setDecisionTitle] = useState('');
   const [decisionContext, setDecisionContext] = useState('');
@@ -499,14 +500,14 @@ export default function StrategyPage() {
         body: JSON.stringify(payload),
       }),
     onSuccess: (created) => {
-      toast.success('Strategie-Entscheidung erstellt');
+      soundToast.success('Strategie-Entscheidung erstellt');
       setDecisionTitle('');
       setDecisionContext('');
       setDecisionTargetDate(toDateInputValue(new Date()));
       setSelectedDecisionId(created.id);
       void queryClient.invalidateQueries({ queryKey: ['strategy', 'decisions'] });
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => soundToast.error(error.message),
   });
 
   const updateDecisionMutation = useMutation({
@@ -520,10 +521,10 @@ export default function StrategyPage() {
         }),
       }),
     onSuccess: () => {
-      toast.success('Decision aktualisiert');
+      soundToast.success('Decision aktualisiert');
       void queryClient.invalidateQueries({ queryKey: ['strategy', 'decisions'] });
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => soundToast.error(error.message),
   });
 
   const deleteDecisionMutation = useMutation({
@@ -532,10 +533,10 @@ export default function StrategyPage() {
         method: 'DELETE',
       }),
     onSuccess: () => {
-      toast.success('Decision gelöscht');
+      soundToast.success('Decision gelöscht');
       void queryClient.invalidateQueries({ queryKey: ['strategy', 'decisions'] });
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => soundToast.error(error.message),
   });
 
   const createOptionMutation = useMutation({
@@ -555,7 +556,7 @@ export default function StrategyPage() {
         body: JSON.stringify(payload),
       }),
     onSuccess: () => {
-      toast.success('Option erstellt');
+      soundToast.success('Option erstellt');
       setOptionTitle('');
       setOptionSummary('');
       setImpactPotential(7);
@@ -566,7 +567,7 @@ export default function StrategyPage() {
       setTimeToValueWeeks(6);
       void queryClient.invalidateQueries({ queryKey: ['strategy', 'decisions'] });
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => soundToast.error(error.message),
   });
 
   const deleteOptionMutation = useMutation({
@@ -575,10 +576,10 @@ export default function StrategyPage() {
         method: 'DELETE',
       }),
     onSuccess: () => {
-      toast.success('Option entfernt');
+      soundToast.success('Option entfernt');
       void queryClient.invalidateQueries({ queryKey: ['strategy', 'decisions'] });
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => soundToast.error(error.message),
   });
 
   const scoreMutation = useMutation({
@@ -588,10 +589,10 @@ export default function StrategyPage() {
         body: JSON.stringify({ scoreMode }),
       }),
     onSuccess: () => {
-      toast.success('Score aktualisiert');
+      soundToast.success('Score aktualisiert');
       void queryClient.invalidateQueries({ queryKey: ['strategy', 'decisions'] });
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => soundToast.error(error.message),
   });
 
   const commitMutation = useMutation({
@@ -611,18 +612,18 @@ export default function StrategyPage() {
         }),
       }),
     onSuccess: (response) => {
-      toast.success(response.skippedExistingTask ? 'Commit gespeichert (Task bereits vorhanden)' : 'Commit + Today-Task erstellt');
+      soundToast.success(response.skippedExistingTask ? 'Commit gespeichert (Task bereits vorhanden)' : 'Commit + Today-Task erstellt');
       setCommitNote('');
       void queryClient.invalidateQueries({ queryKey: ['strategy', 'decisions'] });
       void queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
       void queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => soundToast.error(error.message),
   });
 
   const handleCreateDecision = () => {
     if (!decisionTitle.trim()) {
-      toast.error('Titel fehlt');
+      soundToast.error('Titel fehlt');
       return;
     }
 
@@ -635,11 +636,11 @@ export default function StrategyPage() {
 
   const handleCreateOption = () => {
     if (!selectedDecision) {
-      toast.error('Wähle zuerst eine Decision aus');
+      soundToast.error('Wähle zuerst eine Decision aus');
       return;
     }
     if (!optionTitle.trim()) {
-      toast.error('Option-Titel fehlt');
+      soundToast.error('Option-Titel fehlt');
       return;
     }
 

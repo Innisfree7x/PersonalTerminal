@@ -48,6 +48,10 @@ const LazyQuickActionsWidget = dynamic(
   () => import('@/components/features/dashboard/QuickActionsWidget'),
   { ssr: false, loading: () => widgetSkeleton }
 );
+const LazyMomentumWidget = dynamic(
+  () => import('@/components/features/dashboard/MomentumWidget'),
+  { ssr: false, loading: () => widgetSkeleton }
+);
 const LazyStudyProgress = dynamic(
   () => import('@/components/features/dashboard/StudyProgress'),
   { ssr: false, loading: () => widgetSkeleton }
@@ -233,6 +237,27 @@ export default function TodayPage() {
     [nextTasksData?.weekEvents?.events]
   );
   const trajectoryBriefing = buildTrajectoryMorningBriefing(trajectorySnapshot?.overview);
+
+  // Derive goal health data for MomentumWidget
+  const goalHealthData = useMemo(() => {
+    const overview = trajectorySnapshot?.overview;
+    if (!overview?.goals?.length) return [];
+    const now = Date.now();
+    return overview.goals
+      .filter((g) => g.status === 'active')
+      .map((goal) => {
+        const daysLeft = Math.max(0, Math.ceil((new Date(goal.dueDate).getTime() - now) / (24 * 60 * 60 * 1000)));
+        const blocks = overview.computed.generatedBlocks.filter((b) => b.goalId === goal.id);
+        const doneBlocks = blocks.filter((b) => b.status === 'on_track').length;
+        const progress = blocks.length > 0 ? doneBlocks / blocks.length : 0;
+        // Pick the worst block status for the goal
+        const hasAtRisk = blocks.some((b) => b.status === 'at_risk');
+        const hasTight = blocks.some((b) => b.status === 'tight');
+        const status: 'on_track' | 'tight' | 'at_risk' = hasAtRisk ? 'at_risk' : hasTight ? 'tight' : 'on_track';
+        return { id: goal.id, title: goal.title, daysLeft, progress, status };
+      })
+      .slice(0, 5); // max 5 goals
+  }, [trajectorySnapshot?.overview]);
   const momentum = trajectorySnapshot?.momentum ?? null;
   const trajectoryBriefingHref = trajectoryBriefing
     ? `/trajectory?goalId=${encodeURIComponent(trajectoryBriefing.goalId)}&source=morning_briefing`
@@ -567,6 +592,13 @@ export default function TodayPage() {
           className="space-y-5"
         >
           <ErrorBoundary fallbackTitle="Widgets Error">
+            {/* Momentum Score */}
+            <LazyMomentumWidget
+              momentum={momentum}
+              goals={goalHealthData}
+              isLoading={!nextTasksData}
+            />
+
             {/* Quick Actions */}
             <LazyQuickActionsWidget />
 
