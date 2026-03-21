@@ -328,6 +328,7 @@ export default function TrajectoryPage() {
         : 'other';
 
     if (prefillTitle) {
+      setPlanningUnit('weeks');
       setGoalForm((current) => ({
         ...current,
         title: prefillTitle,

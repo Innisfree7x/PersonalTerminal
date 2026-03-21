@@ -116,6 +116,7 @@ export function mockFramerMotion() {
       header: createMotionComponent('header'),
       main: createMotionComponent('main'),
       button: createMotionComponent('button'),
+      section: createMotionComponent('section'),
       span: createMotionComponent('span'),
       p: createMotionComponent('p'),
       circle: createMotionComponent('circle'),

@@ -6,6 +6,7 @@
 
 For current roadmap and implementation decisions, use:
 - `docs/CONTEXT_CANON.md`
+- `docs/PHASE37_CRITICAL_PATH_INTEGRATION_2026-03-21.md`
 - `docs/PHASE36_QUALITY_HARDENING_2026-03-21.md`
 - `docs/PHASE35_CAREER_INTELLIGENCE_V2_2026-03-21.md`
 - `docs/PHASE31_CAREER_HARDENING_2026-03-15.md`

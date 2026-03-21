@@ -24,6 +24,7 @@ Diese Regeln gelten immer. Keine Ausnahmen.
 ## Canonical Context (must-read)
 - Active planning + execution source: `docs/PHASE13.md`
 - Context priority map: `docs/CONTEXT_CANON.md`
+- Critical path integration baseline: `docs/PHASE37_CRITICAL_PATH_INTEGRATION_2026-03-21.md`
 - Quality hardening baseline: `docs/PHASE36_QUALITY_HARDENING_2026-03-21.md`
 - Career intelligence current state: `docs/PHASE35_CAREER_INTELLIGENCE_V2_2026-03-21.md`
 - Reliability implementation baseline: `docs/PHASE11_TRACK6_IMPLEMENTATION.md`
