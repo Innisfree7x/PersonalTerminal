@@ -2,11 +2,8 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth/server';
 import { isOnboardingComplete } from '@/lib/auth/profile';
-import { HeroSection } from '@/components/features/marketing/HeroSection';
-import { ProblemStrip } from '@/components/features/marketing/ProblemStrip';
-import { ProductShowcase } from '@/components/features/marketing/ProductShowcase';
-import { SocialProof } from '@/components/features/marketing/SocialProof';
-import { CTASection } from '@/components/features/marketing/CTASection';
+import { CinematicLanding } from '@/components/features/marketing/CinematicLanding';
+import { MarketingNavbar } from '@/components/features/marketing/MarketingNavbar';
 
 export const metadata: Metadata = {
   title: 'INNIS — Erkenne Kollisionen in deinem Karriereplan',
@@ -31,11 +28,8 @@ export default async function LandingPage() {
 
   return (
     <>
-      <HeroSection />
-      <ProblemStrip />
-      <ProductShowcase />
-      <SocialProof />
-      <CTASection />
+      <MarketingNavbar />
+      <CinematicLanding />
     </>
   );
 }
