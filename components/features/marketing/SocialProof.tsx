@@ -1,71 +1,57 @@
 'use client';
 
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
+import { motion } from 'framer-motion';
 
 /**
- * SocialProof — "The Numbers" section.
+ * SocialProof — Compact metrics strip between features and CTA.
  *
- * PRISMA-style: Large metrics revealed by scroll, minimal text.
- * No cards, no grids. Pure data presence.
+ * Three large numbers in a single row — scroll-revealed, minimal.
  */
 
 const metrics = [
-  { value: '−47%', label: 'Deadline-Risiko', detail: 'Durch Backward Planning + Buffer' },
-  { value: '+7h', label: 'Fokuszeit pro Woche', detail: 'Durch Morning Brief + Focus Flow' },
+  { value: '−47%', label: 'Deadline-Risiko', detail: 'Backward Planning + Buffer' },
+  { value: '+7h', label: 'Fokuszeit / Woche', detail: 'Morning Brief + Focus Flow' },
   { value: '86%', label: 'Wochen mit klarem Move', detail: 'Statt täglichem Neuplanen' },
 ];
 
-function MetricReveal({ metric, index }: { metric: typeof metrics[number]; index: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start end', 'end start'],
-  });
-
-  const opacity = useTransform(scrollYProgress, [0.2, 0.4, 0.6, 0.8], [0, 1, 1, 0]);
-  const y = useTransform(scrollYProgress, [0.2, 0.4], [60, 0]);
-  const scale = useTransform(scrollYProgress, [0.2, 0.4], [0.9, 1]);
-
-  return (
-    <div ref={ref} className="flex min-h-[60vh] items-center justify-center">
-      <motion.div style={{ opacity, y, scale }} className="text-center">
-        <span className="block text-[clamp(4rem,12vw,10rem)] font-bold tracking-tight text-white">
-          {metric.value}
-        </span>
-        <span className="mt-2 block text-[14px] font-medium uppercase tracking-[0.2em] text-zinc-400">
-          {metric.label}
-        </span>
-        <span className="mt-3 block text-[13px] text-zinc-600">
-          {metric.detail}
-        </span>
-        {index < metrics.length - 1 && (
-          <div className="mx-auto mt-16 h-16 w-px bg-gradient-to-b from-white/[0.08] to-transparent" />
-        )}
-      </motion.div>
-    </div>
-  );
-}
-
 export function SocialProof() {
   return (
-    <section className="relative py-20">
-      {/* Section header */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8 }}
-        className="mb-12 text-center"
-      >
-        <p className="text-[11px] font-medium uppercase tracking-[0.35em] text-zinc-600">
-          Messbare Klarheit
-        </p>
-      </motion.div>
+    <section className="relative py-32 md:py-40">
+      <div className="mx-auto max-w-5xl px-6 sm:px-10">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-100px' }}
+          transition={{ duration: 0.7 }}
+        >
+          <p className="mb-12 text-center text-[11px] font-medium uppercase tracking-[0.35em] text-zinc-600">
+            Messbare Klarheit
+          </p>
 
-      {metrics.map((metric, i) => (
-        <MetricReveal key={metric.label} metric={metric} index={i} />
-      ))}
+          <div className="grid gap-px overflow-hidden rounded-2xl border border-white/[0.06] md:grid-cols-3">
+            {metrics.map((metric, i) => (
+              <motion.div
+                key={metric.label}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+                className="bg-white/[0.015] p-8 text-center transition-colors duration-300 hover:bg-white/[0.03] md:p-10"
+              >
+                <span className="block text-[clamp(2.5rem,6vw,4rem)] font-bold tracking-tight text-white">
+                  {metric.value}
+                </span>
+                <span className="mt-2 block text-[13px] font-medium text-zinc-400">
+                  {metric.label}
+                </span>
+                <span className="mt-1 block text-[11px] text-zinc-600">
+                  {metric.detail}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
     </section>
   );
 }

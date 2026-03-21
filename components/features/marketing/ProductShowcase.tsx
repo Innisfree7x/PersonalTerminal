@@ -8,117 +8,134 @@ import {
   simulateTrajectoryGoalPreview,
 } from '@/lib/trajectory/risk-model';
 import { trackMarketingEvent } from '@/lib/analytics/marketing';
+import { TerminalFrame } from './TerminalFrame';
+import { TodayMockup } from './mockups/TodayMockup';
+import { CareerMockup } from './mockups/CareerMockup';
 
 /**
- * ProductShowcase — Three cinematic feature reveals + interactive trajectory demo.
+ * ProductShowcase — Today + Career terminals + interactive trajectory demo.
  *
- * PRISMA-style: Each feature gets a full viewport with scroll-driven entrance.
- * The trajectory demo section is interactive (sliders) — the "proof" moment.
+ * Each feature gets its own scroll section with text + terminal mockup.
  */
 
-interface FeatureSection {
-  kicker: string;
-  headline: string;
-  highlightedWord: string;
-  description: string;
-  metric: string;
-  metricLabel: string;
-}
+/* ── Today Section ─────────────────────────────────────────────────── */
 
-const features: FeatureSection[] = [
-  {
-    kicker: 'Trajectory',
-    headline: 'Startfenster, Buffer, Risiko.',
-    highlightedWord: 'Eine Wahrheit.',
-    description:
-      'Backward Planning berechnet, wann deine Vorbereitung wirklich beginnen muss. Nicht "bald". Ein Datum. Mit Buffer und Risikologik.',
-    metric: 'Tag 1',
-    metricLabel: 'Exakter Prep-Start',
-  },
-  {
-    kicker: 'Today',
-    headline: 'Nicht planen.',
-    highlightedWord: 'Ausführen.',
-    description:
-      'Morning Briefing, nächster Move, Focus Session. Alles kommt aus dem strategischen Plan — nicht aus einer neuen To-do-Liste.',
-    metric: '1 Move',
-    metricLabel: 'Pro Morgen. Kein Rauschen.',
-  },
-  {
-    kicker: 'Career Intelligence',
-    headline: 'Dein Profil kennt seine',
-    highlightedWord: 'Lücken.',
-    description:
-      'CV-Upload, Fit-Score, Gap-Analyse. Nicht blindes Bewerben, sondern der nächste sinnvolle Schritt für jede Rolle.',
-    metric: 'Fit + Gap',
-    metricLabel: 'Statt Bauchgefühl',
-  },
-];
-
-function FeatureBlock({ feature, index }: { feature: FeatureSection; index: number }) {
+function TodaySection() {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ['start end', 'end start'],
   });
 
-  const opacity = useTransform(scrollYProgress, [0.15, 0.35, 0.65, 0.85], [0, 1, 1, 0]);
-  const y = useTransform(scrollYProgress, [0.15, 0.35], [60, 0]);
-  const metricScale = useTransform(scrollYProgress, [0.25, 0.4], [0.8, 1]);
-  const metricOpacity = useTransform(scrollYProgress, [0.25, 0.4], [0, 1]);
-
-  const isEven = index % 2 === 0;
+  const textOpacity = useTransform(scrollYProgress, [0.1, 0.25, 0.7, 0.85], [0, 1, 1, 0]);
+  const textY = useTransform(scrollYProgress, [0.1, 0.25], [50, 0]);
+  const terminalOpacity = useTransform(scrollYProgress, [0.15, 0.35, 0.7, 0.85], [0, 1, 1, 0]);
+  const terminalY = useTransform(scrollYProgress, [0.15, 0.35], [80, 0]);
+  const terminalRotateY = useTransform(scrollYProgress, [0.15, 0.4], [-8, 0]);
 
   return (
-    <div ref={ref} className="relative min-h-screen py-20">
+    <section ref={ref} className="relative min-h-[150vh] py-32">
       <div className="sticky top-0 flex min-h-screen items-center">
-        <div className="mx-auto w-full max-w-6xl px-6">
-          <motion.div
-            style={{ opacity, y }}
-            className={`grid items-center gap-16 lg:grid-cols-2 ${isEven ? '' : 'lg:[direction:rtl]'}`}
-          >
-            {/* Text side */}
-            <div className={isEven ? '' : 'lg:[direction:ltr]'}>
-              <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.35em] text-[#E8B930]">
-                {feature.kicker}
+        <div className="mx-auto w-full max-w-7xl px-6 sm:px-10">
+          <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
+            {/* Terminal (left this time) */}
+            <TerminalFrame
+              url="innis.io/today"
+              style={{
+                opacity: terminalOpacity,
+                y: terminalY,
+                rotateY: terminalRotateY,
+                perspective: 1200,
+              }}
+            >
+              <TodayMockup />
+            </TerminalFrame>
+
+            {/* Text side (right) */}
+            <motion.div style={{ opacity: textOpacity, y: textY }}>
+              <p className="mb-5 text-[11px] font-medium uppercase tracking-[0.35em] text-[#E8B930]">
+                Today
               </p>
-              <h2 className="premium-heading text-[clamp(2rem,4vw,3.5rem)] font-semibold text-white">
-                {feature.headline}
+              <h2 className="premium-heading text-[clamp(1.8rem,4vw,3.2rem)] font-semibold text-white">
+                Nicht planen.
                 <br />
                 <span className="bg-gradient-to-r from-[#E8B930] via-[#F5D565] to-[#E8B930] bg-clip-text text-transparent">
-                  {feature.highlightedWord}
+                  Ausführen.
                 </span>
               </h2>
-              <p className="mt-6 max-w-lg text-[16px] leading-[1.8] text-zinc-500">
-                {feature.description}
+              <p className="mt-6 max-w-md text-[15px] leading-[1.8] text-zinc-500">
+                Morning Briefing zieht den Kontext aus Trajectory.
+                Der nächste Move steht fest, bevor du den Tab öffnest.
+                Keine To-do-Liste — ein Ausführungssystem.
               </p>
-            </div>
-
-            {/* Metric side — bold, cinematic number */}
-            <motion.div
-              style={{ scale: metricScale, opacity: metricOpacity }}
-              className={`flex flex-col items-center justify-center ${isEven ? '' : 'lg:[direction:ltr]'}`}
-            >
-              <div className="text-center">
-                <span className="block text-[clamp(3rem,8vw,7rem)] font-bold tracking-tight text-white">
-                  {feature.metric}
-                </span>
-                <span className="mt-2 block text-[13px] uppercase tracking-[0.2em] text-zinc-500">
-                  {feature.metricLabel}
-                </span>
-              </div>
             </motion.div>
-          </motion.div>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
-/**
- * Interactive trajectory demo — the "live proof" moment.
- * User slides variables, sees risk change in real time.
- */
+/* ── Career Section ────────────────────────────────────────────────── */
+
+function CareerSection() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start end', 'end start'],
+  });
+
+  const textOpacity = useTransform(scrollYProgress, [0.1, 0.25, 0.7, 0.85], [0, 1, 1, 0]);
+  const textY = useTransform(scrollYProgress, [0.1, 0.25], [50, 0]);
+  const terminalOpacity = useTransform(scrollYProgress, [0.15, 0.35, 0.7, 0.85], [0, 1, 1, 0]);
+  const terminalY = useTransform(scrollYProgress, [0.15, 0.35], [80, 0]);
+  const terminalRotateY = useTransform(scrollYProgress, [0.15, 0.4], [8, 0]);
+
+  return (
+    <section ref={ref} className="relative min-h-[150vh] py-32">
+      <div className="sticky top-0 flex min-h-screen items-center">
+        <div className="mx-auto w-full max-w-7xl px-6 sm:px-10">
+          <div className="grid items-center gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
+            {/* Text side (left) */}
+            <motion.div style={{ opacity: textOpacity, y: textY }}>
+              <p className="mb-5 text-[11px] font-medium uppercase tracking-[0.35em] text-[#E8B930]">
+                Career Intelligence
+              </p>
+              <h2 className="premium-heading text-[clamp(1.8rem,4vw,3.2rem)] font-semibold text-white">
+                Dein Profil kennt
+                <br />
+                <span className="bg-gradient-to-r from-[#E8B930] via-[#F5D565] to-[#E8B930] bg-clip-text text-transparent">
+                  seine Lücken.
+                </span>
+              </h2>
+              <p className="mt-6 max-w-md text-[15px] leading-[1.8] text-zinc-500">
+                CV-Upload, Fit-Score, Gap-Analyse. Nicht blindes Bewerben —
+                sondern der nächste sinnvolle Schritt für jede Rolle.
+                Du siehst Passung, Lücken und konkreten Handlungsbedarf.
+              </p>
+            </motion.div>
+
+            {/* Terminal (right) */}
+            <TerminalFrame
+              url="innis.io/career"
+              style={{
+                opacity: terminalOpacity,
+                y: terminalY,
+                rotateY: terminalRotateY,
+                perspective: 1200,
+              }}
+            >
+              <CareerMockup />
+            </TerminalFrame>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Interactive Trajectory Demo ───────────────────────────────────── */
+
 function TrajectoryDemo() {
   const [capacityHoursPerWeek, setCapacityHoursPerWeek] = useState(18);
   const [effortHours, setEffortHours] = useState(520);
@@ -169,7 +186,6 @@ function TrajectoryDemo() {
 
   return (
     <section className="relative flex min-h-screen items-center justify-center py-32">
-      {/* Subtle glow */}
       <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8B930]/[0.03] blur-[180px]" />
 
       <div className="relative z-10 mx-auto w-full max-w-3xl px-6">
@@ -188,85 +204,87 @@ function TrajectoryDemo() {
             <span className="text-zinc-500">Sieh, wann dein Plan kippt.</span>
           </h2>
 
-          {/* Interactive demo */}
-          <div className="space-y-10">
-            {/* Sliders */}
-            <div className="space-y-8">
-              <label className="block">
-                <span className="flex items-center justify-between text-[12px] uppercase tracking-[0.14em] text-zinc-500">
-                  Kapazität
-                  <span className="text-[20px] font-semibold tracking-tight text-white">{capacityHoursPerWeek}h / Woche</span>
-                </span>
-                <input
-                  type="range"
-                  min={5}
-                  max={50}
-                  step={1}
-                  value={capacityHoursPerWeek}
-                  onChange={(e) => {
-                    const v = Number(e.target.value);
-                    setCapacityHoursPerWeek(v);
-                    trackOnce(v, effortHours);
-                  }}
-                  className="mt-4 w-full accent-[#E8B930]"
-                />
-              </label>
-
-              <label className="block">
-                <span className="flex items-center justify-between text-[12px] uppercase tracking-[0.14em] text-zinc-500">
-                  Gesamtaufwand
-                  <span className="text-[20px] font-semibold tracking-tight text-white">{effortHours}h</span>
-                </span>
-                <input
-                  type="range"
-                  min={120}
-                  max={900}
-                  step={10}
-                  value={effortHours}
-                  onChange={(e) => {
-                    const v = Number(e.target.value);
-                    setEffortHours(v);
-                    trackOnce(capacityHoursPerWeek, v);
-                  }}
-                  className="mt-4 w-full accent-[#E8B930]"
-                />
-              </label>
-            </div>
-
-            {/* Divider */}
-            <div className="h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
-
-            {/* Results — large, cinematic */}
-            <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
-              {[
-                { label: 'Status', value: formatTrajectoryRiskLabel(preview.status), className: statusColor },
-                { label: 'Prep Start', value: prepStartLabel, className: 'text-white' },
-                { label: 'Deadline', value: `${dueDays}d`, className: 'text-white' },
-                { label: 'Wochen', value: String(preview.requiredWeeks), className: 'text-white' },
-              ].map((item) => (
-                <div key={item.label} className="text-center">
-                  <span className="block text-[10px] uppercase tracking-[0.2em] text-zinc-600">
-                    {item.label}
+          <TerminalFrame url="innis.io/trajectory/simulate">
+            <div className="p-6 md:p-8">
+              {/* Sliders */}
+              <div className="space-y-8">
+                <label className="block">
+                  <span className="flex items-center justify-between text-[12px] uppercase tracking-[0.14em] text-zinc-500">
+                    Kapazität
+                    <span className="text-[20px] font-semibold tracking-tight text-white">{capacityHoursPerWeek}h / Woche</span>
                   </span>
-                  <span className={`mt-2 block text-[18px] font-semibold tracking-tight ${item.className}`}>
-                    {item.value}
+                  <input
+                    type="range"
+                    min={5}
+                    max={50}
+                    step={1}
+                    value={capacityHoursPerWeek}
+                    onChange={(e) => {
+                      const v = Number(e.target.value);
+                      setCapacityHoursPerWeek(v);
+                      trackOnce(v, effortHours);
+                    }}
+                    className="mt-4 w-full accent-[#E8B930]"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="flex items-center justify-between text-[12px] uppercase tracking-[0.14em] text-zinc-500">
+                    Gesamtaufwand
+                    <span className="text-[20px] font-semibold tracking-tight text-white">{effortHours}h</span>
                   </span>
-                </div>
-              ))}
+                  <input
+                    type="range"
+                    min={120}
+                    max={900}
+                    step={10}
+                    value={effortHours}
+                    onChange={(e) => {
+                      const v = Number(e.target.value);
+                      setEffortHours(v);
+                      trackOnce(capacityHoursPerWeek, v);
+                    }}
+                    className="mt-4 w-full accent-[#E8B930]"
+                  />
+                </label>
+              </div>
+
+              {/* Divider */}
+              <div className="my-8 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+
+              {/* Results */}
+              <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+                {[
+                  { label: 'Status', value: formatTrajectoryRiskLabel(preview.status), className: statusColor },
+                  { label: 'Prep Start', value: prepStartLabel, className: 'text-white' },
+                  { label: 'Deadline', value: `${dueDays}d`, className: 'text-white' },
+                  { label: 'Wochen', value: String(preview.requiredWeeks), className: 'text-white' },
+                ].map((item) => (
+                  <div key={item.label} className="text-center">
+                    <span className="block text-[10px] uppercase tracking-[0.2em] text-zinc-600">
+                      {item.label}
+                    </span>
+                    <span className={`mt-2 block text-[18px] font-semibold tracking-tight ${item.className}`}>
+                      {item.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          </TerminalFrame>
         </motion.div>
       </div>
     </section>
   );
 }
 
+/* ── Export ─────────────────────────────────────────────────────────── */
+
 export function ProductShowcase() {
   return (
     <>
-      {features.map((feature, i) => (
-        <FeatureBlock key={feature.kicker} feature={feature} index={i} />
-      ))}
+      <TodaySection />
+      <CareerSection />
       <TrajectoryDemo />
     </>
   );
