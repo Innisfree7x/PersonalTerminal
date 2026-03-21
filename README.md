@@ -5,10 +5,10 @@
 ## Canonical Planning Docs
 
 For current roadmap and implementation decisions, use:
-- `docs/PHASE12_MASTERPLAN.md`
-- `docs/PHASE12_EXECUTION_BLUEPRINT.md`
 - `docs/CONTEXT_CANON.md`
-- `docs/PHASE11_TRACK6_IMPLEMENTATION.md`
+- `docs/PHASE36_QUALITY_HARDENING_2026-03-21.md`
+- `docs/PHASE35_CAREER_INTELLIGENCE_V2_2026-03-21.md`
+- `docs/PHASE31_CAREER_HARDENING_2026-03-15.md`
 
 Archived phase docs are historical references only.
 
@@ -197,7 +197,7 @@ Browser
 | `npm run lint` | ESLint |
 | `npm run test` | Vitest unit tests |
 | `npm run test:watch` | Vitest watch mode |
-| `npm run test:coverage` | Coverage report |
+| `npm run test:coverage` | Coverage report + enforced CI gate |
 | `npm run test:e2e:blocker` | Critical Playwright flows (serial CI gate) |
 | `npm run test:e2e` | Full Playwright suite |
 | `npm run fix-courses` | Fix missing exercise_progress entries |

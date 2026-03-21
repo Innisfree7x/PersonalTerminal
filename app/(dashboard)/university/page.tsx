@@ -22,12 +22,23 @@ import AnimatedCounter from '@/components/ui/AnimatedCounter';
 import { usePrismCommandAction } from '@/lib/hooks/useCommandActions';
 import { useListNavigation } from '@/lib/hooks/useListNavigation';
 
-function normalizeCourse(course: any): CourseWithExercises {
+type ExerciseProgressWire = CourseWithExercises['exercises'][number] & {
+  completedAt?: string | Date | undefined;
+  createdAt: string | Date;
+};
+
+type CourseWithExercisesWire = Omit<CourseWithExercises, 'examDate' | 'createdAt' | 'exercises'> & {
+  examDate?: string | Date | undefined;
+  createdAt: string | Date;
+  exercises?: ExerciseProgressWire[] | undefined;
+};
+
+function normalizeCourse(course: CourseWithExercisesWire): CourseWithExercises {
   return {
     ...course,
     examDate: course.examDate ? new Date(course.examDate) : undefined,
     createdAt: new Date(course.createdAt),
-    exercises: (course.exercises || []).map((ex: any) => ({
+    exercises: (course.exercises || []).map((ex) => ({
       ...ex,
       completedAt: ex.completedAt ? new Date(ex.completedAt) : undefined,
       createdAt: new Date(ex.createdAt),

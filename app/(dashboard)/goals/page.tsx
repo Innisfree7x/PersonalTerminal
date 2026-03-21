@@ -20,6 +20,10 @@ import { useSoundToast } from '@/lib/hooks/useSoundToast';
 
 type SortOption = 'date' | 'progress' | 'title';
 type FilterOption = GoalCategory | 'all';
+type GoalWire = Omit<Goal, 'targetDate' | 'createdAt'> & {
+  targetDate: string | Date;
+  createdAt: string | Date;
+};
 
 const categoryConfig: Record<FilterOption, { label: string; icon: string; color: string }> = {
   all: { label: 'All Goals', icon: '🎯', color: 'primary' },
@@ -29,7 +33,7 @@ const categoryConfig: Record<FilterOption, { label: string; icon: string; color:
   finance: { label: 'Finance', icon: '💰', color: 'success' },
 };
 
-function normalizeGoal(goal: any): Goal {
+function normalizeGoal(goal: GoalWire): Goal {
   return {
     ...goal,
     targetDate: new Date(goal.targetDate),

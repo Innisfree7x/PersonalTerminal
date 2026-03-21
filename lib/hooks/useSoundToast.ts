@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import { useAppSound } from '@/lib/hooks/useAppSound';
 
@@ -27,5 +27,8 @@ export function useSoundToast() {
     [play]
   );
 
-  return { error, success, plain: toast };
+  return useMemo(
+    () => ({ error, success, plain: toast }),
+    [error, success]
+  );
 }

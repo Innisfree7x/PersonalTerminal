@@ -43,6 +43,9 @@ jobs:
       - name: Unit tests
         run: npm run test:unit
 
+      - name: Coverage gate
+        run: npm run test:coverage
+
       - name: Gate tenant isolation check by secrets
         id: tenant_gate
         run: |

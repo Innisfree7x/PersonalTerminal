@@ -10,6 +10,16 @@ export default defineConfig({
     globals: true,
     setupFiles: './vitest.setup.ts',
     exclude: ['tests/e2e/**', 'node_modules/**'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json-summary'],
+      thresholds: {
+        statements: 25,
+        lines: 25,
+        functions: 45,
+        branches: 60,
+      },
+    },
   },
   resolve: {
     alias: {

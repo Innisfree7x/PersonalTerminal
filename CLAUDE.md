@@ -24,6 +24,8 @@ Diese Regeln gelten immer. Keine Ausnahmen.
 ## Canonical Context (must-read)
 - Active planning + execution source: `docs/PHASE13.md`
 - Context priority map: `docs/CONTEXT_CANON.md`
+- Quality hardening baseline: `docs/PHASE36_QUALITY_HARDENING_2026-03-21.md`
+- Career intelligence current state: `docs/PHASE35_CAREER_INTELLIGENCE_V2_2026-03-21.md`
 - Reliability implementation baseline: `docs/PHASE11_TRACK6_IMPLEMENTATION.md`
 - Phase 12 (completed): `docs/PHASE12_MASTERPLAN.md` — non-normative, historical reference only
 
@@ -149,7 +151,7 @@ npm run lint                  # ESLint
 npm run test                  # Vitest (all)
 npm run test:unit             # Unit tests only (runs in pre-commit hook)
 npm run test:watch            # Vitest watch mode
-npm run test:coverage         # Coverage report
+npm run test:coverage         # Coverage report (CI-enforced gate)
 npm run test:evals            # AI guardrail eval suite
 npm run test:e2e:blocker      # Critical Playwright blocker suite
 npm run test:e2e              # Full Playwright suite

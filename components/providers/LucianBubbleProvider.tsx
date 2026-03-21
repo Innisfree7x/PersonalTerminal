@@ -16,9 +16,11 @@ import { LucianBubble } from '@/components/features/lucian/LucianBubble';
 import { LucianBreakOverlay } from '@/components/features/lucian/LucianBreakOverlay';
 import type { DrillResult } from '@/lib/lucian/game/targetDrill';
 import {
+  getDateKeyDaysAgo,
   getYesterdayReaction,
   hasShownYesterdayMemory,
   markYesterdayMemoryShown,
+  startOfDateKeyLocal,
 } from '@/lib/lucian/memory';
 
 // ─── localStorage / sessionStorage keys ─────────────────────────────────────
@@ -298,6 +300,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
   const breakActiveRef            = useRef(false);
   const contextHintsActive        = pathname?.startsWith('/today') ?? false;
   const todayIso                  = formatLocalDateKey(new Date());
+  const yesterdayIso             = getDateKeyDaysAgo(1);
 
   const { data: nextTasksData } = useQuery<DashboardNextTasksPayload | null>({
     queryKey: ['dashboard', 'next-tasks'],
@@ -315,6 +318,18 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
     queryKey: ['daily-tasks', todayIso],
     queryFn: async () => {
       const response = await fetch(`/api/daily-tasks?date=${todayIso}`);
+      if (!response.ok) return null;
+      return (await response.json()) as DailyTaskPayload[];
+    },
+    enabled: contextHintsActive,
+    staleTime: 20 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: yesterdayTasksData } = useQuery<DailyTaskPayload[] | null>({
+    queryKey: ['daily-tasks', 'lucian-yesterday', yesterdayIso],
+    queryFn: async () => {
+      const response = await fetch(`/api/daily-tasks?date=${yesterdayIso}`);
       if (!response.ok) return null;
       return (await response.json()) as DailyTaskPayload[];
     },
@@ -503,21 +518,15 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
       return;
     }
     if (isMuted() || isOnCooldown()) return;
-    if (!todayTasksData || !recentSessionsData) return;
+    if (!yesterdayTasksData || !recentSessionsData) return;
 
-    // Compute yesterday's date
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayIso = formatLocalDateKey(yesterday);
-
-    // Yesterday's tasks
-    const yesterdayTasks = todayTasksData.filter((t) => t.date === yesterdayIso);
+    const yesterdayTasks = yesterdayTasksData;
     const tasksCompleted = yesterdayTasks.filter((t) => t.completed).length;
     const tasksTotal = yesterdayTasks.length;
 
     // Yesterday's focus minutes
-    const yesterdayStart = new Date(yesterdayIso).getTime();
-    const todayStart = new Date(todayIso).getTime();
+    const yesterdayStart = startOfDateKeyLocal(yesterdayIso);
+    const todayStart = startOfDateKeyLocal(todayIso);
     const focusMinutes = recentSessionsData
       .filter((s) => {
         const t = new Date(s.startedAt).getTime();
@@ -550,7 +559,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
         ariaRole: 'status',
       });
     }, 3000);
-  }, [breakActive, contextHintsActive, recentSessionsData, showMessage, todayIso, todayTasksData]);
+  }, [breakActive, contextHintsActive, recentSessionsData, showMessage, todayIso, yesterdayIso, yesterdayTasksData]);
 
   // ── Champion event subscription ────────────────────────────────────────────
   useEffect(() => {

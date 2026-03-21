@@ -1,17 +1,18 @@
-import { ButtonHTMLAttributes, forwardRef } from 'react';
-import { motion } from 'framer-motion';
+import { forwardRef, type ReactNode } from 'react';
+import { motion, type HTMLMotionProps } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
 
-export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart' | 'onAnimationEnd'> {
+export interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'className'> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
   fullWidth?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  children?: ReactNode;
   className?: string;
 }
 
@@ -67,12 +68,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const isDisabled = disabled || loading;
 
-    const MotionButton = motion.button;
-    const additionalProps: any = {};
+    const additionalProps: { whileTap?: { scale: number } } = {};
     if (!isDisabled) additionalProps.whileTap = { scale: 0.98 };
     
     return (
-      <MotionButton
+      <motion.button
         ref={ref}
         {...additionalProps}
         transition={{ type: 'spring', stiffness: 400, damping: 17 }}
@@ -93,7 +93,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {!loading && leftIcon && <span className="inline-flex">{leftIcon}</span>}
         {children}
         {!loading && rightIcon && <span className="inline-flex">{rightIcon}</span>}
-      </MotionButton>
+      </motion.button>
     );
   }
 );

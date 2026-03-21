@@ -10,7 +10,6 @@
  */
 
 const reverbCache = new WeakMap<AudioContext, ConvolverNode>();
-const sendCache = new WeakMap<AudioContext, { dry: GainNode; wet: GainNode }>();
 
 const DEFAULT_DECAY = 1.4; // seconds
 
@@ -53,24 +52,19 @@ export function getReverbNode(ctx: AudioContext): ConvolverNode {
 }
 
 /**
- * Get or create the shared wet/dry send buses.
+ * Create isolated wet/dry send buses for a specific synth trigger.
  *
  * Synths connect their output to BOTH:
  *   - `dry` → direct to destination (unprocessed)
  *   - `wet` → through convolver → destination (reverb)
  *
- * Default mix: dry=0.8, wet=0.25 (subtle room feel).
+ * The convolver is shared, but the gain buses are per-call so concurrent
+ * sounds can use different wet levels without mutating each other.
  */
 export function getReverbSend(
   ctx: AudioContext,
   wetAmount: number = 0.25,
 ): { dry: GainNode; wet: GainNode } {
-  const cached = sendCache.get(ctx);
-  if (cached) {
-    cached.wet.gain.value = wetAmount;
-    return cached;
-  }
-
   const dry = ctx.createGain();
   dry.gain.value = 1.0;
   dry.connect(ctx.destination);
@@ -80,6 +74,5 @@ export function getReverbSend(
   const convolver = getReverbNode(ctx);
   wet.connect(convolver);
 
-  sendCache.set(ctx, { dry, wet });
   return { dry, wet };
 }

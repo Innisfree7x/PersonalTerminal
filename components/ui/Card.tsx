@@ -1,14 +1,15 @@
-import { HTMLAttributes, forwardRef } from 'react';
-import { motion } from 'framer-motion';
+import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
+import { motion, type HTMLMotionProps } from 'framer-motion';
 
 export type CardVariant = 'default' | 'bordered' | 'elevated' | 'ghost';
 export type CardPadding = 'none' | 'sm' | 'md' | 'lg';
 
-export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart' | 'onAnimationEnd'> {
+export interface CardProps extends Omit<HTMLMotionProps<'div'>, 'className'> {
   variant?: CardVariant;
   padding?: CardPadding;
   hoverable?: boolean;
   clickable?: boolean;
+  children?: ReactNode;
   className?: string;
 }
 
@@ -47,8 +48,6 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     },
     ref
   ) => {
-    const MotionDiv = motion.div;
-
     const hoverStyles = hoverable || clickable ? `
       hover:border-primary hover:shadow-glow hover:-translate-y-0.5
       transition-all duration-base
@@ -56,12 +55,15 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
 
     const clickableStyles = clickable ? 'cursor-pointer' : '';
 
-    const motionProps: any = {};
+    const motionProps: {
+      whileHover?: { y: number };
+      whileTap?: { scale: number };
+    } = {};
     if (hoverable || clickable) motionProps.whileHover = { y: -2 };
     if (clickable) motionProps.whileTap = { scale: 0.98 };
     
     return (
-      <MotionDiv
+      <motion.div
         ref={ref}
         {...motionProps}
         transition={{ type: 'spring', stiffness: 400, damping: 20 }}
@@ -76,7 +78,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         {...props}
       >
         {children}
-      </MotionDiv>
+      </motion.div>
     );
   }
 );

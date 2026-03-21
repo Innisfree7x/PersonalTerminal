@@ -346,7 +346,7 @@ export default function TrajectoryPage() {
       const nextUrl = `${url.pathname}${url.searchParams.toString() ? `?${url.searchParams.toString()}` : ''}`;
       window.history.replaceState({}, '', nextUrl);
     }
-  }, []);
+  }, [soundToast]);
 
   const {
     data: overview,

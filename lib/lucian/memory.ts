@@ -15,14 +15,34 @@ export interface LucianMemoryReaction {
 
 const STORAGE_KEY = 'innis_lucian_yesterday_shown';
 
+function formatDateKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+export function getDateKeyDaysAgo(daysAgo: number, baseDate: Date = new Date()): string {
+  const date = new Date(baseDate);
+  date.setDate(date.getDate() - daysAgo);
+  return formatDateKey(date);
+}
+
+export function startOfDateKeyLocal(dateKey: string): number {
+  const parts = dateKey.split('-').map(Number);
+  const rawYear = parts[0];
+  const rawMonth = parts[1];
+  const rawDay = parts[2];
+  const year = typeof rawYear === 'number' && Number.isFinite(rawYear) ? rawYear : 1970;
+  const month = typeof rawMonth === 'number' && Number.isFinite(rawMonth) ? rawMonth : 1;
+  const day = typeof rawDay === 'number' && Number.isFinite(rawDay) ? rawDay : 1;
+  return new Date(year, month - 1, day).getTime();
+}
+
 /**
  * Check whether yesterday's memory reaction was already shown today.
  */
 export function hasShownYesterdayMemory(): boolean {
   if (typeof window === 'undefined') return true;
   try {
-    const today = new Date();
-    const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const key = formatDateKey(new Date());
     return localStorage.getItem(STORAGE_KEY) === key;
   } catch {
     return true;
@@ -35,9 +55,7 @@ export function hasShownYesterdayMemory(): boolean {
 export function markYesterdayMemoryShown(): void {
   if (typeof window === 'undefined') return;
   try {
-    const today = new Date();
-    const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    localStorage.setItem(STORAGE_KEY, key);
+    localStorage.setItem(STORAGE_KEY, formatDateKey(new Date()));
   } catch {
     // ignore
   }
