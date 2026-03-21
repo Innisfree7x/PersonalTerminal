@@ -44,6 +44,14 @@ export function MarketingNavbar() {
             Preise
           </Link>
           <TrackedCtaLink
+            href="/auth/login"
+            eventName="landing_cta_secondary_clicked"
+            eventPayload={{ source: 'navbar', variant: 'login' }}
+            className="text-[13px] text-zinc-500 transition-colors hover:text-white"
+          >
+            Login
+          </TrackedCtaLink>
+          <TrackedCtaLink
             href="/auth/signup"
             eventName="landing_cta_primary_clicked"
             eventPayload={{ source: 'navbar', variant: 'primary' }}
@@ -59,6 +67,8 @@ export function MarketingNavbar() {
           className="rounded-lg p-2 text-zinc-500 transition hover:text-white md:hidden"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Navigation"
+          aria-expanded={mobileOpen}
+          aria-controls="marketing-mobile-nav"
         >
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -66,7 +76,10 @@ export function MarketingNavbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="border-t border-white/[0.04] bg-black/95 px-6 py-5 backdrop-blur-2xl md:hidden">
+        <div
+          id="marketing-mobile-nav"
+          className="border-t border-white/[0.04] bg-black/95 px-6 py-5 backdrop-blur-2xl md:hidden"
+        >
           <div className="space-y-1">
             <Link
               href="/features"
