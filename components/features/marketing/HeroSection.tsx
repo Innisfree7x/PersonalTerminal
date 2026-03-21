@@ -1,288 +1,86 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Radar, Route, Target } from 'lucide-react';
-import { ProductMockup } from './ProductMockup';
+import { ArrowRight } from 'lucide-react';
 import { TrackedCtaLink } from './TrackedCtaLink';
-import { trackMarketingEvent } from '@/lib/analytics/marketing';
-import {
-  formatTrajectoryRiskLabel,
-  getDaysUntilDate,
-  simulateTrajectoryGoalPreview,
-} from '@/lib/trajectory/risk-model';
 
 export function HeroSection() {
-  const [capacityHoursPerWeek, setCapacityHoursPerWeek] = useState(18);
-  const [effortHours, setEffortHours] = useState(520);
-  const trackedSimulationRef = useRef(false);
-  const dueDate = '2027-03-01';
-
-  const preview = useMemo(
-    () =>
-      simulateTrajectoryGoalPreview({
-        dueDate,
-        effortHours,
-        bufferWeeks: 2,
-        capacityHoursPerWeek,
-      }),
-    [capacityHoursPerWeek, effortHours]
-  );
-
-  const dueDays = useMemo(() => getDaysUntilDate(dueDate), [dueDate]);
-  const prepStartLabel = useMemo(() => {
-    const parsed = new Date(`${preview.startDate}T00:00:00.000Z`);
-    if (Number.isNaN(parsed.getTime())) return preview.startDate;
-    return parsed.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  }, [preview.startDate]);
-
-  const statusColor =
-    preview.status === 'on_track'
-      ? { border: 'border-emerald-500/25', bg: 'bg-emerald-500/8', text: 'text-emerald-400' }
-      : preview.status === 'tight'
-        ? { border: 'border-[#E8B930]/25', bg: 'bg-[#E8B930]/8', text: 'text-[#E8B930]' }
-        : { border: 'border-red-500/25', bg: 'bg-red-500/8', text: 'text-red-400' };
-
-  const proofTiles = [
-    {
-      icon: Route,
-      eyebrow: 'Trajectory',
-      title: `Prep startet ${prepStartLabel}`,
-      detail: `${dueDays} Tage bis zur Deadline · Buffer 2 Wochen`,
-    },
-    {
-      icon: Target,
-      eyebrow: 'Risk',
-      title: formatTrajectoryRiskLabel(preview.status),
-      detail: 'Du siehst den Konflikt, bevor er dich in den Tag zwingt.',
-    },
-    {
-      icon: Radar,
-      eyebrow: 'Career',
-      title: 'CV -> Radar -> Gap -> Task',
-      detail: 'Nicht nur Jobs finden, sondern den nächsten sinnvollen Move kennen.',
-    },
-  ];
-
-  const trackSimulationOnce = (nextCapacity: number, nextEffort: number) => {
-    if (trackedSimulationRef.current) return;
-    trackedSimulationRef.current = true;
-    const nextPreview = simulateTrajectoryGoalPreview({
-      dueDate,
-      effortHours: nextEffort,
-      bufferWeeks: 2,
-      capacityHoursPerWeek: nextCapacity,
-    });
-    void trackMarketingEvent('hero_simulated', {
-      source: 'hero_proof',
-      hours_per_week: nextCapacity,
-      effort_hours: nextEffort,
-      status: nextPreview.status,
-    });
-  };
-
   return (
-    <>
-      <section className="relative overflow-hidden pb-12 pt-16 md:pb-24 md:pt-28">
-        <div className="pointer-events-none absolute left-1/2 top-[15%] h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8B930]/[0.08] blur-[150px]" />
-        <div className="pointer-events-none absolute left-[15%] top-[10%] h-[400px] w-[400px] rounded-full bg-[#DC3232]/[0.08] blur-[130px]" />
-        <div className="pointer-events-none absolute right-[10%] top-[20%] h-[300px] w-[350px] rounded-full bg-[#FF7832]/[0.05] blur-[120px]" />
+    <section className="relative flex h-screen min-h-[700px] flex-col items-center justify-center overflow-hidden">
+      {/* Subtle gold glow — very restrained */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8B930]/[0.04] blur-[200px]" />
 
-        <div className="marketing-container relative z-10">
-          <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-20">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 }}
-                className="mb-7 inline-flex"
-              >
-                <span className="shimmer-badge inline-flex items-center gap-2.5 rounded-full border border-[#E8B930]/15 bg-[#E8B930]/[0.05] px-4 py-2">
-                  <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-[#E8B930]" />
-                  <span className="text-[12px] font-medium tracking-[0.08em] text-[#E8B930]/90">
-                    Public Beta · Trajectory-first Career OS
-                  </span>
-                </span>
-              </motion.div>
+      <div className="relative z-10 mx-auto max-w-5xl px-6 text-center">
+        {/* Kicker — minimal, no badge */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 0.3 }}
+          className="mb-8 text-[11px] font-medium uppercase tracking-[0.35em] text-zinc-500"
+        >
+          Career Intelligence System
+        </motion.p>
 
-              <motion.h1
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.6 }}
-                className="premium-heading text-[clamp(2.3rem,5vw,4.4rem)] font-semibold text-[#FAF0E6]"
-              >
-                Sieh sofort, ob{' '}
-                <span className="bg-gradient-to-r from-[#E8B930] via-[#F5D565] to-[#E8B930] bg-clip-text italic text-transparent">
-                  Thesis, GMAT und Praktikum
-                </span>{' '}
-                gleichzeitig realistisch sind.
-              </motion.h1>
+        {/* Main headline — large serif, PRISMA-level */}
+        <motion.h1
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="premium-heading text-[clamp(2.8rem,7vw,6.5rem)] font-semibold text-white"
+        >
+          Sieh den Konflikt,
+          <br />
+          <span className="bg-gradient-to-r from-[#E8B930] via-[#F5D565] to-[#E8B930] bg-clip-text text-transparent">
+            bevor er dich trifft.
+          </span>
+        </motion.h1>
 
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.25 }}
-                className="mt-5 max-w-xl text-[16px] leading-[1.75] text-zinc-400"
-              >
-                INNIS verbindet Trajectory, Today und Career Intelligence in einem System. Du bekommst erst den Risk-Status,
-                dann den nächsten Tageszug und schließlich die Rollen, die zu deinem Profil wirklich passen.
-              </motion.p>
+        {/* Subline — one sentence, understated */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.9 }}
+          className="mx-auto mt-8 max-w-2xl text-[18px] leading-[1.7] text-zinc-500"
+        >
+          INNIS zeigt dir, wann Thesis, GMAT und Bewerbungen kollidieren — und gibt dir
+          den nächsten Move, nicht das nächste Dashboard.
+        </motion.p>
 
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.38 }}
-                className="mt-8 flex flex-wrap gap-3"
-              >
-                <TrackedCtaLink
-                  href="/auth/signup"
-                  eventName="landing_cta_primary_clicked"
-                  eventPayload={{ source: 'hero', variant: 'primary' }}
-                  className="premium-cta-primary"
-                >
-                  Kostenlos starten
-                  <ArrowRight className="h-4 w-4" />
-                </TrackedCtaLink>
-                <a
-                  href="#hero-proof"
-                  onClick={() => {
-                    void trackMarketingEvent('landing_cta_secondary_clicked', {
-                      source: 'hero',
-                      variant: 'proof',
-                    });
-                  }}
-                  className="premium-cta-secondary"
-                >
-                  Live-Beweis ansehen
-                </a>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.48, duration: 0.55 }}
-                className="mt-8 grid gap-3 sm:grid-cols-3"
-              >
-                {proofTiles.map((tile) => (
-                  <div
-                    key={tile.eyebrow}
-                    className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-all duration-300 hover:-translate-y-0.5 hover:border-white/[0.1] hover:bg-white/[0.035]"
-                  >
-                    <div className="flex items-center gap-2">
-                      <tile.icon className="h-4 w-4 text-[#E8B930]/75" />
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">{tile.eyebrow}</p>
-                    </div>
-                    <p className="mt-3 text-sm font-semibold text-[#FAF0E6]">{tile.title}</p>
-                    <p className="mt-1 text-xs leading-relaxed text-zinc-500">{tile.detail}</p>
-                  </div>
-                ))}
-              </motion.div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 32, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: 0.25, duration: 0.75, ease: 'easeOut' }}
-              className="relative"
-            >
-              <ProductMockup />
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      <section id="hero-proof" className="relative py-32 md:py-40">
-        <div className="premium-divider" />
-
-        <div className="mx-auto mt-16 max-w-3xl px-6 sm:px-10">
-          <motion.div
-            initial={{ opacity: 0, y: 32 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-100px' }}
-            transition={{ duration: 0.6 }}
+        {/* CTA — single, centered */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 1.2 }}
+          className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
+        >
+          <TrackedCtaLink
+            href="/auth/signup"
+            eventName="landing_cta_primary_clicked"
+            eventPayload={{ source: 'hero', variant: 'primary' }}
+            className="premium-cta-primary"
           >
-            <div className="mb-10 text-center">
-              <p className="premium-kicker">Interaktiver Beweis</p>
-              <h2 className="premium-heading text-[clamp(1.8rem,4vw,3rem)] font-semibold text-[#FAF0E6]">
-                Verschiebe eine Variable und du siehst sofort, wann dein Plan kippt.
-              </h2>
-            </div>
+            Kostenlos starten
+            <ArrowRight className="h-4 w-4" />
+          </TrackedCtaLink>
+        </motion.div>
+      </div>
 
-            <div className="premium-card rounded-2xl p-6 md:p-8">
-              <div className="mb-6 flex items-center justify-end">
-                <span className={`inline-flex rounded-full border px-3 py-1.5 text-[11px] font-semibold ${statusColor.border} ${statusColor.bg} ${statusColor.text}`}>
-                  {formatTrajectoryRiskLabel(preview.status)}
-                </span>
-              </div>
-
-              <div className="grid gap-8 md:grid-cols-2">
-                <div className="space-y-6">
-                  <label className="block">
-                    <span className="flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-zinc-500">
-                      Kapazität
-                      <span className="font-semibold text-zinc-400">{capacityHoursPerWeek}h / Woche</span>
-                    </span>
-                    <input
-                      type="range"
-                      min={5}
-                      max={50}
-                      step={1}
-                      value={capacityHoursPerWeek}
-                      onChange={(e) => {
-                        const v = Number(e.target.value);
-                        setCapacityHoursPerWeek(v);
-                        trackSimulationOnce(v, effortHours);
-                      }}
-                      className="mt-3 w-full accent-[#E8B930]"
-                    />
-                  </label>
-
-                  <label className="block">
-                    <span className="flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-zinc-500">
-                      Gesamtaufwand
-                      <span className="font-semibold text-zinc-400">{effortHours}h</span>
-                    </span>
-                    <input
-                      type="range"
-                      min={120}
-                      max={900}
-                      step={10}
-                      value={effortHours}
-                      onChange={(e) => {
-                        const v = Number(e.target.value);
-                        setEffortHours(v);
-                        trackSimulationOnce(capacityHoursPerWeek, v);
-                      }}
-                      className="mt-3 w-full accent-[#E8B930]"
-                    />
-                  </label>
-                </div>
-
-                <div className="space-y-0 rounded-xl border border-white/[0.05] bg-white/[0.015]">
-                  {[
-                    { label: 'Deadline', value: `${dueDays} Tage` },
-                    { label: 'Prep Start', value: prepStartLabel },
-                    { label: 'Benötigte Wochen', value: String(preview.requiredWeeks) },
-                    { label: 'Buffer', value: '2 Wochen' },
-                  ].map((row, i) => (
-                    <div
-                      key={row.label}
-                      className={`flex items-center justify-between px-5 py-3.5 ${i < 3 ? 'border-b border-white/[0.04]' : ''}`}
-                    >
-                      <span className="text-[13px] text-zinc-500">{row.label}</span>
-                      <span className="text-[13px] font-medium text-[#FAF0E6]">{row.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-    </>
+      {/* Scroll indicator */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2, duration: 1 }}
+        className="absolute bottom-12 left-1/2 -translate-x-1/2"
+      >
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+          className="flex flex-col items-center gap-3"
+        >
+          <span className="text-[10px] uppercase tracking-[0.3em] text-zinc-600">Scroll</span>
+          <div className="h-8 w-[1px] bg-gradient-to-b from-zinc-600 to-transparent" />
+        </motion.div>
+      </motion.div>
+    </section>
   );
 }

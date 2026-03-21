@@ -834,6 +834,28 @@
     will-change: transform;
   }
 
+  /* Scroll-driven trajectory line */
+  .scroll-line-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .scroll-line-svg {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    max-width: 1400px;
+    height: 600vh;
+    opacity: 0.6;
+  }
+
   /* Interactive row hover — for table-like sections */
   .premium-row {
     transition: background-color 0.25s ease, border-color 0.25s ease;

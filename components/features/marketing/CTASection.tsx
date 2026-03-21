@@ -1,45 +1,44 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ArrowRight, Check } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { TrackedCtaLink } from './TrackedCtaLink';
 
-const trustItems = ['Keine Kreditkarte', 'Konto in 2 Minuten', 'Public Beta'];
-
+/**
+ * CTASection — Final "destination" section.
+ *
+ * PRISMA-style: Full viewport, centered text, gold glow climax.
+ * The line arrives here. Confident. Clear.
+ */
 export function CTASection() {
   return (
-    <section className="relative overflow-hidden py-40 md:py-52">
-      <div className="premium-divider" />
+    <section className="relative flex min-h-screen items-center justify-center overflow-hidden">
+      {/* Gold glow — climax moment */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8B930]/[0.06] blur-[200px]" />
 
-      {/* Central glow — gold + red accent */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8B930]/[0.07] blur-[150px]" />
-      <div className="pointer-events-none absolute left-[30%] top-[40%] h-[300px] w-[300px] rounded-full bg-[#DC3232]/[0.06] blur-[120px]" />
-
-      <div className="marketing-container relative z-10">
+      <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 32 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mx-auto max-w-3xl text-center"
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         >
-          <p className="premium-kicker">Jetzt starten</p>
-
-          <h2 className="premium-heading text-[clamp(2.4rem,5.5vw,4.5rem)] font-semibold text-[#FAF0E6]">
-            Wenn Thesis, GMAT
+          <h2 className="premium-heading text-[clamp(2.4rem,6vw,5rem)] font-semibold text-white">
+            Ein System.
             <br />
-            und Praktika parallel laufen,{' '}
-            <span className="bg-gradient-to-r from-[#E8B930] via-[#F5D565] to-[#E8B930] bg-clip-text italic text-transparent">
-              brauchst du kein weiteres Tool.
+            Eine Linie.
+            <br />
+            <span className="bg-gradient-to-r from-[#E8B930] via-[#F5D565] to-[#E8B930] bg-clip-text text-transparent">
+              Dein nächster Move.
             </span>
           </h2>
 
-          <p className="mx-auto mt-8 max-w-xl text-[17px] leading-[1.7] text-zinc-400">
-            Du brauchst eine klare Linie vom langfristigen Plan bis in den heutigen Move.
-            Genau dafür ist INNIS gebaut.
+          <p className="mx-auto mt-8 max-w-lg text-[17px] leading-[1.7] text-zinc-500">
+            Trajectory, Today und Career in einem System.
+            Für Studenten, die mehrere High-Stakes-Ziele parallel verfolgen.
           </p>
 
-          <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+          <div className="mt-14 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <TrackedCtaLink
               href="/auth/signup"
               eventName="landing_cta_primary_clicked"
@@ -55,24 +54,13 @@ export function CTASection() {
               eventPayload={{ source: 'footer_cta', variant: 'login' }}
               className="premium-cta-secondary"
             >
-              Bereits angemeldet? Login
+              Login
             </TrackedCtaLink>
           </div>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2"
-          >
-            {trustItems.map((item) => (
-              <span key={item} className="flex items-center gap-2 text-[13px] text-zinc-600">
-                <Check className="h-3.5 w-3.5 text-[#E8B930]/50" />
-                {item}
-              </span>
-            ))}
-          </motion.div>
+          <p className="mt-8 text-[12px] text-zinc-600">
+            Keine Kreditkarte · Public Beta · Konto in 2 Minuten
+          </p>
         </motion.div>
       </div>
     </section>
