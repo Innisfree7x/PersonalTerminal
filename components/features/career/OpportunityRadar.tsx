@@ -25,6 +25,7 @@ import { buildOpportunityTrajectoryHref } from '@/lib/career/opportunityActions'
 interface OpportunityRadarProps {
   onAdoptToPipeline: (prefill: CreateApplicationInput) => void;
   externalRefreshToken?: number;
+  onOpenCvUpload?: () => void;
 }
 
 const TRACK_PRIORITY_ORDER: RadarTrack[] = ['M&A', 'TS', 'CorpFin', 'Audit'];
@@ -79,7 +80,24 @@ function buildApplicationPrefill(opportunity: OpportunitySearchItem): CreateAppl
   };
 }
 
-export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshToken = 0 }: OpportunityRadarProps) {
+function formatCvUpdatedAt(value?: string): string | null {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return new Intl.DateTimeFormat('de-DE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(parsed);
+}
+
+export default function OpportunityRadar({
+  onAdoptToPipeline,
+  externalRefreshToken = 0,
+  onOpenCvUpload,
+}: OpportunityRadarProps) {
   const [query, setQuery] = useState('');
   const [selectedLocations, setSelectedLocations] = useState<DachLocation[]>(['DE', 'AT', 'CH']);
   const [priorityTrack, setPriorityTrack] = useState<RadarTrack>('M&A');
@@ -97,6 +115,7 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
   const serializedBands = useMemo(() => selectedBands.join(','), [selectedBands]);
   const radarInsight = useMemo(() => buildOpportunityRadarInsight(results, meta, priorityTrack), [results, meta, priorityTrack]);
   const cvRankLabel = useMemo(() => formatCvRankTier(meta?.cvRankTier), [meta?.cvRankTier]);
+  const cvUpdatedAtLabel = useMemo(() => formatCvUpdatedAt(meta?.cvUpdatedAt), [meta?.cvUpdatedAt]);
   const selectedOpportunity = useMemo(
     () => results.find((item) => item.id === selectedOpportunityId) ?? results[0] ?? null,
     [results, selectedOpportunityId]
@@ -112,6 +131,26 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
   const hasCustomQuery = query.trim().length > 0;
   const allLocationsSelected = selectedLocations.length === LOCATION_FILTERS.length;
   const allBandsSelected = selectedBands.length === BAND_FILTERS.length;
+  const realisticCount = useMemo(() => results.filter((item) => item.band === 'realistic').length, [results]);
+  const weakSignalState = useMemo(() => {
+    if (results.length === 0 || realisticCount > 0) return null;
+
+    const best = results[0] ?? null;
+    if (!best) return null;
+
+    return {
+      title: 'Radar findet nur ambitionierte Optionen',
+      summary:
+        'Du hast aktuell keine wirklich realistische Rolle im sichtbaren Set. Das heißt nicht, dass der Markt tot ist, sondern dass Query, Track oder CV-Signal gerade zu eng zusammenlaufen.',
+      bullets: [
+        `Bester Lead aktuell: ${best.title} bei ${best.company}.`,
+        meta?.cvProfileApplied
+          ? `CV-Fokus liegt auf ${meta.cvTargetTracks?.join(' / ') || 'deinem aktuellen Profil'}; ein Gap-Fix verschiebt oft schon die nächste Rolle in Realistic.`
+          : 'Ohne aktives CV-Profil arbeitet das Radar nur mit Markt- und Track-Signal.',
+        best.nextAction ?? 'Nimm die Hauptlücke als nächsten Prep-Schritt auf, statt blind weiter zu scrollen.',
+      ],
+    };
+  }, [meta?.cvProfileApplied, meta?.cvTargetTracks, realisticCount, results]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -495,6 +534,15 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
               >
                 Zu {nextTrack(priorityTrack)} wechseln
               </Button>
+              {onOpenCvUpload ? (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={onOpenCvUpload}
+                >
+                  CV-Profil schärfen
+                </Button>
+              ) : null}
               <Button
                 variant="ghost"
                 size="sm"
@@ -535,6 +583,54 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
         </div>
       ) : (
         <div className="space-y-3">
+          {meta?.cvProfileApplied ? (
+            <div className="rounded-xl border border-border bg-background/30 p-4">
+              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div className="max-w-3xl">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">CV-Signal</p>
+                  <h3 className="mt-1 text-sm font-semibold text-text-primary">
+                    {cvRankLabel ? `${cvRankLabel} im Radar aktiv` : 'CV-Profil aktiv'}
+                  </h3>
+                  <p className="mt-1 text-xs leading-relaxed text-text-secondary">
+                    {meta.cvTargetTracks?.length
+                      ? `Track-Fokus aktuell auf ${meta.cvTargetTracks.join(' / ')}. Radar-Treffer werden gegen dieses Profil gelesen, nicht nur gegen den Suchbegriff.`
+                      : 'Radar nutzt dein aktuelles CV-Profil zusätzlich zum Markt- und Track-Signal.'}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2 text-[11px]">
+                  {cvUpdatedAtLabel ? (
+                    <Badge variant="default" size="sm">Aktualisiert {cvUpdatedAtLabel}</Badge>
+                  ) : null}
+                  {meta.cvTopStrengths?.length ? (
+                    <Badge variant="success" size="sm">{meta.cvTopStrengths.length} Stärken erkannt</Badge>
+                  ) : null}
+                  {meta.cvTopGaps?.length ? (
+                    <Badge variant="warning" size="sm">{meta.cvTopGaps.length} aktive Gaps</Badge>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                <div className="rounded-lg border border-border/80 bg-surface/35 p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-tertiary">Stärkste Signale</p>
+                  <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-text-secondary">
+                    {(meta.cvTopStrengths?.length ? meta.cvTopStrengths : ['Noch keine klaren Stärken im Profil gespeichert.']).map((item) => (
+                      <li key={`cv-strength-${item}`}>• {item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-lg border border-border/80 bg-surface/35 p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-tertiary">Nächste CV-Hebel</p>
+                  <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-text-secondary">
+                    {(meta.cvTopGaps?.length ? meta.cvTopGaps : ['Keine kritischen Lücken im gespeicherten Profil.']).map((item) => (
+                      <li key={`cv-gap-${item}`}>• {item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           {radarInsight ? (
             <DecisionSurfaceCard
               eyebrow="Radar readout"
@@ -544,6 +640,32 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
               chips={radarInsight.chips}
               tone={radarInsight.tone}
               icon={<Target className="h-4 w-4" />}
+            />
+          ) : null}
+
+          {weakSignalState ? (
+            <DecisionSurfaceCard
+              eyebrow="Recovery mode"
+              title={weakSignalState.title}
+              summary={weakSignalState.summary}
+              bullets={weakSignalState.bullets}
+              tone="warning"
+              icon={<AlertTriangle className="h-4 w-4" />}
+              footer={
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="secondary" size="sm" onClick={handleSwitchTrack}>
+                    Zu {nextTrack(priorityTrack)} wechseln
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={handleBroadenBands} disabled={allBandsSelected}>
+                    Band öffnen
+                  </Button>
+                  {onOpenCvUpload ? (
+                    <Button variant="secondary" size="sm" onClick={onOpenCvUpload}>
+                      CV-Profil schärfen
+                    </Button>
+                  ) : null}
+                </div>
+              }
             />
           ) : null}
 
@@ -622,6 +744,45 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
 
                 <div className="space-y-3">
                   <div className="rounded-xl border border-border bg-background/35 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">Action Stack</p>
+                    <div className="mt-2 space-y-2">
+                      {selectedDossier.actionStack.map((action) => (
+                        <div
+                          key={`${selectedOpportunity.id}-action-${action.label}`}
+                          className="rounded-lg border border-border/70 bg-surface/25 px-3 py-2"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-tertiary">
+                              {action.label}
+                            </p>
+                            <Badge
+                              variant={
+                                action.tone === 'success'
+                                  ? 'success'
+                                  : action.tone === 'warning'
+                                    ? 'warning'
+                                    : action.tone === 'error'
+                                      ? 'error'
+                                      : 'default'
+                              }
+                              size="sm"
+                            >
+                              {action.tone === 'success'
+                                ? 'klar'
+                                : action.tone === 'warning'
+                                  ? 'Prep'
+                                  : action.tone === 'error'
+                                    ? 'Risk'
+                                    : 'Info'}
+                            </Badge>
+                          </div>
+                          <p className="mt-1 text-xs leading-relaxed text-text-secondary">{action.detail}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-border bg-background/35 p-3">
                     <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">Top Gründe</p>
                     <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-text-secondary">
                       {selectedOpportunity.topReasons.map((reason) => (
@@ -695,9 +856,9 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
 
               return (
                 <article
-                  key={item.id}
-                  className={`rounded-xl border p-4 backdrop-blur-sm transition-colors ${
-                    isSelected
+                        key={item.id}
+                        className={`rounded-xl border p-4 backdrop-blur-sm transition-colors ${
+                          isSelected
                       ? 'border-primary/40 bg-primary/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]'
                       : 'border-border bg-surface/35'
                   }`}
@@ -782,7 +943,7 @@ export default function OpportunityRadar({ onAdoptToPipeline, externalRefreshTok
                         rel="noreferrer"
                         className="inline-flex h-8 items-center justify-center rounded-md border border-border bg-surface-hover px-3 text-xs font-medium text-text-primary transition-colors hover:border-primary hover:bg-primary/10"
                       >
-                        Stelle oeffnen
+                        Stelle öffnen
                       </a>
                     ) : null}
                     <Button

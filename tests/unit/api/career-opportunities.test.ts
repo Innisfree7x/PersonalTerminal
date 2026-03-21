@@ -149,6 +149,9 @@ describe('GET /api/career/opportunities', () => {
       rank_tier: 'strong',
       target_tracks: ['M&A', 'TS'],
       skills: ['valuation', 'excel modeling'],
+      strengths: ['Financial modeling sichtbar im CV'],
+      gaps: ['Mehr projektkonkrete Ergebnisse ergänzen'],
+      updated_at: '2026-03-21T10:00:00.000Z',
     } as any);
 
     mockedSearchCareerOpportunities.mockResolvedValueOnce({
@@ -184,5 +187,8 @@ describe('GET /api/career/opportunities', () => {
     expect(body.meta.cvProfileApplied).toBe(true);
     expect(body.meta.cvRankTier).toBe('strong');
     expect(body.meta.cvTargetTracks).toEqual(['M&A', 'TS']);
+    expect(body.meta.cvTopStrengths).toEqual(['Financial modeling sichtbar im CV']);
+    expect(body.meta.cvTopGaps).toEqual(['Mehr projektkonkrete Ergebnisse ergänzen']);
+    expect(body.meta.cvUpdatedAt).toBe('2026-03-21T10:00:00.000Z');
   });
 });

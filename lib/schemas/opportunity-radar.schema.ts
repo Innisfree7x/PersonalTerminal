@@ -66,6 +66,9 @@ export interface OpportunitySearchResponse {
     cvProfileApplied?: boolean;
     cvRankTier?: OpportunityCvProfileContext['rankTier'];
     cvTargetTracks?: RadarTrack[];
+    cvTopStrengths?: string[];
+    cvTopGaps?: string[];
+    cvUpdatedAt?: string;
     llm?: {
       enabled: boolean;
       maxDailyUnits: number;

@@ -50,6 +50,8 @@ describe('buildOpportunityDossier', () => {
     expect(result.metrics).toHaveLength(4);
     expect(result.metrics[0]).toMatchObject({ label: 'Track-Fit', value: 'direkt', tone: 'success' });
     expect(result.bullets.some((bullet) => bullet.includes('Operativer Move'))).toBe(true);
+    expect(result.actionStack).toHaveLength(3);
+    expect(result.actionStack[0]).toMatchObject({ label: 'Jetzt', tone: 'success' });
   });
 
   it('adds a cv-track mismatch bullet when item track differs from cv focus', () => {

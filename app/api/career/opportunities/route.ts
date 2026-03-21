@@ -156,6 +156,9 @@ export async function GET(request: NextRequest) {
         cvProfileApplied: Boolean(cvProfile),
         cvRankTier: cvProfile?.rank_tier,
         cvTargetTracks: cvProfile ? parseTrackList(cvProfile.target_tracks) : [],
+        cvTopStrengths: cvProfile?.strengths?.slice(0, 3) ?? [],
+        cvTopGaps: cvProfile?.gaps?.slice(0, 3) ?? [],
+        cvUpdatedAt: cvProfile?.updated_at,
         llm: {
           enabled: llmBudget.enabled,
           maxDailyUnits: llmBudget.maxDailyUnits,

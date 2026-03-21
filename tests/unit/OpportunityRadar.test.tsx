@@ -92,4 +92,35 @@ describe('OpportunityRadar', () => {
     });
     expect(screen.getByText('Dossier aktiv')).toBeInTheDocument();
   });
+
+  it('shows cv signal details when a persisted cv profile is active', async () => {
+    render(<OpportunityRadar onAdoptToPipeline={vi.fn()} />);
+
+    await screen.findByText('CV-Signal', undefined, { timeout: 3000 });
+    expect(screen.getByText('Stärkste Signale')).toBeInTheDocument();
+    expect(screen.getByText('Nächste CV-Hebel')).toBeInTheDocument();
+    expect(screen.getByText('Starkes Profil im Radar aktiv')).toBeInTheDocument();
+  });
+
+  it('shows recovery guidance when only ambitious matches remain', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        ...payload,
+        items: [
+          {
+            ...payload.items[1],
+            fitScore: 63,
+            band: 'target',
+          },
+        ],
+      } satisfies OpportunitySearchResponse),
+    } as Response);
+
+    render(<OpportunityRadar onAdoptToPipeline={vi.fn()} onOpenCvUpload={vi.fn()} />);
+
+    await screen.findByText('Radar findet nur ambitionierte Optionen', undefined, { timeout: 3000 });
+    expect(screen.getByRole('button', { name: 'CV-Profil schärfen' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Band öffnen/i })).toBeInTheDocument();
+  });
 });

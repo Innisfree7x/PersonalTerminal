@@ -8,6 +8,7 @@ import {
   type OpportunityReadoutTone,
   toDisplayFitIndex,
 } from '@/lib/career/opportunityReadout';
+import { buildOpportunityPrepPlan } from '@/lib/career/opportunityActions';
 
 export interface OpportunityDossierMetric {
   label: string;
@@ -21,6 +22,7 @@ export interface OpportunityDossier {
   chips: Array<{ label: string; tone?: OpportunityReadoutTone }>;
   metrics: OpportunityDossierMetric[];
   bullets: string[];
+  actionStack: Array<{ label: string; detail: string; tone: OpportunityReadoutTone }>;
 }
 
 function bandLabel(item: OpportunitySearchItem): string {
@@ -57,6 +59,7 @@ export function buildOpportunityDossier(
     `Primärer Vorteil: ${item.topReasons[0] ?? 'Track und Markt-Signal greifen sauber ineinander.'}`,
     `Größte Lücke: ${item.topGaps[0] ?? 'Keine kritische Lücke erkannt.'}`,
   ];
+  const prepPlan = buildOpportunityPrepPlan(item);
 
   if (item.nextAction) {
     bullets.push(`Operativer Move: ${item.nextAction}`);
@@ -66,11 +69,31 @@ export function buildOpportunityDossier(
     bullets.push(`Dein CV spielt aktuell stärker auf ${meta.cvTargetTracks.join(' / ')} als auf ${item.track}.`);
   }
 
+  const actionStack: OpportunityDossier['actionStack'] =
+    item.band === 'realistic'
+      ? [
+          { label: 'Jetzt', detail: 'Bewerbung diese Woche rausschicken.', tone: 'success' },
+          { label: 'Vorher', detail: item.topGaps[0] ?? 'Letzten CV-Feinschliff machen.', tone: 'info' },
+          { label: 'Prep-Fenster', detail: prepPlan.summary, tone: 'info' },
+        ]
+      : item.band === 'target'
+        ? [
+            { label: 'Heute', detail: `Gap "${item.topGaps[0] ?? 'Hauptlücke'}" als Task committen.`, tone: 'warning' },
+            { label: 'Diese Woche', detail: prepPlan.summary, tone: 'warning' },
+            { label: 'Danach', detail: 'Nach dem Prep erneut scoren und dann bewerben.', tone: 'info' },
+          ]
+        : [
+            { label: 'Jetzt', detail: 'Parallel realistische Rollen offenhalten.', tone: 'error' },
+            { label: 'Stretch-Prep', detail: prepPlan.summary, tone: 'warning' },
+            { label: 'Review', detail: 'Erst nach neuer Bewertung an diese Rolle committen.', tone: 'info' },
+          ];
+
   return {
     tone: fitReadout.confidenceTone,
     summary: fitReadout.summary,
     chips,
     metrics,
     bullets,
+    actionStack,
   };
 }

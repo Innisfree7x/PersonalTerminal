@@ -422,7 +422,14 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
 
     const openCvPicker = () => {
         setIsCvUploadOpen(true);
+        window.setTimeout(() => {
+            cvSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 0);
         cvHeaderInputRef.current?.click();
+    };
+
+    const openCvPanel = () => {
+        setIsCvUploadOpen(true);
         window.setTimeout(() => {
             cvSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 0);
@@ -491,6 +498,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
             <OpportunityRadar
                 onAdoptToPipeline={handleAdoptOpportunity}
                 externalRefreshToken={radarRefreshToken}
+                onOpenCvUpload={openCvPanel}
             />
 
             {/* CV Upload Section (Collapsible) */}

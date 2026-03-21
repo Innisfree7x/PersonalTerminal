@@ -101,14 +101,14 @@ export function buildOpportunityFitReadout(
     item.band === 'realistic'
       ? 'hohe Umsetzbarkeit'
       : item.band === 'target'
-        ? 'aktive Nachschaerfung noetig'
+        ? 'aktive Nachschärfung nötig'
         : 'bewusster Stretch';
 
   const summary =
     item.band === 'realistic'
       ? `${item.company} ist kein Blind Shot: ${trackSignal.value}, ${marketSignal.value.toLowerCase()} und ${gapSignal.value} Gap-Druck.`
       : item.band === 'target'
-        ? `${item.company} ist erreichbar, aber nur wenn du die Hauptluecke aktiv schliesst und den Track-Fit sauber ausspielst.`
+        ? `${item.company} ist erreichbar, aber nur wenn du die Hauptlücke aktiv schließt und den Track-Fit sauber ausspielst.`
         : `${item.company} ist aktuell eher Upside als sichere Option. Sinnvoll nur, wenn du bewusst Stretch mitnimmst.`;
 
   return {

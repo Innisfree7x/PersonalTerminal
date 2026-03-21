@@ -519,7 +519,7 @@ function buildNextAction(item: {
   band: RadarBand;
   topGaps: string[];
 }): string {
-  const primaryGap = item.topGaps[0] ?? 'CV-Luecke schliessen';
+  const primaryGap = item.topGaps[0] ?? 'CV-Lücke schließen';
   if (item.band === 'realistic') {
     return `Bewerbung diese Woche senden und im CV gezielt "${item.track}" + "${primaryGap}" schärfen.`;
   }
