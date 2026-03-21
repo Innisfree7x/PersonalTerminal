@@ -9,6 +9,7 @@ import { TrajectoryMockup } from './mockups/TrajectoryMockup';
 import { TodayMockup } from './mockups/TodayMockup';
 import { CareerMockup } from './mockups/CareerMockup';
 import { InteractiveDemo } from './InteractiveDemo';
+import { MarketingNavbar } from './MarketingNavbar';
 
 /**
  * CinematicLanding — PRISMA-style scroll-hijacked landing page.
@@ -20,7 +21,7 @@ import { InteractiveDemo } from './InteractiveDemo';
  */
 
 const SECTION_COUNT = 6;
-const TRANSITION_DURATION = 1.2; // seconds per transition
+const TRANSITION_DURATION = 0.7; // seconds per transition
 
 /** Maps progress (0..1) within a range to 0..1. Clamps at edges. */
 function progress01(value: number, start: number, end: number): number {
@@ -77,7 +78,7 @@ export function CinematicLanding() {
     if (!el) return;
 
     let lastWheelTime = 0;
-    const DEBOUNCE = 600; // ms between wheel transitions
+    const DEBOUNCE = 150; // ms between wheel transitions
 
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -160,7 +161,12 @@ export function CinematicLanding() {
   const p = progress; // shorthand
 
   return (
-    <div ref={containerRef} className="fixed inset-0 h-screen overflow-hidden bg-[#0A0A0C]">
+    <div ref={containerRef} className="fixed inset-0 z-40 h-screen overflow-hidden bg-[#0A0A0C]">
+      {/* Navbar */}
+      <div className="relative z-50">
+        <MarketingNavbar />
+      </div>
+
       {/* Progress dots */}
       <div className="fixed right-6 top-1/2 z-50 -translate-y-1/2 flex flex-col gap-3">
         {Array.from({ length: SECTION_COUNT }).map((_, i) => (

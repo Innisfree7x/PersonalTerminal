@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth/server';
 import { isOnboardingComplete } from '@/lib/auth/profile';
 import { CinematicLanding } from '@/components/features/marketing/CinematicLanding';
-import { MarketingNavbar } from '@/components/features/marketing/MarketingNavbar';
 
 export const metadata: Metadata = {
   title: 'INNIS — Erkenne Kollisionen in deinem Karriereplan',
@@ -26,10 +25,5 @@ export default async function LandingPage() {
     redirect(isOnboardingComplete(user) ? '/today' : '/onboarding');
   }
 
-  return (
-    <>
-      <MarketingNavbar />
-      <CinematicLanding />
-    </>
-  );
+  return <CinematicLanding />;
 }
