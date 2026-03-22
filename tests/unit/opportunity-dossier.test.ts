@@ -48,6 +48,8 @@ describe('buildOpportunityDossier', () => {
     expect(result.tone).toBe('success');
     expect(result.chips.some((chip) => chip.label === 'Target Firm')).toBe(true);
     expect(result.metrics).toHaveLength(4);
+    expect(result.companyLens.title).toContain('Boutique M&A');
+    expect(result.companyLens.bullets[0]).toContain('Operating style');
     expect(result.metrics[0]).toMatchObject({ label: 'Track-Fit', value: 'direkt', tone: 'success' });
     expect(result.bullets.some((bullet) => bullet.includes('Operativer Move'))).toBe(true);
     expect(result.actionStack).toHaveLength(3);

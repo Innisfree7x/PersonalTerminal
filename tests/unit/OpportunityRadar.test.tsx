@@ -84,6 +84,8 @@ describe('OpportunityRadar', () => {
     await screen.findByText('Career Dossier', undefined, { timeout: 3000 });
     expect(screen.getAllByText('Intern M&A Advisory').length).toBeGreaterThan(0);
     expect(screen.getByText('Rothenstein Partners ist aktuell dein klarster Decision-Lead')).toBeInTheDocument();
+    expect(screen.getByText('Company Lens')).toBeInTheDocument();
+    expect(screen.getByText('Boutique M&A')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Dossier öffnen: TS Internship Financial Due Diligence bei Kern Advisory/i }));
 
@@ -119,7 +121,7 @@ describe('OpportunityRadar', () => {
 
     render(<OpportunityRadar onAdoptToPipeline={vi.fn()} onOpenCvUpload={vi.fn()} />);
 
-    await screen.findByText('Radar findet nur ambitionierte Optionen', undefined, { timeout: 3000 });
+    await screen.findByText('Recovery mode: noch kein sicherer Lead', undefined, { timeout: 3000 });
     expect(screen.getByRole('button', { name: 'CV-Profil schärfen' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Band öffnen/i })).toBeInTheDocument();
   });

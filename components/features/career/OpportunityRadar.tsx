@@ -21,6 +21,7 @@ import { buildOpportunityDossier } from '@/lib/career/opportunityDossier';
 import { buildOpportunityRadarInsight } from '@/lib/career/radarInsights';
 import { buildOpportunityFitReadout, toDisplayFitIndex } from '@/lib/career/opportunityReadout';
 import { buildOpportunityTrajectoryHref } from '@/lib/career/opportunityActions';
+import { buildOpportunityRecoveryPlan } from '@/lib/career/opportunityRecovery';
 
 interface OpportunityRadarProps {
   onAdoptToPipeline: (prefill: CreateApplicationInput) => void;
@@ -132,25 +133,11 @@ export default function OpportunityRadar({
   const allLocationsSelected = selectedLocations.length === LOCATION_FILTERS.length;
   const allBandsSelected = selectedBands.length === BAND_FILTERS.length;
   const realisticCount = useMemo(() => results.filter((item) => item.band === 'realistic').length, [results]);
-  const weakSignalState = useMemo(() => {
-    if (results.length === 0 || realisticCount > 0) return null;
-
-    const best = results[0] ?? null;
-    if (!best) return null;
-
-    return {
-      title: 'Radar findet nur ambitionierte Optionen',
-      summary:
-        'Du hast aktuell keine wirklich realistische Rolle im sichtbaren Set. Das heißt nicht, dass der Markt tot ist, sondern dass Query, Track oder CV-Signal gerade zu eng zusammenlaufen.',
-      bullets: [
-        `Bester Lead aktuell: ${best.title} bei ${best.company}.`,
-        meta?.cvProfileApplied
-          ? `CV-Fokus liegt auf ${meta.cvTargetTracks?.join(' / ') || 'deinem aktuellen Profil'}; ein Gap-Fix verschiebt oft schon die nächste Rolle in Realistic.`
-          : 'Ohne aktives CV-Profil arbeitet das Radar nur mit Markt- und Track-Signal.',
-        best.nextAction ?? 'Nimm die Hauptlücke als nächsten Prep-Schritt auf, statt blind weiter zu scrollen.',
-      ],
-    };
-  }, [meta?.cvProfileApplied, meta?.cvTargetTracks, realisticCount, results]);
+  const recoveryPlan = useMemo(
+    () => buildOpportunityRecoveryPlan(results, meta, priorityTrack, query),
+    [meta, priorityTrack, query, results]
+  );
+  const showWeakSignalRecovery = results.length > 0 && realisticCount === 0;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -452,6 +439,17 @@ export default function OpportunityRadar({
         </div>
       ) : results.length === 0 ? (
         <div className="rounded-xl border border-border bg-surface/25 p-5">
+          <DecisionSurfaceCard
+            eyebrow="Recovery playbook"
+            title={recoveryPlan.title}
+            summary={recoveryPlan.summary}
+            bullets={recoveryPlan.bullets}
+            chips={recoveryPlan.chips}
+            tone={recoveryPlan.tone}
+            icon={<AlertTriangle className="h-4 w-4" />}
+            className="mb-4"
+          />
+
           <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
@@ -643,13 +641,14 @@ export default function OpportunityRadar({
             />
           ) : null}
 
-          {weakSignalState ? (
+          {showWeakSignalRecovery ? (
             <DecisionSurfaceCard
               eyebrow="Recovery mode"
-              title={weakSignalState.title}
-              summary={weakSignalState.summary}
-              bullets={weakSignalState.bullets}
-              tone="warning"
+              title={recoveryPlan.title}
+              summary={recoveryPlan.summary}
+              bullets={recoveryPlan.bullets}
+              chips={recoveryPlan.chips}
+              tone={recoveryPlan.tone}
               icon={<AlertTriangle className="h-4 w-4" />}
               footer={
                 <div className="flex flex-wrap gap-2">
@@ -733,14 +732,25 @@ export default function OpportunityRadar({
               </div>
 
               <div className="mt-4 grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-                <DecisionSurfaceCard
-                  eyebrow="Warum dieser Lead jetzt Sinn macht"
-                  title={`${selectedOpportunity.company} ist aktuell dein klarster Decision-Lead`}
-                  summary={selectedDossier.summary}
-                  bullets={selectedDossier.bullets}
-                  tone={selectedDossier.tone}
-                  icon={<Sparkles className="h-4 w-4" />}
-                />
+                <div className="space-y-3">
+                  <DecisionSurfaceCard
+                    eyebrow="Warum dieser Lead jetzt Sinn macht"
+                    title={`${selectedOpportunity.company} ist aktuell dein klarster Decision-Lead`}
+                    summary={selectedDossier.summary}
+                    bullets={selectedDossier.bullets}
+                    tone={selectedDossier.tone}
+                    icon={<Sparkles className="h-4 w-4" />}
+                  />
+                  <DecisionSurfaceCard
+                    eyebrow="Company Lens"
+                    title={selectedDossier.companyLens.title}
+                    summary={selectedDossier.companyLens.summary}
+                    bullets={selectedDossier.companyLens.bullets}
+                    chips={selectedDossier.companyLens.chips}
+                    tone={selectedDossier.companyLens.tone}
+                    icon={<Target className="h-4 w-4" />}
+                  />
+                </div>
 
                 <div className="space-y-3">
                   <div className="rounded-xl border border-border bg-background/35 p-3">
