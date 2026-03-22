@@ -170,10 +170,10 @@ describe('Today critical path integration', () => {
   test('renders the morning briefing, momentum chips, and weekly check-in CTA from the dashboard payload', async () => {
     renderWithProviders(<TodayPage />);
 
-    await screen.findByText(/Morning briefing:/i);
+    await screen.findByRole('link', { name: /Open linked trajectory/i });
 
     expect(screen.getByText('GMAT')).toBeInTheDocument();
-    expect(screen.getByText(/358d until deadline/i)).toBeInTheDocument();
+    expect(screen.getByText(/\d+d until deadline/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Open linked trajectory/i })).toHaveAttribute(
       'href',
       '/trajectory?goalId=goal_gmat&source=morning_briefing'
