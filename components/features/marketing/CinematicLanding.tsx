@@ -27,47 +27,6 @@ import { MarketingNavbar } from './MarketingNavbar';
 
 const SECTION_COUNT = 6;
 const TRANSITION_DURATION = 0.7;
-const HERO_PROOFS = [
-  {
-    value: '36M',
-    label: 'Strategischer Horizont',
-    detail: 'Thesis, GMAT und Praktika laufen in einem echten Zeitplan zusammen.',
-  },
-  {
-    value: '<3 Min',
-    label: 'Bis zum ersten Risiko',
-    detail: 'Die erste Kollision ist sichtbar, bevor du irgendetwas manuell planst.',
-  },
-  {
-    value: '1 Move',
-    label: 'Jeden Morgen klar',
-    detail: 'Trajectory, Today und Career ziehen denselben nächsten Schritt.',
-  },
-] as const;
-
-const TRAJECTORY_PROOFS = [
-  { value: 'Startfenster', label: 'Prep beginnt nicht implizit, sondern an einem sichtbaren Datum.' },
-  { value: 'Buffer', label: 'Puffer ist Teil des Plans statt stille Hoffnung.' },
-  { value: 'Kollision', label: 'Overlaps werden erkannt, bevor Deadlines kippen.' },
-] as const;
-
-const TODAY_PROOFS = [
-  { value: 'Morning Brief', label: 'Strategie wird vor dem ersten Klick in Tagesklarheit übersetzt.' },
-  { value: 'Next Move', label: 'Keine tote Task-Liste, sondern ein priorisierter erster Zug.' },
-  { value: 'Focus ready', label: 'Vom Brief direkt in Fokus und Ausführung.' },
-] as const;
-
-const CAREER_PROOFS = [
-  { value: 'Fit', label: 'Radar zeigt nicht nur Treffer, sondern relevante Chancen.' },
-  { value: 'Gap', label: 'Die schwächste Stelle im Profil ist sofort sichtbar.' },
-  { value: 'Action', label: 'Jede Lücke wird in einen konkreten nächsten Schritt übersetzt.' },
-] as const;
-
-const CTA_PROOFS = [
-  'Trajectory erkennt Kollisionen, bevor sie teuer werden.',
-  'Today macht aus Strategie einen täglichen klaren Move.',
-  'Career Intelligence verwandelt Rollen in konkrete Prep-Schritte.',
-] as const;
 
 /** Maps progress (0..1) within a range to 0..1. Clamps at edges. */
 function progress01(value: number, start: number, end: number): number {
@@ -240,7 +199,6 @@ export function CinematicLanding() {
           </TerminalFrame>
         }
         layout="text-left"
-        proofs={TRAJECTORY_PROOFS}
       />
 
       {/* STOP 2: Today */}
@@ -257,7 +215,6 @@ export function CinematicLanding() {
           </TerminalFrame>
         }
         layout="text-right"
-        proofs={TODAY_PROOFS}
       />
 
       {/* STOP 3: Career */}
@@ -274,7 +231,6 @@ export function CinematicLanding() {
           </TerminalFrame>
         }
         layout="text-left"
-        proofs={CAREER_PROOFS}
       />
 
       {/* STOP 4: Interactive Demo */}
@@ -308,156 +264,103 @@ function HeroFrame({
       style={{ opacity, pointerEvents, display }}
     >
       {/* Atmospheric glows */}
-      <div className="pointer-events-none absolute left-1/2 top-[15%] h-[700px] w-[900px] -translate-x-1/2 rounded-full bg-[#E8B930]/[0.07] blur-[180px]" />
-      <div className="pointer-events-none absolute left-[10%] top-[5%] h-[400px] w-[400px] rounded-full bg-[#DC3232]/[0.06] blur-[150px]" />
-      <div className="pointer-events-none absolute right-[5%] top-[20%] h-[350px] w-[400px] rounded-full bg-[#FF7832]/[0.04] blur-[130px]" />
-
-      {/* Grid overlay */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            'linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px)',
-          backgroundSize: '80px 80px',
-          maskImage: 'radial-gradient(900px 600px at 50% 20%, #000 20%, transparent 80%)',
-          WebkitMaskImage: 'radial-gradient(900px 600px at 50% 20%, #000 20%, transparent 80%)',
-        }}
-      />
+      <div className="pointer-events-none absolute left-1/2 top-[12%] h-[800px] w-[1000px] -translate-x-1/2 rounded-full bg-[#E8B930]/[0.06] blur-[200px]" />
+      <div className="pointer-events-none absolute left-[8%] top-[5%] h-[500px] w-[500px] rounded-full bg-[#DC3232]/[0.05] blur-[160px]" />
+      <div className="pointer-events-none absolute right-[5%] top-[15%] h-[400px] w-[500px] rounded-full bg-[#FF7832]/[0.035] blur-[140px]" />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-1 items-center px-6 pt-24">
-        <div className="mx-auto grid w-full max-w-7xl items-center gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16">
-          <div className="max-w-2xl text-left">
-            <motion.div
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#E8B930]/20 bg-[#E8B930]/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#E8B930]"
-            >
-              Public Beta
-              <span className="h-1 w-1 rounded-full bg-[#E8B930]/70" />
-              Für ambitionierte Studenten
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, delay: 0.45, ease: [0.22, 1, 0.36, 1] }}
-              className="premium-heading text-[clamp(2.8rem,7vw,6rem)] font-semibold text-white"
-            >
-              Plane Thesis,
-              <br />
-              GMAT und Praktikum,
-              <br />
-              <span className="bg-gradient-to-r from-[#E8B930] via-[#F5D565] to-[#E8B930] bg-clip-text text-transparent">
-                bevor sie kollidieren.
-              </span>
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.85 }}
-              className="mt-6 max-w-xl text-[17px] leading-[1.8] text-zinc-400"
-            >
-              INNIS zeigt dir, wann Karriereplan, Studium und Bewerbungen aufeinanderprallen —
-              und zieht daraus direkt den nächsten sinnvollen Move für heute.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 1.05 }}
-              className="mt-10 flex flex-col items-start gap-4 sm:flex-row"
-            >
-              <TrackedCtaLink
-                href="/auth/signup"
-                eventName="landing_cta_primary_clicked"
-                eventPayload={{ source: 'hero', variant: 'primary' }}
-                className="premium-cta-primary"
-              >
-                Kostenlos starten
-                <ArrowRight className="h-4 w-4" />
-              </TrackedCtaLink>
-              <TrackedCtaLink
-                href="/auth/login"
-                eventName="landing_cta_secondary_clicked"
-                eventPayload={{ source: 'hero', variant: 'login' }}
-                className="premium-cta-secondary"
-              >
-                Bereits angemeldet? Login
-              </TrackedCtaLink>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.25 }}
-              className="mt-10 grid gap-3 sm:grid-cols-3"
-            >
-              {HERO_PROOFS.map((proof, index) => (
-                <div
-                  key={proof.label}
-                  className={`rounded-2xl border px-4 py-4 backdrop-blur-xl ${
-                    index === 0
-                      ? 'border-[#E8B930]/18 bg-[#E8B930]/[0.06]'
-                      : 'border-white/[0.08] bg-white/[0.03]'
-                  }`}
-                >
-                  <p className="text-[1.55rem] font-semibold tracking-[-0.03em] text-white">{proof.value}</p>
-                  <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                    {proof.label}
-                  </p>
-                  <p className="mt-2 text-[12px] leading-relaxed text-zinc-400">{proof.detail}</p>
-                </div>
-              ))}
-            </motion.div>
-          </div>
-
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 pt-20">
+        <div className="mx-auto max-w-4xl text-center">
+          {/* Kicker badge */}
           <motion.div
-            initial={{ opacity: 0, y: 80 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, delay: 1.15, ease: [0.22, 1, 0.36, 1] }}
-            className="relative w-full"
-            style={{ perspective: 1200 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#E8B930]/20 bg-[#E8B930]/[0.08] px-4 py-2"
           >
-            <div className="pointer-events-none absolute -left-10 top-10 h-40 w-40 rounded-full bg-[#DC3232]/10 blur-[90px]" />
-            <div className="pointer-events-none absolute -right-10 top-0 h-56 w-56 rounded-full bg-[#E8B930]/10 blur-[120px]" />
-            <div className="pointer-events-none absolute bottom-6 left-1/3 h-32 w-48 rounded-full bg-sky-500/8 blur-[90px]" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#E8B930]">
+              Public Beta
+            </span>
+            <span className="h-1 w-1 rounded-full bg-[#E8B930]/60" />
+            <span className="text-[11px] uppercase tracking-[0.15em] text-[#E8B930]/70">
+              Für ambitionierte Studenten
+            </span>
+          </motion.div>
 
-            <div className="relative mx-auto max-w-[860px]">
-              <motion.div style={{ transform: terminalRotateX, transformOrigin: 'center top' }}>
-                <TerminalFrame url="innis.io/trajectory" className="rounded-[28px]">
-                  <TrajectoryMockup />
-                </TerminalFrame>
-              </motion.div>
+          {/* Headline */}
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="premium-heading text-[clamp(2.6rem,6.5vw,5.5rem)] font-semibold leading-[1.05] text-white"
+          >
+            Plane Thesis, GMAT
+            <br />
+            und Praktikum,
+            <br />
+            <span className="bg-gradient-to-r from-[#E8B930] via-[#F5D565] to-[#E8B930] bg-clip-text text-transparent">
+              bevor sie kollidieren.
+            </span>
+          </motion.h1>
 
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.55, duration: 0.7 }}
-                className="absolute -left-5 top-8 hidden max-w-[220px] rounded-2xl border border-emerald-400/18 bg-[#0D1712]/80 p-4 backdrop-blur-2xl md:block"
-              >
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">Morning Brief</p>
-                <p className="mt-2 text-sm font-semibold text-[#FAF0E6]">GMAT ist on track.</p>
-                <p className="mt-1 text-[12px] leading-relaxed text-zinc-400">Prep startet 09.11.2026. Heute zählt ein klarer Move.</p>
-              </motion.div>
+          {/* Subline */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.8 }}
+            className="mx-auto mt-7 max-w-2xl text-[17px] leading-[1.75] text-zinc-400"
+          >
+            INNIS zeigt dir, wann Karriereplan, Studium und Bewerbungen aufeinanderprallen —
+            und zieht daraus direkt den nächsten sinnvollen Move für heute.
+          </motion.p>
 
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.75, duration: 0.7 }}
-                className="absolute -right-6 bottom-10 hidden max-w-[240px] rounded-2xl border border-sky-400/18 bg-[#0C1118]/82 p-4 backdrop-blur-2xl lg:block"
-              >
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-300">Career Signal</p>
-                <p className="mt-2 text-sm font-semibold text-[#FAF0E6]">M&amp;A Advisory ist realistisch.</p>
-                <p className="mt-1 text-[12px] leading-relaxed text-zinc-400">Radar erkennt Fit, Gap und den nächsten sinnvollen Prep-Schritt.</p>
-              </motion.div>
-
-              <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0A0A0C] via-[#0A0A0C]/70 to-transparent" />
-            </div>
+          {/* CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.1 }}
+            className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
+          >
+            <TrackedCtaLink
+              href="/auth/signup"
+              eventName="landing_cta_primary_clicked"
+              eventPayload={{ source: 'hero', variant: 'primary' }}
+              className="premium-cta-primary"
+            >
+              Kostenlos starten
+              <ArrowRight className="h-4 w-4" />
+            </TrackedCtaLink>
+            <TrackedCtaLink
+              href="/auth/login"
+              eventName="landing_cta_secondary_clicked"
+              eventPayload={{ source: 'hero', variant: 'login' }}
+              className="premium-cta-secondary"
+            >
+              Login
+            </TrackedCtaLink>
           </motion.div>
         </div>
+
+        {/* Terminal teaser — Trajectory dashboard, perspective tilt */}
+        <motion.div
+          initial={{ opacity: 0, y: 80 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, delay: 1.3, ease: [0.22, 1, 0.36, 1] }}
+          className="relative mx-auto mt-16 w-full max-w-5xl"
+          style={{ perspective: 1200 }}
+        >
+          {/* Glow behind terminal */}
+          <div className="pointer-events-none absolute -inset-10 rounded-3xl bg-[#E8B930]/[0.04] blur-[80px]" />
+
+          <motion.div style={{ transform: terminalRotateX, transformOrigin: 'center top' }}>
+            <TerminalFrame url="innis.io/trajectory">
+              <TrajectoryMockup />
+            </TerminalFrame>
+          </motion.div>
+
+          {/* Bottom fade — sinks into page */}
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#0A0A0C] to-transparent" />
+        </motion.div>
       </div>
 
       {/* Scroll indicator */}
@@ -484,7 +387,6 @@ interface FeatureFrameProps {
   description: string;
   terminal: React.ReactNode;
   layout: 'text-left' | 'text-right';
-  proofs: readonly { value: string; label: string }[];
 }
 
 function FeatureFrame({
@@ -496,7 +398,6 @@ function FeatureFrame({
   description,
   terminal,
   layout,
-  proofs,
 }: FeatureFrameProps) {
   const opacity = useTransform(progress, (p) => {
     const fadeIn = easeInOutCubic(progress01(p, stop - 0.5, stop));
@@ -547,21 +448,6 @@ function FeatureFrame({
       >
         {description}
       </motion.p>
-      <motion.div className="mt-8 grid gap-3 sm:grid-cols-3" style={{ opacity: descOpacity }}>
-        {proofs.map((proof, index) => (
-          <div
-            key={proof.value}
-            className={`rounded-2xl border px-4 py-4 ${
-              index === 0
-                ? 'border-[#E8B930]/18 bg-[#E8B930]/[0.05]'
-                : 'border-white/[0.08] bg-white/[0.025]'
-            }`}
-          >
-            <p className="text-[13px] font-semibold text-[#FAF0E6]">{proof.value}</p>
-            <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">{proof.label}</p>
-          </div>
-        ))}
-      </motion.div>
     </div>
   );
 
@@ -647,18 +533,6 @@ function CTAFrame({ progress }: { progress: MotionValue<number> }) {
           Trajectory, Today und Career in einem System. Für Studenten mit parallelen
           High-Stakes-Zielen.
         </p>
-        <div className="mt-10 grid gap-3 text-left sm:grid-cols-3">
-          {CTA_PROOFS.map((proof, index) => (
-            <div
-              key={proof}
-              className={`rounded-2xl border px-4 py-4 ${
-                index === 1 ? 'border-[#E8B930]/18 bg-[#E8B930]/[0.06]' : 'border-white/[0.08] bg-white/[0.03]'
-              }`}
-            >
-              <p className="text-[12px] leading-relaxed text-zinc-300">{proof}</p>
-            </div>
-          ))}
-        </div>
         <div className="mt-14 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           <TrackedCtaLink
             href="/auth/signup"
