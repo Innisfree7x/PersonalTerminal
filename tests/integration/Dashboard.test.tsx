@@ -7,8 +7,8 @@ vi.mock('@/components/features/dashboard/FocusTasks', () => ({
   default: () => <div>Focus Tasks Mock</div>,
 }));
 
-vi.mock('@/components/features/dashboard/ScheduleColumn', () => ({
-  default: () => <div>Schedule Mock</div>,
+vi.mock('@/components/features/dashboard/NBAHeroZone', () => ({
+  default: () => <div>NBA Hero Zone Mock</div>,
 }));
 
 vi.mock('@/components/features/dashboard/DashboardStats', () => ({
@@ -96,10 +96,17 @@ describe('Dashboard Integration', () => {
     );
 
     await waitFor(() => {
+      expect(screen.getByText('Kein aktives Trajectory-Ziel.')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /Einrichten/i })).toHaveAttribute(
+        'href',
+        '/trajectory?source=morning_briefing'
+      );
       expect(screen.getByText('Focus Tasks Mock')).toBeInTheDocument();
-      expect(screen.getByText('Schedule Mock')).toBeInTheDocument();
-      expect(screen.getAllByText('Quick Actions Mock').length).toBeGreaterThan(0);
-      expect(screen.getByText('Pomodoro Mock')).toBeInTheDocument();
+      expect(screen.getByText('NBA Hero Zone Mock')).toBeInTheDocument();
+      expect(screen.getByText('Study Progress Mock')).toBeInTheDocument();
+      expect(screen.getByText('Tasks')).toBeInTheDocument();
+      expect(screen.getByText('Exercises')).toBeInTheDocument();
+      expect(screen.getByText('Streak')).toBeInTheDocument();
     });
   });
 

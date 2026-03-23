@@ -20,40 +20,12 @@ vi.mock('@/components/features/dashboard/FocusTasks', () => ({
   default: () => <div>Focus Tasks Mock</div>,
 }));
 
-vi.mock('@/components/features/dashboard/CommandBar', () => ({
-  default: () => <div>Command Bar Mock</div>,
-}));
-
-vi.mock('@/components/features/dashboard/ScheduleColumn', () => ({
-  default: () => <div>Schedule Mock</div>,
-}));
-
-vi.mock('@/components/features/dashboard/QuickActionsWidget', () => ({
-  default: () => <div>Quick Actions Mock</div>,
-}));
-
-vi.mock('@/components/features/dashboard/MomentumWidget', () => ({
-  default: () => <div>Momentum Widget Mock</div>,
+vi.mock('@/components/features/dashboard/NBAHeroZone', () => ({
+  default: () => <div>NBA Hero Zone Mock</div>,
 }));
 
 vi.mock('@/components/features/dashboard/StudyProgress', () => ({
   default: () => <div>Study Progress Mock</div>,
-}));
-
-vi.mock('@/components/features/dashboard/UpcomingDeadlines', () => ({
-  default: () => <div>Deadlines Mock</div>,
-}));
-
-vi.mock('@/components/features/dashboard/WeekOverview', () => ({
-  default: () => <div>Week Overview Mock</div>,
-}));
-
-vi.mock('@/components/features/dashboard/ActivityFeed', () => ({
-  default: () => <div>Activity Feed Mock</div>,
-}));
-
-vi.mock('@/components/features/dashboard/PomodoroTimer', () => ({
-  default: () => <div>Pomodoro Mock</div>,
 }));
 
 vi.mock('@/app/actions/calendar', () => ({
@@ -170,24 +142,23 @@ describe('Today critical path integration', () => {
   test('renders the morning briefing, momentum chips, and weekly check-in CTA from the dashboard payload', async () => {
     renderWithProviders(<TodayPage />);
 
-    await screen.findByRole('link', { name: /Open linked trajectory/i });
+    await screen.findByRole('link', { name: /Trajectory/i });
 
     expect(screen.getByText('GMAT')).toBeInTheDocument();
-    expect(screen.getByText(/\d+d until deadline/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Open linked trajectory/i })).toHaveAttribute(
+    expect(screen.getByText(/on track/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Trajectory/i })).toHaveAttribute(
       'href',
       '/trajectory?goalId=goal_gmat&source=morning_briefing'
     );
-    expect(screen.getByText('Momentum 57')).toBeInTheDocument();
-    expect(screen.getByText('+1 vs last week')).toBeInTheDocument();
-    expect(screen.getByText('On track 1')).toBeInTheDocument();
-    expect(screen.getByText('Focus load 5.7h / 40h')).toBeInTheDocument();
-    expect(screen.getByText('Prep starts 09.11.2026')).toBeInTheDocument();
-    expect(screen.getByText('1/3 tasks done')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Review now/i })).toHaveAttribute(
-      'href',
-      '/trajectory?source=weekly_checkin'
-    );
+    expect(screen.getByText('NBA Hero Zone Mock')).toBeInTheDocument();
+    expect(screen.getByText('Focus Tasks Mock')).toBeInTheDocument();
+    expect(screen.getByText('Study Progress Mock')).toBeInTheDocument();
+    expect(screen.getByText('Tasks')).toBeInTheDocument();
+    expect(screen.getByText('1/3')).toBeInTheDocument();
+    expect(screen.getByText('Momentum')).toBeInTheDocument();
+    expect(screen.getByText('57')).toBeInTheDocument();
+    expect(screen.getByText('▲1')).toBeInTheDocument();
+    expect(screen.getByText('Streak')).toBeInTheDocument();
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith('/api/dashboard/next-tasks?include=trajectory_morning,week_events');
