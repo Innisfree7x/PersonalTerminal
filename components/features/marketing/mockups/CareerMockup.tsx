@@ -1,130 +1,106 @@
 'use client';
 
 /**
- * CareerMockup — HTML/CSS recreation of the Career Intelligence dashboard.
+ * CareerMockup — Redesigned for marketing impact.
  *
- * Shows: Opportunity card with fit score, reach band, gap analysis,
- * CV strengths, and actionable next step.
+ * One opportunity, deeply analyzed.
+ * Fit score hero → strengths vs gaps → actionable next step.
+ *
+ * Story: "We know what you're missing for this exact role."
  */
+
+const strengths = ['Quantitative Analyse', 'Financial Statements', 'Excel / VBA'];
 
 const gaps = [
   { label: 'DCF Modellierung', severity: 'high' as const },
   { label: 'M&A Case Experience', severity: 'medium' as const },
-  { label: 'Deal-Sourcing Praxis', severity: 'low' as const },
 ];
 
-const strengths = ['Quantitative Analyse', 'Financial Statements', 'Excel / VBA', 'Teamführung'];
-
-const radarItems = [
-  { company: 'Rothenstein Partners', role: 'Intern M&A Advisory', fit: 8.2, reach: 'Realistic' as const },
-  { company: 'Meridian Capital', role: 'Summer Analyst', fit: 7.1, reach: 'Stretch' as const },
-  { company: 'Atlas & Partners', role: 'Off-Cycle Intern', fit: 6.4, reach: 'Stretch' as const },
-];
-
-const reachConfig = {
-  Realistic: { bg: 'bg-emerald-500/12', text: 'text-emerald-400', border: 'border-emerald-500/20' },
-  Stretch: { bg: 'bg-[#E8B930]/12', text: 'text-[#E8B930]', border: 'border-[#E8B930]/20' },
-};
-
-const severityConfig = {
-  high: { bg: 'bg-red-500/10', text: 'text-red-400', dot: 'bg-red-400' },
-  medium: { bg: 'bg-[#E8B930]/10', text: 'text-[#E8B930]', dot: 'bg-[#E8B930]' },
-  low: { bg: 'bg-zinc-500/10', text: 'text-zinc-400', dot: 'bg-zinc-500' },
+const severityStyle = {
+  high: { dot: 'bg-red-400', text: 'text-red-400', badge: 'text-red-400/70' },
+  medium: { dot: 'bg-[#E8B930]', text: 'text-[#E8B930]', badge: 'text-[#E8B930]/70' },
 };
 
 export function CareerMockup() {
   return (
-    <div className="p-5 md:p-7">
-      {/* Header */}
-      <div className="mb-5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E8B930]/10">
-            <svg className="h-4 w-4 text-[#E8B930]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="16" x2="12" y2="12" />
-              <line x1="12" y1="8" x2="12.01" y2="8" />
-            </svg>
+    <div className="px-5 py-6 md:px-7 md:py-8">
+      {/* Opportunity header */}
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <div className="mb-1 flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#E8B930]/20 to-[#E8B930]/5">
+              <span className="text-[13px] font-bold text-[#E8B930]">R</span>
+            </div>
+            <div>
+              <p className="text-[13px] font-semibold text-white">Intern M&A Advisory</p>
+              <p className="text-[11px] text-zinc-500">Rothenstein Partners · Frankfurt</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-[13px] font-semibold text-white">Career Intelligence</h3>
-            <p className="text-[10px] text-zinc-500">3 Opportunities · CV analysiert</p>
+        </div>
+        <div className="text-right">
+          <span className="text-[32px] font-bold tracking-tight text-[#E8B930]">8.2</span>
+          <div className="mt-0.5">
+            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold text-emerald-400">
+              Realistic
+            </span>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-[1.1fr_0.9fr]">
-        {/* Left: Opportunity Radar */}
-        <div className="space-y-2">
-          {radarItems.map((item, i) => {
-            const reach = reachConfig[item.reach];
-            return (
-              <div
-                key={item.company}
-                className={`rounded-xl border bg-white/[0.02] p-4 transition-colors ${
-                  i === 0 ? 'border-[#E8B930]/15' : 'border-white/[0.05]'
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-[12px] font-semibold text-white">{item.role}</p>
-                    <p className="mt-0.5 text-[11px] text-zinc-500">{item.company}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[24px] font-bold tracking-tight text-[#E8B930]">{item.fit}</span>
-                    <div className="mt-0.5">
-                      <span className={`rounded-full border px-2 py-0.5 text-[9px] font-semibold ${reach.bg} ${reach.text} ${reach.border}`}>
-                        {item.reach}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                {i === 0 && (
-                  <div className="mt-3 flex items-center gap-2">
-                    <span className="rounded bg-white/[0.05] px-2 py-0.5 text-[9px] text-zinc-500">2 Quellen</span>
-                    <span className="rounded bg-white/[0.05] px-2 py-0.5 text-[9px] text-zinc-500">Track-fit direkt</span>
-                  </div>
-                )}
+      {/* Two-column: Strengths vs Gaps */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Strengths */}
+        <div className="rounded-xl border border-emerald-500/10 bg-emerald-500/[0.03] p-4">
+          <p className="mb-3 text-[9px] font-semibold uppercase tracking-wider text-emerald-400/60">
+            Was du mitbringst
+          </p>
+          <div className="space-y-2">
+            {strengths.map((s) => (
+              <div key={s} className="flex items-center gap-2">
+                <svg className="h-3 w-3 shrink-0 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span className="text-[11px] text-emerald-400/90">{s}</span>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
 
-        {/* Right: Gap Analysis + Strengths */}
-        <div className="space-y-4">
-          {/* Gaps */}
-          <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-4">
-            <p className="mb-3 text-[9px] font-semibold uppercase tracking-wider text-zinc-600">Gap Analyse</p>
-            <div className="space-y-2">
-              {gaps.map((gap) => {
-                const cfg = severityConfig[gap.severity];
-                return (
-                  <div key={gap.label} className="flex items-center gap-2.5">
-                    <div className={`h-2 w-2 rounded-full ${cfg.dot}`} />
-                    <span className={`text-[12px] ${cfg.text}`}>{gap.label}</span>
+        {/* Gaps */}
+        <div className="rounded-xl border border-red-500/10 bg-red-500/[0.03] p-4">
+          <p className="mb-3 text-[9px] font-semibold uppercase tracking-wider text-red-400/60">
+            Was dir fehlt
+          </p>
+          <div className="space-y-2">
+            {gaps.map((gap) => {
+              const s = severityStyle[gap.severity];
+              return (
+                <div key={gap.label} className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className={`h-1.5 w-1.5 shrink-0 rounded-full ${s.dot}`} />
+                    <span className={`text-[11px] ${s.text}`}>{gap.label}</span>
                   </div>
-                );
-              })}
-            </div>
+                  <span className={`text-[9px] font-medium ${s.badge}`}>{gap.severity}</span>
+                </div>
+              );
+            })}
           </div>
+        </div>
+      </div>
 
-          {/* CV Strengths */}
-          <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-4">
-            <p className="mb-3 text-[9px] font-semibold uppercase tracking-wider text-zinc-600">CV Stärken</p>
-            <div className="flex flex-wrap gap-1.5">
-              {strengths.map((s) => (
-                <span key={s} className="rounded-full border border-emerald-500/15 bg-emerald-500/8 px-2.5 py-1 text-[10px] font-medium text-emerald-400">
-                  {s}
-                </span>
-              ))}
-            </div>
-          </div>
+      {/* Divider */}
+      <div className="my-5 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
 
-          {/* Top Reason */}
-          <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-4">
-            <p className="mb-1 text-[9px] font-semibold uppercase tracking-wider text-zinc-600">Top Reason</p>
-            <p className="text-[13px] font-semibold text-white">Quantitative Stärke + M&A Fokus</p>
-            <p className="mt-1 text-[11px] text-zinc-500">Passt zu Rothenstein Advisory Profil</p>
-          </div>
+      {/* Next step — the actionable insight */}
+      <div className="flex items-center gap-3 rounded-xl border border-[#E8B930]/12 bg-[#E8B930]/[0.03] px-4 py-3">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#E8B930]/15">
+          <svg className="h-3.5 w-3.5 text-[#E8B930]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-[12px] font-semibold text-white">Nächster Schritt: DCF-Kurs abschließen</p>
+          <p className="mt-0.5 text-[10px] text-zinc-500">Schließt die größte Lücke für Rothenstein</p>
         </div>
       </div>
     </div>
