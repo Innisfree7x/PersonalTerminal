@@ -67,10 +67,10 @@ export default function FeaturesPage() {
   return (
     <>
       <section className="mx-auto max-w-4xl px-5 py-20 text-center sm:px-8 md:py-28">
-        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-red-400">Features</p>
+        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-[#E8B930]">Features</p>
         <h1 className="premium-heading mb-6 text-4xl font-semibold text-[#FAF0E6] md:text-6xl">
           INNIS ist kein Feature-Bündel.
-          <span className="block text-zinc-500">Es ist ein System in vier Ebenen.</span>
+          <span className="block bg-gradient-to-r from-[#E8B930] via-[#F5D565] to-[#E8B930] bg-clip-text text-transparent">Es ist ein System in vier Ebenen.</span>
         </h1>
         <p className="premium-subtext mx-auto max-w-2xl text-lg">
           Genau deshalb fühlt es sich anders an als ein klassisches Productivity-Tool:
@@ -89,8 +89,8 @@ export default function FeaturesPage() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
                   Ebene {index + 1}
                 </p>
-                <div className="mb-4 mt-4 flex h-11 w-11 items-center justify-center rounded-xl border border-red-500/18 bg-red-500/[0.06]">
-                  <group.icon className="h-5 w-5 text-red-300" />
+                <div className="mb-4 mt-4 flex h-11 w-11 items-center justify-center rounded-xl border border-[#E8B930]/20 bg-[#E8B930]/[0.08]">
+                  <group.icon className="h-5 w-5 text-[#E8B930]" />
                 </div>
                 <p className="mb-1 font-semibold text-[#FAF0E6]">{group.title}</p>
                 <p className="text-xs text-zinc-500">{group.tagline}</p>
@@ -98,7 +98,7 @@ export default function FeaturesPage() {
               <ul className="grid gap-2.5 sm:grid-cols-2">
                 {group.points.map((point) => (
                   <li key={point} className="flex items-start gap-3 text-sm text-zinc-400">
-                    <ArrowRight className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-300" />
+                    <ArrowRight className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#E8B930]" />
                     {point}
                   </li>
                 ))}
