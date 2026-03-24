@@ -1,10 +1,12 @@
 'use client';
 
+import { motion } from 'framer-motion';
+
 /**
  * TrajectoryMockup — Redesigned for marketing impact.
  *
  * One dramatic moment: the collision zone.
- * 3 goal bars + collision callout with pulse glow. Nothing else.
+ * 3 goal bars animate in + collision callout pulses with glow.
  */
 
 interface GoalRow {
@@ -68,12 +70,17 @@ export function TrajectoryMockup() {
         <span className="text-[10px] tracking-wider text-zinc-600">Q3 &apos;26 → Q2 &apos;27</span>
       </div>
 
-      {/* Goal bars */}
+      {/* Goal bars — staggered animation */}
       <div className="space-y-5">
-        {goals.map((goal) => {
+        {goals.map((goal, i) => {
           const s = statusStyle[goal.status];
           return (
-            <div key={goal.name}>
+            <motion.div
+              key={goal.name}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 + i * 0.15, ease: [0.22, 1, 0.36, 1] }}
+            >
               {/* Label row */}
               <div className="mb-1.5 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -85,25 +92,36 @@ export function TrajectoryMockup() {
 
               {/* Bar */}
               <div className="relative h-7 rounded-md bg-white/[0.02]">
-                {/* Prep gradient */}
-                <div
+                {/* Prep gradient — animated width */}
+                <motion.div
                   className={`absolute inset-y-0 rounded-md border ${s.bar} ${s.border}`}
-                  style={{ left: `${goal.prepStart}%`, width: `${goal.prepEnd - goal.prepStart}%` }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${goal.prepEnd - goal.prepStart}%` }}
+                  transition={{ duration: 0.8, delay: 0.4 + i * 0.15, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ left: `${goal.prepStart}%` }}
                 />
 
                 {/* Deadline tick */}
-                <div
+                <motion.div
                   className={`absolute top-0 h-full w-[2px] rounded-full ${s.line} shadow-[0_0_6px_rgba(255,255,255,0.15)]`}
+                  initial={{ opacity: 0, scaleY: 0 }}
+                  animate={{ opacity: 1, scaleY: 1 }}
+                  transition={{ duration: 0.3, delay: 0.8 + i * 0.15 }}
                   style={{ left: `${goal.deadline}%` }}
                 />
               </div>
-            </div>
+            </motion.div>
           );
         })}
       </div>
 
       {/* Collision callout */}
-      <div className="relative mt-6">
+      <motion.div
+        className="relative mt-6"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 1.0, ease: [0.22, 1, 0.36, 1] }}
+      >
         {/* Connector lines to the overlap zone */}
         <div className="relative h-10">
           <div
@@ -118,7 +136,23 @@ export function TrajectoryMockup() {
         {/* Collision card */}
         <div className="relative mx-auto max-w-xs overflow-hidden rounded-xl border border-red-500/20 bg-red-500/[0.06]">
           {/* Pulse glow */}
-          <div className="absolute inset-0 animate-pulse rounded-xl bg-red-500/[0.04]" />
+          <motion.div
+            className="absolute inset-0 rounded-xl bg-red-500/[0.08]"
+            animate={{ opacity: [0, 1, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          {/* Outer glow ring */}
+          <motion.div
+            className="pointer-events-none absolute -inset-[1px] rounded-xl"
+            animate={{
+              boxShadow: [
+                '0 0 15px rgba(239,68,68,0)',
+                '0 0 25px rgba(239,68,68,0.15)',
+                '0 0 15px rgba(239,68,68,0)',
+              ],
+            }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          />
 
           <div className="relative flex items-center gap-3 px-4 py-3">
             <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-red-500/15">
@@ -134,7 +168,7 @@ export function TrajectoryMockup() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Status legend — minimal */}
       <div className="mt-6 flex items-center justify-center gap-6">

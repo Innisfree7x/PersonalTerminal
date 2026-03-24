@@ -17,6 +17,8 @@ import { TodayMockup } from './mockups/TodayMockup';
 import { CareerMockup } from './mockups/CareerMockup';
 import { InteractiveDemo } from './InteractiveDemo';
 import { MarketingNavbar } from './MarketingNavbar';
+import { GrainOverlay } from './GrainOverlay';
+import { FloatingParticles } from './FloatingParticles';
 
 /**
  * CinematicLanding — PRISMA-style scroll-hijacked landing page.
@@ -27,6 +29,8 @@ import { MarketingNavbar } from './MarketingNavbar';
 
 const SECTION_COUNT = 6;
 const TRANSITION_DURATION = 0.7;
+
+const STOP_LABELS = ['Hero', 'Trajectory', 'Today', 'Career', 'Demo', 'Start'];
 
 /** Maps progress (0..1) within a range to 0..1. Clamps at edges. */
 function progress01(value: number, start: number, end: number): number {
@@ -163,22 +167,42 @@ export function CinematicLanding() {
 
   return (
     <div ref={containerRef} className="fixed inset-0 z-40 h-screen overflow-hidden bg-[#0A0A0C]">
+      {/* Atmospheric layers */}
+      <GrainOverlay />
+      <FloatingParticles />
+
+      {/* Ambient background glow — shifts with active stop */}
+      <BackgroundAmbience progress={progressMV} />
+
       {/* Navbar */}
       <div className="relative z-50">
         <MarketingNavbar />
       </div>
 
-      {/* Progress dots */}
+      {/* Progress dots — enhanced with labels */}
       <div className="fixed right-6 top-1/2 z-50 -translate-y-1/2 flex flex-col gap-3">
         {Array.from({ length: SECTION_COUNT }).map((_, i) => (
           <button
             key={i}
             onClick={() => goToStop(i)}
-            className={`h-2 w-2 rounded-full transition-all duration-500 ${
-              activeStop === i ? 'scale-125 bg-[#E8B930]' : 'bg-white/20 hover:bg-white/40'
-            }`}
-            aria-label={`Sektion ${i + 1}`}
-          />
+            className="group/dot flex items-center gap-3"
+            aria-label={`Sektion ${i + 1}: ${STOP_LABELS[i]}`}
+          >
+            <span
+              className={`text-[9px] font-medium uppercase tracking-wider opacity-0 transition-all duration-300 group-hover/dot:opacity-100 ${
+                activeStop === i ? 'text-[#E8B930]' : 'text-zinc-500'
+              }`}
+            >
+              {STOP_LABELS[i]}
+            </span>
+            <span
+              className={`block transition-all duration-500 ${
+                activeStop === i
+                  ? 'h-8 w-2 rounded-full bg-[#E8B930] shadow-[0_0_12px_rgba(232,185,48,0.4)]'
+                  : 'h-2 w-2 rounded-full bg-white/20 group-hover/dot:bg-white/40'
+              }`}
+            />
+          </button>
         ))}
       </div>
 
@@ -243,6 +267,39 @@ export function CinematicLanding() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────
+   Background Ambience — glow position shifts per active section
+   ───────────────────────────────────────────────────────────────────── */
+
+function BackgroundAmbience({ progress }: { progress: MotionValue<number> }) {
+  const glow1X = useTransform(progress, [0, 1, 2, 3, 4, 5], ['50%', '25%', '75%', '30%', '50%', '50%']);
+  const glow1Y = useTransform(progress, [0, 1, 2, 3, 4, 5], ['12%', '30%', '25%', '40%', '50%', '45%']);
+  const glow1Opacity = useTransform(progress, [0, 2.5, 5], [0.06, 0.04, 0.08]);
+
+  const glow2X = useTransform(progress, [0, 1, 2, 3, 4, 5], ['8%', '70%', '20%', '65%', '40%', '50%']);
+  const glow2Y = useTransform(progress, [0, 1, 2, 3, 4, 5], ['5%', '15%', '60%', '20%', '30%', '50%']);
+
+  return (
+    <div className="pointer-events-none fixed inset-0 z-[1]">
+      <motion.div
+        className="absolute h-[900px] w-[1100px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8B930] blur-[250px]"
+        style={{ left: glow1X, top: glow1Y, opacity: glow1Opacity }}
+      />
+      <motion.div
+        className="absolute h-[500px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#DC3232] blur-[200px] opacity-[0.04]"
+        style={{ left: glow2X, top: glow2Y }}
+      />
+      <motion.div
+        className="absolute h-[400px] w-[500px] rounded-full bg-[#FF7832] blur-[180px] opacity-[0.03]"
+        style={{
+          right: '5%',
+          top: useTransform(progress, [0, 5], ['15%', '60%']),
+        }}
+      />
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────
    Frame Components — all driven by MotionValue, zero re-renders
    ───────────────────────────────────────────────────────────────────── */
 
@@ -257,31 +314,34 @@ function HeroFrame({
   const terminalRotateX = useTransform(progress, (p) => `rotateX(${4 - progress01(p, 0, 0.3) * 4}deg)`);
   const pointerEvents = useTransform(opacity, (o) => (o > 0.1 ? 'auto' : 'none'));
   const display = useTransform(progress, (p) => (p > 1.5 ? 'none' : 'flex'));
+  const heroScale = useTransform(progress, (p) => 1 - progress01(p, 0.3, 1) * 0.05);
 
   return (
     <motion.div
       className="fixed inset-0 z-10 flex-col"
       style={{ opacity, pointerEvents, display }}
     >
-      {/* Atmospheric glows */}
-      <div className="pointer-events-none absolute left-1/2 top-[12%] h-[800px] w-[1000px] -translate-x-1/2 rounded-full bg-[#E8B930]/[0.06] blur-[200px]" />
-      <div className="pointer-events-none absolute left-[8%] top-[5%] h-[500px] w-[500px] rounded-full bg-[#DC3232]/[0.05] blur-[160px]" />
-      <div className="pointer-events-none absolute right-[5%] top-[15%] h-[400px] w-[500px] rounded-full bg-[#FF7832]/[0.035] blur-[140px]" />
-
       {/* Content */}
-      <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 pt-20">
+      <motion.div
+        className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 pt-20"
+        style={{ scale: heroScale }}
+      >
         <div className="mx-auto max-w-4xl text-center">
           {/* Kicker badge */}
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 12, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             transition={{ duration: 0.7, delay: 0.2 }}
             className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#E8B930]/20 bg-[#E8B930]/[0.08] px-4 py-2"
           >
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#E8B930] opacity-50" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#E8B930]" />
+            </span>
             <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#E8B930]">
               Public Beta
             </span>
-            <span className="h-1 w-1 rounded-full bg-[#E8B930]/60" />
+            <span className="h-1 w-1 rounded-full bg-[#E8B930]/40" />
             <span className="text-[11px] uppercase tracking-[0.15em] text-[#E8B930]/70">
               Für ambitionierte Studenten
             </span>
@@ -289,8 +349,8 @@ function HeroFrame({
 
           {/* Headline */}
           <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             transition={{ duration: 0.9, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
             className="premium-heading text-[clamp(2.6rem,6.5vw,5.5rem)] font-semibold leading-[1.05] text-white"
           >
@@ -305,8 +365,8 @@ function HeroFrame({
 
           {/* Subline */}
           <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8 }}
             className="mx-auto mt-7 max-w-2xl text-[17px] leading-[1.75] text-zinc-400"
           >
@@ -339,6 +399,25 @@ function HeroFrame({
               Login
             </TrackedCtaLink>
           </motion.div>
+
+          {/* Trust stats strip */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 1.5 }}
+            className="mt-10 flex items-center justify-center gap-8"
+          >
+            {[
+              { value: '3', label: 'Ebenen' },
+              { value: '0€', label: 'Beta' },
+              { value: '<2min', label: 'Setup' },
+            ].map((stat) => (
+              <div key={stat.label} className="flex items-center gap-2">
+                <span className="text-[15px] font-semibold text-white">{stat.value}</span>
+                <span className="text-[11px] text-zinc-600">{stat.label}</span>
+              </div>
+            ))}
+          </motion.div>
         </div>
 
         {/* Terminal teaser — Trajectory dashboard, perspective tilt */}
@@ -346,7 +425,7 @@ function HeroFrame({
           initial={{ opacity: 0, y: 80 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 1.3, ease: [0.22, 1, 0.36, 1] }}
-          className="relative mx-auto mt-16 w-full max-w-5xl"
+          className="relative mx-auto mt-14 w-full max-w-5xl"
           style={{ perspective: 1200 }}
         >
           {/* Glow behind terminal */}
@@ -361,7 +440,7 @@ function HeroFrame({
           {/* Bottom fade — sinks into page */}
           <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#0A0A0C] to-transparent" />
         </motion.div>
-      </div>
+      </motion.div>
 
       {/* Scroll indicator */}
       <motion.button
@@ -407,34 +486,59 @@ function FeatureFrame({
   const pointerEvents = useTransform(opacity, (o) => (o > 0.5 ? 'auto' : 'none'));
   const display = useTransform(opacity, (o) => (o < 0.01 ? 'none' : 'flex'));
 
+  // Staggered text — text arrives first
   const kickerOpacity = useTransform(progress, (p) =>
-    easeInOutCubic(progress01(p, stop - 0.4, stop - 0.2))
+    easeInOutCubic(progress01(p, stop - 0.45, stop - 0.25))
+  );
+  const kickerY = useTransform(
+    progress,
+    (p) => 20 * (1 - easeInOutCubic(progress01(p, stop - 0.45, stop - 0.25)))
   );
   const headlineOpacity = useTransform(progress, (p) =>
-    easeInOutCubic(progress01(p, stop - 0.35, stop - 0.1))
+    easeInOutCubic(progress01(p, stop - 0.4, stop - 0.15))
+  );
+  const headlineY = useTransform(
+    progress,
+    (p) => 25 * (1 - easeInOutCubic(progress01(p, stop - 0.4, stop - 0.15)))
   );
   const descOpacity = useTransform(progress, (p) =>
-    easeInOutCubic(progress01(p, stop - 0.25, stop))
+    easeInOutCubic(progress01(p, stop - 0.3, stop - 0.05))
   );
+  const descY = useTransform(
+    progress,
+    (p) => 20 * (1 - easeInOutCubic(progress01(p, stop - 0.3, stop - 0.05)))
+  );
+
+  // Terminal arrives after text with scale-up
   const terminalOpacity = useTransform(progress, (p) =>
-    easeInOutCubic(progress01(p, stop - 0.3, stop + 0.1))
+    easeInOutCubic(progress01(p, stop - 0.25, stop + 0.1))
   );
   const terminalY = useTransform(
     progress,
-    (p) => 40 * (1 - easeInOutCubic(progress01(p, stop - 0.3, stop + 0.1)))
+    (p) => 50 * (1 - easeInOutCubic(progress01(p, stop - 0.25, stop + 0.1)))
   );
+  const terminalScale = useTransform(
+    progress,
+    (p) => 0.92 + 0.08 * easeInOutCubic(progress01(p, stop - 0.25, stop + 0.1))
+  );
+
+  // Gold border glow on terminal when active
+  const glowOpacity = useTransform(progress, (p) => {
+    const dist = Math.abs(p - stop);
+    return dist < 0.3 ? (1 - dist / 0.3) * 0.6 : 0;
+  });
 
   const textSide = (
     <div>
       <motion.p
         className="mb-5 text-[11px] font-medium uppercase tracking-[0.35em] text-[#E8B930]"
-        style={{ opacity: kickerOpacity }}
+        style={{ opacity: kickerOpacity, y: kickerY }}
       >
         {kicker}
       </motion.p>
       <motion.h2
         className="premium-heading text-[clamp(1.8rem,4vw,3.2rem)] font-semibold text-white"
-        style={{ opacity: headlineOpacity }}
+        style={{ opacity: headlineOpacity, y: headlineY }}
       >
         {headline}
         <br />
@@ -444,7 +548,7 @@ function FeatureFrame({
       </motion.h2>
       <motion.p
         className="mt-6 max-w-md text-[15px] leading-[1.8] text-zinc-500"
-        style={{ opacity: descOpacity }}
+        style={{ opacity: descOpacity, y: descY }}
       >
         {description}
       </motion.p>
@@ -452,7 +556,20 @@ function FeatureFrame({
   );
 
   const terminalSide = (
-    <motion.div style={{ opacity: terminalOpacity, y: terminalY }}>{terminal}</motion.div>
+    <motion.div
+      className="relative"
+      style={{ opacity: terminalOpacity, y: terminalY, scale: terminalScale }}
+    >
+      {/* Gold glow ring around terminal */}
+      <motion.div
+        className="pointer-events-none absolute -inset-[1px] rounded-2xl"
+        style={{
+          opacity: glowOpacity,
+          boxShadow: '0 0 30px rgba(232,185,48,0.15), inset 0 0 30px rgba(232,185,48,0.05)',
+        }}
+      />
+      {terminal}
+    </motion.div>
   );
 
   return (
@@ -487,14 +604,22 @@ function DemoFrame({ progress }: { progress: MotionValue<number> }) {
   });
   const pointerEvents = useTransform(opacity, (o) => (o > 0.5 ? 'auto' : 'none'));
   const display = useTransform(opacity, (o) => (o < 0.01 ? 'none' : 'flex'));
+  const contentY = useTransform(progress, (p) => 40 * (1 - easeInOutCubic(progress01(p, 3.5, 4.1))));
+  const contentScale = useTransform(
+    progress,
+    (p) => 0.95 + 0.05 * easeInOutCubic(progress01(p, 3.5, 4.1))
+  );
 
   return (
     <motion.div
       className="fixed inset-0 z-10 items-center justify-center"
       style={{ opacity, pointerEvents, display }}
     >
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8B930]/[0.03] blur-[180px]" />
-      <div className="relative z-10 mx-auto w-full max-w-3xl px-6">
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8B930]/[0.04] blur-[200px]" />
+      <motion.div
+        className="relative z-10 mx-auto w-full max-w-3xl px-6"
+        style={{ y: contentY, scale: contentScale }}
+      >
         <p className="mb-4 text-center text-[11px] font-medium uppercase tracking-[0.35em] text-[#E8B930]">
           Live Beweis
         </p>
@@ -504,7 +629,7 @@ function DemoFrame({ progress }: { progress: MotionValue<number> }) {
           <span className="text-zinc-500">Sieh, wann dein Plan kippt.</span>
         </h2>
         <InteractiveDemo />
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
@@ -512,15 +637,27 @@ function DemoFrame({ progress }: { progress: MotionValue<number> }) {
 function CTAFrame({ progress }: { progress: MotionValue<number> }) {
   const opacity = useTransform(progress, (p) => easeInOutCubic(progress01(p, 4.5, 5)));
   const display = useTransform(opacity, (o) => (o < 0.01 ? 'none' : 'flex'));
+  const headlineY = useTransform(progress, (p) => 30 * (1 - easeInOutCubic(progress01(p, 4.5, 5.1))));
+  const ctaScale = useTransform(
+    progress,
+    (p) => 0.9 + 0.1 * easeInOutCubic(progress01(p, 4.6, 5))
+  );
 
   return (
     <motion.div
       className="fixed inset-0 z-10 items-center justify-center"
       style={{ opacity, display }}
     >
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8B930]/[0.06] blur-[200px]" />
+      {/* Dramatic gold glow */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[800px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8B930]/[0.07] blur-[220px]" />
+      {/* Secondary warm glow */}
+      <div className="pointer-events-none absolute left-1/2 top-[60%] h-[400px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#FF7832]/[0.04] blur-[160px]" />
+
       <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
-        <h2 className="premium-heading text-[clamp(2.4rem,6vw,5rem)] font-semibold text-white">
+        <motion.h2
+          className="premium-heading text-[clamp(2.4rem,6vw,5rem)] font-semibold text-white"
+          style={{ y: headlineY }}
+        >
           Ein System.
           <br />
           Eine Linie.
@@ -528,12 +665,18 @@ function CTAFrame({ progress }: { progress: MotionValue<number> }) {
           <span className="bg-gradient-to-r from-[#E8B930] via-[#F5D565] to-[#E8B930] bg-clip-text text-transparent">
             Dein nächster Move.
           </span>
-        </h2>
-        <p className="mx-auto mt-8 max-w-lg text-[17px] leading-[1.7] text-zinc-500">
+        </motion.h2>
+        <motion.p
+          className="mx-auto mt-8 max-w-lg text-[17px] leading-[1.7] text-zinc-500"
+          style={{ y: headlineY }}
+        >
           Trajectory, Today und Career in einem System. Für Studenten mit parallelen
           High-Stakes-Zielen.
-        </p>
-        <div className="mt-14 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+        </motion.p>
+        <motion.div
+          className="mt-14 flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
+          style={{ scale: ctaScale }}
+        >
           <TrackedCtaLink
             href="/auth/signup"
             eventName="landing_cta_primary_clicked"
@@ -551,10 +694,10 @@ function CTAFrame({ progress }: { progress: MotionValue<number> }) {
           >
             Login
           </TrackedCtaLink>
-        </div>
-        <p className="mt-8 text-[12px] text-zinc-600">
+        </motion.div>
+        <motion.p className="mt-8 text-[12px] text-zinc-600" style={{ y: headlineY }}>
           Keine Kreditkarte · Public Beta · Konto in 2 Minuten
-        </p>
+        </motion.p>
       </div>
     </motion.div>
   );
