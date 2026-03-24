@@ -666,7 +666,7 @@
   }
 
   .marketing-shell {
-    background: #0A0A0C;
+    background: radial-gradient(ellipse 120% 80% at 50% 0%, #1a1425 0%, #0d0b14 40%, #080a10 100%);
   }
 
   .marketing-grid-overlay {
