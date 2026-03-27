@@ -11,7 +11,7 @@ export const metadata = {
 export default function PricingPage() {
   return (
     <>
-      <section className="mx-auto max-w-3xl px-5 py-20 text-center sm:px-8 md:py-28">
+      <section className="relative z-10 mx-auto max-w-3xl px-5 py-20 text-center sm:px-8 md:py-28">
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-red-400">Pricing</p>
         <h1 className="premium-heading mb-6 text-4xl font-semibold text-[#FAF0E6] md:text-6xl">
           Kein Abo-Drama.

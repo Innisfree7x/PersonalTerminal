@@ -121,11 +121,11 @@ export function CinematicLanding() {
         className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage: `
-            linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px),
-            radial-gradient(ellipse 70% 50% at 50% 0%, rgba(232,185,48,0.09) 0%, transparent 60%),
-            radial-gradient(ellipse 50% 40% at 15% 70%, rgba(160,30,30,0.06) 0%, transparent 55%),
-            radial-gradient(ellipse 40% 35% at 85% 55%, rgba(160,30,30,0.04) 0%, transparent 55%)
+            linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px),
+            radial-gradient(ellipse 70% 50% at 50% 0%, rgba(232,185,48,0.11) 0%, transparent 60%),
+            radial-gradient(ellipse 50% 40% at 15% 70%, rgba(180,35,35,0.07) 0%, transparent 55%),
+            radial-gradient(ellipse 40% 35% at 85% 55%, rgba(180,35,35,0.05) 0%, transparent 55%)
           `,
           backgroundSize: '72px 72px, 72px 72px, 100% 100%, 100% 100%, 100% 100%',
           maskImage: 'linear-gradient(to bottom, black 0%, black 40%, transparent 85%)',

@@ -10,9 +10,9 @@ export function HeroSection() {
   return (
     <section className="relative min-h-screen overflow-hidden pb-0 pt-28 md:pt-36">
       {/* Atmospheric glows */}
-      <div className="pointer-events-none absolute left-1/2 top-[15%] h-[700px] w-[900px] -translate-x-1/2 rounded-full bg-[#E8B930]/[0.07] blur-[180px]" />
-      <div className="pointer-events-none absolute left-[10%] top-[5%] h-[400px] w-[400px] rounded-full bg-[#DC3232]/[0.06] blur-[150px]" />
-      <div className="pointer-events-none absolute right-[5%] top-[20%] h-[350px] w-[400px] rounded-full bg-[#FF7832]/[0.04] blur-[130px]" />
+      <div className="pointer-events-none absolute left-1/2 top-[15%] h-[700px] w-[900px] -translate-x-1/2 rounded-full bg-[#E8B930]/[0.09] blur-[180px]" />
+      <div className="pointer-events-none absolute left-[10%] top-[5%] h-[400px] w-[400px] rounded-full bg-[#DC3232]/[0.07] blur-[150px]" />
+      <div className="pointer-events-none absolute right-[5%] top-[20%] h-[350px] w-[400px] rounded-full bg-[#FF7832]/[0.05] blur-[130px]" />
 
       {/* Subtle grid overlay */}
       <div

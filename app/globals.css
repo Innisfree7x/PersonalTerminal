@@ -658,6 +658,28 @@
     background: #08080c;
   }
 
+  /* Shared premium grid + glow background — zero per-frame cost (pure CSS) */
+  .premium-grid-bg {
+    position: relative;
+    background: #08080c;
+  }
+  .premium-grid-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px),
+      radial-gradient(ellipse 70% 50% at 50% 0%, rgba(232,185,48,0.11) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 15% 70%, rgba(180,35,35,0.07) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 35% at 85% 55%, rgba(180,35,35,0.05) 0%, transparent 55%);
+    background-size: 72px 72px, 72px 72px, 100% 100%, 100% 100%, 100% 100%;
+    mask-image: linear-gradient(to bottom, black 0%, black 50%, transparent 90%);
+    -webkit-mask-image: linear-gradient(to bottom, black 0%, black 50%, transparent 90%);
+  }
+
   .marketing-grid-overlay {
     background-image:
       linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),

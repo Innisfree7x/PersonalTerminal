@@ -66,7 +66,7 @@ const FEATURE_GROUPS = [
 export default function FeaturesPage() {
   return (
     <>
-      <section className="mx-auto max-w-4xl px-5 py-20 text-center sm:px-8 md:py-28">
+      <section className="relative z-10 mx-auto max-w-4xl px-5 py-20 text-center sm:px-8 md:py-28">
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-[#E8B930]">Features</p>
         <h1 className="premium-heading mb-6 text-4xl font-semibold text-[#FAF0E6] md:text-6xl">
           INNIS ist kein Feature-Bündel.
@@ -78,7 +78,7 @@ export default function FeaturesPage() {
         </p>
       </section>
 
-      <section className="pb-12">
+      <section className="relative z-10 pb-12">
         <div className="marketing-container space-y-6">
           {FEATURE_GROUPS.map((group, index) => (
             <div
