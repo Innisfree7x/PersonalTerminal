@@ -7,6 +7,7 @@ import {
   useRef,
   useCallback,
   useEffect,
+  useMemo,
   type ReactNode,
 } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -69,7 +70,33 @@ interface FocusTimerContextType {
   setIsExpanded: (expanded: boolean) => void;
 }
 
-const FocusTimerContext = createContext<FocusTimerContextType | undefined>(undefined);
+type FocusTimerClockContextType = Pick<FocusTimerContextType, 'timeLeft' | 'totalTime'>;
+type FocusTimerSessionContextType = Pick<
+  FocusTimerContextType,
+  | 'status'
+  | 'sessionType'
+  | 'label'
+  | 'category'
+  | 'completedPomodoros'
+  | 'todaySummary'
+  | 'settings'
+  | 'isExpanded'
+>;
+type FocusTimerActionsContextType = Pick<
+  FocusTimerContextType,
+  | 'startTimer'
+  | 'pauseTimer'
+  | 'resumeTimer'
+  | 'stopTimer'
+  | 'skipBreak'
+  | 'resetTimer'
+  | 'updateSettings'
+  | 'setIsExpanded'
+>;
+
+const FocusTimerClockContext = createContext<FocusTimerClockContextType | undefined>(undefined);
+const FocusTimerSessionContext = createContext<FocusTimerSessionContextType | undefined>(undefined);
+const FocusTimerActionsContext = createContext<FocusTimerActionsContextType | undefined>(undefined);
 
 const STORAGE_KEY = STORAGE_KEYS.focusTimerSession;
 const SETTINGS_STORAGE_KEY = STORAGE_KEYS.focusTimerSettings;
@@ -509,38 +536,92 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
     setSettings((prev) => ({ ...prev, ...partial }));
   }, []);
 
+  const clockValue = useMemo<FocusTimerClockContextType>(
+    () => ({
+      timeLeft,
+      totalTime,
+    }),
+    [timeLeft, totalTime]
+  );
+
+  const sessionValue = useMemo<FocusTimerSessionContextType>(
+    () => ({
+      status,
+      sessionType,
+      label,
+      category,
+      completedPomodoros,
+      todaySummary: todaySummary ?? null,
+      settings,
+      isExpanded,
+    }),
+    [
+      status,
+      sessionType,
+      label,
+      category,
+      completedPomodoros,
+      todaySummary,
+      settings,
+      isExpanded,
+    ]
+  );
+
+  const actionsValue = useMemo<FocusTimerActionsContextType>(
+    () => ({
+      startTimer,
+      pauseTimer,
+      resumeTimer,
+      stopTimer,
+      skipBreak,
+      resetTimer,
+      updateSettings,
+      setIsExpanded,
+    }),
+    [startTimer, pauseTimer, resumeTimer, stopTimer, skipBreak, resetTimer, updateSettings, setIsExpanded]
+  );
+
   return (
-    <FocusTimerContext.Provider
-      value={{
-        status,
-        timeLeft,
-        totalTime,
-        sessionType,
-        label,
-        category,
-        completedPomodoros,
-        todaySummary: todaySummary ?? null,
-        settings,
-        startTimer,
-        pauseTimer,
-        resumeTimer,
-        stopTimer,
-        skipBreak,
-        resetTimer,
-        updateSettings,
-        isExpanded,
-        setIsExpanded,
-      }}
-    >
-      {children}
-    </FocusTimerContext.Provider>
+    <FocusTimerActionsContext.Provider value={actionsValue}>
+      <FocusTimerSessionContext.Provider value={sessionValue}>
+        <FocusTimerClockContext.Provider value={clockValue}>{children}</FocusTimerClockContext.Provider>
+      </FocusTimerSessionContext.Provider>
+    </FocusTimerActionsContext.Provider>
   );
 }
 
-export function useFocusTimer() {
-  const context = useContext(FocusTimerContext);
+export function useFocusTimerClock() {
+  const context = useContext(FocusTimerClockContext);
   if (context === undefined) {
     throw new Error('useFocusTimer must be used within a FocusTimerProvider');
   }
   return context;
+}
+
+export function useFocusTimerSession() {
+  const context = useContext(FocusTimerSessionContext);
+  if (context === undefined) {
+    throw new Error('useFocusTimer must be used within a FocusTimerProvider');
+  }
+  return context;
+}
+
+export function useFocusTimerActions() {
+  const context = useContext(FocusTimerActionsContext);
+  if (context === undefined) {
+    throw new Error('useFocusTimer must be used within a FocusTimerProvider');
+  }
+  return context;
+}
+
+export function useFocusTimer() {
+  const clock = useFocusTimerClock();
+  const session = useFocusTimerSession();
+  const actions = useFocusTimerActions();
+
+  return {
+    ...session,
+    ...clock,
+    ...actions,
+  };
 }

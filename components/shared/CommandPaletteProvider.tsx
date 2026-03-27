@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode, useCallback, useMemo } from 'react';
 import CommandPalette from './CommandPalette';
 import { useIntentExecutor } from '@/lib/command/executor';
 
@@ -24,9 +24,13 @@ export default function CommandPaletteProvider({ children }: { children: ReactNo
   const [isOpen, setIsOpen] = useState(false);
   useIntentExecutor();
 
-  const open = () => setIsOpen(true);
-  const close = () => setIsOpen(false);
-  const toggle = () => setIsOpen((prev) => !prev);
+  const open = useCallback(() => setIsOpen(true), []);
+  const close = useCallback(() => setIsOpen(false), []);
+  const toggle = useCallback(() => setIsOpen((prev) => !prev), []);
+  const contextValue = useMemo(
+    () => ({ isOpen, open, close, toggle }),
+    [isOpen, open, close, toggle]
+  );
 
   // Global keyboard shortcut (Cmd+K / Ctrl+K)
   useEffect(() => {
@@ -39,10 +43,10 @@ export default function CommandPaletteProvider({ children }: { children: ReactNo
 
     document.addEventListener('keydown', down);
     return () => document.removeEventListener('keydown', down);
-  }, []);
+  }, [toggle]);
 
   return (
-    <CommandPaletteContext.Provider value={{ isOpen, open, close, toggle }}>
+    <CommandPaletteContext.Provider value={contextValue}>
       {children}
       <CommandPalette isOpen={isOpen} onClose={close} />
     </CommandPaletteContext.Provider>

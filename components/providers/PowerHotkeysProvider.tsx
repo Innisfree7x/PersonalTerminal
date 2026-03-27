@@ -6,7 +6,10 @@ import { Keyboard } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useCommandPalette } from '@/components/shared/CommandPaletteProvider';
 import { hasFocusedListNavigationItem, hasHotkeyBlocker, isTypingTarget } from '@/lib/hotkeys/guards';
-import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
+import {
+  useFocusTimerActions,
+  useFocusTimerSession,
+} from '@/components/providers/FocusTimerProvider';
 import { useAppSound } from '@/lib/hooks/useAppSound';
 import { dispatchPrismCommandAction, queuePrismCommandAction, type PrismCommandAction } from '@/lib/hooks/useCommandActions';
 import { dispatchListNavigationAction } from '@/lib/hooks/useListNavigation';
@@ -229,7 +232,8 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
   const router = useRouter();
   const pathname = usePathname();
   const { open: openCommandPalette, isOpen: isCommandPaletteOpen } = useCommandPalette();
-  const { status: timerStatus, startTimer, pauseTimer, resumeTimer, setIsExpanded: setTimerExpanded } = useFocusTimer();
+  const { status: timerStatus } = useFocusTimerSession();
+  const { startTimer, pauseTimer, resumeTimer, setIsExpanded: setTimerExpanded } = useFocusTimerActions();
   const { play } = useAppSound();
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [scoreboardOpen, setScoreboardOpen] = useState(false);

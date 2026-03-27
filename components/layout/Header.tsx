@@ -6,7 +6,11 @@ import { motion } from 'framer-motion';
 import { Search, Bell, Plus, Command } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useCommandPalette } from '@/components/shared/CommandPaletteProvider';
-import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
+import {
+  useFocusTimerActions,
+  useFocusTimerClock,
+  useFocusTimerSession,
+} from '@/components/providers/FocusTimerProvider';
 import { format } from 'date-fns';
 import { de as deLocale, enUS } from 'date-fns/locale';
 import { fetchDashboardStatsAction } from '@/app/actions/dashboard';
@@ -47,7 +51,9 @@ export default function Header() {
   const notificationsRef = useRef<HTMLDivElement | null>(null);
   const { open: openCommandPalette } = useCommandPalette();
   const { copy, language } = useAppLanguage();
-  const { status: timerStatus, timeLeft: timerTimeLeft, sessionType, setIsExpanded: setTimerExpanded } = useFocusTimer();
+  const { status: timerStatus, sessionType } = useFocusTimerSession();
+  const { timeLeft: timerTimeLeft } = useFocusTimerClock();
+  const { setIsExpanded: setTimerExpanded } = useFocusTimerActions();
   
   const { data: stats } = useQuery({
     queryKey: ['dashboard', 'stats'],

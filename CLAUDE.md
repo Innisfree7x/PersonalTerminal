@@ -24,7 +24,7 @@ Diese Regeln gelten immer. Keine Ausnahmen.
 ## Canonical Context (must-read)
 - Active planning + execution source: `docs/PHASE13.md`
 - Context priority map: `docs/CONTEXT_CANON.md`
-- Performance + CI stabilization current state: `docs/PHASE40_PERFORMANCE_AND_CI_STABILIZATION_2026-03-27.md`
+- Performance + CI stabilization current state: `docs/PHASE40_PERFORMANCE_AND_CI_STABILIZATION_2026-03-27.md` (inkl. Focus-Timer-Render-Entkopplung)
 - Marketing art direction current state: `docs/PHASE39_MARKETING_ART_DIRECTION_2026-03-23.md`
 - Career intelligence current state: `docs/PHASE38_CAREER_INTELLIGENCE_V3_2026-03-22.md`
 - Critical path integration baseline: `docs/PHASE37_CRITICAL_PATH_INTEGRATION_2026-03-21.md`

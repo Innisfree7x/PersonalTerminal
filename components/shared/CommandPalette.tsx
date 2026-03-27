@@ -28,7 +28,10 @@ import {
   AlertTriangle,
   type LucideIcon,
 } from 'lucide-react';
-import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
+import {
+  useFocusTimerActions,
+  useFocusTimerSession,
+} from '@/components/providers/FocusTimerProvider';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { useAppLanguage } from '@/components/providers/LanguageProvider';
 import {
@@ -62,14 +65,14 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   const pathname = usePathname();
   const [search, setSearch] = useState('');
   const [intentConfirmed, setIntentConfirmed] = useState(false);
+  const { status: timerStatus } = useFocusTimerSession();
   const {
-    status: timerStatus,
     startTimer,
     pauseTimer,
     resumeTimer,
     stopTimer,
     setIsExpanded: setTimerExpanded,
-  } = useFocusTimer();
+  } = useFocusTimerActions();
   const { setTheme, theme } = useTheme();
   const { copy } = useAppLanguage();
   const { play } = useAppSound();

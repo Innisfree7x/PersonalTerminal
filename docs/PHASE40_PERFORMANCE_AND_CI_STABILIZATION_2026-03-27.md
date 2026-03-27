@@ -112,6 +112,49 @@ Fix:
 - Labels absolut und nur noch für Desktop/Hover sichtbar gemacht
 - mobile Alignment dadurch sauber
 
+### 5. Gemessener Render-Fix: Focus-Timer-State entkoppelt
+
+Nach der ersten Blur-/Motion-Welle blieb ein echter Alltags-Hotspot:
+
+- Header
+- Command Palette
+- NBA Hero / Dashboard-CTA
+- globale Hotkeys
+
+Diese Flächen waren unnötig an den sekündlich tickenden Focus-Timer-State
+gekoppelt. Ursache war ein einzelner breiter React-Context, der sowohl
+Clock-State als auch Session-State und Actions transportiert hat.
+
+Dateien:
+
+- `components/providers/FocusTimerProvider.tsx`
+- `components/shared/CommandPalette.tsx`
+- `components/providers/PowerHotkeysProvider.tsx`
+- `components/features/dashboard/NBAHeroZone.tsx`
+- `components/layout/Header.tsx`
+- `components/shared/CommandPaletteProvider.tsx`
+- `components/layout/SidebarProvider.tsx`
+
+Fix:
+
+- Focus-Timer-Provider in drei Kontexte geteilt:
+  - `Clock`
+  - `Session`
+  - `Actions`
+- tickende Werte (`timeLeft`, `totalTime`) isoliert
+- nicht tickende Verbraucher auf schlanke Hooks umgestellt:
+  - `useFocusTimerClock()`
+  - `useFocusTimerSession()`
+  - `useFocusTimerActions()`
+- bestehendes `useFocusTimer()` als kompatibler Kombinations-Hook behalten
+- Provider-Werte in Command Palette und Sidebar zusätzlich memoisiert
+
+Ergebnis:
+
+- Header, Command Palette, Hotkeys und NBA Hero rerendern nicht mehr jede Sekunde
+- der Timer bleibt sichtbar aktuell, aber globale UI-Flächen bleiben ruhiger
+- das ist ein struktureller Render-Fix, kein kosmetischer Blur-Tradeoff
+
 ## Verifikation
 
 Lokal grün:
@@ -133,6 +176,7 @@ Die App ist nach dieser Welle:
 
 - spürbar flüssiger im echten Gebrauch
 - deutlich weniger blur-/motion-lastig an den falschen Stellen
+- strukturell entkoppelt von sekündlichen Timer-Rerenders in globalen UI-Flächen
 - CI-seitig wieder stabil entlang der kritischen Today-/Blocker-Pfade
 - auf Mobile in der aktiven Landing sauberer ausgerichtet
 

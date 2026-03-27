@@ -5,7 +5,10 @@ import { Zap, ArrowRight, CalendarClock, XCircle, Play } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { useAppSound } from '@/lib/hooks/useAppSound';
-import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
+import {
+  useFocusTimerActions,
+  useFocusTimerSession,
+} from '@/components/providers/FocusTimerProvider';
 import { createDailyTaskAction, updateDailyTaskAction } from '@/app/actions/daily-tasks';
 import { toggleExerciseCompletionAction } from '@/app/actions/university';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
@@ -22,7 +25,8 @@ interface NBAHeroZoneProps {
 export default function NBAHeroZone({ nextBestAction, alternatives, riskSignals, onChanged }: NBAHeroZoneProps) {
   const router = useRouter();
   const { play } = useAppSound();
-  const { startTimer, status: timerStatus } = useFocusTimer();
+  const { status: timerStatus } = useFocusTimerSession();
+  const { startTimer } = useFocusTimerActions();
   const [isPending, startTransition] = useTransition();
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => loadDismissedIds());
 
