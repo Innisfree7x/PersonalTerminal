@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { Play, Pause, RotateCcw, Coffee } from 'lucide-react';
 import { memo, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -188,7 +187,7 @@ const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: Pomodor
             strokeWidth="3"
             className="text-surface-hover"
           />
-          <motion.circle
+          <circle
             cx="50"
             cy="50"
             r="45"
@@ -203,82 +202,58 @@ const PomodoroTimer = memo(function PomodoroTimer({ isLoading = false }: Pomodor
               transform: 'rotate(-90deg)',
               transformOrigin: '50% 50%',
             }}
-            initial={false}
-            animate={{
-              strokeDashoffset: `${2 * Math.PI * 45 * (1 - progress / 100)}`,
-            }}
-            transition={{ duration: 0.3 }}
           />
         </svg>
 
         <div className="absolute inset-0 flex items-center justify-center">
-          <motion.span
-            className="text-3xl font-bold text-text-primary font-mono"
-            key={displayTime}
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.2 }}
-          >
+          <span className={`text-3xl font-bold text-text-primary font-mono ${isWarning ? 'animate-pulse' : ''}`}>
             {formatTime(displayTime)}
-          </motion.span>
+          </span>
         </div>
       </div>
 
       {/* Controls */}
       <div className="flex items-center justify-center gap-2 mb-4">
-        <motion.button
+        <button
           onClick={handlePlayPause}
           className={`p-3 rounded-full ${
             isRunning ? 'bg-warning/20 text-warning' : 'bg-success/20 text-success'
-          } hover:scale-110 transition-all`}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
+          } transition-transform duration-150 hover:scale-105`}
           aria-label={isRunning ? 'Pause timer' : 'Start timer'}
         >
           {isRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
-        </motion.button>
+        </button>
 
-        <motion.button
+        <button
           onClick={stopTimer}
           className="p-3 rounded-full bg-surface-hover text-text-secondary hover:bg-error/20 hover:text-error transition-all disabled:opacity-30 disabled:pointer-events-none"
-          whileHover={{ scale: 1.1, rotate: 180 }}
-          whileTap={{ scale: 0.95 }}
           aria-label="Stop and reset timer"
           disabled={status === 'idle'}
         >
           <RotateCcw className="w-5 h-5" />
-        </motion.button>
+        </button>
       </div>
 
-      <motion.button
+      <button
         onClick={handleOpenFocusMode}
         className="mb-4 w-full rounded-lg border border-primary/25 bg-primary/10 px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
       >
         {status === 'idle' ? 'Start in Focus Mode' : 'Open Focus Mode'}
-      </motion.button>
+      </button>
 
       {/* Completed pomodoros */}
       <div className="flex items-center justify-center gap-1 pb-2">
         {Array.from({ length: 4 }).map((_, index) => (
-          <motion.div
+          <div
             key={index}
             className={`w-8 h-8 rounded-full flex items-center justify-center text-lg ${
               index < completedPomodoros
                 ? 'bg-primary/20 border-2 border-primary'
                 : 'bg-surface-hover border-2 border-border'
-            }`}
-            initial={false}
-            animate={
-              index === completedPomodoros - 1
-                ? { scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }
-                : {}
-            }
-            transition={{ duration: 0.5 }}
+            } ${index === completedPomodoros - 1 ? 'animate-pulse' : ''}`}
           >
             {index < completedPomodoros ? '🍅' : ''}
-          </motion.div>
+          </div>
         ))}
       </div>
       <p className="text-xs text-center text-text-tertiary">

@@ -496,12 +496,6 @@
       0 12px 30px rgb(0 0 0 / 0.24),
       0 0 0 1px rgb(var(--primary) / 0.04);
   }
-  @media (prefers-reduced-motion: no-preference) {
-    .card-surface {
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-    }
-  }
 
   .card-surface-hover {
     @apply rounded-lg border transition-colors hover:border-primary/30;
@@ -515,12 +509,6 @@
       inset 0 -1px 0 rgb(255 255 255 / 0.03),
       0 12px 30px rgb(0 0 0 / 0.24),
       0 0 0 1px rgb(var(--primary) / 0.04);
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .card-surface-hover {
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-    }
   }
   .card-surface-hover:hover {
     box-shadow:
@@ -566,12 +554,6 @@
       inset 0 1px 0 rgb(255 255 255 / 0.04),
       10px 0 34px rgb(0 0 0 / 0.24),
       0 0 0 1px rgb(var(--primary) / 0.06);
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .dashboard-sidebar-surface {
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-    }
   }
 
   /* Gold/Platinum need slightly stronger glass layers to avoid black crush. */
@@ -669,7 +651,7 @@
   }
 
   .gradient-card {
-    @apply bg-gradient-to-br from-surface/80 to-surface backdrop-blur-sm border border-border rounded-xl overflow-hidden;
+    @apply bg-gradient-to-br from-surface/80 to-surface border border-border rounded-xl overflow-hidden;
   }
 
   .marketing-shell {

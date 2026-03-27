@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState, useTransition } from 'react';
-import { motion } from 'framer-motion';
 import { Zap, ArrowRight, CalendarClock, XCircle, Play } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
@@ -153,12 +152,7 @@ export default function NBAHeroZone({ nextBestAction, alternatives, riskSignals,
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
-      className="card-surface dashboard-premium-card relative overflow-hidden rounded-xl"
-    >
+    <div className="card-surface dashboard-premium-card relative overflow-hidden rounded-xl">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/45 to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-r-full bg-primary/70 shadow-[0_0_12px_rgb(var(--primary)/0.35)]" />
 
@@ -177,14 +171,9 @@ export default function NBAHeroZone({ nextBestAction, alternatives, riskSignals,
         </div>
 
         {/* Title */}
-        <motion.h2
-          key={activeCandidate.id}
-          initial={{ opacity: 0, x: 8 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="text-lg font-semibold text-text-primary sm:text-xl"
-        >
+        <h2 key={activeCandidate.id} className="text-lg font-semibold text-text-primary sm:text-xl">
           {activeCandidate.title}
-        </motion.h2>
+        </h2>
 
         {/* Meta */}
         <p className="mt-1 text-[12px] text-text-secondary">
@@ -231,6 +220,6 @@ export default function NBAHeroZone({ nextBestAction, alternatives, riskSignals,
           </button>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

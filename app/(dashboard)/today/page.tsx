@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { Sparkles, CheckCircle2, GraduationCap, Flame } from 'lucide-react';
@@ -133,12 +132,7 @@ export default function TodayPage() {
     <div className="space-y-4 md:space-y-5" data-testid="today-page-root">
       {/* ── 1. Morning Briefing — single compact line ── */}
       <ErrorBoundary fallbackTitle="Morning Briefing Error">
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.15 }}
-          className="card-surface dashboard-premium-card relative overflow-hidden rounded-xl px-4 py-2.5"
-        >
+        <div className="card-surface dashboard-premium-card relative overflow-hidden rounded-xl px-4 py-2.5">
           <div className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-r-full bg-primary/70 shadow-[0_0_10px_rgb(var(--primary)/0.3)]" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
 
@@ -209,7 +203,7 @@ export default function TodayPage() {
               ) : null}
             </div>
           </div>
-        </motion.div>
+        </div>
       </ErrorBoundary>
 
       {/* ── 2. NBA Hero Zone — next best action + focus start ── */}
@@ -225,11 +219,7 @@ export default function TodayPage() {
       {/* ── 3. Two-column grid: Tasks + Semester ── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
         {/* LEFT: Tasks */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.15, delay: 0.05 }}
-        >
+        <div>
           <ErrorBoundary fallbackTitle="Tasks Error">
             <FocusTasks
               nextTasksData={{
@@ -239,27 +229,18 @@ export default function TodayPage() {
               }}
             />
           </ErrorBoundary>
-        </motion.div>
+        </div>
 
         {/* RIGHT: Semester Overview */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.15, delay: 0.1 }}
-        >
+        <div>
           <ErrorBoundary fallbackTitle="Study Progress Error">
             <LazyStudyProgress courses={studyProgress} />
           </ErrorBoundary>
-        </motion.div>
+        </div>
       </div>
 
       {/* ── 4. Bottom Stats Line ── */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.15, delay: 0.15 }}
-        className="card-surface dashboard-premium-card-soft relative overflow-hidden rounded-xl"
-      >
+      <div className="card-surface dashboard-premium-card-soft relative overflow-hidden rounded-xl">
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1 px-4 py-2.5">
           <StatItem
             icon={<CheckCircle2 className="h-3.5 w-3.5 text-red-300/70" />}
@@ -286,7 +267,7 @@ export default function TodayPage() {
               'linear-gradient(to right, rgba(248,113,113,0.45) 0%, rgba(251,191,36,0.45) 33%, rgba(251,146,60,0.45) 66%, rgba(56,189,248,0.42) 100%)',
           }}
         />
-      </motion.div>
+      </div>
     </div>
   );
 }

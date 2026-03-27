@@ -95,7 +95,7 @@ export default function Header() {
   }, [notificationsOpen]);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border/80 bg-background/82 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 border-b border-border/80 bg-background/95">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent" />
       <div className="flex h-16 items-center justify-between px-6">
         {/* Left: Page Title + Date & Time */}

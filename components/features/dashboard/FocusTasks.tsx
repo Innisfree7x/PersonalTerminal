@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Badge } from '@/components/ui/Badge';
 import { Plus, Clock, Target, Briefcase, GraduationCap, BookOpen } from 'lucide-react';
@@ -405,8 +404,8 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
     });
   }, [focusedId, handleCheck, play, queryClient, sortedTasks]);
 
-  const renderTaskRow = (task: TaskItem, index: number) => (
-    <motion.div
+  const renderTaskRow = (task: TaskItem) => (
+    <div
       key={task.id}
       data-testid="today-task-row"
       data-interactive="task"
@@ -414,11 +413,7 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
       data-item-title={task.title}
       data-list-nav-id={task.id}
       data-focused={focusedId === task.id ? 'true' : 'false'}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ delay: index * 0.03 }}
-      className="group relative"
+      className="group relative transition-transform duration-150"
       onMouseEnter={() => setFocusedId(task.id)}
     >
       {focusedId === task.id && (
@@ -470,7 +465,7 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 
   return (
@@ -492,64 +487,42 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
         </div>
       </div>
 
-      <AnimatePresence mode="popLayout">
-        {sortedTasks.length === 0 ? (
-          completedTasks.length === 0 ? (
-            // Truly empty — new user or no tasks added yet
-            <motion.div
-              key="empty-new"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col items-center text-center py-10 gap-3"
+      {sortedTasks.length === 0 ? (
+        completedTasks.length === 0 ? (
+          <div className="flex flex-col items-center text-center py-10 gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+              <Plus className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-text-primary mb-1">Noch keine Aufgaben heute</p>
+              <p className="text-xs text-text-tertiary leading-relaxed max-w-[220px]">
+                Füge deine erste Aufgabe hinzu und starte produktiv in den Tag.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowAddInput(true)}
+              data-testid="today-add-task-trigger-empty"
+              className="px-4 py-2 text-xs font-medium bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
             >
-              <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                <Plus className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-text-primary mb-1">Noch keine Aufgaben heute</p>
-                <p className="text-xs text-text-tertiary leading-relaxed max-w-[220px]">
-                  Füge deine erste Aufgabe hinzu und starte produktiv in den Tag.
-                </p>
-              </div>
-              <button
-                onClick={() => setShowAddInput(true)}
-                data-testid="today-add-task-trigger-empty"
-                className="px-4 py-2 text-xs font-medium bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
-              >
-                + Aufgabe hinzufügen
-              </button>
-            </motion.div>
-          ) : (
-            // All tasks completed
-            <motion.div
-              key="empty-done"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="text-center py-8"
-            >
-              <div className="text-3xl mb-2">🎉</div>
-              <p className="text-sm text-text-tertiary">All caught up!</p>
-            </motion.div>
-          )
-        ) : (
-          <div className="space-y-2">
-            {sortedTasks.map((task, index) => renderTaskRow(task, index))}
+              + Aufgabe hinzufügen
+            </button>
           </div>
-        )}
-      </AnimatePresence>
+        ) : (
+          <div className="text-center py-8">
+            <div className="text-3xl mb-2">🎉</div>
+            <p className="text-sm text-text-tertiary">All caught up!</p>
+          </div>
+        )
+      ) : (
+        <div className="space-y-2">
+          {sortedTasks.map((task) => renderTaskRow(task))}
+        </div>
+      )}
 
       {/* Add Task */}
       <div className="mt-4 pt-4 border-t border-border">
-        <AnimatePresence mode="wait">
-          {showAddInput ? (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="space-y-2"
-            >
+        {showAddInput ? (
+          <div className="space-y-2">
               <input
                 type="text"
                 placeholder="Task title"
@@ -588,21 +561,17 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
                   Cancel
                 </button>
               </div>
-            </motion.div>
-          ) : (
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+          </div>
+        ) : (
+          <button
               onClick={() => setShowAddInput(true)}
               data-testid="today-add-task-trigger"
               className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm bg-surface-hover text-text-secondary rounded-lg hover:bg-border hover:text-text-primary transition-colors"
             >
               <Plus className="w-4 h-4" />
               Add Task
-            </motion.button>
-          )}
-        </AnimatePresence>
+          </button>
+        )}
       </div>
     </div>
   );

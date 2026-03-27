@@ -397,12 +397,7 @@ export default function CommandBar({
     ) : undefined;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
-      className="card-surface dashboard-premium-card-soft relative overflow-hidden rounded-xl border shadow-2xl motion-safe:backdrop-blur-md"
-    >
+    <div className="card-surface dashboard-premium-card-soft relative overflow-hidden rounded-xl border shadow-2xl">
       {/* Top inset highlight */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
       {/* Bottom 4-color gradient line */}
@@ -457,6 +452,6 @@ export default function CommandBar({
           onChanged={onChanged}
         />
       </div>
-    </motion.div>
+    </div>
   );
 }

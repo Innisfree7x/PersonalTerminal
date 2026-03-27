@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowLeft,
   Check,
@@ -359,7 +359,7 @@ function VisualPresetPicker({
 }: VisualPresetPickerProps) {
   const selectedLabel = options.find((o) => o.id === selectedId)?.label ?? '';
   return (
-    <div className="rounded-2xl border border-white/12 bg-black/28 p-2.5 backdrop-blur-md">
+    <div className="rounded-2xl border border-white/12 bg-black/38 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
       <p className="mb-1.5 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-zinc-500">
         <Icon className="h-3.5 w-3.5 text-zinc-400" />
         {label}: <span className="text-zinc-300">{selectedLabel}</span>
@@ -402,7 +402,7 @@ function FocusTodoWidget({ tasks }: { tasks: FocusTaskItem[] }) {
 
   if (incomplete.length === 0 && completedCount > 0) {
     return (
-      <div className="mt-4 w-full max-w-md rounded-2xl border border-white/8 bg-black/20 px-4 py-3 backdrop-blur-sm">
+      <div className="mt-4 w-full max-w-md rounded-2xl border border-white/8 bg-black/32 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
         <p className="text-center text-xs text-zinc-500">Alles erledigt heute</p>
       </div>
     );
@@ -411,7 +411,7 @@ function FocusTodoWidget({ tasks }: { tasks: FocusTaskItem[] }) {
   if (incomplete.length === 0) return null;
 
   return (
-    <div className="mt-4 w-full max-w-md rounded-2xl border border-white/8 bg-black/20 px-4 py-3 backdrop-blur-sm">
+    <div className="mt-4 w-full max-w-md rounded-2xl border border-white/8 bg-black/32 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
       <p className="mb-2 text-[10px] uppercase tracking-[0.14em] text-zinc-500">
         Heute offen · {incomplete.length}
       </p>
@@ -457,7 +457,6 @@ function formatMinutes(minutes: number): string {
 }
 
 export default function FocusScreen() {
-  const prefersReducedMotion = useReducedMotion();
   const {
     status,
     timeLeft,
@@ -680,22 +679,17 @@ export default function FocusScreen() {
       data-testid="focus-screen-root"
       style={{ backgroundColor: activeTheme.baseColor }}
     >
-      <motion.div
+      <div
         className="pointer-events-none absolute inset-0"
-        style={{ willChange: 'transform', backgroundImage: activeTheme.radialGradient }}
+        style={{ backgroundImage: activeTheme.radialGradient, opacity: 0.92 }}
         key={`focus-theme-radial-${activeTheme.id}`}
-        initial={{ opacity: 0.82 }}
-        animate={prefersReducedMotion ? false : { scale: [1, 1.006, 1], opacity: [0.9, 0.94, 0.9] }}
-        transition={{ duration: 220, repeat: Infinity, ease: 'easeInOut' }}
       />
-      <motion.div
-        className="pointer-events-none absolute inset-[-12%] blur-3xl"
-        style={{ willChange: 'opacity', backgroundImage: activeTheme.conicGradient }}
+      <div
+        className="pointer-events-none absolute inset-[-8%]"
+        style={{ backgroundImage: activeTheme.conicGradient, opacity: 0.18 }}
         key={`focus-theme-conic-${activeTheme.id}`}
-        animate={prefersReducedMotion ? false : { opacity: [0.2, 0.24, 0.2] }}
-        transition={{ duration: 150, repeat: Infinity, ease: 'easeInOut' }}
       />
-      <motion.div
+      <div
         className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage: activeOverlay.texture,
@@ -703,25 +697,19 @@ export default function FocusScreen() {
           opacity: activeOverlay.textureOpacity,
         }}
       />
-      <motion.div
-        className="pointer-events-none absolute -left-24 -top-24 h-[42vw] w-[42vw] rounded-full blur-[130px]"
-        style={{ willChange: 'transform', background: activeTheme.orbOne }}
-        animate={prefersReducedMotion ? false : { x: [0, 12, 0], y: [0, 8, 0] }}
-        transition={{ duration: 108, repeat: Infinity, ease: 'easeInOut' }}
+      <div
+        className="pointer-events-none absolute -left-20 -top-20 h-[38vw] w-[38vw] rounded-full blur-[88px]"
+        style={{ background: activeTheme.orbOne, opacity: 0.82 }}
       />
-      <motion.div
-        className="pointer-events-none absolute -right-20 top-10 h-[38vw] w-[38vw] rounded-full blur-[130px]"
-        style={{ willChange: 'transform', background: activeTheme.orbTwo }}
-        animate={prefersReducedMotion ? false : { x: [0, -10, 0], y: [0, -6, 0] }}
-        transition={{ duration: 122, repeat: Infinity, ease: 'easeInOut' }}
+      <div
+        className="pointer-events-none absolute -right-16 top-10 h-[34vw] w-[34vw] rounded-full blur-[88px]"
+        style={{ background: activeTheme.orbTwo, opacity: 0.78 }}
       />
-      <motion.div
-        className="pointer-events-none absolute left-[20%] top-[58%] h-[34vw] w-[34vw] rounded-full blur-[140px]"
-        style={{ willChange: 'transform', background: activeTheme.orbThree }}
-        animate={prefersReducedMotion ? false : { x: [0, -6, 0], y: [0, 5, 0] }}
-        transition={{ duration: 132, repeat: Infinity, ease: 'easeInOut' }}
+      <div
+        className="pointer-events-none absolute left-[24%] top-[60%] h-[30vw] w-[30vw] rounded-full blur-[96px]"
+        style={{ background: activeTheme.orbThree, opacity: 0.68 }}
       />
-      <motion.div
+      <div
         className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage: activeOverlay.grain,
@@ -768,7 +756,7 @@ export default function FocusScreen() {
           <button
             type="button"
             onClick={() => setPickerOpen((v) => !v)}
-            className="inline-flex items-center gap-1 rounded-full border border-white/12 bg-black/28 px-3 py-1.5 text-[11px] text-zinc-400 backdrop-blur-md transition-colors hover:bg-white/[0.06] hover:text-zinc-200"
+            className="inline-flex items-center gap-1 rounded-full border border-white/12 bg-black/44 px-3 py-1.5 text-[11px] text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-zinc-200"
           >
             <Palette className="h-3.5 w-3.5" />
             Customize
@@ -811,7 +799,7 @@ export default function FocusScreen() {
           'mt-10 sm:mt-12 items-center justify-center'
         }`}>
           <div
-            className={`w-full ${activeOverlay.showQuoteBorder ? 'rounded-3xl border px-6 py-9 shadow-[0_12px_70px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:px-10 sm:py-12 lg:px-12' : 'px-4 py-6 sm:px-8 sm:py-8'}`}
+            className={`w-full ${activeOverlay.showQuoteBorder ? 'rounded-3xl border px-6 py-9 shadow-[0_10px_52px_rgba(0,0,0,0.42)] sm:px-10 sm:py-12 lg:px-12' : 'px-4 py-6 sm:px-8 sm:py-8'}`}
             style={{
               maxWidth: activeOverlay.quoteMaxWidth,
               borderColor: activeOverlay.showQuoteBorder ? 'rgba(148,163,184,0.20)' : 'transparent',
@@ -847,7 +835,7 @@ export default function FocusScreen() {
             unifiedTasks.length > 0 ? (
               <FocusTodoWidget tasks={unifiedTasks} />
             ) : (
-              <div className="mt-4 w-full max-w-md rounded-2xl border border-white/8 bg-black/20 px-4 py-3 backdrop-blur-sm">
+              <div className="mt-4 w-full max-w-md rounded-2xl border border-white/8 bg-black/36 px-4 py-3">
                 <p className="text-center text-[11px] text-zinc-600">Keine Tasks für heute</p>
               </div>
             )
@@ -861,7 +849,7 @@ export default function FocusScreen() {
           activeOverlay.controlsPosition === 'top-left' ? 'sm:items-start sm:justify-start' :
           'sm:items-end sm:justify-between'
         }`}>
-          <div className="w-full shrink-0 rounded-2xl border border-white/10 bg-black/28 p-3 backdrop-blur-md sm:w-auto sm:max-w-[560px]">
+          <div className="w-full shrink-0 rounded-2xl border border-white/10 bg-black/40 p-3 sm:w-auto sm:max-w-[560px]">
             <p className="text-[10px] uppercase tracking-[0.15em] text-zinc-500">Session Controls</p>
             {isIdle ? (
               <div className="mt-2 flex min-h-[5.5rem] flex-col gap-2">
@@ -944,7 +932,7 @@ export default function FocusScreen() {
             )}
           </div>
 
-          <div className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3.5 text-right shadow-[0_8px_35px_rgba(0,0,0,0.45)] backdrop-blur-lg sm:ml-auto sm:w-auto sm:min-w-[190px]">
+          <div className="w-full rounded-2xl border border-white/10 bg-black/46 px-4 py-3.5 text-right shadow-[0_8px_28px_rgba(0,0,0,0.42)] sm:ml-auto sm:w-auto sm:min-w-[190px]">
             <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-500">{timerLabel} Timer</p>
             <p
               data-testid="focus-timer-readout"

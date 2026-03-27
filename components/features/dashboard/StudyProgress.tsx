@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { memo } from 'react';
 import { GraduationCap } from 'lucide-react';
 import Link from 'next/link';
 
@@ -19,7 +19,7 @@ interface StudyProgressProps {
   courses: CourseProgress[];
 }
 
-export default function StudyProgress({ courses }: StudyProgressProps) {
+const StudyProgress = memo(function StudyProgress({ courses }: StudyProgressProps) {
   const sortedCourses = useMemo(() => {
     return [...courses].sort((a, b) => {
       const aDays = a.daysUntilExam;
@@ -80,7 +80,7 @@ export default function StudyProgress({ courses }: StudyProgressProps) {
       </div>
 
       <div className="space-y-3">
-        {sortedCourses.map((course, index) => {
+        {sortedCourses.map((course) => {
           const examWritten = course.daysUntilExam !== undefined && course.daysUntilExam < 0;
 
           const examUrgency =
@@ -101,12 +101,9 @@ export default function StudyProgress({ courses }: StudyProgressProps) {
                 : 'bg-university-accent';
 
           return (
-            <motion.div
+            <div
               key={course.id}
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="space-y-1.5"
+              className="space-y-1.5 transition-transform duration-200 hover:-translate-y-0.5"
             >
               <div className="flex items-center justify-between">
                 <span className={`text-sm font-medium truncate ${examWritten ? 'text-text-secondary' : 'text-text-primary'}`}>
@@ -118,11 +115,9 @@ export default function StudyProgress({ courses }: StudyProgressProps) {
               </div>
 
               <div className="relative h-2 bg-surface-hover rounded-full overflow-hidden">
-                <motion.div
+                <div
                   className={`absolute inset-y-0 left-0 ${barColor} rounded-full`}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${course.percentage}%` }}
-                  transition={{ duration: 0.8, delay: index * 0.1, ease: 'easeOut' }}
+                  style={{ width: `${course.percentage}%` }}
                 />
               </div>
 
@@ -150,10 +145,12 @@ export default function StudyProgress({ courses }: StudyProgressProps) {
                   )}
                 </div>
               )}
-            </motion.div>
+            </div>
           );
         })}
       </div>
     </div>
   );
-}
+});
+
+export default StudyProgress;

@@ -1,7 +1,6 @@
 'use client';
 
 import { Application } from '@/lib/schemas/application.schema';
-import { motion } from 'framer-motion';
 import { TrendingUp, Briefcase, CheckCircle, BarChart3 } from 'lucide-react';
 import { computePipelineScore } from '@/lib/career/pipelineScore';
 
@@ -72,12 +71,7 @@ export default function ApplicationStats({ applications }: ApplicationStatsProps
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
-      className="space-y-3"
-    >
+    <div className="space-y-3">
       {/* Pipeline Score Strip */}
       <div className="card-surface dashboard-premium-card-soft rounded-xl px-4 py-2.5 flex items-center gap-4">
         <div className="flex items-center gap-2 shrink-0">
@@ -96,17 +90,13 @@ export default function ApplicationStats({ applications }: ApplicationStatsProps
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {statCards.map((stat, index) => {
+      {statCards.map((stat) => {
         const Icon = stat.icon;
 
         return (
-          <motion.div
+          <div
             key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + index * 0.05 }}
-            className={`relative overflow-hidden bg-gradient-to-br ${stat.gradient} backdrop-blur-sm border ${stat.borderColor} rounded-lg p-4 group`}
-            whileHover={{ y: -2 }}
+            className={`relative overflow-hidden bg-gradient-to-br ${stat.gradient} border ${stat.borderColor} rounded-lg p-4 group transition-transform duration-200 hover:-translate-y-0.5`}
           >
             {/* Animated background glow */}
             <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
@@ -127,10 +117,10 @@ export default function ApplicationStats({ applications }: ApplicationStatsProps
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         );
       })}
       </div>
-    </motion.div>
+    </div>
   );
 }

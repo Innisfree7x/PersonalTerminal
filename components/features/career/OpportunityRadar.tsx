@@ -276,7 +276,7 @@ export default function OpportunityRadar({
   };
 
   return (
-    <section className="space-y-4 rounded-2xl border border-border bg-surface/45 p-4 backdrop-blur-sm md:p-5">
+    <section className="space-y-4 rounded-2xl border border-border bg-surface/68 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
@@ -675,7 +675,7 @@ export default function OpportunityRadar({
           {selectedOpportunity && selectedDossier ? (
             <div
               ref={dossierRef}
-              className="rounded-2xl border border-border bg-gradient-to-br from-surface/60 via-surface/35 to-background/55 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm md:p-5"
+              className="rounded-2xl border border-border bg-gradient-to-br from-surface/72 via-surface/46 to-background/62 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] md:p-5"
             >
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div className="max-w-3xl">
@@ -879,10 +879,10 @@ export default function OpportunityRadar({
               return (
                 <article
                         key={item.id}
-                        className={`rounded-xl border p-4 backdrop-blur-sm transition-colors ${
+                        className={`rounded-xl border p-4 transition-colors ${
                           isSelected
-                      ? 'border-primary/40 bg-primary/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]'
-                      : 'border-border bg-surface/35'
+                      ? 'border-primary/40 bg-primary/[0.10] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]'
+                      : 'border-border bg-surface/52'
                   }`}
                   aria-label={`Opportunity ${item.title} at ${item.company}`}
                 >

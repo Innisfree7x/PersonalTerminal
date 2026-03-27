@@ -512,7 +512,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                         transition={{ duration: 0.3 }}
                         className="overflow-hidden"
                     >
-                        <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-lg p-6">
+                        <div className="bg-surface/70 border border-border rounded-lg p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
                             <h3 className="text-lg font-semibold text-text-primary mb-4">Upload & Extract CV</h3>
                             <CvUpload
                                 externalFile={queuedCvFile}
@@ -537,7 +537,7 @@ export default function CareerBoard({ initialApplications, openCreateOnLoad = fa
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-center py-20 bg-surface/50 backdrop-blur-sm border border-border rounded-lg"
+                        className="text-center py-20 bg-surface/70 border border-border rounded-lg shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"
                     >
                         <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 mx-auto text-2xl">
                             💼

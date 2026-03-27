@@ -1,7 +1,6 @@
 'use client';
 
 import { memo, useState } from 'react';
-import { motion } from 'framer-motion';
 import { Play, Pause, Square, SkipForward, Timer, ChevronDown, ChevronUp, Flame, Clock, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
@@ -105,16 +104,12 @@ const FloatingTimer = memo(function FloatingTimer() {
   // Minimized pill
   if (!isExpanded) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        className="fixed bottom-6 right-6 z-40"
-      >
-        <motion.button
+      <div className="fixed bottom-6 right-6 z-40">
+        <button
           onClick={() => setIsExpanded(true)}
           className={`
             flex items-center gap-2 px-4 py-2.5 rounded-2xl
-            border backdrop-blur-xl shadow-lg
+            border bg-surface/94 shadow-lg
             transition-colors cursor-pointer
             ${isBreak
               ? 'bg-success/10 border-success/30 text-success'
@@ -123,14 +118,10 @@ const FloatingTimer = memo(function FloatingTimer() {
                 : 'bg-surface/90 border-border text-text-secondary hover:text-text-primary hover:border-primary/30'
             }
           `}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
         >
           {isActive && (
-            <motion.div
-              className={`w-2 h-2 rounded-full ${isBreak ? 'bg-success' : 'bg-primary'}`}
-              animate={isRunning ? { opacity: [1, 0.3, 1] } : {}}
-              transition={{ duration: 1.5, repeat: Infinity }}
+            <div
+              className={`w-2 h-2 rounded-full ${isBreak ? 'bg-success' : 'bg-primary'} ${isRunning ? 'animate-pulse' : ''}`}
             />
           )}
           {isActive ? (
@@ -144,25 +135,20 @@ const FloatingTimer = memo(function FloatingTimer() {
               <span className="text-sm font-medium">Focus</span>
             </>
           )}
-        </motion.button>
-      </motion.div>
+        </button>
+      </div>
     );
   }
 
   // Expanded widget
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.9 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 20, scale: 0.9 }}
-      className="fixed bottom-6 right-6 z-40 w-80"
-    >
+    <div className="fixed bottom-6 right-6 z-40 w-80">
       <div
         className={`
-          rounded-2xl border backdrop-blur-xl shadow-2xl overflow-hidden
+          rounded-2xl border bg-surface/96 shadow-2xl overflow-hidden
           ${isBreak
-            ? 'bg-surface/95 border-success/20'
-            : 'bg-surface/95 border-border'
+            ? 'border-success/20'
+            : 'border-border'
           }
         `}
       >
@@ -192,24 +178,19 @@ const FloatingTimer = memo(function FloatingTimer() {
           <div className="px-4 py-5">
             {/* Progress bar */}
             <div className="relative h-1.5 bg-border/50 rounded-full mb-4 overflow-hidden">
-              <motion.div
+              <div
                 className={`absolute inset-y-0 left-0 rounded-full ${isBreak ? 'bg-success' : 'bg-primary'}`}
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.5 }}
+                style={{ width: `${progress}%` }}
               />
             </div>
 
             {/* Time */}
             <div className="text-center mb-4">
-              <motion.div
-                key={timeLeft}
-                className={`text-4xl font-mono font-bold ${isBreak ? 'text-success' : 'text-text-primary'}`}
-                animate={timeLeft <= 60 && isRunning ? { scale: [1, 1.02, 1] } : {}}
-                transition={{ duration: 1, repeat: Infinity }}
+              <div
+                className={`text-4xl font-mono font-bold ${isBreak ? 'text-success' : 'text-text-primary'} ${timeLeft <= 60 && isRunning ? 'animate-pulse' : ''}`}
               >
                 {formatTime(timeLeft)}
-              </motion.div>
+              </div>
               {isBreak && (
                 <p className="text-xs text-text-tertiary mt-1">Take a break, you earned it</p>
               )}
@@ -272,12 +253,10 @@ const FloatingTimer = memo(function FloatingTimer() {
             {completedPomodoros > 0 && (
               <div className="flex items-center justify-center gap-1.5 mt-3">
                 {Array.from({ length: Math.min(completedPomodoros, 8) }).map((_, i) => (
-                  <motion.div
+                  <div
                     key={i}
                     className="w-2 h-2 rounded-full bg-primary"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: i * 0.05 }}
+                    style={{ animationDelay: `${i * 0.05}s` }}
                   />
                 ))}
                 {completedPomodoros > 8 && (
@@ -286,14 +265,12 @@ const FloatingTimer = memo(function FloatingTimer() {
               </div>
             )}
 
-            <motion.button
+            <button
               onClick={handleOpenFocusMode}
               className="mt-3 w-full rounded-xl border border-primary/25 bg-primary/10 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
             >
               Open Focus Mode
-            </motion.button>
+            </button>
           </div>
         ) : (
           /* Idle - Start configuration */
@@ -392,14 +369,12 @@ const FloatingTimer = memo(function FloatingTimer() {
               Start Focus ({selectedDuration}m)
             </button>
 
-            <motion.button
+            <button
               onClick={handleOpenFocusMode}
               className="w-full py-2.5 rounded-xl border border-primary/25 bg-primary/10 text-primary font-medium text-sm hover:bg-primary/20 transition-colors"
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
             >
               Start in Focus Mode
-            </motion.button>
+            </button>
           </div>
         )}
 
@@ -423,7 +398,7 @@ const FloatingTimer = memo(function FloatingTimer() {
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 });
 

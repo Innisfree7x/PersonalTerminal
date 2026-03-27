@@ -2,7 +2,6 @@
 
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { CheckCircle2, GraduationCap, Briefcase, Flame } from 'lucide-react';
 import AnimatedCounter from '@/components/ui/AnimatedCounter';
 import { useStreak } from '@/lib/hooks/useStreak';
@@ -129,12 +128,7 @@ function RailSegment({
         <p className="mt-1 text-[11px] text-text-tertiary/80">{subtitle}</p>
 
         <div className="mt-2 h-[1.5px] w-full rounded-full bg-border/60">
-          <motion.div
-            className={`h-[1.5px] rounded-full ${style.progress}`}
-            initial={{ width: 0 }}
-            animate={{ width: `${clampedProgress}%` }}
-            transition={{ duration: 0.7, ease: 'easeOut' }}
-          />
+          <div className={`h-[1.5px] rounded-full ${style.progress}`} style={{ width: `${clampedProgress}%` }} />
         </div>
       </div>
     </div>
@@ -168,11 +162,8 @@ export default function DashboardStats({
       : 18;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.24 }}
-      className="relative overflow-hidden rounded-xl border border-border bg-surface/65 backdrop-blur-md"
+    <div
+      className="relative overflow-hidden rounded-xl border border-border bg-surface/88"
       style={{
         boxShadow:
           '0 1px 2px rgba(0,0,0,0.2), 0 10px 22px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.05)',
@@ -265,6 +256,6 @@ export default function DashboardStats({
           progress={careerProgress}
         />
       </div>
-    </motion.div>
+    </div>
   );
 }

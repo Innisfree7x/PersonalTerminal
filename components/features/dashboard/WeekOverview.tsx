@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, addDays, startOfWeek, isSameDay, isToday } from 'date-fns';
 import { useState, memo, useCallback, useEffect } from 'react';
@@ -111,24 +110,20 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
           <h3 className="text-base font-semibold text-text-primary">Week Overview</h3>
         </div>
         <div className="flex items-center gap-1">
-          <motion.button
+          <button
             onClick={handlePrevWeek}
             className="p-1 rounded hover:bg-surface-hover text-text-secondary hover:text-text-primary transition-colors"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
             aria-label="View previous week"
           >
             <ChevronLeft className="w-4 h-4" />
-          </motion.button>
-          <motion.button
+          </button>
+          <button
             onClick={handleNextWeek}
             className="p-1 rounded hover:bg-surface-hover text-text-secondary hover:text-text-primary transition-colors"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
             aria-label="View next week"
           >
             <ChevronRight className="w-4 h-4" />
-          </motion.button>
+          </button>
         </div>
       </div>
 
@@ -151,23 +146,19 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
             role="list"
             aria-label="Week overview calendar"
           >
-        {weekDays.map((day, index) => {
+        {weekDays.map((day) => {
           const eventType = getEventType(day);
           const eventDot = getEventDensityEmoji(eventType);
           const today = isToday(day);
 
           return (
-            <motion.div
+            <div
               key={day.toISOString()}
               className={`relative flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all ${
                 today
                   ? 'border-primary bg-primary/10 ring-2 ring-primary/20'
                   : getEventDensityColor(eventType)
-              }`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              whileHover={{ scale: 1.05, y: -2 }}
+              } hover:-translate-y-0.5`}
               role="listitem"
               aria-label={`${format(day, 'EEEE, MMMM d')}${today ? ' (Today)' : ''}: ${getEventCount(day)} event${getEventCount(day) !== 1 ? 's' : ''}`}
             >
@@ -195,17 +186,13 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
               {/* Today label */}
               {today && (
                 <div className="absolute -top-1 -right-1">
-                  <motion.span
-                    className="flex h-3 w-3"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
+                  <span className="flex h-3 w-3 animate-pulse">
                     <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
-                  </motion.span>
+                  </span>
                 </div>
               )}
-            </motion.div>
+            </div>
           );
         })}
           </div>
