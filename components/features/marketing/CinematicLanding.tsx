@@ -166,7 +166,7 @@ export function CinematicLanding() {
   }, [goToStop]);
 
   return (
-    <div ref={containerRef} className="fixed inset-0 z-40 h-screen overflow-hidden bg-[#080a10]">
+    <div ref={containerRef} className="fixed inset-0 z-40 h-screen overflow-hidden bg-[#060a14]">
       {/* Atmospheric layers */}
       <GrainOverlay />
       <FloatingParticles />
@@ -271,83 +271,59 @@ export function CinematicLanding() {
    ───────────────────────────────────────────────────────────────────── */
 
 function BackgroundAmbience({ progress }: { progress: MotionValue<number> }) {
-  // Primary gold glow — hero anchor, moves with sections
+  // Gold glow — primary, moves with sections
   const glow1X = useTransform(progress, [0, 1, 2, 3, 4, 5], ['50%', '25%', '75%', '30%', '50%', '50%']);
-  const glow1Y = useTransform(progress, [0, 1, 2, 3, 4, 5], ['12%', '30%', '25%', '40%', '50%', '45%']);
-  const glow1Opacity = useTransform(progress, [0, 2.5, 5], [0.09, 0.06, 0.12]);
+  const glow1Y = useTransform(progress, [0, 1, 2, 3, 4, 5], ['15%', '30%', '25%', '40%', '50%', '45%']);
+  const glow1Opacity = useTransform(progress, [0, 2.5, 5], [0.08, 0.05, 0.1]);
 
-  // Warm accent — deep amber/coral
-  const glow2X = useTransform(progress, [0, 1, 2, 3, 4, 5], ['8%', '70%', '20%', '65%', '40%', '50%']);
-  const glow2Y = useTransform(progress, [0, 1, 2, 3, 4, 5], ['5%', '15%', '60%', '20%', '30%', '50%']);
-  const glow2Opacity = useTransform(progress, [0, 2, 4, 5], [0.06, 0.05, 0.07, 0.08]);
+  // Deep red accent — creates navy+red warmth
+  const glow2X = useTransform(progress, [0, 1, 2, 3, 4, 5], ['15%', '70%', '20%', '65%', '40%', '50%']);
+  const glow2Y = useTransform(progress, [0, 1, 2, 3, 4, 5], ['60%', '20%', '70%', '30%', '40%', '55%']);
+  const glow2Opacity = useTransform(progress, [0, 2, 5], [0.06, 0.05, 0.07]);
 
-  // Cool accent — deep violet/indigo (creates depth contrast against warm)
-  const glow3Y = useTransform(progress, [0, 5], ['70%', '20%']);
-  const glow3Opacity = useTransform(progress, [0, 2, 5], [0.08, 0.06, 0.1]);
-
-  // Teal accent — subtle, bottom-right, keeps things from being too warm-only
-  const glow4Y = useTransform(progress, [0, 5], ['80%', '50%']);
+  // Navy depth glow — anchors the dark blue feel
+  const glow3Y = useTransform(progress, [0, 5], ['30%', '60%']);
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[1]">
-      {/* Base gradient wash — deep navy to violet */}
+      {/* Base navy wash — top-heavy to give depth */}
       <div
         className="absolute inset-0"
         style={{
-          background: 'radial-gradient(ellipse 140% 70% at 50% -10%, rgba(26,20,37,0.8) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse 130% 60% at 50% -5%, rgba(15,23,42,0.9) 0%, transparent 65%)',
         }}
       />
 
-      {/* Primary gold */}
+      {/* Gold — primary brand glow, smaller blur for performance */}
       <motion.div
-        className="absolute h-[900px] w-[1100px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[250px]"
+        className="absolute h-[600px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[150px]"
         style={{
           left: glow1X,
           top: glow1Y,
           opacity: glow1Opacity,
-          background: 'radial-gradient(circle, #E8B930 0%, #D4A028 50%, transparent 70%)',
+          background: 'radial-gradient(circle, #E8B930 0%, #D4A028 40%, transparent 70%)',
+          willChange: 'transform, opacity',
         }}
       />
 
-      {/* Warm coral-amber */}
+      {/* Deep crimson-red — warm counterpoint to navy */}
       <motion.div
-        className="absolute h-[600px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[220px]"
+        className="absolute h-[500px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[140px]"
         style={{
           left: glow2X,
           top: glow2Y,
           opacity: glow2Opacity,
-          background: 'radial-gradient(circle, #DC5232 0%, #FF7832 40%, transparent 70%)',
+          background: 'radial-gradient(circle, #991B1B 0%, #7F1D1D 40%, transparent 70%)',
+          willChange: 'transform, opacity',
         }}
       />
 
-      {/* Deep violet — cool counterbalance */}
+      {/* Navy depth — static, reinforces the dark blue base */}
       <motion.div
-        className="absolute left-[15%] h-[700px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[280px]"
+        className="absolute right-[10%] h-[500px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[130px] opacity-[0.12]"
         style={{
           top: glow3Y,
-          opacity: glow3Opacity,
-          background: 'radial-gradient(circle, #6B21A8 0%, #4C1D95 40%, transparent 70%)',
-        }}
-      />
-
-      {/* Teal accent — depth in lower portion */}
-      <motion.div
-        className="absolute right-[10%] h-[500px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[240px] opacity-[0.05]"
-        style={{
-          top: glow4Y,
-          background: 'radial-gradient(circle, #0D9488 0%, #115E59 40%, transparent 70%)',
-        }}
-      />
-
-      {/* Subtle mesh overlay — adds complexity */}
-      <div
-        className="absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage: `
-            radial-gradient(ellipse at 20% 50%, rgba(139,92,246,0.3), transparent 50%),
-            radial-gradient(ellipse at 80% 20%, rgba(232,185,48,0.2), transparent 50%),
-            radial-gradient(ellipse at 60% 80%, rgba(20,184,166,0.2), transparent 50%)
-          `,
+          background: 'radial-gradient(circle, #1e3a5f 0%, #0f2340 40%, transparent 70%)',
         }}
       />
     </div>

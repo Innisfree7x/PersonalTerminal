@@ -20,7 +20,7 @@ export function TerminalFrame({ url, children, className = '', style }: Terminal
   return (
     <motion.div
       {...(style ? { style } : {})}
-      className={`terminal-frame group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0f0e14] shadow-[0_32px_100px_rgba(0,0,0,0.7)] ${className}`}
+      className={`terminal-frame group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0a0f1a] shadow-[0_32px_100px_rgba(0,0,0,0.7)] ${className}`}
     >
       {/* Gold glow on hover — enhanced */}
       <div
@@ -35,7 +35,7 @@ export function TerminalFrame({ url, children, className = '', style }: Terminal
       <div className="pointer-events-none absolute left-[10%] right-[10%] top-0 h-[1px] bg-gradient-to-r from-transparent via-[#E8B930]/20 to-transparent opacity-0 transition-opacity duration-700 group-hover:opacity-100" />
 
       {/* Title bar */}
-      <div className="flex items-center gap-3 border-b border-white/[0.06] bg-[#0b0a12] px-4 py-3">
+      <div className="flex items-center gap-3 border-b border-white/[0.06] bg-[#070c16] px-4 py-3">
         {/* Traffic lights */}
         <div className="flex gap-[7px]">
           <div className="h-[11px] w-[11px] rounded-full bg-[#FF5F57] transition-transform duration-200 group-hover:scale-110" />
