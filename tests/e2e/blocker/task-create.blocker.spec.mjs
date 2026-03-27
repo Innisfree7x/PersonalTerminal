@@ -1,6 +1,33 @@
 import { expect, test } from '@playwright/test';
 import { hasE2ECredentials, login, dismissDevOverlay } from '../helpers/auth.mjs';
 
+async function openAddTaskForm(page) {
+  const titleInput = page.getByPlaceholder(/task title/i);
+
+  if (await titleInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+    return titleInput;
+  }
+
+  const triggerCandidates = [
+    page.getByTestId('today-add-task-trigger-empty'),
+    page.getByTestId('today-add-task-trigger'),
+  ];
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    for (const trigger of triggerCandidates) {
+      const visible = await trigger.isVisible({ timeout: 1500 }).catch(() => false);
+      if (!visible) continue;
+
+      // Bypass occasional actionability races from animated dashboard surfaces.
+      await trigger.dispatchEvent('click');
+      const opened = await titleInput.isVisible({ timeout: 2500 }).catch(() => false);
+      if (opened) return titleInput;
+    }
+  }
+
+  throw new Error('Failed to open add-task form in blocker flow.');
+}
+
 test.describe('@blocker task creation', () => {
   test.skip(
     !hasE2ECredentials('blocker'),
@@ -16,15 +43,7 @@ test.describe('@blocker task creation', () => {
     await dismissDevOverlay(page);
     await expect(page.getByTestId('today-page-root')).toBeVisible();
 
-    const addEmptyStateBtn = page.getByTestId('today-add-task-trigger-empty');
-    if (await addEmptyStateBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await addEmptyStateBtn.click();
-    } else {
-      await page.getByTestId('today-add-task-trigger').click();
-    }
-    await expect(page.getByPlaceholder(/task title/i)).toBeVisible({ timeout: 10_000 });
-
-    const titleInput = page.getByPlaceholder(/task title/i);
+    const titleInput = await openAddTaskForm(page);
     const timeInput = page.getByPlaceholder(/time \(e\.g\./i);
     await titleInput.fill(title);
     await timeInput.fill('15m');

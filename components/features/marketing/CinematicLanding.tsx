@@ -129,15 +129,15 @@ export function CinematicLanding() {
       </div>
 
       {/* Progress dots */}
-      <div className="fixed right-6 top-1/2 z-50 -translate-y-1/2 flex flex-col gap-3">
+      <div className="fixed right-3 top-1/2 z-50 flex -translate-y-1/2 flex-col items-end gap-3 sm:right-6">
         {Array.from({ length: SECTION_COUNT }).map((_, i) => (
           <button
             key={i}
             onClick={() => goToStop(i)}
-            className="group/dot flex items-center gap-3"
+            className="group/dot relative flex min-h-8 items-center justify-end"
             aria-label={`${STOP_LABELS[i]}`}
           >
-            <span className={`text-[9px] font-medium uppercase tracking-wider opacity-0 transition-all duration-300 group-hover/dot:opacity-100 ${activeStop === i ? 'text-[#E8B930]' : 'text-zinc-500'}`}>
+            <span className={`pointer-events-none absolute right-5 hidden whitespace-nowrap text-[9px] font-medium uppercase tracking-wider transition-all duration-300 md:block ${activeStop === i ? 'translate-x-0 opacity-100 text-[#E8B930]' : 'translate-x-1 opacity-0 text-zinc-500 group-hover/dot:translate-x-0 group-hover/dot:opacity-100 group-hover/dot:text-white/70'}`}>
               {STOP_LABELS[i]}
             </span>
             <span className={`block transition-all duration-500 ${activeStop === i ? 'h-8 w-2 rounded-full bg-[#E8B930]' : 'h-2 w-2 rounded-full bg-white/20 group-hover/dot:bg-white/40'}`} />
