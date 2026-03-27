@@ -139,15 +139,15 @@ export function CinematicLanding() {
       </div>
 
       {/* Progress dots */}
-      <div className="fixed right-3 top-1/2 z-50 flex -translate-y-1/2 flex-col items-end gap-3 sm:right-6">
+      <div className="fixed right-3 top-1/2 z-50 flex w-12 -translate-y-1/2 flex-col items-center gap-3 sm:right-6 sm:w-16">
         {Array.from({ length: SECTION_COUNT }).map((_, i) => (
           <button
             key={i}
             onClick={() => goToStop(i)}
-            className="group/dot relative flex min-h-8 items-center justify-end"
+            className="group/dot relative flex h-8 w-8 items-center justify-center md:w-12"
             aria-label={`${STOP_LABELS[i]}`}
           >
-            <span className={`pointer-events-none absolute right-5 hidden whitespace-nowrap text-[9px] font-medium uppercase tracking-wider transition-all duration-300 md:block ${activeStop === i ? 'translate-x-0 opacity-100 text-[#E8B930]' : 'translate-x-1 opacity-0 text-zinc-500 group-hover/dot:translate-x-0 group-hover/dot:opacity-100 group-hover/dot:text-white/70'}`}>
+            <span className={`pointer-events-none absolute right-full mr-3 hidden whitespace-nowrap text-[9px] font-medium uppercase tracking-wider transition-all duration-300 md:block ${activeStop === i ? 'translate-x-0 opacity-100 text-[#E8B930]' : 'translate-x-1 opacity-0 text-zinc-500 group-hover/dot:translate-x-0 group-hover/dot:opacity-100 group-hover/dot:text-white/70'}`}>
               {STOP_LABELS[i]}
             </span>
             <span className={`block transition-all duration-500 ${activeStop === i ? 'h-8 w-2 rounded-full bg-[#E8B930]' : 'h-2 w-2 rounded-full bg-white/20 group-hover/dot:bg-white/40'}`} />

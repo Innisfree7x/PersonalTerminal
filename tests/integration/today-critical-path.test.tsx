@@ -157,7 +157,11 @@ describe('Today critical path integration', () => {
     expect(screen.getByText('1/3')).toBeInTheDocument();
     expect(screen.getByText('Momentum')).toBeInTheDocument();
     expect(screen.getByText('57')).toBeInTheDocument();
-    expect(screen.getByText(/1 vs letzte Woche/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        (_, element) => element?.tagName === 'SPAN' && (element.textContent?.includes('1 vs letzte Woche') ?? false)
+      )
+    ).toBeInTheDocument();
     expect(screen.getByText('Streak')).toBeInTheDocument();
 
     await waitFor(() => {
