@@ -166,7 +166,7 @@ export function CinematicLanding() {
   }, [goToStop]);
 
   return (
-    <div ref={containerRef} className="fixed inset-0 z-40 h-screen overflow-hidden bg-[#060a14]">
+    <div ref={containerRef} className="fixed inset-0 z-40 h-screen overflow-hidden bg-[#0c0d14]">
       {/* Atmospheric layers */}
       <GrainOverlay />
       <FloatingParticles />
@@ -271,62 +271,27 @@ export function CinematicLanding() {
    ───────────────────────────────────────────────────────────────────── */
 
 function BackgroundAmbience({ progress }: { progress: MotionValue<number> }) {
-  // Gold glow — primary, moves with sections
-  const glow1X = useTransform(progress, [0, 1, 2, 3, 4, 5], ['50%', '25%', '75%', '30%', '50%', '50%']);
-  const glow1Y = useTransform(progress, [0, 1, 2, 3, 4, 5], ['15%', '30%', '25%', '40%', '50%', '45%']);
-  const glow1Opacity = useTransform(progress, [0, 2.5, 5], [0.08, 0.05, 0.1]);
-
-  // Deep red accent — creates navy+red warmth
-  const glow2X = useTransform(progress, [0, 1, 2, 3, 4, 5], ['15%', '70%', '20%', '65%', '40%', '50%']);
-  const glow2Y = useTransform(progress, [0, 1, 2, 3, 4, 5], ['60%', '20%', '70%', '30%', '40%', '55%']);
-  const glow2Opacity = useTransform(progress, [0, 2, 5], [0.06, 0.05, 0.07]);
-
-  // Navy depth glow — anchors the dark blue feel
-  const glow3Y = useTransform(progress, [0, 5], ['30%', '60%']);
+  // Only animate opacity — never position or blur. Single composite layer.
+  const glowOpacity = useTransform(progress, [0, 2.5, 5], [0.85, 0.7, 1]);
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-[1]">
-      {/* Base navy wash — top-heavy to give depth */}
+    <motion.div
+      className="pointer-events-none fixed inset-0 z-[1]"
+      style={{ opacity: glowOpacity }}
+    >
+      {/* All glows baked into one div — zero blur elements, zero repaints */}
       <div
         className="absolute inset-0"
         style={{
-          background: 'radial-gradient(ellipse 130% 60% at 50% -5%, rgba(15,23,42,0.9) 0%, transparent 65%)',
+          backgroundImage: `
+            radial-gradient(ellipse 60% 50% at 50% 15%, rgba(232,185,48,0.08) 0%, transparent 70%),
+            radial-gradient(ellipse 50% 45% at 15% 65%, rgba(153,27,27,0.06) 0%, transparent 70%),
+            radial-gradient(ellipse 45% 40% at 85% 45%, rgba(153,27,27,0.04) 0%, transparent 70%),
+            radial-gradient(ellipse 70% 50% at 50% 80%, rgba(30,58,95,0.1) 0%, transparent 70%)
+          `,
         }}
       />
-
-      {/* Gold — primary brand glow, smaller blur for performance */}
-      <motion.div
-        className="absolute h-[600px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[150px]"
-        style={{
-          left: glow1X,
-          top: glow1Y,
-          opacity: glow1Opacity,
-          background: 'radial-gradient(circle, #E8B930 0%, #D4A028 40%, transparent 70%)',
-          willChange: 'transform, opacity',
-        }}
-      />
-
-      {/* Deep crimson-red — warm counterpoint to navy */}
-      <motion.div
-        className="absolute h-[500px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[140px]"
-        style={{
-          left: glow2X,
-          top: glow2Y,
-          opacity: glow2Opacity,
-          background: 'radial-gradient(circle, #991B1B 0%, #7F1D1D 40%, transparent 70%)',
-          willChange: 'transform, opacity',
-        }}
-      />
-
-      {/* Navy depth — static, reinforces the dark blue base */}
-      <motion.div
-        className="absolute right-[10%] h-[500px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[130px] opacity-[0.12]"
-        style={{
-          top: glow3Y,
-          background: 'radial-gradient(circle, #1e3a5f 0%, #0f2340 40%, transparent 70%)',
-        }}
-      />
-    </div>
+    </motion.div>
   );
 }
 

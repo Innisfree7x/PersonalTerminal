@@ -7,6 +7,13 @@
   to   { transform: translateX(-50%); }
 }
 
+@keyframes floatDot {
+  0%, 100% { transform: translate3d(0, 0, 0); opacity: 1; }
+  25% { transform: translate3d(8px, -15px, 0); opacity: 0.6; }
+  50% { transform: translate3d(-5px, -25px, 0); opacity: 1; }
+  75% { transform: translate3d(10px, -12px, 0); opacity: 0.5; }
+}
+
 :root {
   /* Dark Theme Colors (Linear-style) */
   --background: 13 13 18;
@@ -666,7 +673,7 @@
   }
 
   .marketing-shell {
-    background: radial-gradient(ellipse 120% 80% at 50% 0%, #0f1a2e 0%, #0a1020 40%, #060a14 100%);
+    background: #0c0d14;
   }
 
   .marketing-grid-overlay {

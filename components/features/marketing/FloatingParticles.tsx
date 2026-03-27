@@ -1,114 +1,45 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-
 /**
- * FloatingParticles — Subtle drifting gold particles on canvas.
+ * FloatingParticles — Pure CSS floating dots. Zero JavaScript, zero Canvas.
  *
- * Performance-optimized: DPR capped at 1, pauses when tab is hidden,
- * reduced particle count. Throttled to ~30fps to save battery.
+ * 12 tiny gold dots with CSS keyframe animations.
+ * GPU-composited via translate3d, no repaints.
  */
 
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  size: number;
-  opacity: number;
-  opacitySpeed: number;
-}
-
-const PARTICLE_COUNT = 25;
+const DOTS = [
+  { x: '12%', y: '18%', size: 2, duration: 28, delay: 0, opacity: 0.25 },
+  { x: '85%', y: '25%', size: 1.5, duration: 32, delay: 4, opacity: 0.2 },
+  { x: '45%', y: '72%', size: 2.5, duration: 26, delay: 2, opacity: 0.15 },
+  { x: '72%', y: '55%', size: 1, duration: 35, delay: 6, opacity: 0.3 },
+  { x: '28%', y: '42%', size: 2, duration: 30, delay: 1, opacity: 0.2 },
+  { x: '92%', y: '68%', size: 1.5, duration: 24, delay: 5, opacity: 0.25 },
+  { x: '8%', y: '82%', size: 2, duration: 33, delay: 3, opacity: 0.15 },
+  { x: '55%', y: '15%', size: 1, duration: 29, delay: 7, opacity: 0.2 },
+  { x: '35%', y: '88%', size: 2, duration: 27, delay: 2, opacity: 0.18 },
+  { x: '68%', y: '35%', size: 1.5, duration: 31, delay: 4, opacity: 0.22 },
+  { x: '18%', y: '58%', size: 1, duration: 34, delay: 6, opacity: 0.15 },
+  { x: '78%', y: '82%', size: 2, duration: 28, delay: 1, opacity: 0.2 },
+];
 
 export function FloatingParticles() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const particlesRef = useRef<Particle[]>([]);
-  const animRef = useRef<number>(0);
-  const lastFrameRef = useRef<number>(0);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Cap DPR at 1 — particles are tiny, no need for Retina resolution
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-
-    resize();
-    window.addEventListener('resize', resize);
-
-    // Pause when tab hidden
-    let paused = false;
-    const onVisibility = () => { paused = document.hidden; };
-    document.addEventListener('visibilitychange', onVisibility);
-
-    const w = window.innerWidth;
-    const h = window.innerHeight;
-    particlesRef.current = Array.from({ length: PARTICLE_COUNT }, () => ({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      vx: (Math.random() - 0.5) * 0.25,
-      vy: -Math.random() * 0.15 - 0.03,
-      size: Math.random() * 1.5 + 0.5,
-      opacity: Math.random() * 0.4,
-      opacitySpeed: (Math.random() * 0.002 + 0.001) * (Math.random() > 0.5 ? 1 : -1),
-    }));
-
-    const draw = (now: number) => {
-      animRef.current = requestAnimationFrame(draw);
-
-      if (paused) return;
-
-      // Throttle to ~30fps
-      if (now - lastFrameRef.current < 33) return;
-      lastFrameRef.current = now;
-
-      const cw = canvas.width;
-      const ch = canvas.height;
-      ctx.clearRect(0, 0, cw, ch);
-
-      for (const p of particlesRef.current) {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.opacity += p.opacitySpeed;
-
-        if (p.opacity > 0.5 || p.opacity < 0) {
-          p.opacitySpeed *= -1;
-          p.opacity = Math.max(0, Math.min(0.5, p.opacity));
-        }
-
-        if (p.y < -10) p.y = ch + 10;
-        if (p.x < -10) p.x = cw + 10;
-        if (p.x > cw + 10) p.x = -10;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(232,185,48,${p.opacity})`;
-        ctx.fill();
-      }
-    };
-
-    animRef.current = requestAnimationFrame(draw);
-
-    return () => {
-      cancelAnimationFrame(animRef.current);
-      window.removeEventListener('resize', resize);
-      document.removeEventListener('visibilitychange', onVisibility);
-    };
-  }, []);
-
   return (
-    <canvas
-      ref={canvasRef}
-      className="pointer-events-none fixed inset-0 z-[41]"
-      style={{ opacity: 0.6 }}
-      aria-hidden="true"
-    />
+    <div className="pointer-events-none fixed inset-0 z-[41]" aria-hidden="true">
+      {DOTS.map((dot, i) => (
+        <div
+          key={i}
+          className="absolute rounded-full"
+          style={{
+            left: dot.x,
+            top: dot.y,
+            width: dot.size,
+            height: dot.size,
+            backgroundColor: `rgba(232,185,48,${dot.opacity})`,
+            animation: `floatDot ${dot.duration}s ease-in-out ${dot.delay}s infinite`,
+            willChange: 'transform, opacity',
+          }}
+        />
+      ))}
+    </div>
   );
 }
