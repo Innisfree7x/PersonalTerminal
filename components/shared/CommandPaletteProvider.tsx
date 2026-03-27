@@ -1,8 +1,12 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useState, useEffect, createContext, useContext, ReactNode, useCallback, useMemo } from 'react';
-import CommandPalette from './CommandPalette';
 import { useIntentExecutor } from '@/lib/command/executor';
+
+const CommandPalette = dynamic(() => import('./CommandPalette'), {
+  ssr: false,
+});
 
 interface CommandPaletteContextType {
   isOpen: boolean;
@@ -48,7 +52,7 @@ export default function CommandPaletteProvider({ children }: { children: ReactNo
   return (
     <CommandPaletteContext.Provider value={contextValue}>
       {children}
-      <CommandPalette isOpen={isOpen} onClose={close} />
+      {isOpen ? <CommandPalette isOpen={isOpen} onClose={close} /> : null}
     </CommandPaletteContext.Provider>
   );
 }

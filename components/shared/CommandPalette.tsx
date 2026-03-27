@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Command } from 'cmdk';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -64,6 +64,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   const router = useRouter();
   const pathname = usePathname();
   const [search, setSearch] = useState('');
+  const deferredSearch = useDeferredValue(search);
   const [intentConfirmed, setIntentConfirmed] = useState(false);
   const { status: timerStatus } = useFocusTimerSession();
   const {
@@ -107,7 +108,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   };
 
   // ── Intent parsing ──────────────────────────────────────────────────────────
-  const intentResult = useMemo(() => parseCommand(search), [search]);
+  const intentResult = useMemo(() => parseCommand(deferredSearch), [deferredSearch]);
   const isIntentMode = intentResult !== null;
 
   // Reset confirm state when search changes
@@ -141,92 +142,98 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   );
 
   // ── Navigation commands ─────────────────────────────────────────────────────
-  const navigationCommands: CommandItem[] = [
-    {
-      id: 'nav-today',
-      label: copy.command.dashboard,
-      icon: Home,
-      action: () => router.push('/today'),
-      keywords: ['dashboard', 'today', 'heute', 'home', 'overview'],
-    },
-    {
-      id: 'nav-goals',
-      label: copy.command.goals,
-      icon: Target,
-      action: () => router.push('/goals'),
-      keywords: ['goals', 'ziele', 'objectives', 'targets'],
-    },
-    {
-      id: 'nav-career',
-      label: copy.command.career,
-      icon: Briefcase,
-      action: () => router.push('/career'),
-      keywords: ['career', 'karriere', 'jobs', 'applications', 'bewerbungen', 'interviews'],
-    },
-    {
-      id: 'nav-university',
-      label: copy.command.university,
-      icon: GraduationCap,
-      action: () => router.push('/university'),
-      keywords: ['university', 'uni', 'courses', 'kurse', 'studies', 'exercises'],
-    },
-    {
-      id: 'nav-calendar',
-      label: copy.command.calendar,
-      icon: Calendar,
-      action: () => router.push('/calendar'),
-      keywords: ['calendar', 'kalender', 'schedule', 'events'],
-    },
-    {
-      id: 'nav-analytics',
-      label: copy.command.analytics,
-      icon: BarChart3,
-      action: () => router.push('/analytics'),
-      keywords: ['analytics', 'analysen', 'stats', 'focus', 'charts', 'productivity'],
-    },
-    {
-      id: 'nav-focus',
-      label: copy.command.focusMode,
-      icon: Timer,
-      action: () => navigateToFocusWithTransition(router),
-      keywords: ['focus', 'fokus', 'deep work', 'zen', 'study mode', 'timer screen'],
-    },
-    {
-      id: 'nav-trajectory',
-      label: copy.command.trajectory,
-      icon: Route,
-      action: () => router.push('/trajectory'),
-      keywords: ['trajectory', 'timeline', 'career plan', 'karriereplan', 'milestone', 'roadmap'],
-    },
-    {
-      id: 'nav-ops-health',
-      label: copy.command.opsHealth,
-      icon: ShieldCheck,
-      action: () => router.push('/analytics/ops'),
-      keywords: ['ops', 'health', 'monitoring', 'incidents', 'admin'],
-    },
-    {
-      id: 'nav-settings',
-      label: copy.command.settings,
-      icon: Settings,
-      action: () => router.push('/settings'),
-      keywords: ['settings', 'einstellungen', 'preferences', 'config', 'account'],
-    },
-  ];
+  const navigationCommands = useMemo<CommandItem[]>(
+    () => [
+      {
+        id: 'nav-today',
+        label: copy.command.dashboard,
+        icon: Home,
+        action: () => router.push('/today'),
+        keywords: ['dashboard', 'today', 'heute', 'home', 'overview'],
+      },
+      {
+        id: 'nav-goals',
+        label: copy.command.goals,
+        icon: Target,
+        action: () => router.push('/goals'),
+        keywords: ['goals', 'ziele', 'objectives', 'targets'],
+      },
+      {
+        id: 'nav-career',
+        label: copy.command.career,
+        icon: Briefcase,
+        action: () => router.push('/career'),
+        keywords: ['career', 'karriere', 'jobs', 'applications', 'bewerbungen', 'interviews'],
+      },
+      {
+        id: 'nav-university',
+        label: copy.command.university,
+        icon: GraduationCap,
+        action: () => router.push('/university'),
+        keywords: ['university', 'uni', 'courses', 'kurse', 'studies', 'exercises'],
+      },
+      {
+        id: 'nav-calendar',
+        label: copy.command.calendar,
+        icon: Calendar,
+        action: () => router.push('/calendar'),
+        keywords: ['calendar', 'kalender', 'schedule', 'events'],
+      },
+      {
+        id: 'nav-analytics',
+        label: copy.command.analytics,
+        icon: BarChart3,
+        action: () => router.push('/analytics'),
+        keywords: ['analytics', 'analysen', 'stats', 'focus', 'charts', 'productivity'],
+      },
+      {
+        id: 'nav-focus',
+        label: copy.command.focusMode,
+        icon: Timer,
+        action: () => navigateToFocusWithTransition(router),
+        keywords: ['focus', 'fokus', 'deep work', 'zen', 'study mode', 'timer screen'],
+      },
+      {
+        id: 'nav-trajectory',
+        label: copy.command.trajectory,
+        icon: Route,
+        action: () => router.push('/trajectory'),
+        keywords: ['trajectory', 'timeline', 'career plan', 'karriereplan', 'milestone', 'roadmap'],
+      },
+      {
+        id: 'nav-ops-health',
+        label: copy.command.opsHealth,
+        icon: ShieldCheck,
+        action: () => router.push('/analytics/ops'),
+        keywords: ['ops', 'health', 'monitoring', 'incidents', 'admin'],
+      },
+      {
+        id: 'nav-settings',
+        label: copy.command.settings,
+        icon: Settings,
+        action: () => router.push('/settings'),
+        keywords: ['settings', 'einstellungen', 'preferences', 'config', 'account'],
+      },
+    ],
+    [copy.command, router],
+  );
 
   // ── Theme commands ──────────────────────────────────────────────────────────
-  const themeCommands: CommandItem[] = [
-    { id: 'theme-midnight', label: copy.command.themeMidnight, icon: Moon, action: () => setTheme('midnight'), keywords: ['theme', 'dark', 'midnight'] },
-    { id: 'theme-nord', label: copy.command.themeNord, icon: Palette, action: () => setTheme('nord'), keywords: ['theme', 'nord', 'blue', 'gray'] },
-    { id: 'theme-gold', label: copy.command.themeGold, icon: Palette, action: () => setTheme('gold'), keywords: ['theme', 'gold', 'premium', 'warm'] },
-    { id: 'theme-platinum', label: copy.command.themePlatinum, icon: Palette, action: () => setTheme('platinum'), keywords: ['theme', 'platinum', 'premium', 'silver', 'metal'] },
-    { id: 'theme-sapphire', label: copy.command.themeSapphire, icon: Palette, action: () => setTheme('sapphire'), keywords: ['theme', 'sapphire', 'premium', 'blue', 'metal'] },
-    { id: 'theme-copper', label: copy.command.themeCopper, icon: Palette, action: () => setTheme('copper'), keywords: ['theme', 'copper', 'premium', 'bronze', 'warm'] },
-    { id: 'theme-amethyst', label: copy.command.themeAmethyst, icon: Palette, action: () => setTheme('amethyst'), keywords: ['theme', 'amethyst', 'premium', 'violet'] },
-    { id: 'theme-dracula', label: copy.command.themeDracula, icon: Palette, action: () => setTheme('dracula'), keywords: ['theme', 'dracula', 'purple', 'vampire'] },
-    { id: 'theme-ocean', label: copy.command.themeOcean, icon: Palette, action: () => setTheme('ocean'), keywords: ['theme', 'ocean', 'blue', 'deep'] },
-    { id: 'theme-emerald', label: copy.command.themeEmerald, icon: Palette, action: () => setTheme('emerald'), keywords: ['theme', 'emerald', 'green', 'nature'] },
-  ];
+  const themeCommands = useMemo<CommandItem[]>(
+    () => [
+      { id: 'theme-midnight', label: copy.command.themeMidnight, icon: Moon, action: () => setTheme('midnight'), keywords: ['theme', 'dark', 'midnight'] },
+      { id: 'theme-nord', label: copy.command.themeNord, icon: Palette, action: () => setTheme('nord'), keywords: ['theme', 'nord', 'blue', 'gray'] },
+      { id: 'theme-gold', label: copy.command.themeGold, icon: Palette, action: () => setTheme('gold'), keywords: ['theme', 'gold', 'premium', 'warm'] },
+      { id: 'theme-platinum', label: copy.command.themePlatinum, icon: Palette, action: () => setTheme('platinum'), keywords: ['theme', 'platinum', 'premium', 'silver', 'metal'] },
+      { id: 'theme-sapphire', label: copy.command.themeSapphire, icon: Palette, action: () => setTheme('sapphire'), keywords: ['theme', 'sapphire', 'premium', 'blue', 'metal'] },
+      { id: 'theme-copper', label: copy.command.themeCopper, icon: Palette, action: () => setTheme('copper'), keywords: ['theme', 'copper', 'premium', 'bronze', 'warm'] },
+      { id: 'theme-amethyst', label: copy.command.themeAmethyst, icon: Palette, action: () => setTheme('amethyst'), keywords: ['theme', 'amethyst', 'premium', 'violet'] },
+      { id: 'theme-dracula', label: copy.command.themeDracula, icon: Palette, action: () => setTheme('dracula'), keywords: ['theme', 'dracula', 'purple', 'vampire'] },
+      { id: 'theme-ocean', label: copy.command.themeOcean, icon: Palette, action: () => setTheme('ocean'), keywords: ['theme', 'ocean', 'blue', 'deep'] },
+      { id: 'theme-emerald', label: copy.command.themeEmerald, icon: Palette, action: () => setTheme('emerald'), keywords: ['theme', 'emerald', 'green', 'nature'] },
+    ],
+    [copy.command, setTheme],
+  );
 
   const triggerPageAction = useCallback(
     (targetPath: string, action: PrismCommandAction) => {
@@ -241,116 +248,122 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   );
 
   // ── Quick action commands ───────────────────────────────────────────────────
-  const quickActions: CommandItem[] = [
-    {
-      id: 'action-add-task',
-      label: copy.command.addDailyTask,
-      icon: Plus,
-      action: () => triggerPageAction('/today', 'open-new-task'),
-      keywords: ['add', 'new', 'create', 'task', 'todo', 'today', 'aufgabe', 'heute'],
-      shortcut: 'D',
-    },
-    {
-      id: 'action-add-goal',
-      label: copy.command.addNewGoal,
-      icon: Plus,
-      action: () => triggerPageAction('/goals', 'open-new-goal'),
-      keywords: ['add', 'new', 'create', 'goal', 'ziel'],
-      shortcut: 'G',
-    },
-    {
-      id: 'action-add-application',
-      label: copy.command.addJobApplication,
-      icon: Plus,
-      action: () => triggerPageAction('/career', 'open-new-application'),
-      keywords: ['add', 'new', 'create', 'job', 'application', 'bewerbung'],
-      shortcut: 'A',
-    },
-    {
-      id: 'action-add-course',
-      label: copy.command.addCourse,
-      icon: Plus,
-      action: () => triggerPageAction('/university', 'open-new-course'),
-      keywords: ['add', 'new', 'create', 'course', 'kurs'],
-      shortcut: 'C',
-    },
-    {
-      id: 'action-next-best',
-      label: copy.command.startNextBestAction,
-      icon: Zap,
-      action: () => triggerPageAction('/today', 'start-next-best-action'),
-      keywords: ['next', 'best', 'action', 'execute', 'priority', 'today', 'nächste', 'beste', 'aktion'],
-      shortcut: 'N',
-    },
-    {
-      id: 'action-theme-cycle',
-      label: copy.command.cyclePremiumThemes,
-      icon: Palette,
-      action: () => {
-        const currentIndex = THEME_CYCLE.indexOf(theme as (typeof THEME_CYCLE)[number]);
-        const nextTheme = THEME_CYCLE[(currentIndex + 1) % THEME_CYCLE.length] ?? 'midnight';
-        setTheme(nextTheme);
+  const quickActions = useMemo<CommandItem[]>(
+    () => [
+      {
+        id: 'action-add-task',
+        label: copy.command.addDailyTask,
+        icon: Plus,
+        action: () => triggerPageAction('/today', 'open-new-task'),
+        keywords: ['add', 'new', 'create', 'task', 'todo', 'today', 'aufgabe', 'heute'],
+        shortcut: 'D',
       },
-      keywords: ['theme', 'toggle', 'switch', 'cycle', 'premium', 'gold', 'platinum', 'sapphire', 'copper', 'amethyst'],
-      shortcut: 'T',
-    },
-    {
-      id: 'action-focus-25',
-      label: copy.command.startFocus25,
-      icon: Play,
-      action: () => { startTimer(); setTimerExpanded(true); },
-      keywords: ['focus', 'fokus', 'start', 'pomodoro', '25', 'study'],
-      shortcut: 'F',
-    },
-    {
-      id: 'action-focus-50',
-      label: copy.command.startFocus50,
-      icon: Zap,
-      action: () => { startTimer({ duration: 50 }); setTimerExpanded(true); },
-      keywords: ['focus', 'fokus', 'start', 'deep', '50', 'work'],
-    },
-  ];
+      {
+        id: 'action-add-goal',
+        label: copy.command.addNewGoal,
+        icon: Plus,
+        action: () => triggerPageAction('/goals', 'open-new-goal'),
+        keywords: ['add', 'new', 'create', 'goal', 'ziel'],
+        shortcut: 'G',
+      },
+      {
+        id: 'action-add-application',
+        label: copy.command.addJobApplication,
+        icon: Plus,
+        action: () => triggerPageAction('/career', 'open-new-application'),
+        keywords: ['add', 'new', 'create', 'job', 'application', 'bewerbung'],
+        shortcut: 'A',
+      },
+      {
+        id: 'action-add-course',
+        label: copy.command.addCourse,
+        icon: Plus,
+        action: () => triggerPageAction('/university', 'open-new-course'),
+        keywords: ['add', 'new', 'create', 'course', 'kurs'],
+        shortcut: 'C',
+      },
+      {
+        id: 'action-next-best',
+        label: copy.command.startNextBestAction,
+        icon: Zap,
+        action: () => triggerPageAction('/today', 'start-next-best-action'),
+        keywords: ['next', 'best', 'action', 'execute', 'priority', 'today', 'nächste', 'beste', 'aktion'],
+        shortcut: 'N',
+      },
+      {
+        id: 'action-theme-cycle',
+        label: copy.command.cyclePremiumThemes,
+        icon: Palette,
+        action: () => {
+          const currentIndex = THEME_CYCLE.indexOf(theme as (typeof THEME_CYCLE)[number]);
+          const nextTheme = THEME_CYCLE[(currentIndex + 1) % THEME_CYCLE.length] ?? 'midnight';
+          setTheme(nextTheme);
+        },
+        keywords: ['theme', 'toggle', 'switch', 'cycle', 'premium', 'gold', 'platinum', 'sapphire', 'copper', 'amethyst'],
+        shortcut: 'T',
+      },
+      {
+        id: 'action-focus-25',
+        label: copy.command.startFocus25,
+        icon: Play,
+        action: () => { startTimer(); setTimerExpanded(true); },
+        keywords: ['focus', 'fokus', 'start', 'pomodoro', '25', 'study'],
+        shortcut: 'F',
+      },
+      {
+        id: 'action-focus-50',
+        label: copy.command.startFocus50,
+        icon: Zap,
+        action: () => { startTimer({ duration: 50 }); setTimerExpanded(true); },
+        keywords: ['focus', 'fokus', 'start', 'deep', '50', 'work'],
+      },
+    ],
+    [copy.command, setTheme, setTimerExpanded, startTimer, theme, triggerPageAction],
+  );
 
   // ── Focus timer commands ────────────────────────────────────────────────────
-  const focusCommands: CommandItem[] = [
-    ...(timerStatus === 'idle'
-      ? [{
-          id: 'focus-start',
-          label: copy.command.startFocusTimer,
-          icon: Play,
-          action: () => { startTimer(); setTimerExpanded(true); },
-          keywords: ['focus', 'fokus', 'timer', 'start', 'pomodoro', 'study'],
-          shortcut: 'Alt+F',
-        }]
-      : []),
-    ...(timerStatus === 'running' || timerStatus === 'break'
-      ? [{
-          id: 'focus-pause',
-          label: copy.command.pauseTimer,
-          icon: Pause,
-          action: () => pauseTimer(),
-          keywords: ['focus', 'fokus', 'timer', 'pause', 'pausieren'],
-        }]
-      : []),
-    ...(timerStatus === 'paused' || timerStatus === 'break_paused'
-      ? [{
-          id: 'focus-resume',
-          label: copy.command.resumeTimer,
-          icon: Play,
-          action: () => resumeTimer(),
-          keywords: ['focus', 'fokus', 'timer', 'resume', 'continue', 'fortsetzen'],
-        }]
-      : []),
-    ...(timerStatus !== 'idle'
-      ? [{
-          id: 'focus-stop',
-          label: copy.command.stopTimer,
-          icon: Square,
-          action: () => stopTimer(),
-          keywords: ['focus', 'fokus', 'timer', 'stop', 'end', 'beenden'],
-        }]
-      : []),
-  ];
+  const focusCommands = useMemo<CommandItem[]>(
+    () => [
+      ...(timerStatus === 'idle'
+        ? [{
+            id: 'focus-start',
+            label: copy.command.startFocusTimer,
+            icon: Play,
+            action: () => { startTimer(); setTimerExpanded(true); },
+            keywords: ['focus', 'fokus', 'timer', 'start', 'pomodoro', 'study'],
+            shortcut: 'Alt+F',
+          }]
+        : []),
+      ...(timerStatus === 'running' || timerStatus === 'break'
+        ? [{
+            id: 'focus-pause',
+            label: copy.command.pauseTimer,
+            icon: Pause,
+            action: () => pauseTimer(),
+            keywords: ['focus', 'fokus', 'timer', 'pause', 'pausieren'],
+          }]
+        : []),
+      ...(timerStatus === 'paused' || timerStatus === 'break_paused'
+        ? [{
+            id: 'focus-resume',
+            label: copy.command.resumeTimer,
+            icon: Play,
+            action: () => resumeTimer(),
+            keywords: ['focus', 'fokus', 'timer', 'resume', 'continue', 'fortsetzen'],
+          }]
+        : []),
+      ...(timerStatus !== 'idle'
+        ? [{
+            id: 'focus-stop',
+            label: copy.command.stopTimer,
+            icon: Square,
+            action: () => stopTimer(),
+            keywords: ['focus', 'fokus', 'timer', 'stop', 'end', 'beenden'],
+          }]
+        : []),
+    ],
+    [copy.command, pauseTimer, resumeTimer, setTimerExpanded, startTimer, stopTimer, timerStatus],
+  );
 
   const handleSelect = useCallback(
     (command: { id: string; action: () => void }) => {
@@ -401,7 +414,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
-            className="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/65"
             onClick={onClose}
           />
 

@@ -40,7 +40,8 @@ describe('CommandPaletteProvider', () => {
     );
 
     expect(screen.getByText('state-closed')).toBeInTheDocument();
-    expect(screen.getByText('palette-closed')).toBeInTheDocument();
+    // CommandPalette is not rendered when closed (lazy mount optimization)
+    expect(screen.queryByText('palette-closed')).not.toBeInTheDocument();
 
     await user.click(screen.getByText('open'));
     expect(screen.getByText('state-open')).toBeInTheDocument();
