@@ -20,7 +20,7 @@ import { DecisionSurfaceCard } from '@/components/ui/DecisionSurfaceCard';
 import { buildOpportunityDossier } from '@/lib/career/opportunityDossier';
 import { buildOpportunityRadarInsight } from '@/lib/career/radarInsights';
 import { buildOpportunityFitReadout, toDisplayFitIndex } from '@/lib/career/opportunityReadout';
-import { buildOpportunityTrajectoryHref } from '@/lib/career/opportunityActions';
+import { buildOpportunityStrategyHref, buildOpportunityTrajectoryHref } from '@/lib/career/opportunityActions';
 import { buildOpportunityRecoveryPlan } from '@/lib/career/opportunityRecovery';
 
 interface OpportunityRadarProps {
@@ -127,6 +127,10 @@ export default function OpportunityRadar({
   );
   const selectedTrajectoryHref = useMemo(
     () => (selectedOpportunity ? buildOpportunityTrajectoryHref(selectedOpportunity) : null),
+    [selectedOpportunity]
+  );
+  const selectedStrategyHref = useMemo(
+    () => (selectedOpportunity ? buildOpportunityStrategyHref(selectedOpportunity) : null),
     [selectedOpportunity]
   );
   const hasCustomQuery = query.trim().length > 0;
@@ -836,6 +840,14 @@ export default function OpportunityRadar({
                     className="inline-flex h-8 items-center justify-center rounded-md border border-success/35 bg-success/10 px-3 text-xs font-medium text-emerald-300 transition-colors hover:border-success hover:bg-success/15"
                   >
                     Als Prep-Block planen
+                  </Link>
+                ) : null}
+                {selectedStrategyHref ? (
+                  <Link
+                    href={selectedStrategyHref}
+                    className="inline-flex h-8 items-center justify-center rounded-md border border-sky-500/35 bg-sky-500/10 px-3 text-xs font-medium text-sky-300 transition-colors hover:border-sky-400 hover:bg-sky-500/15"
+                  >
+                    Als Entscheidung öffnen
                   </Link>
                 ) : null}
                 <Button

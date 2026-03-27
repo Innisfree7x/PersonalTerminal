@@ -86,6 +86,10 @@ describe('OpportunityRadar', () => {
     expect(screen.getByText('Rothenstein Partners ist aktuell dein klarster Decision-Lead')).toBeInTheDocument();
     expect(screen.getByText('Company Lens')).toBeInTheDocument();
     expect(screen.getByText('Boutique M&A')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Als Entscheidung öffnen' })).toHaveAttribute(
+      'href',
+      expect.stringContaining('/strategy?')
+    );
 
     fireEvent.click(screen.getByRole('button', { name: /Dossier öffnen: TS Internship Financial Due Diligence bei Kern Advisory/i }));
 

@@ -142,39 +142,72 @@ export default function TodayPage() {
           <div className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-r-full bg-primary/70 shadow-[0_0_10px_rgb(var(--primary)/0.3)]" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
 
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-2.5">
-              <span className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-primary/30 bg-primary/[0.14] text-primary">
-                <Sparkles className="h-3 w-3" />
-              </span>
-              <p className="truncate text-[13px] text-text-secondary">
-                {trajectoryBriefing ? (
-                  <>
-                    <span className="font-semibold text-text-primary">{trajectoryBriefing.title}</span>
-                    <span className="mx-1.5 text-border">·</span>
-                    <span className={trajectoryTone ? trajectoryTone.text : ''}>
-                      {trajectoryBriefing.statusLabel}
-                    </span>
-                    <span className="mx-1.5 text-border">·</span>
-                    <span className="tabular-nums">{trajectoryBriefing.daysUntil}d</span>
-                    {tasksTodayCount > 0 && (
-                      <>
-                        <span className="mx-1.5 text-border">·</span>
-                        <span className="tabular-nums">{tasksCompletedCount}/{tasksTodayCount} Tasks</span>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <span>Kein aktives Trajectory-Ziel.</span>
-                )}
-              </p>
+          <div className="flex flex-col gap-2.5">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-primary/30 bg-primary/[0.14] text-primary">
+                  <Sparkles className="h-3 w-3" />
+                </span>
+                <p className="truncate text-[13px] text-text-secondary">
+                  {trajectoryBriefing ? (
+                    <>
+                      <span className="font-semibold text-text-primary">{trajectoryBriefing.title}</span>
+                      <span className="mx-1.5 text-border">·</span>
+                      <span className={trajectoryTone ? trajectoryTone.text : ''}>
+                        {trajectoryBriefing.statusLabel}
+                      </span>
+                      <span className="mx-1.5 text-border">·</span>
+                      <span className="tabular-nums">{trajectoryBriefing.daysUntil}d bis Deadline</span>
+                    </>
+                  ) : (
+                    <span>Kein aktives Trajectory-Ziel.</span>
+                  )}
+                </p>
+              </div>
+              <Link
+                href={trajectoryBriefingHref}
+                className="shrink-0 rounded-full border border-primary/20 bg-primary/[0.06] px-2.5 py-1 text-[11px] font-medium text-primary transition-colors hover:bg-primary/[0.12]"
+              >
+                {trajectoryBriefing ? 'Trajectory →' : 'Einrichten →'}
+              </Link>
             </div>
-            <Link
-              href={trajectoryBriefingHref}
-              className="shrink-0 rounded-full border border-primary/20 bg-primary/[0.06] px-2.5 py-1 text-[11px] font-medium text-primary transition-colors hover:bg-primary/[0.12]"
-            >
-              {trajectoryBriefing ? 'Trajectory →' : 'Einrichten →'}
-            </Link>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {momentum ? (
+                <>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-primary/25 bg-primary/[0.08] px-2.5 py-1 text-[11px] font-medium text-text-primary">
+                    <Sparkles className="h-3 w-3 text-primary" />
+                    Momentum
+                    <span className="tabular-nums text-primary">{momentum.score}</span>
+                  </span>
+                  {typeof momentum.delta === 'number' && momentum.delta !== 0 ? (
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium tabular-nums ${
+                        momentum.delta > 0
+                          ? 'border-emerald-500/30 bg-emerald-500/12 text-emerald-300'
+                          : 'border-red-500/30 bg-red-500/12 text-red-300'
+                      }`}
+                    >
+                      {momentum.delta > 0 ? '▲' : '▼'}
+                      {Math.abs(momentum.delta)} vs letzte Woche
+                    </span>
+                  ) : null}
+                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-text-secondary">
+                    Fokus-Load {momentum.stats.last7DaysHours.toFixed(1)}h / {momentum.stats.plannedHoursPerWeek}h
+                  </span>
+                </>
+              ) : null}
+              {trajectoryBriefing?.startDateLabel ? (
+                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-text-secondary">
+                  Prep startet {trajectoryBriefing.startDateLabel}
+                </span>
+              ) : null}
+              {tasksTodayCount > 0 ? (
+                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-text-secondary">
+                  {tasksCompletedCount}/{tasksTodayCount} Tasks heute
+                </span>
+              ) : null}
+            </div>
           </div>
         </motion.div>
       </ErrorBoundary>
@@ -243,14 +276,6 @@ export default function TodayPage() {
             label="Streak"
             value={`${streak}d`}
           />
-          {momentum && (
-            <StatItem
-              icon={<Sparkles className="h-3.5 w-3.5 text-primary/70" />}
-              label="Momentum"
-              value={String(momentum.score)}
-              delta={momentum.delta}
-            />
-          )}
         </div>
 
         {/* 4-color identity gradient */}

@@ -339,6 +339,55 @@ export default function StrategyPage() {
     setEditingDecisionTargetDate(selectedDecision.targetDate ?? '');
   }, [selectedDecision]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const url = new URL(window.location.href);
+    const prefillDecisionTitle = url.searchParams.get('prefillDecisionTitle')?.trim() ?? '';
+    const prefillDecisionContext = url.searchParams.get('prefillDecisionContext')?.trim() ?? '';
+    const prefillTargetDate = url.searchParams.get('prefillTargetDate')?.trim() ?? '';
+    const prefillOptionTitle = url.searchParams.get('prefillOptionTitle')?.trim() ?? '';
+    const prefillOptionSummary = url.searchParams.get('prefillOptionSummary')?.trim() ?? '';
+
+    const hasPrefill =
+      Boolean(prefillDecisionTitle) ||
+      Boolean(prefillDecisionContext) ||
+      Boolean(prefillOptionTitle) ||
+      Boolean(prefillOptionSummary);
+
+    if (!hasPrefill) return;
+
+    setDecisionTitle(prefillDecisionTitle);
+    setDecisionContext(prefillDecisionContext);
+    setDecisionTargetDate(prefillTargetDate || toDateInputValue(new Date()));
+    setOptionTitle(prefillOptionTitle);
+    setOptionSummary(prefillOptionSummary);
+    setImpactPotential(clampScoreValue(url.searchParams.get('prefillImpactPotential') ?? '7'));
+    setConfidenceLevel(clampScoreValue(url.searchParams.get('prefillConfidenceLevel') ?? '6'));
+    setStrategicFit(clampScoreValue(url.searchParams.get('prefillStrategicFit') ?? '7'));
+    setEffortCost(clampScoreValue(url.searchParams.get('prefillEffortCost') ?? '5'));
+    setDownsideRisk(clampScoreValue(url.searchParams.get('prefillDownsideRisk') ?? '4'));
+    setTimeToValueWeeks(clampWeeksValue(url.searchParams.get('prefillTimeToValueWeeks') ?? '6'));
+    soundToast.success('Career-Lead in Strategy übernommen.');
+
+    [
+      'prefillDecisionTitle',
+      'prefillDecisionContext',
+      'prefillTargetDate',
+      'prefillOptionTitle',
+      'prefillOptionSummary',
+      'prefillImpactPotential',
+      'prefillConfidenceLevel',
+      'prefillStrategicFit',
+      'prefillEffortCost',
+      'prefillDownsideRisk',
+      'prefillTimeToValueWeeks',
+    ].forEach((key) => url.searchParams.delete(key));
+
+    const nextUrl = `${url.pathname}${url.searchParams.toString() ? `?${url.searchParams.toString()}` : ''}`;
+    window.history.replaceState({}, '', nextUrl);
+  }, [soundToast]);
+
   const localScore = useMemo(() => {
     if (!selectedDecision) return { winner: null as null | { optionId: string; total: number }, scoredOptions: [] as ScoreResponse['scoredOptions'] };
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildOpportunityTrajectoryHref } from '@/lib/career/opportunityActions';
+import { buildOpportunityStrategyHref, buildOpportunityTrajectoryHref } from '@/lib/career/opportunityActions';
 import type { OpportunitySearchItem } from '@/lib/schemas/opportunity-radar.schema';
 
 function makeItem(overrides: Partial<OpportunitySearchItem> = {}): OpportunitySearchItem {
@@ -40,5 +40,22 @@ describe('opportunityActions', () => {
   it('returns null when no gap exists', () => {
     const href = buildOpportunityTrajectoryHref(makeItem({ topGaps: [] }));
     expect(href).toBeNull();
+  });
+
+  it('builds a strategy prefill href for the selected opportunity', () => {
+    const href = buildOpportunityStrategyHref(makeItem());
+    const url = new URL(href, 'https://innis.local');
+
+    expect(url.pathname).toBe('/strategy');
+    expect(url.searchParams.get('source')).toBe('career_strategy_bridge');
+    expect(url.searchParams.get('prefillDecisionTitle')).toBe('Kern Advisory jetzt priorisieren?');
+    expect(url.searchParams.get('prefillOptionTitle')).toBe('Kern Advisory aktiv verfolgen');
+    expect(url.searchParams.get('prefillOptionSummary')).toContain('TS Internship Financial Due Diligence');
+    expect(url.searchParams.get('prefillImpactPotential')).toBe('8');
+    expect(url.searchParams.get('prefillConfidenceLevel')).toBe('6');
+    expect(url.searchParams.get('prefillStrategicFit')).toBe('7');
+    expect(url.searchParams.get('prefillEffortCost')).toBe('6');
+    expect(url.searchParams.get('prefillDownsideRisk')).toBe('5');
+    expect(url.searchParams.get('prefillTimeToValueWeeks')).toBe('4');
   });
 });
