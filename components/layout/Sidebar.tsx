@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   LayoutDashboard,
@@ -158,12 +157,10 @@ export default function Sidebar() {
     <>
       {/* Mobile menu button */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
-        <motion.button
+        <button
           onClick={() => setIsOpen(!isOpen)}
           className="rounded-lg border border-border bg-surface p-2.5 text-text-primary transition-colors hover:border-primary hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           aria-label={copy.header.toggleMenu}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
         >
           <svg
             className="w-5 h-5"
@@ -180,32 +177,22 @@ export default function Sidebar() {
               <path d="M4 6h16M4 12h16M4 18h16" />
             )}
           </svg>
-        </motion.button>
+        </button>
       </div>
 
       {/* Overlay for mobile */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30"
-            onClick={() => setIsOpen(false)}
-          />
-        )}
-      </AnimatePresence>
+      {isOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/55 z-30"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
 
       {/* Sidebar */}
-      <motion.aside
-        initial={false}
-        animate={{
-          width: isCollapsed ? '80px' : '240px',
-        }}
-        className={`dashboard-sidebar-surface fixed top-0 left-0 z-40 h-screen border-r transition-all ${
+      <aside
+        className={`dashboard-sidebar-surface fixed top-0 left-0 z-40 h-screen border-r transition-[width,transform] duration-300 ease-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0`}
+        } ${isCollapsed ? 'lg:w-20' : 'lg:w-60'} w-60 lg:translate-x-0`}
       >
         <div className="h-full flex flex-col relative">
           {/* Ambient top glow — ties sidebar to the primary colour */}
@@ -213,27 +200,17 @@ export default function Sidebar() {
           {/* Logo / Brand */}
           <div className="flex h-16 items-center justify-between border-b border-border px-5">
             {!isCollapsed ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex items-center gap-2"
-              >
+              <div className="flex items-center gap-2">
                 <BrandLockup
                   sizeClassName="h-8 w-8"
                   className="gap-2"
                   wordmarkClassName="font-semibold text-text-primary tracking-tight"
                 />
-              </motion.div>
+              </div>
             ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex items-center justify-center w-full"
-              >
+              <div className="flex items-center justify-center w-full">
                 <BrandMark sizeClassName="h-8 w-8" />
-              </motion.div>
+              </div>
             )}
 
             {/* Collapse button (desktop only) */}
@@ -279,18 +256,7 @@ export default function Sidebar() {
                 >
                   {/* Active indicator — animated flowing light */}
                   {isActive && (
-                    <motion.div
-                      layoutId="sidebar-active"
-                      className="absolute left-0 top-[5px] bottom-[5px] w-[3px] rounded-full overflow-hidden"
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    >
-                      <motion.div
-                        className="absolute inset-x-0 bg-gradient-to-b from-primary/40 via-primary to-primary/40"
-                        style={{ height: '200%', top: '-50%' }}
-                        animate={{ y: ['-40%', '40%'] }}
-                        transition={{ duration: 1.8, repeat: Infinity, ease: 'linear' }}
-                      />
-                    </motion.div>
+                    <div className="absolute left-0 top-[5px] bottom-[5px] w-[3px] rounded-full bg-gradient-to-b from-primary/40 via-primary to-primary/40 shadow-[0_0_10px_rgb(var(--primary)/0.35)]" />
                   )}
 
                   <div
@@ -389,7 +355,7 @@ export default function Sidebar() {
             </div>
           </div>
         </div>
-      </motion.aside>
+      </aside>
     </>
   );
 }

@@ -3,7 +3,6 @@
 import { useDeferredValue, useEffect, useMemo, useState, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Command } from 'cmdk';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
   Home,
@@ -404,37 +403,28 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     return () => document.removeEventListener('keydown', down);
   }, [executeIntent, intentConfirmed, intentResult, isIntentMode, onClose, search]);
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            className="fixed inset-0 z-50 bg-black/65"
-            onClick={onClose}
-          />
+  if (!isOpen) {
+    return null;
+  }
 
-          {/* Palette */}
-          <div
-            data-hotkeys-disabled="true"
-            className="pointer-events-none fixed inset-0 z-50 flex items-start justify-center pt-[18vh]"
+  return (
+    <>
+      {/* Backdrop */}
+      <div className="fixed inset-0 z-50 bg-black/60" onClick={onClose} />
+
+      {/* Palette */}
+      <div
+        data-hotkeys-disabled="true"
+        className="pointer-events-none fixed inset-0 z-50 flex items-start justify-center pt-[18vh]"
+      >
+        <div
+          className="pointer-events-auto w-full max-w-2xl px-4 animate-command-palette-in"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Command
+            className="overflow-hidden rounded-2xl border border-white/[0.12] bg-[#0d1119]/96 shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_24px_64px_rgba(0,0,0,0.7)] backdrop-blur-lg"
+            loop
           >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: -16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: -16 }}
-              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-              className="pointer-events-auto w-full max-w-2xl px-4"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Command
-                className="overflow-hidden rounded-2xl border border-white/[0.12] bg-[#0d1119]/96 shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_24px_64px_rgba(0,0,0,0.7)] backdrop-blur-2xl"
-                loop
-              >
                 {/* Input row */}
                 <div className="flex items-center gap-3 border-b border-white/[0.08] px-4 py-3.5">
                   {isIntentMode ? (
@@ -455,49 +445,40 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                 </div>
 
                 {/* Intent Preview — shown above results when a command is detected */}
-                <AnimatePresence>
-                  {intentResult !== null && (
-                    <motion.div
-                      key="intent-preview"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.16 }}
-                      className="overflow-hidden border-b border-white/[0.06]"
-                    >
-                      {intentResult.ok ? (
-                        // ── Valid intent ──────────────────────────────────────
-                        <div className={`flex items-center gap-3 px-4 py-3 ${intentMeta[intentResult.intent.kind].bg}`}>
-                          <CheckCircle2
-                            className={`h-4 w-4 flex-shrink-0 ${intentMeta[intentResult.intent.kind].accent}`}
-                          />
-                          <div className="min-w-0 flex-1">
-                            <p className={`text-[10px] font-semibold uppercase tracking-[0.14em] ${intentMeta[intentResult.intent.kind].accent}`}>
-                              {intentMeta[intentResult.intent.kind].label}
-                            </p>
-                            <p className="mt-0.5 truncate text-[13px] text-zinc-200">
-                              {intentResult.preview}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => executeIntent(intentResult.intent)}
-                            className={`flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${intentMeta[intentResult.intent.kind].border} ${intentMeta[intentResult.intent.kind].bg} ${intentMeta[intentResult.intent.kind].accent} hover:brightness-125`}
-                          >
-                            <span>↵</span>
-                            <span>{copy.command.confirm}</span>
-                          </button>
+                {intentResult !== null && (
+                  <div className="overflow-hidden border-b border-white/[0.06] animate-subtle-fade-in">
+                    {intentResult.ok ? (
+                      // ── Valid intent ──────────────────────────────────────
+                      <div className={`flex items-center gap-3 px-4 py-3 ${intentMeta[intentResult.intent.kind].bg}`}>
+                        <CheckCircle2
+                          className={`h-4 w-4 flex-shrink-0 ${intentMeta[intentResult.intent.kind].accent}`}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className={`text-[10px] font-semibold uppercase tracking-[0.14em] ${intentMeta[intentResult.intent.kind].accent}`}>
+                            {intentMeta[intentResult.intent.kind].label}
+                          </p>
+                          <p className="mt-0.5 truncate text-[13px] text-zinc-200">
+                            {intentResult.preview}
+                          </p>
                         </div>
-                      ) : (
-                        // ── Parse error ───────────────────────────────────────
-                        <div className="flex items-start gap-3 bg-red-500/10 px-4 py-3">
-                          <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-400" />
-                          <p className="text-[13px] text-red-300">{intentResult.error}</p>
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                        <button
+                          type="button"
+                          onClick={() => executeIntent(intentResult.intent)}
+                          className={`flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${intentMeta[intentResult.intent.kind].border} ${intentMeta[intentResult.intent.kind].bg} ${intentMeta[intentResult.intent.kind].accent} hover:brightness-125`}
+                        >
+                          <span>↵</span>
+                          <span>{copy.command.confirm}</span>
+                        </button>
+                      </div>
+                    ) : (
+                      // ── Parse error ───────────────────────────────────────
+                      <div className="flex items-start gap-3 bg-red-500/10 px-4 py-3">
+                        <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-400" />
+                        <p className="text-[13px] text-red-300">{intentResult.error}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Command list */}
                 <Command.List className="max-h-[360px] overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
@@ -632,11 +613,9 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                     {copy.command.commandBrand}
                   </div>
                 </div>
-              </Command>
-            </motion.div>
-          </div>
-        </>
-      )}
-    </AnimatePresence>
+          </Command>
+        </div>
+      </div>
+    </>
   );
 }

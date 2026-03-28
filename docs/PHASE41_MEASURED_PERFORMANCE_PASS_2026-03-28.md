@@ -69,6 +69,36 @@ Prinzip:
   gleichzeitig bezahlen
 - Struktur verbessern, ohne UX oder Funktionsumfang zu verlieren
 
+### 3. Interaktions-Hotspots leichter gemacht
+
+Dateien:
+
+- `components/shared/CommandPalette.tsx`
+- `components/layout/Sidebar.tsx`
+- `app/(dashboard)/layout.tsx`
+- `app/globals.css`
+
+Änderungen:
+
+- `CommandPalette` von `framer-motion`-Mount/Exit auf leichte CSS-Intro-
+  Animation umgestellt
+- Backdrop-Blur der Palette von `2xl` auf `lg` reduziert, ohne die Bühne
+  flach zu machen
+- Intent-Preview in der Palette ohne zusätzliche `AnimatePresence`-Kosten
+  gerendert
+- `Sidebar`-Mobile-Overlay von Motion/Blur auf leichtere statische Overlay-
+  Variante umgestellt
+- aktiver Sidebar-Stripe nicht mehr als unendlich laufende Motion-Animation,
+  sondern als statischer Premium-Glow
+- globale Dashboard-Page-Transitions von spring-basiertem
+  `AnimatePresence` auf leichte CSS-Intro-Animation reduziert
+
+Prinzip:
+
+- teure Daueranimationen und Overlay-Kosten entfernen
+- Materialität, Farbigkeit und Premium-Eindruck behalten
+- keine aggressive optische Abrüstung, sondern „low-cost premium“
+
 ## Gemessener Effekt
 
 ### Build-Footprint vorher
@@ -104,8 +134,11 @@ Die App ist nach dieser Welle:
   einem sofort schwer ladenden Chart-Dashboard
 - auf `settings` strukturell besser für weitere Growth-/Preference-Features
   vorbereitet
+- in `CommandPalette`, `Sidebar` und bei Dashboard-Seitenwechseln merklich
+  direkter, weil dauerhaft laufende Motion-Kosten entfernt wurden
 - weiterhin visuell hochwertig, weil die Optimierung über Split/Lazy-Load
-  statt über brutales visuelles Downgrade gelaufen ist
+  und leichtere Interaktionsmuster statt über brutales visuelles Downgrade
+  gelaufen ist
 
 ## Nicht gemacht
 
@@ -116,8 +149,8 @@ Die App ist nach dieser Welle:
 
 ## Nächste sinnvolle Performance-Welle
 
-1. `CommandPalette` Overlay-/Mount-Kosten messen und nur bei echtem Hotspot
-   weiter reduzieren
-2. `Career` Renderpfade tiefer auf Derived-State und Dossier-Re-Renders prüfen
-3. `Strategy`/`Trajectory` große Visualisierungen in kleinere memoized
+1. `Career` Renderpfade tiefer auf Derived-State und Dossier-Re-Renders prüfen
+2. `Strategy`/`Trajectory` große Visualisierungen in kleinere memoized
    Subtrees schneiden
+3. nur noch gemessene Rest-Hotspots anfassen, keine pauschale
+   Design-Entkernung mehr

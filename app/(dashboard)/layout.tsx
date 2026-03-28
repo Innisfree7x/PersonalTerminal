@@ -5,32 +5,10 @@ import Header from '@/components/layout/Header';
 import FloatingTimer from '@/components/features/focus/FloatingTimer';
 import { SidebarProvider, useSidebar } from '@/components/layout/SidebarProvider';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
-import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import PowerHotkeysProvider from '@/components/providers/PowerHotkeysProvider';
 import { ChampionProvider } from '@/components/providers/ChampionProvider';
 import { useAppLanguage } from '@/components/providers/LanguageProvider';
-
-const pageVariants = {
-  initial: {
-    opacity: 0,
-    y: 8,
-  },
-  animate: {
-    opacity: 1,
-    y: 0,
-  },
-  exit: {
-    opacity: 0,
-    y: -8,
-  },
-};
-
-const pageTransition = {
-  type: "spring" as const,
-  stiffness: 380,
-  damping: 30,
-};
 
 function DashboardLayoutInner({
   children,
@@ -83,18 +61,9 @@ function DashboardLayoutInner({
 
             {/* Content container */}
             <div className="relative max-w-[1600px] mx-auto px-6 pt-5 pb-8">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={pathname}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  variants={pageVariants}
-                  transition={pageTransition}
-                >
-                  {children}
-                </motion.div>
-              </AnimatePresence>
+              <div key={pathname} className="animate-dashboard-page-in">
+                {children}
+              </div>
             </div>
           </main>
         </div>
