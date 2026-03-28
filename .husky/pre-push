@@ -1,0 +1,7 @@
+echo "🧱 Running pre-push coverage gate..."
+npm run test:coverage || exit 1
+
+echo "🏗️ Verifying production build..."
+npm run build || exit 1
+
+echo "✅ Pre-push checks passed!"

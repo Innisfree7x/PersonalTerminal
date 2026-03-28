@@ -13,6 +13,7 @@
     "test:watch": "vitest --watch",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
+    "verify:ci": "npm run type-check && npm run lint && npm run test:coverage && npm run build",
     "test:e2e": "npx playwright test",
     "test:e2e:blocker": "npx playwright test tests/e2e/blocker --workers=1",
     "test:e2e:blocker:ci": "node scripts/runBlockerE2EWithFlakeGate.mjs",
