@@ -1,8 +1,8 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import { Clock, Target, Flame, TrendingUp, Zap, Award } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/AuthProvider';
@@ -10,18 +10,46 @@ import { useStreak } from '@/lib/hooks/useStreak';
 import { isAdminUser } from '@/lib/auth/authorization';
 import { fetchFocusAnalytics, fetchFocusSessions } from '@/lib/api/focus-sessions';
 import AnalyticsStatCard from '@/components/features/analytics/AnalyticsStatCard';
-import DailyFocusChart from '@/components/features/analytics/DailyFocusChart';
-import HourlyDistributionChart from '@/components/features/analytics/HourlyDistributionChart';
-import CategoryBreakdown from '@/components/features/analytics/CategoryBreakdown';
-import WeekdayChart from '@/components/features/analytics/WeekdayChart';
-import RecentSessionsList from '@/components/features/analytics/RecentSessionsList';
-import WeeklyReview from '@/components/features/analytics/WeeklyReview';
 
 const TIME_RANGES = [
   { label: '7d', days: 7 },
   { label: '30d', days: 30 },
   { label: '90d', days: 90 },
 ];
+
+function AnalyticsSurfaceSkeleton({ className = '' }: { className?: string }) {
+  return <div className={`card-surface rounded-xl border border-border/70 bg-surface/60 animate-pulse ${className}`} />;
+}
+
+const DailyFocusChart = dynamic(
+  () => import('@/components/features/analytics/DailyFocusChart'),
+  { loading: () => <AnalyticsSurfaceSkeleton className="h-[360px]" /> },
+);
+
+const HourlyDistributionChart = dynamic(
+  () => import('@/components/features/analytics/HourlyDistributionChart'),
+  { loading: () => <AnalyticsSurfaceSkeleton className="h-[360px]" /> },
+);
+
+const CategoryBreakdown = dynamic(
+  () => import('@/components/features/analytics/CategoryBreakdown'),
+  { loading: () => <AnalyticsSurfaceSkeleton className="h-[360px]" /> },
+);
+
+const WeekdayChart = dynamic(
+  () => import('@/components/features/analytics/WeekdayChart'),
+  { loading: () => <AnalyticsSurfaceSkeleton className="h-[360px]" /> },
+);
+
+const RecentSessionsList = dynamic(
+  () => import('@/components/features/analytics/RecentSessionsList'),
+  { loading: () => <AnalyticsSurfaceSkeleton className="h-[320px]" /> },
+);
+
+const WeeklyReview = dynamic(
+  () => import('@/components/features/analytics/WeeklyReview'),
+  { loading: () => <AnalyticsSurfaceSkeleton className="h-[220px]" /> },
+);
 
 function formatTotalTime(minutes: number): string {
   if (minutes < 60) return `${minutes}m`;
@@ -58,11 +86,7 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
-      >
+      <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-text-primary flex items-center gap-2">
             <TrendingUp className="w-6 h-6 text-primary" />
@@ -97,7 +121,7 @@ export default function AnalyticsPage() {
             </button>
           ))}
         </div>
-      </motion.div>
+      </div>
 
       {/* Weekly Review */}
       <WeeklyReview />

@@ -6,6 +6,7 @@
 
 For current roadmap and implementation decisions, use:
 - `docs/CONTEXT_CANON.md`
+- `docs/PHASE41_MEASURED_PERFORMANCE_PASS_2026-03-28.md` (Analytics lazy loading + Settings-Split mit messbarem Bundle-Rückgang)
 - `docs/PHASE40_PERFORMANCE_AND_CI_STABILIZATION_2026-03-27.md` (Blur-/Motion-Entlastung, CI-Hotfixes, Focus-Timer-Render-Entkopplung)
 - `docs/PHASE39_MARKETING_ART_DIRECTION_2026-03-23.md`
 - `docs/PHASE38_CAREER_INTELLIGENCE_V3_2026-03-22.md`

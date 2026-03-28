@@ -13,7 +13,10 @@
 </important>
 
 ## Canonical Context
-- Active planning: `docs/PHASE13.md`
+- Active planning:
+  - `docs/CONTEXT_CANON.md`
+  - `docs/PHASE41_MEASURED_PERFORMANCE_PASS_2026-03-28.md`
+  - `docs/PHASE40_PERFORMANCE_AND_CI_STABILIZATION_2026-03-27.md`
 - Context priority map: `docs/CONTEXT_CANON.md` (read first before planning)
 - Documents marked historical in Context Canon are non-normative.
 
