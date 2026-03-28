@@ -440,6 +440,19 @@ export default function StrategyPage() {
     [optionTitle, impactPotential, confidenceLevel, strategicFit, effortCost, downsideRisk, timeToValueWeeks, scoreMode]
   );
 
+  const hasCareerBridgeDraft = useMemo(
+    () =>
+      Boolean(optionTitle.trim()) ||
+      Boolean(optionSummary.trim()) ||
+      impactPotential !== 7 ||
+      confidenceLevel !== 6 ||
+      strategicFit !== 7 ||
+      effortCost !== 5 ||
+      downsideRisk !== 4 ||
+      timeToValueWeeks !== 6,
+    [optionTitle, optionSummary, impactPotential, confidenceLevel, strategicFit, effortCost, downsideRisk, timeToValueWeeks]
+  );
+
   const winnerInsight = useMemo(() => {
     if (!localScore.winner) return null;
 
@@ -803,10 +816,107 @@ export default function StrategyPage() {
 
         <section className="space-y-4 xl:col-span-8">
           {!selectedDecision ? (
-            <div className="dashboard-premium-card rounded-2xl border border-dashed border-border/70 p-10 text-center">
-              <Target className="mx-auto mb-2 h-6 w-6 text-primary/70" />
-              <p className="text-lg font-medium text-text-primary">Wähle oder erstelle eine Decision</p>
-              <p className="mt-1 text-sm text-text-secondary">Danach kannst du Optionen bewerten und committen.</p>
+            <div className="space-y-4">
+              <div className="dashboard-premium-card rounded-2xl border border-dashed border-border/70 p-10 text-center">
+                <Target className="mx-auto mb-2 h-6 w-6 text-primary/70" />
+                <p className="text-lg font-medium text-text-primary">Wähle oder erstelle eine Decision</p>
+                <p className="mt-1 text-sm text-text-secondary">Danach kannst du Optionen bewerten und committen.</p>
+              </div>
+
+              {hasCareerBridgeDraft ? (
+                <section className="dashboard-premium-card rounded-2xl border border-primary/25 bg-gradient-to-b from-primary/[0.09] to-surface/[0.42] p-3 backdrop-blur-[2px] shadow-[0_14px_36px_-30px_rgba(0,0,0,0.85)] transition-all duration-300 hover:border-primary/32 sm:p-4">
+                  <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-text-primary">Career-Bridge Draft übernommen</p>
+                      <p className="text-xs text-text-secondary">Die Option ist vorgeladen. Erstelle links die Decision und speichere danach den Draft.</p>
+                    </div>
+                    <Badge variant="primary" size="sm">
+                      {draftOptionScore.total} pts
+                    </Badge>
+                  </div>
+
+                  <div className="grid gap-2 md:grid-cols-2">
+                    <Input
+                      label="Option Titel"
+                      description="Aus dem Career-Lead übernommen"
+                      value={optionTitle}
+                      onChange={(event) => setOptionTitle(event.target.value)}
+                      placeholder="z.B. Kern Advisory aktiv verfolgen"
+                    />
+                    <Input
+                      label="Time to Value (Wochen)"
+                      description="Wie schnell liefert die Option realen Output?"
+                      value={timeToValueWeeks}
+                      type="number"
+                      min={1}
+                      max={104}
+                      onChange={(event) => setTimeToValueWeeks(clampWeeksValue(event.target.value))}
+                    />
+                  </div>
+                  <div className="mt-2">
+                    <Textarea
+                      label="Option Summary"
+                      description="Kurz begründen, warum diese Option strategisch sinnvoll ist."
+                      value={optionSummary}
+                      onChange={(event) => setOptionSummary(event.target.value)}
+                      rows={2}
+                      placeholder="Warum ist diese Option stark?"
+                    />
+                  </div>
+
+                  <div className="mt-2 grid gap-2 md:grid-cols-3">
+                    <Input
+                      label="Impact"
+                      value={impactPotential}
+                      type="number"
+                      min={1}
+                      max={10}
+                      onChange={(event) => setImpactPotential(clampScoreValue(event.target.value))}
+                    />
+                    <Input
+                      label="Confidence"
+                      value={confidenceLevel}
+                      type="number"
+                      min={1}
+                      max={10}
+                      onChange={(event) => setConfidenceLevel(clampScoreValue(event.target.value))}
+                    />
+                    <Input
+                      label="Strategic Fit"
+                      value={strategicFit}
+                      type="number"
+                      min={1}
+                      max={10}
+                      onChange={(event) => setStrategicFit(clampScoreValue(event.target.value))}
+                    />
+                    <Input
+                      label="Effort"
+                      value={effortCost}
+                      type="number"
+                      min={1}
+                      max={10}
+                      onChange={(event) => setEffortCost(clampScoreValue(event.target.value))}
+                    />
+                    <Input
+                      label="Risk"
+                      value={downsideRisk}
+                      type="number"
+                      min={1}
+                      max={10}
+                      onChange={(event) => setDownsideRisk(clampScoreValue(event.target.value))}
+                    />
+                  </div>
+
+                  <div className="mt-2 grid grid-cols-2 gap-1 text-[11px] md:grid-cols-3">
+                    <div className="rounded-md border border-emerald-500/25 bg-emerald-500/10 px-2 py-1 text-emerald-300">Impact {impactPotential}/10</div>
+                    <div className="rounded-md border border-cyan-500/25 bg-cyan-500/10 px-2 py-1 text-cyan-300">Confidence {confidenceLevel}/10</div>
+                    <div className="rounded-md border border-sky-500/25 bg-sky-500/10 px-2 py-1 text-sky-300">Fit {strategicFit}/10</div>
+                    <div className="rounded-md border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-amber-300">Effort {effortCost}/10</div>
+                    <div className="rounded-md border border-red-500/25 bg-red-500/10 px-2 py-1 text-red-300">Risk {downsideRisk}/10</div>
+                    <div className="rounded-md border border-violet-500/25 bg-violet-500/10 px-2 py-1 text-violet-300">Speed {timeToValueWeeks}w</div>
+                  </div>
+                </section>
+              ) : null}
             </div>
           ) : (
             <>
