@@ -14,6 +14,7 @@ import {
   RefreshCw,
   ShieldCheck,
   Signal,
+  Trash2,
   Upload,
 } from 'lucide-react';
 import { DecisionSurfaceCard } from '@/components/ui/DecisionSurfaceCard';
@@ -178,6 +179,19 @@ async function importIliasCoursePayload(rawValue: string) {
   };
 }
 
+async function resetKitSyncScope(scope: 'campus_webcal' | 'campus_connector' | 'ilias_dashboard' | 'ilias_items') {
+  const response = await fetch(`/api/kit/sync?scope=${scope}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.error?.message ?? 'KIT Sync Daten konnten nicht zurückgesetzt werden.');
+  }
+
+  return response.json();
+}
+
 function formatDateTime(value: string | null | undefined) {
   if (!value) return null;
   return format(new Date(value), 'dd.MM.yyyy HH:mm');
@@ -220,6 +234,33 @@ function statusBadgeVariant(status: string | null | undefined): 'success' | 'war
   if (status === 'failed') return 'error';
   if (status === 'partial' || status === 'running') return 'warning';
   return 'default';
+}
+
+function previewCampusAcademicImport(rawValue: string) {
+  const parsed = parseCampusAcademicExport(rawValue);
+  if (parsed.modules.length === 0 && parsed.grades.length === 0 && parsed.exams.length === 0) {
+    throw new Error('Der CAMPUS-Export enthält noch keine Module, Noten oder Prüfungen.');
+  }
+
+  return `CAMPUS Snapshot importieren?\n\n${parsed.modules.length} Module\n${parsed.grades.length} Noten\n${parsed.exams.length} Prüfungen\n\nWenn der Export falsch ist, kannst du die Quelle danach direkt wieder zurücksetzen.`;
+}
+
+function previewIliasFavoritesImport(rawValue: string) {
+  const parsed = parseIliasDashboardExport(rawValue);
+  if (parsed.favorites.length === 0) {
+    throw new Error('Der ILIAS-Export enthält 0 Favoriten. Bitte prüfe, ob du das Skript wirklich auf dem ILIAS-Dashboard mit sichtbaren Favoriten ausgeführt hast.');
+  }
+
+  return `ILIAS Favoriten importieren?\n\n${parsed.favorites.length} Kurse\n${parsed.items.length} Items\n\nBestehende Favoriten kannst du danach direkt zurücksetzen, falls der Export falsch war.`;
+}
+
+function previewIliasCourseImport(rawValue: string) {
+  const parsed = parseIliasCourseExport(rawValue);
+  if (parsed.items.length === 0) {
+    throw new Error('Der ILIAS Kurs-Export enthält noch keine Kurs-Items. Öffne einen favorisierten Kurs mit Materialien oder Ankündigungen.');
+  }
+
+  return `ILIAS Kurs-Items importieren?\n\n${parsed.favorites.length} Kurse\n${parsed.items.length} Items\n\nWenn der Export unplausibel aussieht, kannst du die Kurs-Items danach direkt wieder zurücksetzen.`;
 }
 
 export default function KitSyncPanel() {
@@ -316,6 +357,17 @@ export default function KitSyncPanel() {
     },
   });
 
+  const resetMutation = useMutation({
+    mutationFn: resetKitSyncScope,
+    onSuccess: async (result: { itemsDeleted: number }) => {
+      await queryClient.invalidateQueries({ queryKey: ['kit-sync-status'] });
+      soundToast.success(`Quelle zurückgesetzt · ${result.itemsDeleted} Einträge entfernt.`);
+    },
+    onError: (mutationError: Error) => {
+      soundToast.error(mutationError.message);
+    },
+  });
+
   async function handleCopyConnectorScript(
     scriptPath: string,
     setPending: (value: boolean) => void,
@@ -341,6 +393,7 @@ export default function KitSyncPanel() {
   async function handleImportFile(
     file: File | null,
     setContent: (value: string) => void,
+    previewImport: (value: string) => string,
     mutate: (value: string) => void
   ) {
     if (!file) return;
@@ -348,10 +401,34 @@ export default function KitSyncPanel() {
     try {
       const content = await file.text();
       setContent(content);
+      const confirmation = previewImport(content);
+      if (!window.confirm(confirmation)) return;
       mutate(content);
     } catch (fileError) {
       soundToast.error(fileError instanceof Error ? fileError.message : 'Datei konnte nicht gelesen werden.');
     }
+  }
+
+  function handleManualImport(
+    rawValue: string,
+    previewImport: (value: string) => string,
+    mutate: (value: string) => void
+  ) {
+    try {
+      const confirmation = previewImport(rawValue);
+      if (!window.confirm(confirmation)) return;
+      mutate(rawValue);
+    } catch (previewError) {
+      soundToast.error(previewError instanceof Error ? previewError.message : 'Import konnte nicht vorbereitet werden.');
+    }
+  }
+
+  function confirmReset(scope: 'campus_webcal' | 'campus_connector' | 'ilias_dashboard' | 'ilias_items', label: string) {
+    if (!window.confirm(`${label} wirklich zurücksetzen?\n\nDie importierten Daten aus dieser Quelle werden aus INNIS entfernt.`)) {
+      return;
+    }
+
+    resetMutation.mutate(scope);
   }
 
   const chips = useMemo(() => {
@@ -563,7 +640,7 @@ export default function KitSyncPanel() {
                 <div className="mt-2 text-xs leading-relaxed text-text-secondary">
                   Verbindet deinen offiziellen KIT-Kalender. Termine laufen danach direkt in den normalen INNIS-Kalender.
                 </div>
-                <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-end">
+                <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto_auto] lg:items-end">
                   <Input
                     label="CAMPUS WebCal-URL"
                     placeholder="webcal://campus.studium.kit.edu/..."
@@ -589,6 +666,14 @@ export default function KitSyncPanel() {
                     leftIcon={<RefreshCw className="h-4 w-4" />}
                   >
                     Sync
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => confirmReset('campus_webcal', 'CAMPUS Kalender')}
+                    loading={resetMutation.isPending}
+                    leftIcon={<Trash2 className="h-4 w-4" />}
+                  >
+                    Leeren
                   </Button>
                 </div>
                 {data?.campusWebcalMaskedUrl ? (
@@ -631,6 +716,14 @@ export default function KitSyncPanel() {
                   >
                     JSON-Datei importieren
                   </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => confirmReset('campus_connector', 'CAMPUS Academic Snapshot')}
+                    loading={resetMutation.isPending}
+                    leftIcon={<Trash2 className="h-4 w-4" />}
+                  >
+                    Zurücksetzen
+                  </Button>
                   <input
                     ref={campusFileInputRef}
                     type="file"
@@ -638,7 +731,7 @@ export default function KitSyncPanel() {
                     className="hidden"
                     onChange={(event) => {
                       const file = event.target.files?.[0] ?? null;
-                      void handleImportFile(file, setCampusExportText, campusImportMutation.mutate);
+                      void handleImportFile(file, setCampusExportText, previewCampusAcademicImport, campusImportMutation.mutate);
                       event.currentTarget.value = '';
                     }}
                   />
@@ -668,7 +761,7 @@ export default function KitSyncPanel() {
                     />
                     <Button
                       variant="primary"
-                      onClick={() => campusImportMutation.mutate(campusExportText)}
+                      onClick={() => handleManualImport(campusExportText, previewCampusAcademicImport, campusImportMutation.mutate)}
                       loading={campusImportMutation.isPending}
                       disabled={!campusExportText.trim()}
                       leftIcon={<Upload className="h-4 w-4" />}
@@ -714,6 +807,14 @@ export default function KitSyncPanel() {
                   >
                     JSON-Datei importieren
                   </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => confirmReset('ilias_dashboard', 'ILIAS Favoriten')}
+                    loading={resetMutation.isPending}
+                    leftIcon={<Trash2 className="h-4 w-4" />}
+                  >
+                    Zurücksetzen
+                  </Button>
                   <input
                     ref={iliasDashboardFileInputRef}
                     type="file"
@@ -721,7 +822,7 @@ export default function KitSyncPanel() {
                     className="hidden"
                     onChange={(event) => {
                       const file = event.target.files?.[0] ?? null;
-                      void handleImportFile(file, setIliasExportText, iliasImportMutation.mutate);
+                      void handleImportFile(file, setIliasExportText, previewIliasFavoritesImport, iliasImportMutation.mutate);
                       event.currentTarget.value = '';
                     }}
                   />
@@ -751,7 +852,7 @@ export default function KitSyncPanel() {
                     />
                     <Button
                       variant="primary"
-                      onClick={() => iliasImportMutation.mutate(iliasExportText)}
+                      onClick={() => handleManualImport(iliasExportText, previewIliasFavoritesImport, iliasImportMutation.mutate)}
                       loading={iliasImportMutation.isPending}
                       disabled={!iliasExportText.trim()}
                       leftIcon={<Upload className="h-4 w-4" />}
@@ -797,6 +898,14 @@ export default function KitSyncPanel() {
                   >
                     JSON-Datei importieren
                   </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => confirmReset('ilias_items', 'ILIAS Kurs-Items')}
+                    loading={resetMutation.isPending}
+                    leftIcon={<Trash2 className="h-4 w-4" />}
+                  >
+                    Zurücksetzen
+                  </Button>
                   <input
                     ref={iliasCourseFileInputRef}
                     type="file"
@@ -804,7 +913,7 @@ export default function KitSyncPanel() {
                     className="hidden"
                     onChange={(event) => {
                       const file = event.target.files?.[0] ?? null;
-                      void handleImportFile(file, setIliasCourseExportText, iliasCourseImportMutation.mutate);
+                      void handleImportFile(file, setIliasCourseExportText, previewIliasCourseImport, iliasCourseImportMutation.mutate);
                       event.currentTarget.value = '';
                     }}
                   />
@@ -834,7 +943,7 @@ export default function KitSyncPanel() {
                     />
                     <Button
                       variant="primary"
-                      onClick={() => iliasCourseImportMutation.mutate(iliasCourseExportText)}
+                      onClick={() => handleManualImport(iliasCourseExportText, previewIliasCourseImport, iliasCourseImportMutation.mutate)}
                       loading={iliasCourseImportMutation.isPending}
                       disabled={!iliasCourseExportText.trim()}
                       leftIcon={<Upload className="h-4 w-4" />}

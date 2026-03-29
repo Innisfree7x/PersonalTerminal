@@ -51,6 +51,25 @@ const siblingDashboardHtml = `
   </main>
 `;
 
+const noisyDashboardHtml = `
+  <main>
+    <section class="dashboard-block">
+      <h2>Favoriten</h2>
+      <a href="#favoriten">Favoriten</a>
+      <div class="group">SS 2025</div>
+      <div class="entry">
+        <a href="/goto.php?target=crs_2530575">2530575 – Investments SS2025</a>
+      </div>
+      <div class="entry">
+        <a href="/goto.php?target=crs_2600014">2600014 – Volkswirtschaftslehre II: Makroökonomie</a>
+      </div>
+      <div class="entry">
+        <a href="/mail.php?id=123">Hallo, ich hab heute meine Unterlagen geschickt</a>
+      </div>
+    </section>
+  </main>
+`;
+
 describe('iliasDashboardExport helpers', () => {
   it('extracts dashboard favorites with semester context', () => {
     const doc = new DOMParser().parseFromString(dashboardHtml, 'text/html');
@@ -108,5 +127,16 @@ describe('iliasDashboardExport helpers', () => {
     const parsed = parseIliasDashboardExport(raw);
     expect(parsed.favorites[0]?.title).toBe('2530575 – Investments SS2025');
     expect(parsed.items).toEqual([]);
+  });
+
+  it('ignores structural and non-course links inside the favorites block', () => {
+    const doc = new DOMParser().parseFromString(noisyDashboardHtml, 'text/html');
+    const favorites = extractIliasDashboardFavorites(doc, 'https://ilias.studium.kit.edu/dashboard');
+
+    expect(favorites).toHaveLength(2);
+    expect(favorites.map((favorite) => favorite.title)).toEqual([
+      '2530575 – Investments SS2025',
+      '2600014 – Volkswirtschaftslehre II: Makroökonomie',
+    ]);
   });
 });

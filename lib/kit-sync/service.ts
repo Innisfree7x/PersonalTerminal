@@ -16,7 +16,11 @@ import {
   buildIliasItemUpsertRows,
   normalizeIliasConnectorPayload,
 } from '@/lib/kit-sync/iliasConnector';
-import type { CampusConnectorPayloadInput, IliasConnectorPayloadInput } from '@/lib/schemas/kit-sync.schema';
+import type {
+  CampusConnectorPayloadInput,
+  IliasConnectorPayloadInput,
+  KitSyncResetScope,
+} from '@/lib/schemas/kit-sync.schema';
 import {
   fetchCampusWebcalDocument,
   maskCampusWebcalUrl,
@@ -30,6 +34,12 @@ type KitSyncProfileRow = Database['public']['Tables']['kit_sync_profiles']['Row'
 type KitSyncRunSource = Database['public']['Tables']['kit_sync_runs']['Row']['source'];
 type KitSyncRunTrigger = Database['public']['Tables']['kit_sync_runs']['Row']['trigger'];
 type KitSyncRunStatus = Database['public']['Tables']['kit_sync_runs']['Row']['status'];
+type ResettableKitTable =
+  | 'kit_campus_events'
+  | 'kit_campus_modules'
+  | 'kit_campus_grades'
+  | 'kit_ilias_favorites'
+  | 'kit_ilias_items';
 
 let adminClient: AdminClient | null = null;
 
@@ -770,4 +780,88 @@ export async function syncAllCampusWebcalProfiles() {
   }
 
   return { processed, succeeded, failed };
+}
+
+async function deleteRows(client: AdminClient, table: ResettableKitTable, filters: Array<[column: string, value: string]>) {
+  let query = client.from(table).delete().select('id');
+  for (const [column, value] of filters) {
+    query = query.eq(column, value);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    if (isMissingRelationError(error)) return 0;
+    throw ApiErrors.internal(`${table} konnten nicht zurückgesetzt werden: ${error.message}`);
+  }
+
+  return data?.length ?? 0;
+}
+
+export async function resetKitSyncScopeForUser(userId: string, scope: KitSyncResetScope) {
+  const client = admin();
+  const runSource: KitSyncRunSource =
+    scope === 'campus_webcal'
+      ? 'campus_webcal'
+      : scope === 'campus_connector'
+        ? 'campus_connector'
+        : 'ilias_connector';
+
+  const runId = await insertSyncRun({
+    userId,
+    source: runSource,
+    trigger: 'manual',
+    status: 'running',
+  });
+
+  try {
+    let itemsDeleted = 0;
+
+    if (scope === 'campus_webcal') {
+      itemsDeleted += await deleteRows(client, 'kit_campus_events', [
+        ['user_id', userId],
+        ['source', 'campus_webcal'],
+      ]);
+    }
+
+    if (scope === 'campus_connector') {
+      itemsDeleted += await deleteRows(client, 'kit_campus_events', [
+        ['user_id', userId],
+        ['source', 'campus_connector'],
+      ]);
+      itemsDeleted += await deleteRows(client, 'kit_campus_grades', [['user_id', userId]]);
+      itemsDeleted += await deleteRows(client, 'kit_campus_modules', [['user_id', userId]]);
+    }
+
+    if (scope === 'ilias_items') {
+      itemsDeleted += await deleteRows(client, 'kit_ilias_items', [['user_id', userId]]);
+    }
+
+    if (scope === 'ilias_dashboard') {
+      const itemDeleteCount = await deleteRows(client, 'kit_ilias_items', [['user_id', userId]]);
+      const favoriteDeleteCount = await deleteRows(client, 'kit_ilias_favorites', [['user_id', userId]]);
+      itemsDeleted += itemDeleteCount + favoriteDeleteCount;
+    }
+
+    await finalizeSyncRun(runId, {
+      status: 'success',
+      itemsRead: 0,
+      itemsWritten: 0,
+    });
+
+    return {
+      scope,
+      itemsDeleted,
+      nextStatus: await getKitSyncStatus(userId),
+    };
+  } catch (error) {
+    const normalizedError = formatSyncError(error);
+    await finalizeSyncRun(runId, {
+      status: 'failed',
+      itemsRead: 0,
+      itemsWritten: 0,
+      errorCode: normalizedError.code,
+      errorMessage: normalizedError.message,
+    });
+    throw error;
+  }
 }

@@ -75,6 +75,54 @@ const campusHtml = `
   </main>
 `;
 
+const campusLegacyHtml = `
+  <main>
+    <section>
+      <h2>Studiengangsdetails</h2>
+      <table>
+        <tbody>
+          <tr>
+            <td>Titel (mit Kennung)</td>
+            <td>Art</td>
+            <td>Status</td>
+            <td>Note</td>
+            <td>Datum</td>
+            <td>Ist-LP</td>
+            <td>Soll-LP</td>
+          </tr>
+          <tr>
+            <td>82-179-H-2015 – Wirtschaftsingenieurwesen Bachelor 2015</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>101,0</td>
+            <td>180,0</td>
+          </tr>
+          <tr>
+            <td>T-WIWI-102708 – Volkswirtschaftslehre I: Mikroökonomie</td>
+            <td>PF</td>
+            <td>bestanden</td>
+            <td>4,0</td>
+            <td>22.02.2024</td>
+            <td>5,0</td>
+            <td>5,0</td>
+          </tr>
+          <tr>
+            <td>T-WIWI-102737 – Statistik I</td>
+            <td>PF</td>
+            <td>bestanden</td>
+            <td>2,0</td>
+            <td>27.07.2024</td>
+            <td>5,0</td>
+            <td>5,0</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+`;
+
 describe('campusAcademicExport helpers', () => {
   it('builds a stable campus academic export from tables', () => {
     const doc = new DOMParser().parseFromString(campusHtml, 'text/html');
@@ -139,5 +187,35 @@ describe('campusAcademicExport helpers', () => {
     expect(parsed.modules[0]?.title).toBe('Investments SS2025');
     expect(parsed.grades).toEqual([]);
     expect(parsed.exams).toEqual([]);
+  });
+
+  it('extracts grades from legacy td-header CAMPUS tables', () => {
+    const doc = new DOMParser().parseFromString(campusLegacyHtml, 'text/html');
+    const payload = buildCampusAcademicExport(doc, 'https://campus.studium.kit.edu/campus/student/contractview.asp');
+
+    expect(payload.modules).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: 'Volkswirtschaftslehre I: Mikroökonomie',
+        }),
+        expect.objectContaining({
+          title: 'Statistik I',
+        }),
+      ])
+    );
+    expect(payload.grades).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          gradeLabel: '4,0',
+          gradeValue: 4,
+          examDate: '2024-02-22',
+        }),
+        expect.objectContaining({
+          gradeLabel: '2,0',
+          gradeValue: 2,
+          examDate: '2024-07-27',
+        }),
+      ])
+    );
   });
 });

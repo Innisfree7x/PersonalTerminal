@@ -21,6 +21,7 @@ const groupLabelPattern = /^(WS|SS)\s+\d{4}$/i;
 const structuralLabelSet = new Set(['Bachelor', 'Master']);
 const sectionBoundaryLabels = new Set(['To-Do', 'Kalender', 'Neuigkeiten', 'Mail']);
 const blockedLinkLabels = new Set([
+  'Favoriten',
   'Dashboard',
   'Magazin',
   'Persönlicher Arbeitsraum',
@@ -83,6 +84,12 @@ function isLikelyCourseLink(anchor: HTMLAnchorElement, baseUrl: string) {
   if (!['http:', 'https:'].includes(parsed.protocol)) return false;
   if (parsed.hash && parsed.pathname === '/' && !parsed.search) return false;
   if (parsed.searchParams.get('baseClass') === 'ilLinkResourceHandlerGUI') return false;
+  if (!parsed.searchParams.get('ref_id') && !parsed.searchParams.get('target') && !parsed.pathname.includes('goto.php')) {
+    return false;
+  }
+  if (parsed.searchParams.get('target') && !parsed.searchParams.get('target')?.startsWith('crs_')) {
+    return false;
+  }
 
   return true;
 }

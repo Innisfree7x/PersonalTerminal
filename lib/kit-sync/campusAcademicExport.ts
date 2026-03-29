@@ -152,6 +152,12 @@ function extractModuleCodeAndTitle(rawValue: string) {
     return { moduleCode: null, title: null };
   }
 
+  const structuredCode = text.match(/^([A-Z0-9ÄÖÜ]+(?:-[A-Z0-9ÄÖÜ]+)*-\d{5,}|\d{5,})\s*[–-]\s*(.+)$/i);
+  if (structuredCode?.[1] && structuredCode[2]) {
+    const numericCode = structuredCode[1].match(/\d{5,}/)?.[0] ?? structuredCode[1];
+    return { moduleCode: numericCode, title: structuredCode[2].trim() };
+  }
+
   const prefixed = text.match(/^(\d{5,})\s*[–-]\s*(.+)$/);
   if (prefixed?.[1] && prefixed[2]) {
     return { moduleCode: prefixed[1], title: prefixed[2].trim() };
@@ -159,7 +165,11 @@ function extractModuleCodeAndTitle(rawValue: string) {
 
   const codeOnly = text.match(/\b(\d{5,})\b/);
   if (codeOnly?.[1]) {
-    const cleanedTitle = text.replace(codeOnly[1], '').replace(/^[–-]\s*/, '').trim();
+    const cleanedTitle = text
+      .replace(/^[A-Z0-9ÄÖÜ]+(?:-[A-Z0-9ÄÖÜ]+)*-\d{5,}\s*[–-]\s*/i, '')
+      .replace(codeOnly[1], '')
+      .replace(/^[–-]\s*/, '')
+      .trim();
     return {
       moduleCode: codeOnly[1],
       title: cleanedTitle || text,
@@ -172,24 +182,73 @@ function extractModuleCodeAndTitle(rawValue: string) {
 type TableRow = { cells: string[] };
 type ExtractedTable = { headers: string[]; rows: TableRow[] };
 
-function extractTables(doc: Document): ExtractedTable[] {
-  return Array.from(doc.querySelectorAll('table')).map((table) => {
-    const headerCells = Array.from(table.querySelectorAll('thead th'));
-    const fallbackHeaderCells = headerCells.length === 0
-      ? Array.from(table.querySelectorAll('tr')).find((row) => row.querySelector('th'))?.querySelectorAll('th') ?? []
-      : [];
-    const headerSource = headerCells.length > 0 ? headerCells : Array.from(fallbackHeaderCells);
-    const headers = headerSource.map((cell) => normalizeHeader(cell.textContent ?? ''));
+function isLikelyHeaderRow(cells: string[]) {
+  const normalized = cells.map((cell) => normalizeHeader(cell));
+  if (normalized.length === 0) return false;
 
-    const rows = Array.from(table.querySelectorAll('tr'))
-      .filter((row) => row.querySelectorAll('td').length > 0)
-      .map((row) => ({
-        cells: Array.from(row.querySelectorAll('td')).map((cell) => normalizeText(cell.textContent ?? '')),
-      }))
-      .filter((row) => row.cells.some(Boolean));
+  const headerHints = ['titel', 'modul', 'note', 'datum', 'status', 'art', 'ects', 'lp', 'uhrzeit', 'hörsaal', 'raum', 'semester'];
+  const matches = normalized.filter((cell) => headerHints.some((hint) => cell.includes(hint))).length;
+  return matches >= 2;
+}
+
+function extractTableRows(table: Element) {
+  return Array.from(table.querySelectorAll('tr')).map((row) => {
+    const cells = Array.from(row.querySelectorAll('th, td')).map((cell) => normalizeText(cell.textContent ?? ''));
+    return { cells };
+  }).filter((row) => row.cells.some(Boolean));
+}
+
+function extractTablesFromDocument(doc: Document): ExtractedTable[] {
+  return Array.from(doc.querySelectorAll('table')).map((table) => {
+    const rawRows = extractTableRows(table);
+    if (rawRows.length === 0) {
+      return { headers: [], rows: [] };
+    }
+
+    const theadHeaders = Array.from(table.querySelectorAll('thead th, thead td'))
+      .map((cell) => normalizeHeader(cell.textContent ?? ''))
+      .filter(Boolean);
+
+    const firstHeaderCandidate = rawRows.find((row) => isLikelyHeaderRow(row.cells));
+    const fallbackHeaders = firstHeaderCandidate?.cells.map((cell) => normalizeHeader(cell)).filter(Boolean) ?? [];
+    const headers = theadHeaders.length > 0 ? theadHeaders : fallbackHeaders;
+
+    const rows = rawRows.filter((row) => {
+      if (!row.cells.some(Boolean)) return false;
+      if (headers.length > 0 && row.cells.length === headers.length) {
+        const normalizedRow = row.cells.map((cell) => normalizeHeader(cell));
+        const headerMatchCount = normalizedRow.filter((cell, index) => cell === headers[index]).length;
+        if (headerMatchCount >= Math.max(2, Math.floor(headers.length / 2))) {
+          return false;
+        }
+      }
+
+      return true;
+    });
 
     return { headers, rows };
   }).filter((table) => table.headers.length > 0 && table.rows.length > 0);
+}
+
+function collectDocuments(doc: Document) {
+  const documents = [doc];
+
+  for (const frame of Array.from(doc.querySelectorAll('iframe, frame'))) {
+    try {
+      const frameDoc = (frame as HTMLIFrameElement).contentDocument;
+      if (frameDoc) {
+        documents.push(frameDoc);
+      }
+    } catch {
+      // Ignore cross-origin frames and keep parsing the current document.
+    }
+  }
+
+  return documents;
+}
+
+function extractTables(doc: Document) {
+  return collectDocuments(doc).flatMap((frameDoc) => extractTablesFromDocument(frameDoc));
 }
 
 function inferSourceUpdatedAt() {

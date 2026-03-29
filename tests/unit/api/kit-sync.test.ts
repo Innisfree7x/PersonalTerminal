@@ -19,20 +19,23 @@ vi.mock('@/lib/kit-sync/service', () => ({
   syncCampusWebcalForUser: vi.fn(),
   syncCampusConnectorSnapshotForUser: vi.fn(),
   syncIliasConnectorSnapshotForUser: vi.fn(),
+  resetKitSyncScopeForUser: vi.fn(),
 }));
 
 import { requireApiAuth } from '@/lib/api/auth';
 import {
+  resetKitSyncScopeForUser,
   syncCampusConnectorSnapshotForUser,
   syncCampusWebcalForUser,
   syncIliasConnectorSnapshotForUser,
 } from '@/lib/kit-sync/service';
-import { POST } from '@/app/api/kit/sync/route';
+import { DELETE, POST } from '@/app/api/kit/sync/route';
 
 const mockedRequireApiAuth = vi.mocked(requireApiAuth);
 const mockedSyncCampusWebcalForUser = vi.mocked(syncCampusWebcalForUser);
 const mockedSyncCampusConnectorSnapshotForUser = vi.mocked(syncCampusConnectorSnapshotForUser);
 const mockedSyncIliasConnectorSnapshotForUser = vi.mocked(syncIliasConnectorSnapshotForUser);
+const mockedResetKitSyncScopeForUser = vi.mocked(resetKitSyncScopeForUser);
 
 describe('POST /api/kit/sync', () => {
   beforeEach(() => {
@@ -229,5 +232,25 @@ describe('POST /api/kit/sync', () => {
         ],
       },
     });
+  });
+
+  it('resets a specific kit sync scope', async () => {
+    mockedRequireApiAuth.mockResolvedValueOnce({ user: { id: 'user-1' }, errorResponse: null } as any);
+    mockedResetKitSyncScopeForUser.mockResolvedValueOnce({
+      scope: 'ilias_dashboard',
+      itemsDeleted: 7,
+      nextStatus: { totalIliasFavorites: 0, totalIliasItems: 0 },
+    } as any);
+
+    const response = await DELETE(
+      new NextRequest('http://localhost:3000/api/kit/sync?scope=ilias_dashboard', {
+        method: 'DELETE',
+      })
+    );
+
+    expect(response.status).toBe(200);
+    expect(mockedResetKitSyncScopeForUser).toHaveBeenCalledWith('user-1', 'ilias_dashboard');
+    const body = await response.json();
+    expect(body.itemsDeleted).toBe(7);
   });
 });

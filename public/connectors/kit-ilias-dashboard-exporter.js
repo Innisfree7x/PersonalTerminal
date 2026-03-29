@@ -5,6 +5,7 @@
   const STRUCTURAL_LABELS = new Set(['Bachelor', 'Master']);
   const SECTION_BOUNDARY_LABELS = new Set(['To-Do', 'Kalender', 'Neuigkeiten', 'Mail']);
   const BLOCKED_LABELS = new Set([
+    'Favoriten',
     'Dashboard',
     'Magazin',
     'Persönlicher Arbeitsraum',
@@ -67,6 +68,8 @@
       const parsed = new URL(absoluteUrl);
       if (!['http:', 'https:'].includes(parsed.protocol)) return false;
       if (parsed.searchParams.get('baseClass') === 'ilLinkResourceHandlerGUI') return false;
+      if (!parsed.searchParams.get('ref_id') && !parsed.searchParams.get('target') && !parsed.pathname.includes('goto.php')) return false;
+      if (parsed.searchParams.get('target') && !parsed.searchParams.get('target').startsWith('crs_')) return false;
     } catch {
       return false;
     }

@@ -71,6 +71,7 @@ export const iliasConnectorPayloadSchema = z.object({
 });
 
 export const kitSyncSourceSchema = z.enum(['campus_webcal', 'campus_connector', 'ilias_connector']);
+export const kitSyncResetScopeSchema = z.enum(['campus_webcal', 'campus_connector', 'ilias_dashboard', 'ilias_items']);
 
 export const saveKitWebcalSchema = z.object({
   url: z.string().trim().min(1, 'WebCal-URL ist erforderlich.').max(2048, 'WebCal-URL ist zu lang.'),
@@ -93,6 +94,7 @@ export const triggerKitSyncSchema = z.discriminatedUnion('source', [
 ]);
 
 export type KitSyncSource = z.infer<typeof kitSyncSourceSchema>;
+export type KitSyncResetScope = z.infer<typeof kitSyncResetScopeSchema>;
 export type SaveKitWebcalInput = z.infer<typeof saveKitWebcalSchema>;
 export type CampusConnectorModuleInput = z.infer<typeof campusConnectorModuleSchema>;
 export type CampusConnectorGradeInput = z.infer<typeof campusConnectorGradeSchema>;

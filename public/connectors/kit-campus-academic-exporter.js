@@ -110,28 +110,84 @@
   function extractModuleCodeAndTitle(rawValue) {
     const text = normalizeText(rawValue);
     if (!text) return { moduleCode: null, title: null };
+    const structuredCode = text.match(/^([A-Z0-9ÄÖÜ]+(?:-[A-Z0-9ÄÖÜ]+)*-\d{5,}|\d{5,})\s*[–-]\s*(.+)$/i);
+    if (structuredCode) {
+      const numericCodeMatch = structuredCode[1].match(/\d{5,}/);
+      return { moduleCode: numericCodeMatch ? numericCodeMatch[0] : structuredCode[1], title: structuredCode[2].trim() };
+    }
     const prefixed = text.match(/^(\d{5,})\s*[–-]\s*(.+)$/);
     if (prefixed) return { moduleCode: prefixed[1], title: prefixed[2].trim() };
     const codeOnly = text.match(/\b(\d{5,})\b/);
     if (codeOnly) {
-      const cleanedTitle = text.replace(codeOnly[1], '').replace(/^[–-]\s*/, '').trim();
+      const cleanedTitle = text
+        .replace(/^[A-Z0-9ÄÖÜ]+(?:-[A-Z0-9ÄÖÜ]+)*-\d{5,}\s*[–-]\s*/i, '')
+        .replace(codeOnly[1], '')
+        .replace(/^[–-]\s*/, '')
+        .trim();
       return { moduleCode: codeOnly[1], title: cleanedTitle || text };
     }
     return { moduleCode: null, title: text };
   }
 
-  function extractTables(doc) {
+  function isLikelyHeaderRow(cells) {
+    const normalized = cells.map((cell) => normalizeHeader(cell));
+    if (normalized.length === 0) return false;
+    const headerHints = ['titel', 'modul', 'note', 'datum', 'status', 'art', 'ects', 'lp', 'uhrzeit', 'hörsaal', 'raum', 'semester'];
+    const matches = normalized.filter((cell) => headerHints.some((hint) => cell.includes(hint))).length;
+    return matches >= 2;
+  }
+
+  function extractTableRows(table) {
+    return Array.from(table.querySelectorAll('tr')).map((row) => ({
+      cells: Array.from(row.querySelectorAll('th, td')).map((cell) => normalizeText(cell.textContent)),
+    })).filter((row) => row.cells.some(Boolean));
+  }
+
+  function extractTablesFromDocument(doc) {
     return Array.from(doc.querySelectorAll('table')).map((table) => {
-      const headerCells = Array.from(table.querySelectorAll('thead th'));
-      const fallbackHeaderRow = headerCells.length === 0 ? Array.from(table.querySelectorAll('tr')).find((row) => row.querySelector('th')) : null;
-      const headerSource = headerCells.length > 0 ? headerCells : Array.from(fallbackHeaderRow ? fallbackHeaderRow.querySelectorAll('th') : []);
-      const headers = headerSource.map((cell) => normalizeHeader(cell.textContent));
-      const rows = Array.from(table.querySelectorAll('tr'))
-        .filter((row) => row.querySelectorAll('td').length > 0)
-        .map((row) => ({ cells: Array.from(row.querySelectorAll('td')).map((cell) => normalizeText(cell.textContent)) }))
-        .filter((row) => row.cells.some(Boolean));
+      const rawRows = extractTableRows(table);
+      if (rawRows.length === 0) {
+        return { headers: [], rows: [] };
+      }
+
+      const theadHeaders = Array.from(table.querySelectorAll('thead th, thead td'))
+        .map((cell) => normalizeHeader(cell.textContent))
+        .filter(Boolean);
+      const firstHeaderCandidate = rawRows.find((row) => isLikelyHeaderRow(row.cells));
+      const fallbackHeaders = firstHeaderCandidate ? firstHeaderCandidate.cells.map((cell) => normalizeHeader(cell)).filter(Boolean) : [];
+      const headers = theadHeaders.length > 0 ? theadHeaders : fallbackHeaders;
+
+      const rows = rawRows.filter((row) => {
+        if (!row.cells.some(Boolean)) return false;
+        if (headers.length > 0 && row.cells.length === headers.length) {
+          const normalizedRow = row.cells.map((cell) => normalizeHeader(cell));
+          const headerMatchCount = normalizedRow.filter((cell, index) => cell === headers[index]).length;
+          if (headerMatchCount >= Math.max(2, Math.floor(headers.length / 2))) {
+            return false;
+          }
+        }
+        return true;
+      });
+
       return { headers: headers, rows: rows };
     }).filter((table) => table.headers.length > 0 && table.rows.length > 0);
+  }
+
+  function collectDocuments(doc) {
+    const documents = [doc];
+    Array.from(doc.querySelectorAll('iframe, frame')).forEach((frame) => {
+      try {
+        const frameDoc = frame.contentDocument;
+        if (frameDoc) {
+          documents.push(frameDoc);
+        }
+      } catch {}
+    });
+    return documents;
+  }
+
+  function extractTables(doc) {
+    return collectDocuments(doc).flatMap((frameDoc) => extractTablesFromDocument(frameDoc));
   }
 
   function buildModuleExternalId(moduleCode, title, semesterLabel) {
@@ -332,25 +388,28 @@
   snapshot.exams = dedupeByExternalId([].concat(snapshot.exams || [], exams));
   saveSnapshot(snapshot);
 
+  const message = 'INNIS CAMPUS Export aktualisiert: ' + snapshot.modules.length + ' Module, ' + snapshot.grades.length + ' Noten, ' + snapshot.exams.length + ' Prüfungen.';
   const serialized = JSON.stringify(snapshot, null, 2);
   const filename = 'innis-kit-campus-academic-export-' + new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-') + '.json';
-  const blob = new Blob([serialized], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  window.__INNIS_KIT_CAMPUS_EXPORT__ = snapshot;
 
-  const message = 'INNIS CAMPUS Export aktualisiert: ' + snapshot.modules.length + ' Module, ' + snapshot.grades.length + ' Noten, ' + snapshot.exams.length + ' Prüfungen.';
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(serialized).then(
-      function () { alert(message + ' JSON wurde kopiert und als Datei gespeichert.'); },
-      function () { alert(message + ' JSON wurde als Datei gespeichert.'); }
+      function () {
+        const blob = new Blob([serialized], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        alert(message + ' JSON wurde in die Zwischenablage kopiert. Wenn der Datei-Download blockiert oder wegen Speicher scheitert, füge den Inhalt direkt in INNIS ein.');
+      },
+      function () { alert(message + ' JSON liegt auf window.__INNIS_KIT_CAMPUS_EXPORT__ und kann direkt in INNIS eingefügt werden.'); }
     );
   } else {
-    alert(message + ' JSON wurde als Datei gespeichert.');
+    alert(message + ' JSON liegt auf window.__INNIS_KIT_CAMPUS_EXPORT__ und kann direkt in INNIS eingefügt werden.');
   }
 })();

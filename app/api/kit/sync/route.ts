@@ -3,8 +3,9 @@ import { requireApiAuth } from '@/lib/api/auth';
 import { enforceTrustedMutationOrigin } from '@/lib/api/csrf';
 import { applyRateLimitHeaders, consumeRateLimit, readForwardedIpFromRequest } from '@/lib/api/rateLimit';
 import { handleRouteError } from '@/lib/api/server-errors';
-import { triggerKitSyncSchema } from '@/lib/schemas/kit-sync.schema';
+import { kitSyncResetScopeSchema, triggerKitSyncSchema } from '@/lib/schemas/kit-sync.schema';
 import {
+  resetKitSyncScopeForUser,
   syncCampusConnectorSnapshotForUser,
   syncCampusWebcalForUser,
   syncIliasConnectorSnapshotForUser,
@@ -61,5 +62,37 @@ export async function POST(request: NextRequest) {
     return applyRateLimitHeaders(NextResponse.json(result), rateLimit);
   } catch (error) {
     return handleRouteError(error, 'KIT Sync konnte nicht gestartet werden.', 'Error triggering KIT sync');
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const originViolation = enforceTrustedMutationOrigin(request);
+  if (originViolation) return originViolation;
+
+  const { user, errorResponse } = await requireApiAuth();
+  if (errorResponse) return errorResponse;
+
+  try {
+    const scope = kitSyncResetScopeSchema.parse(request.nextUrl.searchParams.get('scope'));
+    const rateLimit = consumeRateLimit({
+      key: `kit_reset:${scope}:${user.id}:${readForwardedIpFromRequest(request)}`,
+      limit: 1,
+      windowMs: 300_000,
+    });
+
+    if (!rateLimit.allowed) {
+      return applyRateLimitHeaders(
+        NextResponse.json(
+          { error: { code: 'RATE_LIMITED', message: 'Bitte warte kurz, bevor du den KIT-Reset erneut startest.' } },
+          { status: 429 }
+        ),
+        rateLimit
+      );
+    }
+
+    const result = await resetKitSyncScopeForUser(user.id, scope);
+    return applyRateLimitHeaders(NextResponse.json(result), rateLimit);
+  } catch (error) {
+    return handleRouteError(error, 'KIT Sync Daten konnten nicht zurückgesetzt werden.', 'Error resetting KIT sync data');
   }
 }
