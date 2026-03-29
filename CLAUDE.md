@@ -15,6 +15,7 @@
 ## Canonical Context
 - Active planning:
   - `docs/CONTEXT_CANON.md`
+  - `docs/PHASE42_KIT_SYNC_CONNECTOR_EXECUTION_CONTRACT_2026-03-29.md`
   - `docs/PHASE41_MEASURED_PERFORMANCE_PASS_2026-03-28.md`
   - `docs/PHASE40_PERFORMANCE_AND_CI_STABILIZATION_2026-03-27.md`
 - Context priority map: `docs/CONTEXT_CANON.md` (read first before planning)
@@ -54,7 +55,7 @@ Auth redirects · onboarding gate (`user_metadata.onboarding_completed`) · redi
 `/` landing · `/onboarding` setup · `/today` command center · `/calendar` weekly · `/goals` tracking · `/university` courses · `/career` applications · `/analytics` focus · `/analytics/ops` admin health · `/settings` preferences
 
 ## Database Tables
-`goals` · `job_applications` · `courses` · `exercise_progress` · `daily_tasks` · `focus_sessions` · `admin_audit_logs` · `ops_flow_metrics` · `events` (legacy, unused)
+`goals` · `job_applications` · `courses` · `exercise_progress` · `daily_tasks` · `focus_sessions` · `admin_audit_logs` · `ops_flow_metrics` · `kit_sync_profiles` · `kit_sync_runs` · `kit_campus_events` · `events` (legacy, unused)
 RLS: owner-based isolation via `user_id` columns + owner-only policies.
 
 ## Commands

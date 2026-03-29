@@ -71,6 +71,7 @@ const serverSchema = z.object({
   RESEND_API_KEY: z.string().optional(),
   RESEND_FROM_EMAIL: resendFromEmailSchema.optional(),
   CRON_SECRET: z.string().optional(),
+  KIT_SYNC_ENCRYPTION_KEY: z.string().optional(),
   NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
 
   // Node environment
@@ -117,6 +118,7 @@ export const serverEnv = serverSchema.parse({
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
   CRON_SECRET: process.env.CRON_SECRET,
+  KIT_SYNC_ENCRYPTION_KEY: process.env.KIT_SYNC_ENCRYPTION_KEY,
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   NODE_ENV: process.env.NODE_ENV,
 });

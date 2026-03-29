@@ -143,6 +143,153 @@ export interface Database {
         };
         Relationships: [];
       };
+      kit_sync_profiles: {
+        Row: {
+          id: string;
+          user_id: string;
+          campus_webcal_url_encrypted: string | null;
+          campus_webcal_url_masked: string | null;
+          campus_webcal_calendar_name: string | null;
+          campus_webcal_last_validated_at: string | null;
+          campus_webcal_last_synced_at: string | null;
+          campus_webcal_last_error: string | null;
+          campus_webcal_last_feed_fingerprint: string | null;
+          connector_version: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          campus_webcal_url_encrypted?: string | null;
+          campus_webcal_url_masked?: string | null;
+          campus_webcal_calendar_name?: string | null;
+          campus_webcal_last_validated_at?: string | null;
+          campus_webcal_last_synced_at?: string | null;
+          campus_webcal_last_error?: string | null;
+          campus_webcal_last_feed_fingerprint?: string | null;
+          connector_version?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          campus_webcal_url_encrypted?: string | null;
+          campus_webcal_url_masked?: string | null;
+          campus_webcal_calendar_name?: string | null;
+          campus_webcal_last_validated_at?: string | null;
+          campus_webcal_last_synced_at?: string | null;
+          campus_webcal_last_error?: string | null;
+          campus_webcal_last_feed_fingerprint?: string | null;
+          connector_version?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      kit_sync_runs: {
+        Row: {
+          id: string;
+          user_id: string;
+          source: 'campus_webcal' | 'campus_connector' | 'ilias_connector';
+          trigger: 'manual' | 'cron' | 'connector';
+          status: 'running' | 'success' | 'partial' | 'failed';
+          items_read: number;
+          items_written: number;
+          error_code: string | null;
+          error_message: string | null;
+          connector_version: string | null;
+          started_at: string;
+          finished_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          source: 'campus_webcal' | 'campus_connector' | 'ilias_connector';
+          trigger: 'manual' | 'cron' | 'connector';
+          status: 'running' | 'success' | 'partial' | 'failed';
+          items_read?: number;
+          items_written?: number;
+          error_code?: string | null;
+          error_message?: string | null;
+          connector_version?: string | null;
+          started_at?: string;
+          finished_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          source?: 'campus_webcal' | 'campus_connector' | 'ilias_connector';
+          trigger?: 'manual' | 'cron' | 'connector';
+          status?: 'running' | 'success' | 'partial' | 'failed';
+          items_read?: number;
+          items_written?: number;
+          error_code?: string | null;
+          error_message?: string | null;
+          connector_version?: string | null;
+          started_at?: string;
+          finished_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      kit_campus_events: {
+        Row: {
+          id: string;
+          user_id: string;
+          profile_id: string;
+          external_id: string;
+          title: string;
+          description: string | null;
+          location: string | null;
+          starts_at: string;
+          ends_at: string | null;
+          all_day: boolean;
+          kind: 'lecture' | 'exercise' | 'exam' | 'deadline' | 'other';
+          source_updated_at: string | null;
+          content_hash: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          profile_id: string;
+          external_id: string;
+          title: string;
+          description?: string | null;
+          location?: string | null;
+          starts_at: string;
+          ends_at?: string | null;
+          all_day?: boolean;
+          kind?: 'lecture' | 'exercise' | 'exam' | 'deadline' | 'other';
+          source_updated_at?: string | null;
+          content_hash: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          profile_id?: string;
+          external_id?: string;
+          title?: string;
+          description?: string | null;
+          location?: string | null;
+          starts_at?: string;
+          ends_at?: string | null;
+          all_day?: boolean;
+          kind?: 'lecture' | 'exercise' | 'exam' | 'deadline' | 'other';
+          source_updated_at?: string | null;
+          content_hash?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       llm_usage_logs: {
         Row: {
           id: string;

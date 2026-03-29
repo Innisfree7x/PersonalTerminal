@@ -8,6 +8,7 @@ For current roadmap and implementation decisions, use:
 - `docs/CONTEXT_CANON.md`
 - `docs/PHASE41_MEASURED_PERFORMANCE_PASS_2026-03-28.md` (Analytics lazy loading + Settings-Split mit messbarem Bundle-Rückgang)
 - `docs/PHASE40_PERFORMANCE_AND_CI_STABILIZATION_2026-03-27.md` (Blur-/Motion-Entlastung, CI-Hotfixes, Focus-Timer-Render-Entkopplung)
+- `docs/PHASE42_KIT_SYNC_CONNECTOR_EXECUTION_CONTRACT_2026-03-29.md` (KIT Sync Wave 1: WebCal-Fundament, verschlüsselte Feed-Speicherung, KIT Status + manueller Sync)
 - `docs/PHASE39_MARKETING_ART_DIRECTION_2026-03-23.md`
 - `docs/PHASE38_CAREER_INTELLIGENCE_V3_2026-03-22.md`
 - `docs/PHASE37_CRITICAL_PATH_INTEGRATION_2026-03-21.md`
@@ -45,6 +46,7 @@ Archived phase docs are historical references only.
 - Course management with ECTS, semester (WS 2025/26), and exam date tracking
 - Exercise checkboxes (Blatt 1–N) with animated progress bars
 - Exam countdown with urgency indicators
+- `KIT Sync` Wave 1: validierter CAMPUS-WebCal-Import, verschlüsselte Feed-Speicherung, KIT-Eventstatus und manueller Sync-Trigger
 
 ### 🎯 Goals (`/goals`)
 - CRUD with categories (Career, Fitness, Learning, Finance) and priority levels
@@ -157,6 +159,7 @@ Browser
    RESEND_API_KEY=re_xxxxxxxxx
    RESEND_FROM_EMAIL="INNIS <onboarding@resend.dev>"
    CRON_SECRET=long-random-secret
+   KIT_SYNC_ENCRYPTION_KEY=long-random-secret-for-kit-sync
    NEXT_PUBLIC_SITE_URL=http://localhost:3000
    ```
 
@@ -187,6 +190,7 @@ Browser
 | `RESEND_API_KEY` | ✅ Notifications | API key for email delivery |
 | `RESEND_FROM_EMAIL` | ✅ Notifications | Sender identity (`email` or `Name <email>`) |
 | `CRON_SECRET` | ✅ Notifications | Bearer secret for cron route protection |
+| `KIT_SYNC_ENCRYPTION_KEY` | ✅ KIT Sync | Server-only key for encrypted CAMPUS WebCal storage |
 | `NEXT_PUBLIC_SITE_URL` | Recommended | Canonical site URL for links/metadata |
 | `MONITORING_ALERT_WEBHOOK_URL` | Optional | Webhook for critical error alerts |
 

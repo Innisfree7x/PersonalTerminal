@@ -13,6 +13,7 @@ import {
 } from '@/app/actions/university';
 import CourseCard from '@/components/features/university/CourseCard';
 import CourseModal from '@/components/features/university/CourseModal';
+import KitSyncPanel from '@/components/features/university/KitSyncPanel';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { DecisionSurfaceCard } from '@/components/ui/DecisionSurfaceCard';
@@ -535,6 +536,14 @@ export default function UniversityPage() {
           />
         </motion.div>
       ) : null}
+
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.12, delay: 0.06 }}
+      >
+        <KitSyncPanel />
+      </motion.div>
 
       <LayoutGroup id="university-cards">
         {/* Course Cards */}
