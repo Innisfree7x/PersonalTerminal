@@ -364,6 +364,11 @@ export default function KitSyncPanel() {
               3. Die erzeugte JSON-Datei oder Clipboard-Payload hier importieren.
             </div>
 
+            <div className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/8 px-3 py-3 text-sm text-amber-100">
+              Wenn du <span className="font-medium">JSON-Datei importieren</span> nutzt, musst du das Textfeld darunter nicht anfassen.
+              Das Feld ist nur für den Fall gedacht, dass du den Export direkt aus der Zwischenablage einfügst.
+            </div>
+
             <div className="mt-4 flex flex-wrap gap-2">
               <Button
                 variant="secondary"
@@ -406,8 +411,8 @@ export default function KitSyncPanel() {
                 label="ILIAS Export JSON"
                 value={iliasExportText}
                 onChange={(event) => setIliasExportText(event.target.value)}
-                placeholder='{"exportType":"innis_ilias_dashboard_export","favorites":[...],"items":[]}'
-                description="Akzeptiert den lokalen Dashboard-Export. V1 importiert damit zuerst Favoriten stabil in INNIS."
+                placeholder="Füge hier den exportierten JSON-Inhalt aus dem ILIAS-Dashboard ein, wenn du nicht die Datei-Import-Funktion oben nutzt."
+                description="Akzeptiert den lokalen Dashboard-Export. V1 importiert damit zuerst nur Favoriten stabil in INNIS."
                 fullWidth
                 rows={8}
                 resize="vertical"
