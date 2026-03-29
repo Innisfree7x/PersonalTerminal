@@ -1,8 +1,9 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { fetchTodayEvents, fetchWeekEvents } from '@/lib/google/calendar';
-import type { EventType } from '@/lib/data/mockEvents';
+import { fetchTodayEvents } from '@/lib/google/calendar';
+import { fetchMergedWeekCalendarEvents } from '@/lib/calendar/weekEvents';
+import type { CalendarEvent, EventType, CalendarEventKind, CalendarEventSource } from '@/lib/types/calendar';
 
 export interface CalendarEventActionDTO {
   id: string;
@@ -11,6 +12,9 @@ export interface CalendarEventActionDTO {
   endTime: string;
   type: EventType;
   description?: string;
+  location?: string;
+  source?: CalendarEventSource;
+  kind?: CalendarEventKind;
 }
 
 function getCalendarAuthCookies() {
@@ -22,14 +26,7 @@ function getCalendarAuthCookies() {
   };
 }
 
-function serializeEvents(events: Array<{
-  id: string;
-  title: string;
-  startTime: Date;
-  endTime: Date;
-  type: EventType;
-  description?: string;
-}>): CalendarEventActionDTO[] {
+function serializeEvents(events: CalendarEvent[]): CalendarEventActionDTO[] {
   return events.map((event) => ({
     id: event.id,
     title: event.title,
@@ -37,6 +34,9 @@ function serializeEvents(events: Array<{
     endTime: event.endTime.toISOString(),
     type: event.type,
     ...(event.description ? { description: event.description } : {}),
+    ...(event.location ? { location: event.location } : {}),
+    ...(event.source ? { source: event.source } : {}),
+    ...(event.kind ? { kind: event.kind } : {}),
   }));
 }
 
@@ -66,16 +66,17 @@ export async function fetchWeekCalendarEventsAction(
   weekStartIso: string
 ): Promise<CalendarEventActionDTO[]> {
   const { accessToken, refreshToken, expiresAt } = getCalendarAuthCookies();
-  if (!accessToken) {
-    throw new Error('UNAUTHORIZED');
-  }
 
   const weekStart = new Date(weekStartIso);
   if (Number.isNaN(weekStart.getTime())) {
     throw new Error('Invalid weekStart');
   }
 
-  const events = await fetchWeekEvents(weekStart, accessToken, refreshToken, expiresAt);
+  const events = await fetchMergedWeekCalendarEvents(weekStart, {
+    accessToken,
+    refreshToken,
+    expiresAt,
+  });
   return serializeEvents(events);
 }
 

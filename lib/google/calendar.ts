@@ -1,4 +1,4 @@
-import { CalendarEvent, EventType } from '@/lib/data/mockEvents';
+import type { CalendarEvent, EventType } from '@/lib/types/calendar';
 
 interface GoogleCalendarEvent {
   id: string;
@@ -12,6 +12,7 @@ interface GoogleCalendarEvent {
     date?: string;
   };
   description?: string;
+  location?: string;
 }
 
 /**
@@ -117,9 +118,13 @@ function mapGoogleEventToCalendarEvent(event: GoogleCalendarEvent): CalendarEven
     startTime,
     endTime,
     type,
+    source: 'google',
   };
   if (event.description) {
     calendarEvent.description = event.description;
+  }
+  if (event.location) {
+    calendarEvent.location = event.location;
   }
   return calendarEvent;
 }

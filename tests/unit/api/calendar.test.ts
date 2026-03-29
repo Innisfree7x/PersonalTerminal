@@ -140,9 +140,9 @@ describe('GET /api/calendar/week', () => {
     mockedRequireApiAuth.mockResolvedValue(authOk() as any);
 
     const response = await GETWeek(requestWithCookies('http://localhost:3000/api/calendar/week'));
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(200);
     const body = await response.json();
-    expect(body.message).toContain('connect Google Calendar');
+    expect(body).toEqual([]);
   });
 
   it('returns week events when authenticated with Google token', async () => {

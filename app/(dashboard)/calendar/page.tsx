@@ -179,7 +179,7 @@ export default function CalendarPage() {
         endTime: new Date(event.endTime),
       }));
     },
-    enabled: isConnected === true,
+    enabled: true,
     retry: false,
     refetchOnWindowFocus: false,
   });
@@ -193,7 +193,7 @@ export default function CalendarPage() {
       }
       return response.json() as Promise<CalendarTrajectoryOverviewResponse>;
     },
-    enabled: isConnected === true && showTrajectoryGhostEvents,
+    enabled: showTrajectoryGhostEvents,
     staleTime: 20 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -221,11 +221,11 @@ export default function CalendarPage() {
     mutationFn: disconnectGoogleCalendarAction,
     onSuccess: () => {
       setIsConnected(false);
-      queryClient.setQueryData(['calendar', 'week'], []);
-      setSuccess('Successfully disconnected from Google Calendar.');
+      queryClient.invalidateQueries({ queryKey: ['calendar', 'week'] });
+      setSuccess('Google Kalender wurde getrennt.');
     },
     onError: () => {
-      setError('Failed to disconnect. Please try again.');
+      setError('Google Kalender konnte nicht getrennt werden.');
     },
   });
 
@@ -250,16 +250,16 @@ export default function CalendarPage() {
     try {
       setIsCopyingRedirect(true);
       await navigator.clipboard.writeText(oauthRedirectInfo.redirectUri);
-      setSuccess('Redirect URI copied. Paste it into Google Cloud OAuth client.');
+      setSuccess('Redirect-URI kopiert. Jetzt in Google Cloud einfügen.');
     } catch {
-      setError('Could not copy redirect URI. Copy it manually from the field.');
+      setError('URI konnte nicht kopiert werden. Bitte manuell aus dem Feld übernehmen.');
     } finally {
       setIsCopyingRedirect(false);
     }
   };
 
   const handleDisconnect = () => {
-    if (confirm('Are you sure you want to disconnect Google Calendar?')) {
+    if (confirm('Google Kalender wirklich trennen?')) {
       disconnectMutation.mutate();
     }
   };
@@ -267,7 +267,7 @@ export default function CalendarPage() {
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['calendar', 'week'] });
     setError(null);
-    setSuccess('Events refreshed!');
+    setSuccess('Kalender aktualisiert.');
     setTimeout(() => setSuccess(null), 3000);
   };
 
@@ -286,6 +286,10 @@ export default function CalendarPage() {
     () => Object.values(groupedGhostEvents).reduce((sum, dayEvents) => sum + dayEvents.length, 0),
     [groupedGhostEvents]
   );
+  const hasRealEvents = events.length > 0;
+  const hasGhostEvents = totalGhostEvents > 0;
+  const showCalendarGrid = !isLoading && (hasRealEvents || hasGhostEvents || isConnected !== false);
+  const showKitOnlyHint = isConnected === false && hasRealEvents;
 
   // Calculate week info for display
   const weekNumber = getWeek(selectedWeek, { weekStartsOn: 1 });
@@ -308,7 +312,7 @@ export default function CalendarPage() {
     return undefined;
   }, [success]);
 
-  const dayNamesShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const dayNamesShort = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
   const handleOpenGhostEvent = (ghostEvent: TrajectoryGhostEvent) => {
     const params = new URLSearchParams();
@@ -319,9 +323,20 @@ export default function CalendarPage() {
   };
 
   const eventTypeLabel: Record<CalendarEvent['type'], string> = {
-    meeting: 'Meeting',
-    task: 'Task',
-    break: 'Break',
+    meeting: 'Termin',
+    task: 'Aufgabe',
+    break: 'Pause',
+  };
+  const eventKindLabel: Record<NonNullable<CalendarEvent['kind']>, string> = {
+    lecture: 'Vorlesung',
+    exercise: 'Übung',
+    exam: 'Prüfung',
+    deadline: 'Deadline',
+    other: 'Termin',
+  };
+  const eventSourceLabel: Record<NonNullable<CalendarEvent['source']>, string> = {
+    google: 'Google',
+    kit: 'KIT',
   };
 
   const selectedEventDurationMinutes = selectedEvent
@@ -335,20 +350,18 @@ export default function CalendarPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-3xl font-bold text-text-primary">Calendar</h1>
+        <h1 className="text-3xl font-bold text-text-primary">Kalender</h1>
         <div className="flex items-center gap-3">
-          {isConnected === true && (
-            <button
-              onClick={() => setShowTrajectoryGhostEvents((current) => !current)}
-              className={`px-4 py-2 text-sm rounded-lg border transition-colors ${
-                showTrajectoryGhostEvents
-                  ? 'border-info/40 bg-info/10 text-info'
-                  : 'border-border bg-surface/70 text-text-secondary hover:bg-surface-hover/70 hover:text-text-primary'
-              }`}
-            >
-              {showTrajectoryGhostEvents ? 'Hide Trajectory Ghosts' : 'Show Trajectory Ghosts'}
-            </button>
-          )}
+          <button
+            onClick={() => setShowTrajectoryGhostEvents((current) => !current)}
+            className={`px-4 py-2 text-sm rounded-lg border transition-colors ${
+              showTrajectoryGhostEvents
+                ? 'border-info/40 bg-info/10 text-info'
+                : 'border-border bg-surface/70 text-text-secondary hover:bg-surface-hover/70 hover:text-text-primary'
+            }`}
+          >
+            {showTrajectoryGhostEvents ? 'Trajectory ausblenden' : 'Trajectory einblenden'}
+          </button>
           {isConnected === true && (
             <>
               <button
@@ -356,14 +369,14 @@ export default function CalendarPage() {
                 disabled={isLoading}
                 className="px-4 py-2 text-sm rounded-lg border border-border bg-surface/70 text-text-secondary hover:bg-surface-hover/70 hover:text-text-primary transition-colors disabled:opacity-50"
               >
-                {isLoading ? 'Refreshing...' : 'Refresh'}
+                {isLoading ? 'Aktualisiert…' : 'Aktualisieren'}
               </button>
               <button
                 onClick={handleDisconnect}
                 disabled={disconnectMutation.isPending}
                 className="px-4 py-2 text-sm rounded-lg border border-error/30 bg-error/10 text-error hover:bg-error/20 transition-colors disabled:opacity-50"
               >
-                {disconnectMutation.isPending ? 'Disconnecting...' : 'Disconnect'}
+                {disconnectMutation.isPending ? 'Trenne…' : 'Google trennen'}
               </button>
             </>
           )}
@@ -372,7 +385,7 @@ export default function CalendarPage() {
               onClick={handleConnect}
               className="px-4 py-2 text-sm rounded-lg border border-primary/30 bg-primary/15 text-primary hover:bg-primary/25 transition-colors"
             >
-              Connect Google Calendar
+              Google verbinden
             </button>
           )}
         </div>
@@ -384,7 +397,7 @@ export default function CalendarPage() {
           onClick={handlePreviousWeek}
           className="px-4 py-2 text-sm rounded-lg border border-border bg-surface/70 text-text-secondary hover:bg-surface-hover/70 hover:text-text-primary transition-colors"
         >
-          ← Previous Week
+          ← Vorherige Woche
         </button>
 
         <div className="flex items-center gap-4">
@@ -392,10 +405,10 @@ export default function CalendarPage() {
             onClick={handleToday}
             className="px-4 py-2 text-sm rounded-lg border border-primary/30 bg-primary/12 text-primary hover:bg-primary/20 transition-colors"
           >
-            Today
+            Heute
           </button>
           <div className="text-lg font-semibold text-text-primary text-center">
-            Week {weekNumber}, {weekYear}
+            Woche {weekNumber}, {weekYear}
           </div>
         </div>
 
@@ -403,7 +416,7 @@ export default function CalendarPage() {
           onClick={handleNextWeek}
           className="px-4 py-2 text-sm rounded-lg border border-border bg-surface/70 text-text-secondary hover:bg-surface-hover/70 hover:text-text-primary transition-colors"
         >
-          Next Week →
+          Nächste Woche →
         </button>
       </div>
 
@@ -421,39 +434,39 @@ export default function CalendarPage() {
       )}
 
       {/* Ghost Legend */}
-      {isConnected === true && showTrajectoryGhostEvents && (
+      {showTrajectoryGhostEvents && (
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-surface px-4 py-3 text-xs text-text-secondary">
-          <span className="font-semibold text-text-primary">Legend</span>
+          <span className="font-semibold text-text-primary">Legende</span>
           <span className="rounded-full border border-info/40 bg-info/10 px-2 py-1 text-info">
-            ◌ Trajectory Milestone
+            ◌ Trajectory Meilenstein
           </span>
           <span className="rounded-full border border-warning/40 bg-warning/10 px-2 py-1 text-warning">
-            ◌ Prep Block
+            ◌ Prep-Block
           </span>
           <span className="rounded-full border border-success/40 bg-success/10 px-2 py-1 text-success">
             ◌ Opportunity Window
           </span>
           <span className="ml-auto rounded-full border border-border px-2 py-1 text-text-secondary">
-            {totalGhostEvents} ghost events this week
+            {totalGhostEvents} Trajectory-Blöcke diese Woche
           </span>
         </div>
       )}
 
       {/* Not Connected State */}
-      {isConnected === false && (
+      {isConnected === false && !hasRealEvents && !hasGhostEvents && (
         <div className="card-surface dashboard-premium-card-soft rounded-lg border px-6 py-8 text-center">
           <div className="text-4xl mb-4">📅</div>
           <h2 className="text-xl font-semibold text-text-primary mb-2">
-            Connect Google Calendar
+            Google Kalender verbinden
           </h2>
           <p className="text-text-secondary mb-4">
-            Connect your Google Calendar to see your weekly schedule.
+            Verbinde Google oder füge KIT-Termine hinzu, damit dein Wochenkalender vollständig wird.
           </p>
           <button
             onClick={handleConnect}
             className="px-6 py-2 rounded-lg border border-primary/30 bg-primary/15 text-primary hover:bg-primary/25 transition-colors"
           >
-            Connect Google Calendar
+            Google verbinden
           </button>
           {oauthRedirectInfo ? (
             <div className="mt-5 rounded-lg border border-primary/20 bg-primary/[0.07] p-4 text-left">
@@ -461,7 +474,7 @@ export default function CalendarPage() {
                 OAuth Redirect URI (Google Cloud)
               </p>
               <p className="mt-1 text-xs text-text-tertiary">
-                Add this exact URI in Google Cloud OAuth Client → Authorized redirect URIs.
+                Trage genau diese URI im Google-Cloud-OAuth-Client unter Authorized redirect URIs ein.
               </p>
               <code className="mt-2 block overflow-x-auto rounded-md border border-border/70 bg-surface/80 px-3 py-2 font-mono text-[11px] text-text-primary">
                 {oauthRedirectInfo.redirectUri}
@@ -472,7 +485,7 @@ export default function CalendarPage() {
                   disabled={isCopyingRedirect}
                   className="px-3 py-1.5 rounded-md border border-primary/30 bg-primary/12 text-xs text-primary hover:bg-primary/20 transition-colors disabled:opacity-60"
                 >
-                  {isCopyingRedirect ? 'Copying…' : 'Copy URI'}
+                  {isCopyingRedirect ? 'Kopiere…' : 'URI kopieren'}
                 </button>
                 <span className="rounded-full border border-border/70 bg-surface/60 px-2 py-1 text-[11px] text-text-secondary">
                   source: {oauthRedirectInfo.source}
@@ -500,27 +513,32 @@ export default function CalendarPage() {
       )}
 
       {/* Loading State */}
-      {isConnected === true && isLoading && (
+      {isLoading && (
         <div className="text-center py-12 text-text-secondary">
-          Loading events...
+          Kalender wird geladen...
+        </div>
+      )}
+
+      {showKitOnlyHint && (
+        <div className="rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">
+          KIT-Termine sind bereits sichtbar. Google ist aktuell nicht verbunden.
         </div>
       )}
 
       {/* Fetch Error State */}
-      {isConnected === true &&
-        fetchError &&
+      {fetchError &&
         (fetchError as Error).message === 'UNAUTHORIZED' && (
           <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-700 dark:border-yellow-900/50 dark:bg-yellow-900/20 dark:text-yellow-300">
-            Your Google Calendar connection has expired. Please{' '}
+            Deine Google-Verbindung ist abgelaufen. Bitte{' '}
             <button onClick={handleConnect} className="underline font-medium">
-              reconnect
+              neu verbinden
             </button>
             .
           </div>
         )}
 
       {/* Week Grid */}
-      {isConnected === true && !isLoading && (
+      {showCalendarGrid && (
         <div className="overflow-x-auto -mx-4 sm:mx-0">
           <div className="inline-block min-w-full align-middle">
             <div className="grid grid-cols-3 sm:grid-cols-7 gap-4 px-4 sm:px-0">
@@ -561,7 +579,7 @@ export default function CalendarPage() {
                     {/* Events List */}
                     <div className="space-y-1.5">
                       {dayEvents.length === 0 && dayGhostEvents.length === 0 ? (
-                        <p className="text-xs text-text-tertiary">No events</p>
+                        <p className="text-xs text-text-tertiary">Keine Termine</p>
                       ) : (
                         <>
                           {dayEvents.map((event) => {
@@ -585,7 +603,14 @@ export default function CalendarPage() {
                                 bgColor: 'bg-success/10',
                               },
                             };
-                            const config = eventTypeConfig[event.type];
+                            const config =
+                              event.source === 'kit' && event.kind === 'exam'
+                                ? {
+                                    icon: '🎓',
+                                    color: 'text-warning',
+                                    bgColor: 'bg-warning/10',
+                                  }
+                                : eventTypeConfig[event.type];
 
                             return (
                               <button
@@ -593,11 +618,20 @@ export default function CalendarPage() {
                                 type="button"
                                 onClick={() => setSelectedEvent(event)}
                                 className={`w-full rounded border p-2 text-left text-xs ${config.bgColor} ${config.color} border-current/20 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60`}
-                                title={`${event.title} · ${format(event.startTime, 'HH:mm')} - ${format(event.endTime, 'HH:mm')}`}
+                                title={`${event.title} · ${format(event.startTime, 'HH:mm')} - ${format(event.endTime, 'HH:mm')}${event.location ? ` · ${event.location}` : ''}`}
                               >
-                                <div className="font-medium truncate mb-0.5">
-                                  <span className="mr-1">{config.icon}</span>
-                                  {format(event.startTime, 'HH:mm')} {event.title}
+                                <div className="flex items-start gap-2">
+                                  <span className="mt-0.5">{config.icon}</span>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="font-medium truncate mb-0.5">
+                                      {format(event.startTime, 'HH:mm')} {event.title}
+                                    </div>
+                                    {event.location ? (
+                                      <div className="truncate text-[10px] opacity-80">
+                                        {event.location}
+                                      </div>
+                                    ) : null}
+                                  </div>
                                 </div>
                               </button>
                             );
@@ -636,13 +670,12 @@ export default function CalendarPage() {
       )}
 
       {/* Empty State */}
-      {isConnected === true &&
-        !isLoading &&
+      {!isLoading &&
         events.length === 0 &&
         Object.values(groupedGhostEvents).flat().length === 0 &&
         Object.keys(groupedEvents).length === 0 && (
           <div className="text-center py-12">
-            <p className="text-text-secondary">No events scheduled this week</p>
+            <p className="text-text-secondary">Diese Woche sind keine Termine geplant.</p>
           </div>
         )}
 
@@ -691,7 +724,23 @@ export default function CalendarPage() {
 
               <div className="rounded-lg border border-border bg-background/40 p-3">
                 <p className="text-xs uppercase tracking-wide text-text-tertiary">Typ</p>
-                <p className="mt-1 text-text-primary">{eventTypeLabel[selectedEvent.type]}</p>
+                <p className="mt-1 text-text-primary">
+                  {selectedEvent.kind ? eventKindLabel[selectedEvent.kind] : eventTypeLabel[selectedEvent.type]}
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-border bg-background/40 p-3">
+                <p className="text-xs uppercase tracking-wide text-text-tertiary">Hörsaal / Ort</p>
+                <p className="mt-1 text-text-primary">
+                  {selectedEvent.location?.trim() ? selectedEvent.location : 'Kein Ort hinterlegt.'}
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-border bg-background/40 p-3">
+                <p className="text-xs uppercase tracking-wide text-text-tertiary">Quelle</p>
+                <p className="mt-1 text-text-primary">
+                  {selectedEvent.source ? eventSourceLabel[selectedEvent.source] : 'Kalender'}
+                </p>
               </div>
 
               <div className="rounded-lg border border-border bg-background/40 p-3">

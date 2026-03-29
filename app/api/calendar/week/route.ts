@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchWeekEvents } from '@/lib/google/calendar';
+import { fetchMergedWeekCalendarEvents } from '@/lib/calendar/weekEvents';
 import { requireApiAuth } from '@/lib/api/auth';
 
 /**
@@ -13,13 +13,6 @@ export async function GET(request: NextRequest) {
   const accessToken = request.cookies.get('google_access_token')?.value;
   const refreshToken = request.cookies.get('google_refresh_token')?.value;
   const expiresAt = request.cookies.get('google_token_expires_at')?.value;
-
-  if (!accessToken) {
-    return NextResponse.json(
-      { message: 'Not authenticated. Please connect Google Calendar.' },
-      { status: 401 }
-    );
-  }
 
   // Get week start from query params (defaults to current week)
   const weekStartParam = request.nextUrl.searchParams.get('weekStart');
@@ -37,7 +30,11 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const events = await fetchWeekEvents(weekStart, accessToken, refreshToken, expiresAt);
+    const events = await fetchMergedWeekCalendarEvents(weekStart, {
+      accessToken,
+      refreshToken,
+      expiresAt,
+    });
 
     return NextResponse.json(events, {
       headers: {
