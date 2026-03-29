@@ -17,7 +17,7 @@ const mockedFetchCoursesWithExercises = vi.mocked(fetchCoursesWithExercises);
 
 function makeResolvedQuery<T>(result: T) {
   const query = Promise.resolve(result) as Promise<T> & Record<string, any>;
-  const methods = ['select', 'eq', 'gte', 'lte', 'in', 'order', 'limit', 'lt'];
+  const methods = ['select', 'eq', 'gte', 'lte', 'in', 'order', 'limit', 'lt', 'is', 'maybeSingle'];
   for (const method of methods) {
     query[method] = vi.fn(() => query);
   }
@@ -258,6 +258,67 @@ describe('dashboard queries', () => {
             error: null,
           }),
         ],
+        kit_campus_events: [
+          makeResolvedQuery({
+            data: {
+              title: 'Financial Data Science (V)',
+              starts_at: '2026-03-20T10:00:00.000Z',
+              kind: 'lecture',
+              location: 'Ulrich, WIWI',
+            },
+            error: null,
+          }),
+          makeResolvedQuery({
+            data: {
+              title: 'Investments Klausur',
+              starts_at: '2026-03-21T08:30:00.000Z',
+              location: 'Audimax',
+            },
+            error: null,
+          }),
+        ],
+        kit_campus_grades: [
+          makeResolvedQuery({
+            data: {
+              module_id: 'module-db-1',
+              grade_label: '1,7',
+              published_at: '2026-03-17T12:00:00.000Z',
+            },
+            error: null,
+          }),
+        ],
+        kit_ilias_items: [
+          makeResolvedQuery({
+            count: 2,
+            error: null,
+          }),
+          makeResolvedQuery({
+            data: {
+              title: 'Neue Klausurhinweise',
+              item_type: 'announcement',
+              published_at: '2026-03-18T08:00:00.000Z',
+              item_url: 'https://ilias.studium.kit.edu/item-1',
+              favorite_id: 'favorite-db-1',
+            },
+            error: null,
+          }),
+        ],
+        kit_campus_modules: [
+          makeResolvedQuery({
+            data: {
+              title: 'Volkswirtschaftslehre II: Makroökonomie',
+            },
+            error: null,
+          }),
+        ],
+        kit_ilias_favorites: [
+          makeResolvedQuery({
+            data: {
+              title: 'Investments SS2025',
+            },
+            error: null,
+          }),
+        ],
       }) as any
     );
 
@@ -296,6 +357,32 @@ describe('dashboard queries', () => {
       ])
     );
     expect(result.executionScore).toBe(56);
+    expect(result.kitSignals).toEqual({
+      nextCampusEvent: {
+        title: 'Financial Data Science (V)',
+        startsAt: '2026-03-20T10:00:00.000Z',
+        kind: 'lecture',
+        location: 'Ulrich, WIWI',
+      },
+      nextCampusExam: {
+        title: 'Investments Klausur',
+        startsAt: '2026-03-21T08:30:00.000Z',
+        location: 'Audimax',
+      },
+      latestCampusGrade: {
+        moduleTitle: 'Volkswirtschaftslehre II: Makroökonomie',
+        gradeLabel: '1,7',
+        publishedAt: '2026-03-17T12:00:00.000Z',
+      },
+      freshIliasItems: 2,
+      latestIliasItem: {
+        favoriteTitle: 'Investments SS2025',
+        title: 'Neue Klausurhinweise',
+        itemType: 'announcement',
+        publishedAt: '2026-03-18T08:00:00.000Z',
+        itemUrl: 'https://ilias.studium.kit.edu/item-1',
+      },
+    });
     expect(result.stats).toMatchObject({
       tasksToday: 4,
       tasksCompleted: 1,

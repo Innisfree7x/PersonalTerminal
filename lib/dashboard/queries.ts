@@ -90,6 +90,33 @@ interface DashboardTaskStats {
   interviewsUpcoming: number;
 }
 
+export interface DashboardKitSignals {
+  nextCampusEvent: {
+    title: string;
+    startsAt: string;
+    kind: string;
+    location: string | null;
+  } | null;
+  nextCampusExam: {
+    title: string;
+    startsAt: string;
+    location: string | null;
+  } | null;
+  latestCampusGrade: {
+    moduleTitle: string;
+    gradeLabel: string;
+    publishedAt: string | null;
+  } | null;
+  freshIliasItems: number;
+  latestIliasItem: {
+    favoriteTitle: string;
+    title: string;
+    itemType: string;
+    publishedAt: string | null;
+    itemUrl: string | null;
+  } | null;
+}
+
 export interface DashboardNextTasksResponse {
   homeworks: NextHomework[];
   goals: NextGoal[];
@@ -104,6 +131,7 @@ export interface DashboardNextTasksResponse {
     queryDurationMs: number;
   };
   stats: DashboardTaskStats;
+  kitSignals: DashboardKitSignals | null;
   trajectoryMorning?: TrajectoryMorningSnapshotPayload;
   weekEvents?: DashboardWeekEventsPayload;
 }
@@ -163,6 +191,154 @@ function toApplicationModel(record: DashboardApplicationRecord) {
     interviewDate: record.interview_date ? new Date(record.interview_date) : undefined,
     updatedAt: new Date(record.updated_at),
   };
+}
+
+function isMissingKitRelationError(error: { code?: string } | null | undefined) {
+  return error?.code === '42P01' || error?.code === '42703';
+}
+
+async function getDashboardKitSignals(
+  userId: string,
+  supabase: ReturnType<typeof createClient>,
+  todayStart: Date
+): Promise<DashboardKitSignals | null> {
+  const nowIso = todayStart.toISOString();
+  const freshIliasThreshold = subDays(todayStart, 7).toISOString();
+
+  const [
+    nextCampusEventResult,
+    nextCampusExamResult,
+    latestCampusGradeResult,
+    freshIliasItemsResult,
+    latestIliasItemResult,
+  ] = await Promise.all([
+    supabase
+      .from('kit_campus_events')
+      .select('title, starts_at, kind, location')
+      .eq('user_id', userId)
+      .gte('starts_at', nowIso)
+      .order('starts_at', { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from('kit_campus_events')
+      .select('title, starts_at, location')
+      .eq('user_id', userId)
+      .eq('kind', 'exam')
+      .gte('starts_at', nowIso)
+      .order('starts_at', { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from('kit_campus_grades')
+      .select('module_id, grade_label, published_at')
+      .eq('user_id', userId)
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from('kit_ilias_items')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .is('acknowledged_at', null)
+      .gte('first_seen_at', freshIliasThreshold),
+    supabase
+      .from('kit_ilias_items')
+      .select('title, item_type, published_at, item_url, favorite_id')
+      .eq('user_id', userId)
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .order('first_seen_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  const handledErrors = [
+    nextCampusEventResult.error,
+    nextCampusExamResult.error,
+    latestCampusGradeResult.error,
+    freshIliasItemsResult.error,
+    latestIliasItemResult.error,
+  ];
+  const fatalError = handledErrors.find((error) => error && !isMissingKitRelationError(error));
+  if (fatalError) {
+    throw new Error(`Failed to fetch KIT dashboard signals: ${fatalError.message}`);
+  }
+
+  let latestCampusGradeModuleTitle: string | null = null;
+  if (latestCampusGradeResult.data?.module_id && !isMissingKitRelationError(latestCampusGradeResult.error)) {
+    const { data: moduleRow, error: moduleError } = await supabase
+      .from('kit_campus_modules')
+      .select('title')
+      .eq('id', latestCampusGradeResult.data.module_id)
+      .maybeSingle();
+
+    if (moduleError && !isMissingKitRelationError(moduleError)) {
+      throw new Error(`Failed to fetch KIT grade module title: ${moduleError.message}`);
+    }
+
+    latestCampusGradeModuleTitle = moduleRow?.title ?? null;
+  }
+
+  let latestIliasFavoriteTitle: string | null = null;
+  if (latestIliasItemResult.data?.favorite_id && !isMissingKitRelationError(latestIliasItemResult.error)) {
+    const { data: favoriteRow, error: favoriteError } = await supabase
+      .from('kit_ilias_favorites')
+      .select('title')
+      .eq('id', latestIliasItemResult.data.favorite_id)
+      .maybeSingle();
+
+    if (favoriteError && !isMissingKitRelationError(favoriteError)) {
+      throw new Error(`Failed to fetch KIT ILIAS favorite title: ${favoriteError.message}`);
+    }
+
+    latestIliasFavoriteTitle = favoriteRow?.title ?? null;
+  }
+
+  const signals: DashboardKitSignals = {
+    nextCampusEvent: nextCampusEventResult.data
+      ? {
+          title: nextCampusEventResult.data.title,
+          startsAt: nextCampusEventResult.data.starts_at,
+          kind: nextCampusEventResult.data.kind,
+          location: nextCampusEventResult.data.location ?? null,
+        }
+      : null,
+    nextCampusExam: nextCampusExamResult.data
+      ? {
+          title: nextCampusExamResult.data.title,
+          startsAt: nextCampusExamResult.data.starts_at,
+          location: nextCampusExamResult.data.location ?? null,
+        }
+      : null,
+    latestCampusGrade:
+      latestCampusGradeResult.data && latestCampusGradeModuleTitle
+        ? {
+            moduleTitle: latestCampusGradeModuleTitle,
+            gradeLabel: latestCampusGradeResult.data.grade_label,
+            publishedAt: latestCampusGradeResult.data.published_at,
+          }
+        : null,
+    freshIliasItems: freshIliasItemsResult.count ?? 0,
+    latestIliasItem:
+      latestIliasItemResult.data && latestIliasFavoriteTitle
+        ? {
+            favoriteTitle: latestIliasFavoriteTitle,
+            title: latestIliasItemResult.data.title,
+            itemType: latestIliasItemResult.data.item_type,
+            publishedAt: latestIliasItemResult.data.published_at,
+            itemUrl: latestIliasItemResult.data.item_url,
+          }
+        : null,
+  };
+
+  return signals.nextCampusEvent ||
+    signals.nextCampusExam ||
+    signals.latestCampusGrade ||
+    signals.latestIliasItem ||
+    signals.freshIliasItems > 0
+    ? signals
+    : null;
 }
 
 export async function getDashboardStats(userId: string): Promise<DashboardStats> {
@@ -504,6 +680,7 @@ export async function getDashboardNextTasks(userId: string): Promise<DashboardNe
   const [
     { data: dailyTasksData, error: dailyTasksError },
     { data: completedExercisesTodayData, error: completedExercisesTodayError },
+    kitSignals,
   ] = await Promise.all([
     supabase
       .from('daily_tasks')
@@ -517,6 +694,7 @@ export async function getDashboardNextTasks(userId: string): Promise<DashboardNe
       .eq('completed', true)
       .gte('completed_at', todayStart.toISOString())
       .lt('completed_at', new Date(todayStart.getTime() + 24 * 60 * 60 * 1000).toISOString()),
+    getDashboardKitSignals(userId, supabase, todayStart),
   ]);
 
   if (dailyTasksError) {
@@ -682,6 +860,7 @@ export async function getDashboardNextTasks(userId: string): Promise<DashboardNe
       generatedAt: new Date().toISOString(),
       queryDurationMs: Date.now() - startedAt,
     },
+    kitSignals,
     stats: {
       tasksToday: tasksTotal,
       tasksCompleted,

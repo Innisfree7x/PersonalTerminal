@@ -8,6 +8,7 @@ For current roadmap and implementation decisions, use:
 - `docs/CONTEXT_CANON.md`
 - `docs/PHASE41_MEASURED_PERFORMANCE_PASS_2026-03-28.md` (Analytics lazy loading + Settings-Split mit messbarem Bundle-Rückgang)
 - `docs/PHASE40_PERFORMANCE_AND_CI_STABILIZATION_2026-03-27.md` (Blur-/Motion-Entlastung, CI-Hotfixes, Focus-Timer-Render-Entkopplung)
+- `docs/PHASE44_KIT_CONNECTORS_AND_TODAY_FUSION_2026-03-29.md` (CAMPUS Academic Exporter, ILIAS Kurs-Items Exporter, KIT-Signale in Today)
 - `docs/PHASE42_KIT_SYNC_CONNECTOR_EXECUTION_CONTRACT_2026-03-29.md` (KIT Sync Wave 1+2+3: WebCal-Fundament, CAMPUS Academic Snapshot und ILIAS Favorites Snapshot)
 - `docs/PHASE43_KIT_ILIAS_DASHBOARD_CONNECTOR_2026-03-29.md` (lokaler ILIAS-Dashboard-Exportpfad für Favoriten)
 - `docs/PHASE39_MARKETING_ART_DIRECTION_2026-03-23.md`
@@ -48,7 +49,10 @@ Archived phase docs are historical references only.
 - Exercise checkboxes (Blatt 1–N) with animated progress bars
 - Exam countdown with urgency indicators
 - `KIT Sync` Wave 1+2+3: validierter CAMPUS-WebCal-Import, erster CAMPUS Academic Snapshot sowie ILIAS-Favoriten- und Item-Snapshot über read-only Connector-Payloads
-- `KIT Sync` lokaler ILIAS-Dashboard-Export: Favoriten können jetzt über JSON-Export aus dem ILIAS-Dashboard manuell in INNIS importiert werden
+- lokaler CAMPUS Academic Exporter für Module, Noten und Prüfungen
+- lokaler ILIAS-Dashboard-Exporter für Favoriten
+- lokaler ILIAS-Kursseiten-Exporter für Dokumente, Ankündigungen, Ordner und Links pro Favorit
+- KIT-Signale erscheinen jetzt direkt im `Today` Morning Briefing
 
 ### 🎯 Goals (`/goals`)
 - CRUD with categories (Career, Fitness, Learning, Finance) and priority levels

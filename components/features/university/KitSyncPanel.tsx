@@ -23,9 +23,17 @@ import { Badge } from '@/components/ui/Badge';
 import { useSoundToast } from '@/lib/hooks/useSoundToast';
 import type { KitSyncStatus } from '@/lib/kit-sync/types';
 import {
+  KIT_CAMPUS_ACADEMIC_CONNECTOR_VERSION,
+  parseCampusAcademicExport,
+} from '@/lib/kit-sync/campusAcademicExport';
+import {
   KIT_ILIAS_DASHBOARD_CONNECTOR_VERSION,
   parseIliasDashboardExport,
 } from '@/lib/kit-sync/iliasDashboardExport';
+import {
+  KIT_ILIAS_COURSE_CONNECTOR_VERSION,
+  parseIliasCourseExport,
+} from '@/lib/kit-sync/iliasCourseExport';
 import { cn } from '@/lib/utils';
 
 const iliasItemTypeLabels: Record<string, string> = {
@@ -106,6 +114,70 @@ async function importIliasDashboardPayload(rawValue: string) {
   };
 }
 
+async function importCampusAcademicPayload(rawValue: string) {
+  const parsed = parseCampusAcademicExport(rawValue);
+  if (parsed.modules.length === 0 && parsed.grades.length === 0 && parsed.exams.length === 0) {
+    throw new Error('Der CAMPUS-Export enthält noch keine Module, Noten oder Prüfungen.');
+  }
+
+  const response = await fetch('/api/kit/sync', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      source: 'campus_connector',
+      connectorVersion: KIT_CAMPUS_ACADEMIC_CONNECTOR_VERSION,
+      payload: {
+        modules: parsed.modules,
+        grades: parsed.grades,
+        exams: parsed.exams,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.error?.message ?? 'CAMPUS Academic Export konnte nicht importiert werden.');
+  }
+
+  return {
+    ...(await response.json()),
+    modulesImported: parsed.modules.length,
+    gradesImported: parsed.grades.length,
+    examsImported: parsed.exams.length,
+  };
+}
+
+async function importIliasCoursePayload(rawValue: string) {
+  const parsed = parseIliasCourseExport(rawValue);
+  if (parsed.items.length === 0) {
+    throw new Error('Der ILIAS Kurs-Export enthält noch keine Kurs-Items. Öffne einen favorisierten Kurs mit Materialien oder Ankündigungen.');
+  }
+
+  const response = await fetch('/api/kit/sync', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      source: 'ilias_connector',
+      connectorVersion: KIT_ILIAS_COURSE_CONNECTOR_VERSION,
+      payload: {
+        favorites: parsed.favorites,
+        items: parsed.items,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.error?.message ?? 'ILIAS Kurs-Export konnte nicht importiert werden.');
+  }
+
+  return {
+    ...(await response.json()),
+    favoritesImported: parsed.favorites.length,
+    itemsImported: parsed.items.length,
+  };
+}
+
 function formatDateTime(value: string | null | undefined) {
   if (!value) return null;
   return format(new Date(value), 'dd.MM.yyyy HH:mm');
@@ -154,11 +226,19 @@ export default function KitSyncPanel() {
   const queryClient = useQueryClient();
   const soundToast = useSoundToast();
   const [webcalUrl, setWebcalUrl] = useState('');
+  const [campusExportText, setCampusExportText] = useState('');
   const [iliasExportText, setIliasExportText] = useState('');
-  const [isCopyingConnector, setIsCopyingConnector] = useState(false);
+  const [iliasCourseExportText, setIliasCourseExportText] = useState('');
+  const [isCopyingCampusConnector, setIsCopyingCampusConnector] = useState(false);
+  const [isCopyingDashboardConnector, setIsCopyingDashboardConnector] = useState(false);
+  const [isCopyingCourseConnector, setIsCopyingCourseConnector] = useState(false);
   const [isManageOpen, setIsManageOpen] = useState(true);
-  const [isManualImportOpen, setIsManualImportOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isCampusManualImportOpen, setIsCampusManualImportOpen] = useState(false);
+  const [isDashboardManualImportOpen, setIsDashboardManualImportOpen] = useState(false);
+  const [isCourseManualImportOpen, setIsCourseManualImportOpen] = useState(false);
+  const campusFileInputRef = useRef<HTMLInputElement | null>(null);
+  const iliasDashboardFileInputRef = useRef<HTMLInputElement | null>(null);
+  const iliasCourseFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const { data, error } = useQuery({
     queryKey: ['kit-sync-status'],
@@ -196,6 +276,20 @@ export default function KitSyncPanel() {
     },
   });
 
+  const campusImportMutation = useMutation({
+    mutationFn: importCampusAcademicPayload,
+    onSuccess: async (result: { modulesImported: number; gradesImported: number; examsImported: number }) => {
+      await queryClient.invalidateQueries({ queryKey: ['kit-sync-status'] });
+      setCampusExportText('');
+      soundToast.success(
+        `CAMPUS Snapshot importiert · ${result.modulesImported} Module · ${result.gradesImported} Noten${result.examsImported > 0 ? ` · ${result.examsImported} Prüfungen` : ''}.`
+      );
+    },
+    onError: (mutationError: Error) => {
+      soundToast.error(mutationError.message);
+    },
+  });
+
   const iliasImportMutation = useMutation({
     mutationFn: importIliasDashboardPayload,
     onSuccess: async (result: { favoritesImported: number; itemsImported: number }) => {
@@ -208,31 +302,53 @@ export default function KitSyncPanel() {
     },
   });
 
-  async function handleCopyConnectorScript() {
-    setIsCopyingConnector(true);
+  const iliasCourseImportMutation = useMutation({
+    mutationFn: importIliasCoursePayload,
+    onSuccess: async (result: { favoritesImported: number; itemsImported: number }) => {
+      await queryClient.invalidateQueries({ queryKey: ['kit-sync-status'] });
+      setIliasCourseExportText('');
+      soundToast.success(
+        `ILIAS Kurs-Items importiert · ${result.itemsImported} neue Signale${result.favoritesImported > 0 ? ` · ${result.favoritesImported} Kurse` : ''}.`
+      );
+    },
+    onError: (mutationError: Error) => {
+      soundToast.error(mutationError.message);
+    },
+  });
+
+  async function handleCopyConnectorScript(
+    scriptPath: string,
+    setPending: (value: boolean) => void,
+    successMessage: string
+  ) {
+    setPending(true);
     try {
-      const response = await fetch('/connectors/kit-ilias-dashboard-exporter.js', { cache: 'no-store' });
+      const response = await fetch(scriptPath, { cache: 'no-store' });
       if (!response.ok) {
         throw new Error('Connector-Skript konnte nicht geladen werden.');
       }
 
       const script = await response.text();
       await navigator.clipboard.writeText(script);
-      soundToast.success('ILIAS Dashboard Export-Skript kopiert.');
+      soundToast.success(successMessage);
     } catch (copyError) {
       soundToast.error(copyError instanceof Error ? copyError.message : 'Connector-Skript konnte nicht kopiert werden.');
     } finally {
-      setIsCopyingConnector(false);
+      setPending(false);
     }
   }
 
-  async function handleImportFile(file: File | null) {
+  async function handleImportFile(
+    file: File | null,
+    setContent: (value: string) => void,
+    mutate: (value: string) => void
+  ) {
     if (!file) return;
 
     try {
       const content = await file.text();
-      setIliasExportText(content);
-      iliasImportMutation.mutate(content);
+      setContent(content);
+      mutate(content);
     } catch (fileError) {
       soundToast.error(fileError instanceof Error ? fileError.message : 'Datei konnte nicht gelesen werden.');
     }
@@ -441,9 +557,12 @@ export default function KitSyncPanel() {
             <summary className="cursor-pointer list-none text-sm font-medium text-text-primary">
               KIT Sync verwalten
             </summary>
-            <div className="mt-3 grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <div className="mt-3 grid gap-4 xl:grid-cols-2">
               <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4">
                 <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">CAMPUS Kalender</div>
+                <div className="mt-2 text-xs leading-relaxed text-text-secondary">
+                  Verbindet deinen offiziellen KIT-Kalender. Termine laufen danach direkt in den normalen INNIS-Kalender.
+                </div>
                 <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-end">
                   <Input
                     label="CAMPUS WebCal-URL"
@@ -478,12 +597,104 @@ export default function KitSyncPanel() {
               </div>
 
               <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4">
-                <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">ILIAS Dashboard Export</div>
+                <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">CAMPUS Academic Snapshot</div>
+                <div className="mt-2 text-xs leading-relaxed text-text-secondary">
+                  Studienaufbau, Notenspiegel und Prüfungen lokal exportieren. Der Snapshot füllt Module, Noten und Prüfungen im KIT-Hub.
+                </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button
                     variant="secondary"
-                    onClick={handleCopyConnectorScript}
-                    loading={isCopyingConnector}
+                    onClick={() =>
+                      handleCopyConnectorScript(
+                        '/connectors/kit-campus-academic-exporter.js',
+                        setIsCopyingCampusConnector,
+                        'CAMPUS Academic Export-Skript kopiert.'
+                      )
+                    }
+                    loading={isCopyingCampusConnector}
+                    leftIcon={<Copy className="h-4 w-4" />}
+                  >
+                    Export-Skript kopieren
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => window.open('/connectors/kit-campus-academic-exporter.js', '_blank', 'noopener,noreferrer')}
+                    leftIcon={<ExternalLink className="h-4 w-4" />}
+                  >
+                    Skript öffnen
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => campusFileInputRef.current?.click()}
+                    loading={campusImportMutation.isPending}
+                    leftIcon={<FileJson className="h-4 w-4" />}
+                  >
+                    JSON-Datei importieren
+                  </Button>
+                  <input
+                    ref={campusFileInputRef}
+                    type="file"
+                    accept=".json,application/json"
+                    className="hidden"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0] ?? null;
+                      void handleImportFile(file, setCampusExportText, campusImportMutation.mutate);
+                      event.currentTarget.value = '';
+                    }}
+                  />
+                </div>
+
+                <div className="mt-3 text-xs leading-relaxed text-text-secondary">
+                  Skript nacheinander auf `Studienaufbau`, `Notenspiegel` und `Prüfungen` ausführen. Jede Ausführung erweitert den lokalen Export.
+                </div>
+
+                <details
+                  className="mt-3 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-3"
+                  open={isCampusManualImportOpen}
+                  onToggle={(event) => setIsCampusManualImportOpen(event.currentTarget.open)}
+                >
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-secondary">
+                    JSON manuell einfügen
+                  </summary>
+                  <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+                    <Textarea
+                      label="CAMPUS Export JSON"
+                      value={campusExportText}
+                      onChange={(event) => setCampusExportText(event.target.value)}
+                      placeholder="Füge hier den exportierten CAMPUS-Snapshot ein, wenn du nicht den Datei-Import nutzt."
+                      fullWidth
+                      rows={5}
+                      resize="vertical"
+                    />
+                    <Button
+                      variant="primary"
+                      onClick={() => campusImportMutation.mutate(campusExportText)}
+                      loading={campusImportMutation.isPending}
+                      disabled={!campusExportText.trim()}
+                      leftIcon={<Upload className="h-4 w-4" />}
+                    >
+                      Importieren
+                    </Button>
+                  </div>
+                </details>
+              </div>
+
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4">
+                <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">ILIAS Favoriten</div>
+                <div className="mt-2 text-xs leading-relaxed text-text-secondary">
+                  Holt nur deine favorisierten Kurse aus dem ILIAS-Dashboard. Das hält den Hub fokussiert und vermeidet Lärm.
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button
+                    variant="secondary"
+                    onClick={() =>
+                      handleCopyConnectorScript(
+                        '/connectors/kit-ilias-dashboard-exporter.js',
+                        setIsCopyingDashboardConnector,
+                        'ILIAS Dashboard Export-Skript kopiert.'
+                      )
+                    }
+                    loading={isCopyingDashboardConnector}
                     leftIcon={<Copy className="h-4 w-4" />}
                   >
                     Export-Skript kopieren
@@ -497,20 +708,20 @@ export default function KitSyncPanel() {
                   </Button>
                   <Button
                     variant="secondary"
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => iliasDashboardFileInputRef.current?.click()}
                     loading={iliasImportMutation.isPending}
                     leftIcon={<FileJson className="h-4 w-4" />}
                   >
                     JSON-Datei importieren
                   </Button>
                   <input
-                    ref={fileInputRef}
+                    ref={iliasDashboardFileInputRef}
                     type="file"
                     accept=".json,application/json"
                     className="hidden"
                     onChange={(event) => {
                       const file = event.target.files?.[0] ?? null;
-                      void handleImportFile(file);
+                      void handleImportFile(file, setIliasExportText, iliasImportMutation.mutate);
                       event.currentTarget.value = '';
                     }}
                   />
@@ -522,15 +733,15 @@ export default function KitSyncPanel() {
 
                 <details
                   className="mt-3 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-3"
-                  open={isManualImportOpen}
-                  onToggle={(event) => setIsManualImportOpen(event.currentTarget.open)}
+                  open={isDashboardManualImportOpen}
+                  onToggle={(event) => setIsDashboardManualImportOpen(event.currentTarget.open)}
                 >
                   <summary className="cursor-pointer list-none text-xs font-medium text-text-secondary">
                     JSON manuell einfügen
                   </summary>
                   <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
                     <Textarea
-                      label="ILIAS Export JSON"
+                      label="ILIAS Favoriten JSON"
                       value={iliasExportText}
                       onChange={(event) => setIliasExportText(event.target.value)}
                       placeholder="Füge hier den exportierten JSON-Inhalt ein, wenn du nicht den Datei-Import nutzt."
@@ -543,6 +754,89 @@ export default function KitSyncPanel() {
                       onClick={() => iliasImportMutation.mutate(iliasExportText)}
                       loading={iliasImportMutation.isPending}
                       disabled={!iliasExportText.trim()}
+                      leftIcon={<Upload className="h-4 w-4" />}
+                    >
+                      Importieren
+                    </Button>
+                  </div>
+                </details>
+              </div>
+
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4">
+                <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">ILIAS Kurs-Items</div>
+                <div className="mt-2 text-xs leading-relaxed text-text-secondary">
+                  Führt pro favorisiertem Kurs Dokumente, Ankündigungen und neue Kurs-Signale in den Hub. Das ist der Schritt von “Favoriten” zu echtem Kurskontext.
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button
+                    variant="secondary"
+                    onClick={() =>
+                      handleCopyConnectorScript(
+                        '/connectors/kit-ilias-course-items-exporter.js',
+                        setIsCopyingCourseConnector,
+                        'ILIAS Kurs-Items Export-Skript kopiert.'
+                      )
+                    }
+                    loading={isCopyingCourseConnector}
+                    leftIcon={<Copy className="h-4 w-4" />}
+                  >
+                    Export-Skript kopieren
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => window.open('/connectors/kit-ilias-course-items-exporter.js', '_blank', 'noopener,noreferrer')}
+                    leftIcon={<ExternalLink className="h-4 w-4" />}
+                  >
+                    Skript öffnen
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => iliasCourseFileInputRef.current?.click()}
+                    loading={iliasCourseImportMutation.isPending}
+                    leftIcon={<FileJson className="h-4 w-4" />}
+                  >
+                    JSON-Datei importieren
+                  </Button>
+                  <input
+                    ref={iliasCourseFileInputRef}
+                    type="file"
+                    accept=".json,application/json"
+                    className="hidden"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0] ?? null;
+                      void handleImportFile(file, setIliasCourseExportText, iliasCourseImportMutation.mutate);
+                      event.currentTarget.value = '';
+                    }}
+                  />
+                </div>
+
+                <div className="mt-3 text-xs leading-relaxed text-text-secondary">
+                  Einen favorisierten ILIAS-Kurs öffnen, Skript dort ausführen und die erzeugte JSON-Datei hier importieren. Mehrere Kurse bauen den lokalen Snapshot schrittweise aus.
+                </div>
+
+                <details
+                  className="mt-3 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-3"
+                  open={isCourseManualImportOpen}
+                  onToggle={(event) => setIsCourseManualImportOpen(event.currentTarget.open)}
+                >
+                  <summary className="cursor-pointer list-none text-xs font-medium text-text-secondary">
+                    JSON manuell einfügen
+                  </summary>
+                  <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+                    <Textarea
+                      label="ILIAS Kurs-Items JSON"
+                      value={iliasCourseExportText}
+                      onChange={(event) => setIliasCourseExportText(event.target.value)}
+                      placeholder="Füge hier den exportierten ILIAS-Kurs-JSON-Inhalt ein, wenn du nicht den Datei-Import nutzt."
+                      fullWidth
+                      rows={5}
+                      resize="vertical"
+                    />
+                    <Button
+                      variant="primary"
+                      onClick={() => iliasCourseImportMutation.mutate(iliasCourseExportText)}
+                      loading={iliasCourseImportMutation.isPending}
+                      disabled={!iliasCourseExportText.trim()}
                       leftIcon={<Upload className="h-4 w-4" />}
                     >
                       Importieren

@@ -15,6 +15,7 @@
 ## Canonical Context
 - Active planning:
   - `docs/CONTEXT_CANON.md`
+  - `docs/PHASE44_KIT_CONNECTORS_AND_TODAY_FUSION_2026-03-29.md`
   - `docs/PHASE42_KIT_SYNC_CONNECTOR_EXECUTION_CONTRACT_2026-03-29.md`
   - `docs/PHASE43_KIT_ILIAS_DASHBOARD_CONNECTOR_2026-03-29.md`
   - `docs/PHASE41_MEASURED_PERFORMANCE_PASS_2026-03-28.md`
@@ -63,8 +64,11 @@ RLS: owner-based isolation via `user_id` columns + owner-only policies.
 - Wave 1: CAMPUS WebCal (`/api/kit/webcal`, `/api/kit/status`, `/api/kit/sync`, Cron-Import)
 - Wave 2: CAMPUS Academic Snapshot (`campus_connector` für Module, Noten, Prüfungen)
 - Wave 3: ILIAS Snapshot (`ilias_connector` für Favoriten + Items)
+- Lokaler CAMPUS Academic Exporter: `public/connectors/kit-campus-academic-exporter.js`
 - Lokaler ILIAS-Dashboard-Exporter: `public/connectors/kit-ilias-dashboard-exporter.js`
+- Lokaler ILIAS-Kursseiten-Exporter: `public/connectors/kit-ilias-course-items-exporter.js`
 - Manueller JSON-Import läuft über `components/features/university/KitSyncPanel.tsx`
+- `/today` zieht KIT-Signale jetzt direkt aus `kit_*` Tabellen in das Morning Briefing
 
 ## Commands
 ```bash

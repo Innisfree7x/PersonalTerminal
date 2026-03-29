@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
+import { format } from 'date-fns';
 import Link from 'next/link';
 import { Sparkles, CheckCircle2, GraduationCap, Flame } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -71,6 +72,7 @@ export default function TodayPage() {
   const trajectoryBriefing = buildTrajectoryMorningBriefing(trajectorySnapshot?.overview);
   const momentum = trajectorySnapshot?.momentum ?? null;
   const trajectoryTone = trajectoryBriefing ? getRiskStatusTone(trajectoryBriefing.status) : null;
+  const kitSignals = nextTasksData?.kitSignals ?? null;
 
   const tasksTodayCount = stats?.tasksToday ?? 0;
   const tasksCompletedCount = stats?.tasksCompleted ?? 0;
@@ -200,6 +202,65 @@ export default function TodayPage() {
                 <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-text-secondary">
                   {tasksCompletedCount}/{tasksTodayCount} Tasks heute
                 </span>
+              ) : null}
+              {kitSignals?.nextCampusEvent ? (
+                <Link
+                  href="/calendar?source=today_kit"
+                  className="inline-flex items-center rounded-full border border-sky-500/25 bg-sky-500/[0.08] px-2.5 py-1 text-[11px] font-medium text-sky-100 transition-colors hover:bg-sky-500/[0.14]"
+                >
+                  KIT {format(new Date(kitSignals.nextCampusEvent.startsAt), 'dd.MM. HH:mm')}
+                  <span className="mx-1.5 text-sky-200/40">·</span>
+                  {kitSignals.nextCampusEvent.title}
+                  {kitSignals.nextCampusEvent.location ? (
+                    <>
+                      <span className="mx-1.5 text-sky-200/40">·</span>
+                      {kitSignals.nextCampusEvent.location}
+                    </>
+                  ) : null}
+                </Link>
+              ) : null}
+              {kitSignals?.nextCampusExam ? (
+                <Link
+                  href="/university?source=today_kit_exam"
+                  className="inline-flex items-center rounded-full border border-amber-500/25 bg-amber-500/[0.09] px-2.5 py-1 text-[11px] font-medium text-amber-100 transition-colors hover:bg-amber-500/[0.15]"
+                >
+                  Prüfung {format(new Date(kitSignals.nextCampusExam.startsAt), 'dd.MM. HH:mm')}
+                  <span className="mx-1.5 text-amber-200/40">·</span>
+                  {kitSignals.nextCampusExam.title}
+                </Link>
+              ) : null}
+              {kitSignals?.freshIliasItems ? (
+                <Link
+                  href="/university?source=today_ilias"
+                  className="inline-flex items-center rounded-full border border-emerald-500/25 bg-emerald-500/[0.08] px-2.5 py-1 text-[11px] font-medium text-emerald-100 transition-colors hover:bg-emerald-500/[0.14]"
+                >
+                  {kitSignals.freshIliasItems} neue ILIAS-Signale
+                  {kitSignals.latestIliasItem ? (
+                    <>
+                      <span className="mx-1.5 text-emerald-200/40">·</span>
+                      {kitSignals.latestIliasItem.favoriteTitle}
+                    </>
+                  ) : null}
+                </Link>
+              ) : kitSignals?.latestIliasItem ? (
+                <Link
+                  href="/university?source=today_ilias"
+                  className="inline-flex items-center rounded-full border border-emerald-500/25 bg-emerald-500/[0.08] px-2.5 py-1 text-[11px] font-medium text-emerald-100 transition-colors hover:bg-emerald-500/[0.14]"
+                >
+                  {kitSignals.latestIliasItem.favoriteTitle}
+                  <span className="mx-1.5 text-emerald-200/40">·</span>
+                  {kitSignals.latestIliasItem.title}
+                </Link>
+              ) : null}
+              {kitSignals?.latestCampusGrade ? (
+                <Link
+                  href="/university?source=today_grade"
+                  className="inline-flex items-center rounded-full border border-violet-500/25 bg-violet-500/[0.1] px-2.5 py-1 text-[11px] font-medium text-violet-100 transition-colors hover:bg-violet-500/[0.16]"
+                >
+                  Neue Note {kitSignals.latestCampusGrade.gradeLabel}
+                  <span className="mx-1.5 text-violet-200/40">·</span>
+                  {kitSignals.latestCampusGrade.moduleTitle}
+                </Link>
               ) : null}
             </div>
           </div>

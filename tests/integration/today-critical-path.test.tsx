@@ -76,6 +76,32 @@ describe('Today critical path integration', () => {
           generatedAt: '2026-03-21T10:00:00.000Z',
           queryDurationMs: 12,
         },
+        kitSignals: {
+          nextCampusEvent: {
+            title: 'Financial Data Science (V)',
+            startsAt: '2026-03-20T10:00:00.000Z',
+            kind: 'lecture',
+            location: 'Ulrich, WIWI',
+          },
+          nextCampusExam: {
+            title: 'Investments Klausur',
+            startsAt: '2026-03-21T08:30:00.000Z',
+            location: 'Audimax',
+          },
+          latestCampusGrade: {
+            moduleTitle: 'Operations Research',
+            gradeLabel: '1,7',
+            publishedAt: '2026-03-19T11:00:00.000Z',
+          },
+          freshIliasItems: 2,
+          latestIliasItem: {
+            favoriteTitle: 'Investments SS2025',
+            title: 'Neue Klausurhinweise',
+            itemType: 'announcement',
+            publishedAt: '2026-03-19T12:00:00.000Z',
+            itemUrl: 'https://ilias.studium.kit.edu/item-1',
+          },
+        },
         stats: {
           tasksToday: 3,
           tasksCompleted: 1,
@@ -157,6 +183,18 @@ describe('Today critical path integration', () => {
     expect(screen.getByText('1/3')).toBeInTheDocument();
     expect(screen.getByText('Momentum')).toBeInTheDocument();
     expect(screen.getByText('57')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /KIT 20\.03\./i })).toHaveAttribute(
+      'href',
+      '/calendar?source=today_kit'
+    );
+    expect(screen.getByRole('link', { name: /2 neue ILIAS-Signale/i })).toHaveAttribute(
+      'href',
+      '/university?source=today_ilias'
+    );
+    expect(screen.getByRole('link', { name: /Neue Note 1,7/i })).toHaveAttribute(
+      'href',
+      '/university?source=today_grade'
+    );
     expect(
       screen.getByText(
         (_, element) => element?.tagName === 'SPAN' && (element.textContent?.includes('1 vs letzte Woche') ?? false)
