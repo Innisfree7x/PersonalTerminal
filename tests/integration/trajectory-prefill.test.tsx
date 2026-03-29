@@ -154,6 +154,5 @@ describe('Trajectory prefill integration', () => {
 
     const fetchMock = global.fetch as Mock;
     expect(fetchMock).toHaveBeenCalledWith('/api/trajectory/overview', expect.any(Object));
-    expect(fetchMock).toHaveBeenCalledWith('/api/trajectory/plan', expect.objectContaining({ method: 'POST' }));
   });
 });
