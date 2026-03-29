@@ -197,6 +197,21 @@ function formatDateTime(value: string | null | undefined) {
   return format(new Date(value), 'dd.MM.yyyy HH:mm');
 }
 
+function normalizeSemesterLabel(value: string | null | undefined) {
+  if (!value) return 'Ohne Semester';
+  const normalized = value.replace(/\s+/g, '').toUpperCase();
+  return normalized || 'Ohne Semester';
+}
+
+function getSemesterSortValue(label: string) {
+  const normalized = normalizeSemesterLabel(label);
+  const match = normalized.match(/^(SS|WS)(\d{4})(?:\/(\d{2,4}))?$/);
+  if (!match) return Number.NEGATIVE_INFINITY;
+  const term = match[1];
+  const year = Number(match[2]);
+  return year * 10 + (term === 'WS' ? 9 : 4);
+}
+
 function SignalCard({
   icon,
   label,
@@ -296,7 +311,10 @@ export default function KitSyncPanel() {
 
   const saveMutation = useMutation({
     mutationFn: saveWebcal,
-    onSuccess: async () => {
+    onSuccess: async (result: { nextStatus?: KitSyncStatus }) => {
+      if (result.nextStatus) {
+        queryClient.setQueryData(['kit-sync-status'], result.nextStatus);
+      }
       await queryClient.invalidateQueries({ queryKey: ['kit-sync-status'] });
       setWebcalUrl('');
       soundToast.success('CAMPUS WebCal gespeichert.');
@@ -308,7 +326,10 @@ export default function KitSyncPanel() {
 
   const syncMutation = useMutation({
     mutationFn: triggerSync,
-    onSuccess: async (result: { itemsWritten?: number }) => {
+    onSuccess: async (result: { itemsWritten?: number; nextStatus?: KitSyncStatus }) => {
+      if (result.nextStatus) {
+        queryClient.setQueryData(['kit-sync-status'], result.nextStatus);
+      }
       await queryClient.invalidateQueries({ queryKey: ['kit-sync-status'] });
       soundToast.success(`KIT Sync abgeschlossen${typeof result.itemsWritten === 'number' ? ` · ${result.itemsWritten} Events aktualisiert` : ''}.`);
     },
@@ -319,7 +340,10 @@ export default function KitSyncPanel() {
 
   const campusImportMutation = useMutation({
     mutationFn: importCampusAcademicPayload,
-    onSuccess: async (result: { modulesImported: number; gradesImported: number; examsImported: number }) => {
+    onSuccess: async (result: { modulesImported: number; gradesImported: number; examsImported: number; nextStatus?: KitSyncStatus }) => {
+      if (result.nextStatus) {
+        queryClient.setQueryData(['kit-sync-status'], result.nextStatus);
+      }
       await queryClient.invalidateQueries({ queryKey: ['kit-sync-status'] });
       setCampusExportText('');
       soundToast.success(
@@ -333,7 +357,10 @@ export default function KitSyncPanel() {
 
   const iliasImportMutation = useMutation({
     mutationFn: importIliasDashboardPayload,
-    onSuccess: async (result: { favoritesImported: number; itemsImported: number }) => {
+    onSuccess: async (result: { favoritesImported: number; itemsImported: number; nextStatus?: KitSyncStatus }) => {
+      if (result.nextStatus) {
+        queryClient.setQueryData(['kit-sync-status'], result.nextStatus);
+      }
       await queryClient.invalidateQueries({ queryKey: ['kit-sync-status'] });
       setIliasExportText('');
       soundToast.success(`ILIAS Export importiert · ${result.favoritesImported} Favoriten${result.itemsImported > 0 ? ` · ${result.itemsImported} Items` : ''}.`);
@@ -345,7 +372,10 @@ export default function KitSyncPanel() {
 
   const iliasCourseImportMutation = useMutation({
     mutationFn: importIliasCoursePayload,
-    onSuccess: async (result: { favoritesImported: number; itemsImported: number }) => {
+    onSuccess: async (result: { favoritesImported: number; itemsImported: number; nextStatus?: KitSyncStatus }) => {
+      if (result.nextStatus) {
+        queryClient.setQueryData(['kit-sync-status'], result.nextStatus);
+      }
       await queryClient.invalidateQueries({ queryKey: ['kit-sync-status'] });
       setIliasCourseExportText('');
       soundToast.success(
@@ -359,7 +389,10 @@ export default function KitSyncPanel() {
 
   const resetMutation = useMutation({
     mutationFn: resetKitSyncScope,
-    onSuccess: async (result: { itemsDeleted: number }) => {
+    onSuccess: async (result: { itemsDeleted: number; nextStatus?: KitSyncStatus }) => {
+      if (result.nextStatus) {
+        queryClient.setQueryData(['kit-sync-status'], result.nextStatus);
+      }
       await queryClient.invalidateQueries({ queryKey: ['kit-sync-status'] });
       soundToast.success(`Quelle zurückgesetzt · ${result.itemsDeleted} Einträge entfernt.`);
     },
@@ -447,6 +480,32 @@ export default function KitSyncPanel() {
         tone: data.totalCampusModules > 0 || data.totalCampusGrades > 0 ? 'success' as const : 'default' as const,
       },
     ];
+  }, [data]);
+
+  const groupedIliasFavorites = useMemo(() => {
+    if (!data?.iliasFavoritePreview.length) return [];
+
+    const groups = new Map<
+      string,
+      Array<(typeof data.iliasFavoritePreview)[number]>
+    >();
+
+    for (const favorite of data.iliasFavoritePreview) {
+      const semesterLabel = normalizeSemesterLabel(favorite.semesterLabel);
+      const group = groups.get(semesterLabel) ?? [];
+      group.push({
+        ...favorite,
+        semesterLabel,
+      });
+      groups.set(semesterLabel, group);
+    }
+
+    return Array.from(groups.entries())
+      .map(([semesterLabel, favorites]) => ({
+        semesterLabel,
+        favorites: favorites.sort((left, right) => left.title.localeCompare(right.title, 'de')),
+      }))
+      .sort((left, right) => getSemesterSortValue(right.semesterLabel) - getSemesterSortValue(left.semesterLabel));
   }, [data]);
 
   const panelTone = error
@@ -539,36 +598,58 @@ export default function KitSyncPanel() {
                     {data ? `${data.totalIliasFavorites} Kurse verbunden` : 'Lädt …'}
                   </div>
                 </div>
-                {data?.totalIliasFavorites ? (
-                  <Badge variant="success" size="sm">Favoriten live</Badge>
-                ) : null}
+                <div className="flex items-center gap-2">
+                  {data?.totalIliasFavorites ? (
+                    <Badge variant="success" size="sm">Favoriten live</Badge>
+                  ) : null}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => confirmReset('ilias_dashboard', 'ILIAS Favoriten')}
+                    loading={resetMutation.isPending}
+                    leftIcon={<Trash2 className="h-3.5 w-3.5" />}
+                  >
+                    Leeren
+                  </Button>
+                </div>
               </div>
 
               <div className="mt-3 max-h-[22rem] space-y-2 overflow-y-auto pr-1">
-                {data?.iliasFavoritePreview.length ? (
-                  <div className="grid gap-2 xl:grid-cols-2">
-                    {data.iliasFavoritePreview.map((favorite) => (
-                      <div
-                        key={`${favorite.title}-${favorite.courseUrl ?? favorite.semesterLabel ?? 'favorite'}`}
-                        className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5"
-                      >
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-medium text-text-primary">{favorite.title}</div>
-                          <div className="mt-1 text-[11px] uppercase tracking-[0.14em] text-text-tertiary">
-                            {favorite.semesterLabel ?? 'Favorit'}
+                {groupedIliasFavorites.length ? (
+                  <div className="space-y-4">
+                    {groupedIliasFavorites.map((group) => (
+                      <div key={group.semesterLabel}>
+                        <div className="mb-2 flex items-center justify-between gap-3">
+                          <div className="text-[11px] font-medium uppercase tracking-[0.16em] text-emerald-200/85">
+                            {group.semesterLabel}
+                          </div>
+                          <div className="text-[11px] text-text-tertiary">
+                            {group.favorites.length} Kurs{group.favorites.length === 1 ? '' : 'e'}
                           </div>
                         </div>
-                        {favorite.courseUrl ? (
-                          <a
-                            href={favorite.courseUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="shrink-0 rounded-full border border-white/10 bg-white/[0.05] p-2 text-text-tertiary transition-colors hover:border-emerald-400/30 hover:text-emerald-200"
-                            aria-label={`${favorite.title} in ILIAS öffnen`}
-                          >
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </a>
-                        ) : null}
+                        <div className="grid gap-2 xl:grid-cols-2">
+                          {group.favorites.map((favorite) => (
+                            <div
+                              key={`${group.semesterLabel}-${favorite.title}-${favorite.courseUrl ?? 'favorite'}`}
+                              className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5"
+                            >
+                              <div className="min-w-0">
+                                <div className="truncate text-sm font-medium text-text-primary">{favorite.title}</div>
+                              </div>
+                              {favorite.courseUrl ? (
+                                <a
+                                  href={favorite.courseUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="shrink-0 rounded-full border border-white/10 bg-white/[0.05] p-2 text-text-tertiary transition-colors hover:border-emerald-400/30 hover:text-emerald-200"
+                                  aria-label={`${favorite.title} in ILIAS öffnen`}
+                                >
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                </a>
+                              ) : null}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>

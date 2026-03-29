@@ -76,8 +76,8 @@ export async function DELETE(request: NextRequest) {
     const scope = kitSyncResetScopeSchema.parse(request.nextUrl.searchParams.get('scope'));
     const rateLimit = consumeRateLimit({
       key: `kit_reset:${scope}:${user.id}:${readForwardedIpFromRequest(request)}`,
-      limit: 1,
-      windowMs: 300_000,
+      limit: 5,
+      windowMs: 60_000,
     });
 
     if (!rateLimit.allowed) {

@@ -16,6 +16,7 @@ import {
   buildIliasItemUpsertRows,
   normalizeIliasConnectorPayload,
 } from '@/lib/kit-sync/iliasConnector';
+import { KIT_ILIAS_DASHBOARD_CONNECTOR_VERSION } from '@/lib/kit-sync/iliasDashboardExport';
 import type {
   CampusConnectorPayloadInput,
   IliasConnectorPayloadInput,
@@ -644,6 +645,7 @@ export async function syncIliasConnectorSnapshotForUser(
   }
 ) {
   const normalized = normalizeIliasConnectorPayload(input.payload);
+  const isDashboardSnapshot = input.connectorVersion === KIT_ILIAS_DASHBOARD_CONNECTOR_VERSION;
   const profile = await ensureProfileForUser(userId, input.connectorVersion);
   const runId = await insertSyncRun({
     userId,
@@ -663,6 +665,37 @@ export async function syncIliasConnectorSnapshotForUser(
 
       if (favoriteUpsertError) {
         throw ApiErrors.internal(`ILIAS Favoriten konnten nicht gespeichert werden: ${favoriteUpsertError.message}`);
+      }
+    }
+
+    if (isDashboardSnapshot) {
+      const incomingExternalIds = new Set(normalized.favorites.map((favorite) => favorite.externalId));
+      const { data: existingFavorites, error: existingFavoritesError } = await admin()
+        .from('kit_ilias_favorites')
+        .select('id, external_id')
+        .eq('user_id', userId);
+
+      if (existingFavoritesError) {
+        throw ApiErrors.internal(`Bestehende ILIAS Favoriten konnten nicht geladen werden: ${existingFavoritesError.message}`);
+      }
+
+      const staleFavoriteIds = (existingFavorites ?? [])
+        .filter((favorite) => !incomingExternalIds.has(favorite.external_id))
+        .map((favorite) => favorite.id);
+
+      if (staleFavoriteIds.length > 0) {
+        const { data: deletedFavorites, error: staleFavoriteDeleteError } = await admin()
+          .from('kit_ilias_favorites')
+          .delete()
+          .eq('user_id', userId)
+          .in('id', staleFavoriteIds)
+          .select('id');
+
+        if (staleFavoriteDeleteError) {
+          throw ApiErrors.internal(`Veraltete ILIAS Favoriten konnten nicht entfernt werden: ${staleFavoriteDeleteError.message}`);
+        }
+
+        void deletedFavorites;
       }
     }
 
