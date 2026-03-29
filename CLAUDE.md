@@ -55,7 +55,7 @@ Auth redirects · onboarding gate (`user_metadata.onboarding_completed`) · redi
 `/` landing · `/onboarding` setup · `/today` command center · `/calendar` weekly · `/goals` tracking · `/university` courses · `/career` applications · `/analytics` focus · `/analytics/ops` admin health · `/settings` preferences
 
 ## Database Tables
-`goals` · `job_applications` · `courses` · `exercise_progress` · `daily_tasks` · `focus_sessions` · `admin_audit_logs` · `ops_flow_metrics` · `kit_sync_profiles` · `kit_sync_runs` · `kit_campus_events` · `kit_campus_modules` · `kit_campus_grades` · `events` (legacy, unused)
+`goals` · `job_applications` · `courses` · `exercise_progress` · `daily_tasks` · `focus_sessions` · `admin_audit_logs` · `ops_flow_metrics` · `kit_sync_profiles` · `kit_sync_runs` · `kit_campus_events` · `kit_campus_modules` · `kit_campus_grades` · `kit_ilias_favorites` · `kit_ilias_items` · `events` (legacy, unused)
 RLS: owner-based isolation via `user_id` columns + owner-only policies.
 
 ## Commands

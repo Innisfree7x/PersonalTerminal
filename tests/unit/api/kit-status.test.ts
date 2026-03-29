@@ -44,6 +44,9 @@ describe('GET /api/kit/status', () => {
       totalCampusEvents: 12,
       totalCampusModules: 5,
       totalCampusGrades: 2,
+      totalIliasFavorites: 3,
+      totalIliasItems: 9,
+      freshIliasItems: 2,
       nextCampusEvent: null,
       nextCampusExam: null,
       latestCampusGrade: {
@@ -51,6 +54,20 @@ describe('GET /api/kit/status', () => {
         gradeLabel: '1,7',
         publishedAt: '2026-03-29T11:00:00.000Z',
       },
+      latestIliasItem: {
+        favoriteTitle: 'Investments SS2025',
+        title: 'Neue Klausurhinweise',
+        itemType: 'announcement',
+        publishedAt: '2026-03-29T11:15:00.000Z',
+        itemUrl: 'https://ilias.studium.kit.edu/item-1',
+      },
+      iliasFavoritePreview: [
+        {
+          title: 'Investments SS2025',
+          semesterLabel: 'SS 2025',
+          courseUrl: 'https://ilias.studium.kit.edu/course-1',
+        },
+      ],
       lastRun: null,
     });
 
@@ -60,6 +77,8 @@ describe('GET /api/kit/status', () => {
     expect(body.totalCampusEvents).toBe(12);
     expect(body.totalCampusModules).toBe(5);
     expect(body.latestCampusGrade.gradeLabel).toBe('1,7');
+    expect(body.totalIliasFavorites).toBe(3);
+    expect(body.latestIliasItem.itemType).toBe('announcement');
     expect(mockedGetKitSyncStatus).toHaveBeenCalledWith('user-1');
   });
 });

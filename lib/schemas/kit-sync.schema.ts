@@ -44,7 +44,33 @@ export const campusConnectorPayloadSchema = z.object({
   exams: z.array(campusConnectorExamSchema).max(200).default([]),
 });
 
-export const kitSyncSourceSchema = z.enum(['campus_webcal', 'campus_connector']);
+export const iliasItemTypeSchema = z.enum(['announcement', 'document', 'folder', 'link', 'other']);
+
+export const iliasConnectorFavoriteSchema = z.object({
+  externalId: z.string().trim().min(1, 'Favoriten-ID ist erforderlich.').max(191),
+  title: z.string().trim().min(1, 'Kurstitel ist erforderlich.').max(255),
+  semesterLabel: z.string().trim().min(1).max(64).optional().nullable(),
+  courseUrl: z.string().trim().url().max(2048).optional().nullable(),
+  sourceUpdatedAt: isoDateTimeSchema.optional().nullable(),
+});
+
+export const iliasConnectorItemSchema = z.object({
+  externalId: z.string().trim().min(1, 'Item-ID ist erforderlich.').max(191),
+  favoriteExternalId: z.string().trim().min(1, 'Favoriten-Referenz ist erforderlich.').max(191),
+  title: z.string().trim().min(1, 'Item-Titel ist erforderlich.').max(255),
+  itemType: iliasItemTypeSchema.default('other'),
+  itemUrl: z.string().trim().url().max(2048).optional().nullable(),
+  summary: z.string().trim().max(4000).optional().nullable(),
+  publishedAt: isoDateTimeSchema.optional().nullable(),
+  sourceUpdatedAt: isoDateTimeSchema.optional().nullable(),
+});
+
+export const iliasConnectorPayloadSchema = z.object({
+  favorites: z.array(iliasConnectorFavoriteSchema).max(200),
+  items: z.array(iliasConnectorItemSchema).max(1000),
+});
+
+export const kitSyncSourceSchema = z.enum(['campus_webcal', 'campus_connector', 'ilias_connector']);
 
 export const saveKitWebcalSchema = z.object({
   url: z.string().trim().min(1, 'WebCal-URL ist erforderlich.').max(2048, 'WebCal-URL ist zu lang.'),
@@ -59,6 +85,11 @@ export const triggerKitSyncSchema = z.discriminatedUnion('source', [
     connectorVersion: z.string().trim().min(1, 'Connector-Version ist erforderlich.').max(32),
     payload: campusConnectorPayloadSchema,
   }),
+  z.object({
+    source: z.literal('ilias_connector'),
+    connectorVersion: z.string().trim().min(1, 'Connector-Version ist erforderlich.').max(32),
+    payload: iliasConnectorPayloadSchema,
+  }),
 ]);
 
 export type KitSyncSource = z.infer<typeof kitSyncSourceSchema>;
@@ -67,4 +98,7 @@ export type CampusConnectorModuleInput = z.infer<typeof campusConnectorModuleSch
 export type CampusConnectorGradeInput = z.infer<typeof campusConnectorGradeSchema>;
 export type CampusConnectorExamInput = z.infer<typeof campusConnectorExamSchema>;
 export type CampusConnectorPayloadInput = z.infer<typeof campusConnectorPayloadSchema>;
+export type IliasConnectorFavoriteInput = z.infer<typeof iliasConnectorFavoriteSchema>;
+export type IliasConnectorItemInput = z.infer<typeof iliasConnectorItemSchema>;
+export type IliasConnectorPayloadInput = z.infer<typeof iliasConnectorPayloadSchema>;
 export type TriggerKitSyncInput = z.infer<typeof triggerKitSyncSchema>;

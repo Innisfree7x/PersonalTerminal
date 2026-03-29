@@ -18,15 +18,21 @@ vi.mock('@/lib/api/rateLimit', () => ({
 vi.mock('@/lib/kit-sync/service', () => ({
   syncCampusWebcalForUser: vi.fn(),
   syncCampusConnectorSnapshotForUser: vi.fn(),
+  syncIliasConnectorSnapshotForUser: vi.fn(),
 }));
 
 import { requireApiAuth } from '@/lib/api/auth';
-import { syncCampusConnectorSnapshotForUser, syncCampusWebcalForUser } from '@/lib/kit-sync/service';
+import {
+  syncCampusConnectorSnapshotForUser,
+  syncCampusWebcalForUser,
+  syncIliasConnectorSnapshotForUser,
+} from '@/lib/kit-sync/service';
 import { POST } from '@/app/api/kit/sync/route';
 
 const mockedRequireApiAuth = vi.mocked(requireApiAuth);
 const mockedSyncCampusWebcalForUser = vi.mocked(syncCampusWebcalForUser);
 const mockedSyncCampusConnectorSnapshotForUser = vi.mocked(syncCampusConnectorSnapshotForUser);
+const mockedSyncIliasConnectorSnapshotForUser = vi.mocked(syncIliasConnectorSnapshotForUser);
 
 describe('POST /api/kit/sync', () => {
   beforeEach(() => {
@@ -164,5 +170,64 @@ describe('POST /api/kit/sync', () => {
 
     expect(response.status).toBe(413);
     expect(mockedSyncCampusConnectorSnapshotForUser).not.toHaveBeenCalled();
+  });
+
+  it('accepts an ilias connector snapshot', async () => {
+    mockedRequireApiAuth.mockResolvedValueOnce({ user: { id: 'user-1' }, errorResponse: null } as any);
+    mockedSyncIliasConnectorSnapshotForUser.mockResolvedValueOnce({
+      source: 'ilias_connector',
+      itemsRead: 4,
+      itemsWritten: 4,
+      skippedItems: 0,
+      nextStatus: { totalIliasFavorites: 2, totalIliasItems: 3, freshIliasItems: 1 },
+    } as any);
+
+    const response = await POST(
+      new NextRequest('http://localhost:3000/api/kit/sync', {
+        method: 'POST',
+        body: JSON.stringify({
+          source: 'ilias_connector',
+          connectorVersion: 'kit-connector/0.3.0',
+          payload: {
+            favorites: [
+              {
+                externalId: 'fav-1',
+                title: 'Investments SS2025',
+              },
+            ],
+            items: [
+              {
+                externalId: 'item-1',
+                favoriteExternalId: 'fav-1',
+                title: 'Neue Ankündigung',
+                itemType: 'announcement',
+              },
+            ],
+          },
+        }),
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
+
+    expect(response.status).toBe(200);
+    expect(mockedSyncIliasConnectorSnapshotForUser).toHaveBeenCalledWith('user-1', {
+      connectorVersion: 'kit-connector/0.3.0',
+      payload: {
+        favorites: [
+          {
+            externalId: 'fav-1',
+            title: 'Investments SS2025',
+          },
+        ],
+        items: [
+          {
+            externalId: 'item-1',
+            favoriteExternalId: 'fav-1',
+            title: 'Neue Ankündigung',
+            itemType: 'announcement',
+          },
+        ],
+      },
+    });
   });
 });

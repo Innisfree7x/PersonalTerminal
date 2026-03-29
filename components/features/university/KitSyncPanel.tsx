@@ -10,6 +10,14 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { useSoundToast } from '@/lib/hooks/useSoundToast';
 
+const iliasItemTypeLabels: Record<string, string> = {
+  announcement: 'Ankündigung',
+  document: 'Dokument',
+  folder: 'Ordner',
+  link: 'Link',
+  other: 'Item',
+};
+
 interface KitSyncStatus {
   campusWebcalConfigured: boolean;
   campusWebcalMaskedUrl: string | null;
@@ -21,9 +29,24 @@ interface KitSyncStatus {
   totalCampusEvents: number;
   totalCampusModules: number;
   totalCampusGrades: number;
+  totalIliasFavorites: number;
+  totalIliasItems: number;
+  freshIliasItems: number;
   nextCampusEvent: { title: string; startsAt: string; kind: string } | null;
   nextCampusExam: { title: string; startsAt: string; location: string | null } | null;
   latestCampusGrade: { moduleTitle: string; gradeLabel: string; publishedAt: string | null } | null;
+  latestIliasItem: {
+    favoriteTitle: string;
+    title: string;
+    itemType: string;
+    publishedAt: string | null;
+    itemUrl: string | null;
+  } | null;
+  iliasFavoritePreview: Array<{
+    title: string;
+    semesterLabel: string | null;
+    courseUrl: string | null;
+  }>;
   lastRun: {
     source: string;
     trigger: string;
@@ -115,6 +138,8 @@ export default function KitSyncPanel() {
       { label: `${data.totalCampusEvents} KIT Events`, tone: 'info' as const },
       { label: `${data.totalCampusModules} Module`, tone: 'default' as const },
       { label: `${data.totalCampusGrades} Noten`, tone: 'default' as const },
+      { label: `${data.totalIliasFavorites} ILIAS Favoriten`, tone: 'default' as const },
+      ...(data.freshIliasItems > 0 ? [{ label: `${data.freshIliasItems} neue ILIAS Items`, tone: 'success' as const }] : []),
       ...(data.connectorVersion ? [{ label: `Connector ${data.connectorVersion}`, tone: 'success' as const }] : []),
       ...(data.nextCampusEvent ? [{ label: `Nächstes Event ${format(new Date(data.nextCampusEvent.startsAt), 'dd.MM.')}`, tone: 'default' as const }] : []),
     ];
@@ -123,8 +148,8 @@ export default function KitSyncPanel() {
   return (
     <DecisionSurfaceCard
       eyebrow="KIT Sync"
-      title="CAMPUS zuerst, ILIAS danach"
-      summary="WebCal läuft bereits. Wave 2 erweitert den Stack jetzt um CAMPUS-Module, Noten und Prüfungen über einen read-only Connector mit bestehender Browser-Session statt Passwortspeicherung."
+      title="CAMPUS plus ILIAS in einem Sync-Pfad"
+      summary="WebCal und CAMPUS Academic Snapshot laufen bereits. Wave 3 zieht jetzt ILIAS-Favoriten und neue Kurs-Items read-only über denselben Connector-Pfad in INNIS, ohne Passwortspeicherung und ohne komplettes ILIAS-Spiegeln."
       chips={chips}
       tone={data?.campusWebcalConfigured ? 'info' : 'warning'}
       icon={<ShieldCheck className="h-4 w-4" />}
@@ -135,6 +160,9 @@ export default function KitSyncPanel() {
         data?.latestCampusGrade
           ? `Letzte Note: ${data.latestCampusGrade.moduleTitle} · ${data.latestCampusGrade.gradeLabel}`
           : 'Noch keine CAMPUS-Noten importiert.',
+        data?.latestIliasItem
+          ? `Letztes ILIAS Signal: ${data.latestIliasItem.favoriteTitle} · ${data.latestIliasItem.title}`
+          : 'Noch keine ILIAS-Favoriten oder Kurs-Items importiert.',
       ]}
       footer={
         <div className="space-y-4">
@@ -213,6 +241,39 @@ export default function KitSyncPanel() {
                 {data?.nextCampusExam
                   ? `Nächste Prüfung: ${data.nextCampusExam.title} am ${format(new Date(data.nextCampusExam.startsAt), 'dd.MM.yyyy HH:mm')}`
                   : 'Noch keine Prüfungen aus dem CAMPUS-Connector importiert.'}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3">
+              <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">ILIAS Favoriten</div>
+              <div className="mt-2 text-sm font-medium text-text-primary">
+                {data ? `${data.totalIliasFavorites} Kurse · ${data.totalIliasItems} Items` : 'Lädt …'}
+              </div>
+              <div className="mt-2 space-y-1.5 text-xs text-text-secondary">
+                {data?.iliasFavoritePreview.length ? (
+                  data.iliasFavoritePreview.map((favorite) => (
+                    <div key={favorite.title} className="flex items-center justify-between gap-2">
+                      <span className="truncate text-text-primary">{favorite.title}</span>
+                      <span className="shrink-0 text-text-tertiary">{favorite.semesterLabel ?? 'Favorit'}</span>
+                    </div>
+                  ))
+                ) : (
+                  <span>Noch keine ILIAS-Favoriten importiert.</span>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3">
+              <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">Neu in ILIAS</div>
+              <div className="mt-2 text-sm font-medium text-text-primary">
+                {data?.freshIliasItems ? `${data.freshIliasItems} neue Items in 7 Tagen` : 'Aktuell kein neues Signal'}
+              </div>
+              <div className="mt-1 text-xs text-text-secondary">
+                {data?.latestIliasItem
+                  ? `${iliasItemTypeLabels[data.latestIliasItem.itemType] ?? 'Item'}: ${data.latestIliasItem.title}`
+                  : 'Sobald der ILIAS-Connector läuft, erscheinen hier Ankündigungen und Dokument-Metadaten.'}
               </div>
             </div>
           </div>

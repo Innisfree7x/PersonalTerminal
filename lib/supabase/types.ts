@@ -377,6 +377,96 @@ export interface Database {
         };
         Relationships: [];
       };
+      kit_ilias_favorites: {
+        Row: {
+          id: string;
+          user_id: string;
+          external_id: string;
+          title: string;
+          semester_label: string | null;
+          course_url: string | null;
+          source_updated_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          external_id: string;
+          title: string;
+          semester_label?: string | null;
+          course_url?: string | null;
+          source_updated_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          external_id?: string;
+          title?: string;
+          semester_label?: string | null;
+          course_url?: string | null;
+          source_updated_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      kit_ilias_items: {
+        Row: {
+          id: string;
+          user_id: string;
+          favorite_id: string;
+          external_id: string;
+          item_type: 'announcement' | 'document' | 'folder' | 'link' | 'other';
+          title: string;
+          item_url: string | null;
+          summary: string | null;
+          published_at: string | null;
+          source_updated_at: string | null;
+          first_seen_at: string;
+          last_seen_at: string;
+          acknowledged_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          favorite_id: string;
+          external_id: string;
+          item_type?: 'announcement' | 'document' | 'folder' | 'link' | 'other';
+          title: string;
+          item_url?: string | null;
+          summary?: string | null;
+          published_at?: string | null;
+          source_updated_at?: string | null;
+          first_seen_at?: string;
+          last_seen_at?: string;
+          acknowledged_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          favorite_id?: string;
+          external_id?: string;
+          item_type?: 'announcement' | 'document' | 'folder' | 'link' | 'other';
+          title?: string;
+          item_url?: string | null;
+          summary?: string | null;
+          published_at?: string | null;
+          source_updated_at?: string | null;
+          first_seen_at?: string;
+          last_seen_at?: string;
+          acknowledged_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       llm_usage_logs: {
         Row: {
           id: string;

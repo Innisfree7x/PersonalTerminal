@@ -4,7 +4,11 @@ import { enforceTrustedMutationOrigin } from '@/lib/api/csrf';
 import { applyRateLimitHeaders, consumeRateLimit, readForwardedIpFromRequest } from '@/lib/api/rateLimit';
 import { handleRouteError } from '@/lib/api/server-errors';
 import { triggerKitSyncSchema } from '@/lib/schemas/kit-sync.schema';
-import { syncCampusConnectorSnapshotForUser, syncCampusWebcalForUser } from '@/lib/kit-sync/service';
+import {
+  syncCampusConnectorSnapshotForUser,
+  syncCampusWebcalForUser,
+  syncIliasConnectorSnapshotForUser,
+} from '@/lib/kit-sync/service';
 
 const MAX_CONNECTOR_PAYLOAD_BYTES = 500 * 1024;
 
@@ -47,7 +51,12 @@ export async function POST(request: NextRequest) {
             connectorVersion: body.connectorVersion,
             payload: body.payload,
           })
-        : await syncCampusWebcalForUser(user.id, 'manual');
+        : body.source === 'ilias_connector'
+          ? await syncIliasConnectorSnapshotForUser(user.id, {
+              connectorVersion: body.connectorVersion,
+              payload: body.payload,
+            })
+          : await syncCampusWebcalForUser(user.id, 'manual');
 
     return applyRateLimitHeaders(NextResponse.json(result), rateLimit);
   } catch (error) {

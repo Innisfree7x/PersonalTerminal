@@ -1,7 +1,7 @@
 # Phase 42 — KIT Sync Connector Execution Contract
 
 Stand: 2026-03-29  
-Status: Wave 2 implementiert
+Status: Wave 3 implementiert
 
 ## Ziel
 
@@ -138,6 +138,31 @@ Nicht Teil von Wave 2:
 - ILIAS-Dokumente
 - echter Dateiimport
 - automatische Today-/Morning-Briefing-Fusion
+
+## Wave 3 - Implementierter Umfang
+
+Wave 3 erweitert den bestehenden KIT-Sync um den ersten `ilias_connector`-Pfad:
+
+- Migration:
+  - `docs/migrations/2026-03-29_phase42_kit_sync_wave3.sql`
+- Tabellen / Schema:
+  - `kit_ilias_favorites`
+  - `kit_ilias_items`
+  - `POST /api/kit/sync` akzeptiert jetzt auch `ilias_connector`
+- Backend-Fundament:
+  - idempotente Upserts für Favoriten und Kurs-Items
+  - `first_seen_at`, `last_seen_at`, `acknowledged_at` statt flachem `is_new`
+  - fehlende Favoritenreferenzen führen zu `partial`, nicht zu stillem Datenverlust
+  - Status-Queries degradieren bis zum SQL-Run sauber statt hart zu crashen
+- UI / Status:
+  - `KIT Sync` zeigt jetzt ILIAS-Favoriten, neue Items der letzten 7 Tage und das letzte ILIAS-Signal
+
+Nicht Teil von Wave 3:
+
+- echter Browser-Connector
+- Today-/Morning-Briefing-Fusion
+- Dokumentimport
+- Acknowledge-/Read-State-UI
 
 ## Was genau synchronisiert werden soll
 
@@ -544,6 +569,13 @@ Definition of Done:
 - neue Items sind in `University` und `Today` sichtbar
 - UI ist noise-arm
 
+Implementiert:
+
+- `ilias_connector`-Payloads laufen über denselben Sync-Endpoint wie WebCal und CAMPUS
+- `kit_ilias_favorites` und `kit_ilias_items` sind owner-isolated via RLS
+- `KIT Sync` in `University` zeigt Favoriten, neue Items der letzten 7 Tage und das letzte ILIAS-Signal
+- Today bleibt bewusst für Wave 5 reserviert; Wave 3 liefert dafür das Datenfundament
+
 ## Wave 4 — ILIAS Document Intelligence
 
 Scope:
@@ -775,9 +807,9 @@ Wir starten die Umsetzung, wenn diese Punkte akzeptiert sind:
 
 ## Nächster direkter Schritt
 
-Nach Wave 2 folgt:
+Nach Wave 3 folgt:
 
-1. lokales Connector-Interface für CAMPUS-HTML-Snapshots
-2. echte CAMPUS-Parser für Module / Notenspiegel / Prüfungen
-3. erste Today-/Morning-Briefing-Fusion auf Basis der neuen Academic-Snapshot-Daten
-4. danach erst ILIAS-Favoriten
+1. lokales Connector-Interface für ILIAS-Dashboard-Favoriten
+2. echte HTML-Parser für Favoriten / Ankündigungen / Dokument-Metadaten
+3. Today-/Morning-Briefing-Fusion für KIT- und ILIAS-Signale
+4. danach erst Dokumentimport / Wave 4

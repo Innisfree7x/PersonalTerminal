@@ -10,7 +10,12 @@ import {
   buildCampusModuleUpsertRows,
   normalizeCampusConnectorPayload,
 } from '@/lib/kit-sync/campusConnector';
-import type { CampusConnectorPayloadInput } from '@/lib/schemas/kit-sync.schema';
+import {
+  buildIliasFavoriteUpsertRows,
+  buildIliasItemUpsertRows,
+  normalizeIliasConnectorPayload,
+} from '@/lib/kit-sync/iliasConnector';
+import type { CampusConnectorPayloadInput, IliasConnectorPayloadInput } from '@/lib/schemas/kit-sync.schema';
 import {
   fetchCampusWebcalDocument,
   maskCampusWebcalUrl,
@@ -29,9 +34,24 @@ export interface KitSyncStatusPayload {
   totalCampusEvents: number;
   totalCampusModules: number;
   totalCampusGrades: number;
+  totalIliasFavorites: number;
+  totalIliasItems: number;
+  freshIliasItems: number;
   nextCampusEvent: { title: string; startsAt: string; kind: string } | null;
   nextCampusExam: { title: string; startsAt: string; location: string | null } | null;
   latestCampusGrade: { moduleTitle: string; gradeLabel: string; publishedAt: string | null } | null;
+  latestIliasItem: {
+    favoriteTitle: string;
+    title: string;
+    itemType: string;
+    publishedAt: string | null;
+    itemUrl: string | null;
+  } | null;
+  iliasFavoritePreview: Array<{
+    title: string;
+    semesterLabel: string | null;
+    courseUrl: string | null;
+  }>;
   lastRun: {
     source: string;
     trigger: string;
@@ -68,6 +88,10 @@ function formatSyncError(error: unknown): { code: string; message: string } {
     code: 'SYNC_FAILED',
     message: 'Unbekannter KIT-Sync-Fehler.',
   };
+}
+
+function isMissingRelationError(error: { code?: string } | null | undefined) {
+  return error?.code === '42P01' || error?.code === '42703';
 }
 
 async function findProfileForUser(userId: string): Promise<KitSyncProfileRow | null> {
@@ -177,6 +201,7 @@ async function finalizeSyncRun(runId: string, input: {
 
 export async function getKitSyncStatus(userId: string): Promise<KitSyncStatusPayload> {
   const profile = await findProfileForUser(userId);
+  const freshIliasThreshold = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
   const [
     { count: eventCount, error: eventCountError },
@@ -185,6 +210,11 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatusPay
     { data: nextEvent, error: nextEventError },
     { data: nextExam, error: nextExamError },
     { data: latestGrade, error: latestGradeError },
+    iliasFavoritesResult,
+    iliasItemsResult,
+    iliasFreshResult,
+    iliasLatestItemResult,
+    iliasPreviewResult,
     { data: lastRun, error: lastRunError },
   ] = await Promise.all([
     admin().from('kit_campus_events').select('id', { count: 'exact', head: true }).eq('user_id', userId),
@@ -215,6 +245,28 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatusPay
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
+    admin().from('kit_ilias_favorites').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    admin().from('kit_ilias_items').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    admin()
+      .from('kit_ilias_items')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .is('acknowledged_at', null)
+      .gte('first_seen_at', freshIliasThreshold),
+    admin()
+      .from('kit_ilias_items')
+      .select('title, item_type, published_at, item_url, favorite_id')
+      .eq('user_id', userId)
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .order('first_seen_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    admin()
+      .from('kit_ilias_favorites')
+      .select('title, semester_label, course_url')
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false })
+      .limit(3),
     admin()
       .from('kit_sync_runs')
       .select('source, trigger, status, items_read, items_written, finished_at, error_code, error_message')
@@ -242,6 +294,21 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatusPay
   if (latestGradeError) {
     throw ApiErrors.internal(`Letzte KIT Note konnte nicht geladen werden: ${latestGradeError.message}`);
   }
+  if (iliasFavoritesResult.error && !isMissingRelationError(iliasFavoritesResult.error)) {
+    throw ApiErrors.internal(`ILIAS Favoriten konnten nicht gezählt werden: ${iliasFavoritesResult.error.message}`);
+  }
+  if (iliasItemsResult.error && !isMissingRelationError(iliasItemsResult.error)) {
+    throw ApiErrors.internal(`ILIAS Items konnten nicht gezählt werden: ${iliasItemsResult.error.message}`);
+  }
+  if (iliasFreshResult.error && !isMissingRelationError(iliasFreshResult.error)) {
+    throw ApiErrors.internal(`Neue ILIAS Items konnten nicht gezählt werden: ${iliasFreshResult.error.message}`);
+  }
+  if (iliasLatestItemResult.error && !isMissingRelationError(iliasLatestItemResult.error)) {
+    throw ApiErrors.internal(`Letztes ILIAS Item konnte nicht geladen werden: ${iliasLatestItemResult.error.message}`);
+  }
+  if (iliasPreviewResult.error && !isMissingRelationError(iliasPreviewResult.error)) {
+    throw ApiErrors.internal(`ILIAS Favoriten-Preview konnte nicht geladen werden: ${iliasPreviewResult.error.message}`);
+  }
   if (lastRunError) {
     throw ApiErrors.internal(`Letzter KIT Sync Run konnte nicht geladen werden: ${lastRunError.message}`);
   }
@@ -261,6 +328,21 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatusPay
     latestGradeModuleTitle = moduleRow?.title ?? null;
   }
 
+  let latestIliasFavoriteTitle: string | null = null;
+  if (iliasLatestItemResult.data?.favorite_id && !isMissingRelationError(iliasLatestItemResult.error)) {
+    const { data: favoriteRow, error: favoriteError } = await admin()
+      .from('kit_ilias_favorites')
+      .select('title')
+      .eq('id', iliasLatestItemResult.data.favorite_id)
+      .maybeSingle();
+
+    if (favoriteError && !isMissingRelationError(favoriteError)) {
+      throw ApiErrors.internal(`Favoritentitel für letztes ILIAS Item konnte nicht geladen werden: ${favoriteError.message}`);
+    }
+
+    latestIliasFavoriteTitle = favoriteRow?.title ?? null;
+  }
+
   return {
     campusWebcalConfigured: Boolean(profile?.campus_webcal_url_encrypted),
     campusWebcalMaskedUrl: profile?.campus_webcal_url_masked ?? null,
@@ -272,6 +354,9 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatusPay
     totalCampusEvents: eventCount ?? 0,
     totalCampusModules: moduleCount ?? 0,
     totalCampusGrades: gradeCount ?? 0,
+    totalIliasFavorites: iliasFavoritesResult.count ?? 0,
+    totalIliasItems: iliasItemsResult.count ?? 0,
+    freshIliasItems: iliasFreshResult.count ?? 0,
     nextCampusEvent: nextEvent
       ? {
           title: nextEvent.title,
@@ -294,6 +379,21 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatusPay
             publishedAt: latestGrade.published_at,
           }
         : null,
+    latestIliasItem:
+      iliasLatestItemResult.data && latestIliasFavoriteTitle
+        ? {
+            favoriteTitle: latestIliasFavoriteTitle,
+            title: iliasLatestItemResult.data.title,
+            itemType: iliasLatestItemResult.data.item_type,
+            publishedAt: iliasLatestItemResult.data.published_at,
+            itemUrl: iliasLatestItemResult.data.item_url,
+          }
+        : null,
+    iliasFavoritePreview: (iliasPreviewResult.data ?? []).map((favorite) => ({
+      title: favorite.title,
+      semesterLabel: favorite.semester_label,
+      courseUrl: favorite.course_url,
+    })),
     lastRun: lastRun
       ? {
           source: lastRun.source,
@@ -541,6 +641,125 @@ export async function syncCampusConnectorSnapshotForUser(
       itemsWritten: moduleRows.length + gradeRows.length + examRows.length,
       skippedGrades,
       skippedExams,
+      nextStatus: await getKitSyncStatus(userId),
+    };
+  } catch (error) {
+    const normalizedError = formatSyncError(error);
+    await finalizeSyncRun(runId, {
+      status: 'failed',
+      itemsRead: normalized.itemsRead,
+      itemsWritten: 0,
+      errorCode: normalizedError.code,
+      errorMessage: normalizedError.message,
+    });
+    throw error;
+  }
+}
+
+export async function syncIliasConnectorSnapshotForUser(
+  userId: string,
+  input: {
+    connectorVersion: string;
+    payload: IliasConnectorPayloadInput;
+  }
+) {
+  const normalized = normalizeIliasConnectorPayload(input.payload);
+  const profile = await ensureProfileForUser(userId, input.connectorVersion);
+  const runId = await insertSyncRun({
+    userId,
+    source: 'ilias_connector',
+    trigger: 'connector',
+    status: 'running',
+    connectorVersion: input.connectorVersion,
+  });
+
+  try {
+    const syncTimestamp = new Date().toISOString();
+    const favoriteRows = buildIliasFavoriteUpsertRows(userId, normalized.favorites);
+    if (favoriteRows.length > 0) {
+      const { error: favoriteUpsertError } = await admin().from('kit_ilias_favorites').upsert(favoriteRows, {
+        onConflict: 'user_id,external_id',
+      });
+
+      if (favoriteUpsertError) {
+        throw ApiErrors.internal(`ILIAS Favoriten konnten nicht gespeichert werden: ${favoriteUpsertError.message}`);
+      }
+    }
+
+    const favoriteExternalIds = normalized.referencedFavoriteExternalIds;
+    const { data: favoriteMappings, error: favoriteMappingError } = await admin()
+      .from('kit_ilias_favorites')
+      .select('id, external_id')
+      .eq('user_id', userId)
+      .in('external_id', favoriteExternalIds.length > 0 ? favoriteExternalIds : ['__none__']);
+
+    if (favoriteMappingError) {
+      throw ApiErrors.internal(`ILIAS Favoriten-Mappings konnten nicht geladen werden: ${favoriteMappingError.message}`);
+    }
+
+    const favoriteIdByExternalId = new Map((favoriteMappings ?? []).map((row) => [row.external_id, row.id]));
+
+    const validItems = normalized.items
+      .map((item) => {
+        const favoriteId = favoriteIdByExternalId.get(item.favoriteExternalId);
+        return favoriteId ? { item, favoriteId } : null;
+      })
+      .filter(Boolean) as Array<{ item: (typeof normalized.items)[number]; favoriteId: string }>;
+
+    const itemExternalIds = validItems.map(({ item }) => item.externalId);
+    const { data: existingItems, error: existingItemsError } = await admin()
+      .from('kit_ilias_items')
+      .select('external_id, first_seen_at, acknowledged_at')
+      .eq('user_id', userId)
+      .in('external_id', itemExternalIds.length > 0 ? itemExternalIds : ['__none__']);
+
+    if (existingItemsError && !isMissingRelationError(existingItemsError)) {
+      throw ApiErrors.internal(`Bestehende ILIAS Items konnten nicht geladen werden: ${existingItemsError.message}`);
+    }
+
+    const existingStateByExternalId = new Map((existingItems ?? []).map((item) => [item.external_id, item]));
+    const itemRows = buildIliasItemUpsertRows(userId, validItems, existingStateByExternalId, syncTimestamp);
+
+    if (itemRows.length > 0) {
+      const { error: itemUpsertError } = await admin().from('kit_ilias_items').upsert(itemRows, {
+        onConflict: 'user_id,external_id',
+      });
+
+      if (itemUpsertError) {
+        throw ApiErrors.internal(`ILIAS Items konnten nicht gespeichert werden: ${itemUpsertError.message}`);
+      }
+    }
+
+    const skippedItems = normalized.items.length - validItems.length;
+    const status: KitSyncRunStatus = skippedItems > 0 ? 'partial' : 'success';
+
+    const { error: profileError } = await admin()
+      .from('kit_sync_profiles')
+      .update({
+        connector_version: input.connectorVersion,
+      })
+      .eq('id', profile.id);
+
+    if (profileError) {
+      throw ApiErrors.internal(`KIT Sync Profil konnte nach ILIAS-Sync nicht aktualisiert werden: ${profileError.message}`);
+    }
+
+    await finalizeSyncRun(runId, {
+      status,
+      itemsRead: normalized.itemsRead,
+      itemsWritten: favoriteRows.length + itemRows.length,
+      errorCode: status === 'partial' ? 'PARTIAL_FAVORITE_REFERENCE_MISS' : null,
+      errorMessage:
+        status === 'partial'
+          ? `${skippedItems} ILIAS-Items wurden wegen fehlender Favoritenreferenzen übersprungen.`
+          : null,
+    });
+
+    return {
+      source: 'ilias_connector' as const,
+      itemsRead: normalized.itemsRead,
+      itemsWritten: favoriteRows.length + itemRows.length,
+      skippedItems,
       nextStatus: await getKitSyncStatus(userId),
     };
   } catch (error) {
