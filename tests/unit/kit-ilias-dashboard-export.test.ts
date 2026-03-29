@@ -31,6 +31,26 @@ const dashboardHtml = `
   </main>
 `;
 
+const siblingDashboardHtml = `
+  <main>
+    <div class="layout">
+      <h2>Favoriten</h2>
+      <div class="meta">Das Objekt wurde aus den Favoriten entfernt.</div>
+      <div class="group">SS 2025</div>
+      <div class="entry">
+        <a href="/goto.php?target=crs_2530575">2530575 – Investments SS2025</a>
+      </div>
+      <div class="entry">
+        <a href="/goto.php?target=crs_2600014">2600014 – Volkswirtschaftslehre II: Makroökonomie</a>
+      </div>
+      <aside>
+        <h3>Kalender</h3>
+        <a href="/calendar">29</a>
+      </aside>
+    </div>
+  </main>
+`;
+
 describe('iliasDashboardExport helpers', () => {
   it('extracts dashboard favorites with semester context', () => {
     const doc = new DOMParser().parseFromString(dashboardHtml, 'text/html');
@@ -56,6 +76,15 @@ describe('iliasDashboardExport helpers', () => {
     expect(exportPayload.exportType).toBe(KIT_ILIAS_DASHBOARD_EXPORT_TYPE);
     expect(exportPayload.favorites).toHaveLength(3);
     expect(exportPayload.items).toEqual([]);
+  });
+
+  it('extracts favorites when dashboard sections are siblings in the main content flow', () => {
+    const doc = new DOMParser().parseFromString(siblingDashboardHtml, 'text/html');
+    const favorites = extractIliasDashboardFavorites(doc, 'https://ilias.studium.kit.edu/dashboard');
+
+    expect(favorites).toHaveLength(2);
+    expect(favorites[0]?.title).toBe('2530575 – Investments SS2025');
+    expect(favorites[1]?.title).toBe('2600014 – Volkswirtschaftslehre II: Makroökonomie');
   });
 
   it('parses exported dashboard payloads for manual import', () => {

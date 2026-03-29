@@ -3,6 +3,7 @@
   const EXPORT_VERSION = 1;
   const GROUP_LABEL_PATTERN = /^(WS|SS)\s+\d{4}$/i;
   const STRUCTURAL_LABELS = new Set(['Bachelor', 'Master']);
+  const SECTION_BOUNDARY_LABELS = new Set(['To-Do', 'Kalender', 'Neuigkeiten', 'Mail']);
   const BLOCKED_LABELS = new Set([
     'Dashboard',
     'Magazin',
@@ -69,28 +70,18 @@
     return true;
   }
 
-  function findFavoritesRoot(doc, baseUrl) {
-    const headings = Array.from(
+  function hasFavoritesHeading(doc) {
+    return Array.from(
       doc.querySelectorAll('h1, h2, h3, h4, h5, h6, .ilContainerBlockHeader, .card-title, .caption, strong')
-    );
-    const heading = headings.find((element) => normalizeText(element.textContent).toLowerCase() === 'favoriten');
-    if (!heading) return null;
-
-    let current = heading;
-    while (current && current !== doc.body) {
-      const anchors = Array.from(current.querySelectorAll('a')).filter((anchor) => isLikelyCourseLink(anchor, baseUrl));
-      if (anchors.length > 0) return current;
-      current = current.parentElement;
-    }
-
-    return heading.parentElement;
+    ).some((element) => normalizeText(element.textContent).toLowerCase() === 'favoriten');
   }
 
   function collectFavorites(doc, baseUrl) {
-    const root = findFavoritesRoot(doc, baseUrl);
-    if (!root) return [];
+    if (!hasFavoritesHeading(doc)) return [];
 
+    const root = doc.querySelector('main') || doc.body;
     const walker = doc.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
+    let collecting = false;
     let currentGroup = null;
     const favorites = new Map();
 
@@ -101,8 +92,19 @@
       const text = normalizeText(node.textContent);
       if (!text) continue;
 
+      if (text.toLowerCase() === 'favoriten' && node.tagName !== 'A') {
+        collecting = true;
+        currentGroup = null;
+        continue;
+      }
+
+      if (!collecting) continue;
+
+      if (SECTION_BOUNDARY_LABELS.has(text) && node.tagName !== 'A' && favorites.size > 0) {
+        break;
+      }
+
       if (
-        text !== 'Favoriten' &&
         (GROUP_LABEL_PATTERN.test(text) || STRUCTURAL_LABELS.has(text)) &&
         node.tagName !== 'A'
       ) {

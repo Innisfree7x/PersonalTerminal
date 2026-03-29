@@ -19,6 +19,7 @@ const iliasDashboardExportSchema = z.object({
 
 const groupLabelPattern = /^(WS|SS)\s+\d{4}$/i;
 const structuralLabelSet = new Set(['Bachelor', 'Master']);
+const sectionBoundaryLabels = new Set(['To-Do', 'Kalender', 'Neuigkeiten', 'Mail']);
 const blockedLinkLabels = new Set([
   'Dashboard',
   'Magazin',
@@ -82,28 +83,20 @@ function isLikelyCourseLink(anchor: HTMLAnchorElement, baseUrl: string) {
   return true;
 }
 
-function findFavoritesRoot(doc: Document, baseUrl: string) {
-  const headings = Array.from(doc.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6, .ilContainerBlockHeader, .card-title, .caption, strong'));
-  const heading = headings.find((element) => normalizeText(element.textContent).toLowerCase() === 'favoriten');
-  if (!heading) return null;
-
-  let current: HTMLElement | null = heading;
-  while (current && current !== doc.body) {
-    const anchors = Array.from(current.querySelectorAll('a')).filter((anchor) => isLikelyCourseLink(anchor, baseUrl));
-    if (anchors.length > 0) return current;
-    current = current.parentElement;
-  }
-
-  return heading.parentElement;
+function hasFavoritesHeading(doc: Document) {
+  return Array.from(
+    doc.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6, .ilContainerBlockHeader, .card-title, .caption, strong')
+  ).some((element) => normalizeText(element.textContent).toLowerCase() === 'favoriten');
 }
 
 export function extractIliasDashboardFavorites(doc: Document, baseUrl: string) {
-  const favoritesRoot = findFavoritesRoot(doc, baseUrl);
-  if (!favoritesRoot) {
+  if (!hasFavoritesHeading(doc)) {
     return [];
   }
 
-  const walker = doc.createTreeWalker(favoritesRoot, NodeFilter.SHOW_ELEMENT);
+  const scanRoot = doc.querySelector('main') ?? doc.body;
+  const walker = doc.createTreeWalker(scanRoot, NodeFilter.SHOW_ELEMENT);
+  let collecting = false;
   let currentGroup: string | null = null;
   const favorites = new Map<string, z.infer<typeof iliasConnectorFavoriteSchema>>();
 
@@ -114,8 +107,19 @@ export function extractIliasDashboardFavorites(doc: Document, baseUrl: string) {
     const text = normalizeText(node.textContent);
     if (!text) continue;
 
+    if (text.toLowerCase() === 'favoriten' && node.tagName !== 'A') {
+      collecting = true;
+      currentGroup = null;
+      continue;
+    }
+
+    if (!collecting) continue;
+
+    if (sectionBoundaryLabels.has(text) && node.tagName !== 'A' && favorites.size > 0) {
+      break;
+    }
+
     if (
-      text !== 'Favoriten' &&
       (groupLabelPattern.test(text) || structuralLabelSet.has(text)) &&
       node.tagName !== 'A'
     ) {

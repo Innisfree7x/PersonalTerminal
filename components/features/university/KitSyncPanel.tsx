@@ -104,6 +104,10 @@ async function triggerSync() {
 
 async function importIliasDashboardPayload(rawValue: string) {
   const parsed = parseIliasDashboardExport(rawValue);
+  if (parsed.favorites.length === 0) {
+    throw new Error('Der ILIAS-Export enthält 0 Favoriten. Bitte prüfe, ob du das Skript wirklich auf dem ILIAS-Dashboard mit sichtbaren Favoriten ausgeführt hast.');
+  }
+
   const response = await fetch('/api/kit/sync', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
