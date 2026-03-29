@@ -351,32 +351,34 @@ export default function KitSyncPanel() {
                 ) : null}
               </div>
 
-              <div className="mt-3 space-y-2">
+              <div className="mt-3 max-h-[22rem] space-y-2 overflow-y-auto pr-1">
                 {data?.iliasFavoritePreview.length ? (
-                  data.iliasFavoritePreview.map((favorite) => (
-                    <div
-                      key={favorite.title}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2"
-                    >
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-medium text-text-primary">{favorite.title}</div>
-                        <div className="mt-0.5 text-[11px] text-text-tertiary">
-                          {favorite.semesterLabel ?? 'Favorit'}
+                  <div className="grid gap-2 xl:grid-cols-2">
+                    {data.iliasFavoritePreview.map((favorite) => (
+                      <div
+                        key={`${favorite.title}-${favorite.courseUrl ?? favorite.semesterLabel ?? 'favorite'}`}
+                        className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5"
+                      >
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-medium text-text-primary">{favorite.title}</div>
+                          <div className="mt-1 text-[11px] uppercase tracking-[0.14em] text-text-tertiary">
+                            {favorite.semesterLabel ?? 'Favorit'}
+                          </div>
                         </div>
+                        {favorite.courseUrl ? (
+                          <a
+                            href={favorite.courseUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="shrink-0 rounded-full border border-white/10 bg-white/[0.05] p-2 text-text-tertiary transition-colors hover:border-emerald-400/30 hover:text-emerald-200"
+                            aria-label={`${favorite.title} in ILIAS öffnen`}
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        ) : null}
                       </div>
-                      {favorite.courseUrl ? (
-                        <a
-                          href={favorite.courseUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="shrink-0 rounded-full border border-white/10 bg-white/[0.05] p-2 text-text-tertiary transition-colors hover:text-text-primary"
-                          aria-label={`${favorite.title} in ILIAS öffnen`}
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
-                      ) : null}
-                    </div>
-                  ))
+                    ))}
+                  </div>
                 ) : (
                   <div className="rounded-lg border border-dashed border-white/10 bg-white/[0.02] px-3 py-4 text-sm text-text-secondary">
                     Noch keine ILIAS-Favoriten sichtbar. Importiere den Dashboard-Export im Verwaltungsblock unten.

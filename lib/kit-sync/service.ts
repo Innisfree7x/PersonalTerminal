@@ -236,8 +236,7 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatus> {
       .from('kit_ilias_favorites')
       .select('title, semester_label, course_url')
       .eq('user_id', userId)
-      .order('updated_at', { ascending: false })
-      .limit(3),
+      .order('updated_at', { ascending: false }),
     client
       .from('kit_sync_runs')
       .select('source, trigger, status, items_read, items_written, finished_at, error_code, error_message')
