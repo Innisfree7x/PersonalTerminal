@@ -1,10 +1,11 @@
 # Context Canon (Single Source of Truth)
 
-Stand: 2026-03-29 (post KIT Sync Wave 3 ilias favorites snapshot)
+Stand: 2026-03-29 (post KIT Sync Wave 3 + lokaler ILIAS dashboard export)
 Status: Active
 
 ## Neu seit 2026-03-15 (hoch priorisiert)
 - `docs/PHASE42_KIT_SYNC_CONNECTOR_EXECUTION_CONTRACT_2026-03-29.md` (KIT Sync Wave 1+2+3: WebCal-Fundament, CAMPUS Academic Snapshot und ILIAS Favorites Snapshot)
+- `docs/PHASE43_KIT_ILIAS_DASHBOARD_CONNECTOR_2026-03-29.md` (lokaler ILIAS-Dashboard-Exportpfad für Favoriten)
 - `docs/PHASE41_MEASURED_PERFORMANCE_PASS_2026-03-28.md` (Analytics lazy-loaded, Settings in schwere Sektionen gesplittet, CommandPalette/Sidebar/Layout-Interaktionskosten reduziert)
 - `docs/PHASE40_PERFORMANCE_AND_CI_STABILIZATION_2026-03-27.md` (Today/Focus/Dashboard-Performance-Welle, CI-Hotfixes, Blocker-E2E-Härtung, mobile Landing-Dot-Fix, Focus-Timer-Render-Entkopplung)
 - `docs/PHASE39_MARKETING_ART_DIRECTION_2026-03-23.md` (aktive Landing ueber `CinematicLanding`, asymmetrischer Hero, Proof-Layer pro Section, tote Marketing-Mockups bewusst ignoriert)
@@ -38,8 +39,9 @@ Wenn zwei Dokumente widersprüchlich sind, gilt immer diese Prioritätsliste.
 2. `docs/PHASE21_WAVE1_PERF_RELIABILITY_SECURITY_2026-03-07.md` (API-Hotpath-Optimierung + CSRF-Guard + private SWR + Premium-Polish)
 3. `docs/ERROR_MONITORING_AND_TENANT_ISOLATION_2026-03-07.md` (persistentes Error-Monitoring + reale Tenant-Isolation-Checks)
 4. `docs/PHASE42_KIT_SYNC_CONNECTOR_EXECUTION_CONTRACT_2026-03-29.md` (KIT Sync Wave 1+2+3: WebCal-Fundament, CAMPUS Academic Snapshot und ILIAS Favorites Snapshot)
-5. `docs/PHASE41_MEASURED_PERFORMANCE_PASS_2026-03-28.md` (Analytics lazy-loaded, Settings in schwere Sektionen gesplittet, CommandPalette/Sidebar/Layout-Interaktionskosten reduziert)
-6. `docs/PHASE40_PERFORMANCE_AND_CI_STABILIZATION_2026-03-27.md` (Today/Focus/Dashboard-Performance-Welle + CI-/Blocker-Stabilisierung + Focus-Timer-Render-Entkopplung)
+5. `docs/PHASE43_KIT_ILIAS_DASHBOARD_CONNECTOR_2026-03-29.md` (lokaler ILIAS-Dashboard-Exportpfad für Favoriten)
+6. `docs/PHASE41_MEASURED_PERFORMANCE_PASS_2026-03-28.md` (Analytics lazy-loaded, Settings in schwere Sektionen gesplittet, CommandPalette/Sidebar/Layout-Interaktionskosten reduziert)
+7. `docs/PHASE40_PERFORMANCE_AND_CI_STABILIZATION_2026-03-27.md` (Today/Focus/Dashboard-Performance-Welle + CI-/Blocker-Stabilisierung + Focus-Timer-Render-Entkopplung)
 7. `docs/PHASE39_MARKETING_ART_DIRECTION_2026-03-23.md` (aktive Landing ueber `CinematicLanding`, asymmetrischer Hero, Proof-Layer und premium Art Direction)
 8. `docs/PHASE38_CAREER_INTELLIGENCE_V3_2026-03-22.md` (Company Lens + Recovery Playbook + tieferes Career Dossier)
 9. `docs/PHASE37_CRITICAL_PATH_INTEGRATION_2026-03-21.md` (Today/Career/Trajectory-Integrationstests + Coverage-Lift)
@@ -74,6 +76,7 @@ Wenn zwei Dokumente widersprüchlich sind, gilt immer diese Prioritätsliste.
 
 ## Aktive Dokumente
 - `docs/PHASE42_KIT_SYNC_CONNECTOR_EXECUTION_CONTRACT_2026-03-29.md` (KIT Sync Wave 1+2+3: WebCal-Fundament, CAMPUS Academic Snapshot und ILIAS Favorites Snapshot)
+- `docs/PHASE43_KIT_ILIAS_DASHBOARD_CONNECTOR_2026-03-29.md` (lokaler ILIAS-Dashboard-Exportpfad für Favoriten)
 - `docs/PHASE41_MEASURED_PERFORMANCE_PASS_2026-03-28.md` (Analytics lazy-loaded, Settings in dynamische Sektionen aufgeteilt, CommandPalette/Sidebar/Layout-Interaktionskosten reduziert)
 - `docs/PHASE40_PERFORMANCE_AND_CI_STABILIZATION_2026-03-27.md` (Today/Focus/Dashboard-Performance-Welle, CI-/Blocker-Stabilisierung, mobile Landing-Dots, Focus-Timer-Render-Entkopplung)
 - `docs/AGENT_STANDARD_COMPLIANCE_2026-03-10.md` (aktueller Compliance-Report fuer Agent-Standard in aktiven Wellen)

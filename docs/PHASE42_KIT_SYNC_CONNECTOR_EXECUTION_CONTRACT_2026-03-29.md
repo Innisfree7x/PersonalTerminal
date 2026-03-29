@@ -1,7 +1,7 @@
 # Phase 42 — KIT Sync Connector Execution Contract
 
 Stand: 2026-03-29  
-Status: Wave 3 implementiert
+Status: Wave 3 implementiert + lokaler ILIAS Dashboard Exportpfad implementiert
 
 ## Ziel
 
@@ -807,9 +807,9 @@ Wir starten die Umsetzung, wenn diese Punkte akzeptiert sind:
 
 ## Nächster direkter Schritt
 
-Nach Wave 3 folgt:
+Nach dem lokalen Dashboard-Exportpfad folgt:
 
-1. lokales Connector-Interface für ILIAS-Dashboard-Favoriten
-2. echte HTML-Parser für Favoriten / Ankündigungen / Dokument-Metadaten
+1. Kursseiten-/Dokument-Intelligence pro favorisiertem ILIAS-Kurs
+2. echte HTML-Parser für Ankündigungen / Dokument-Metadaten
 3. Today-/Morning-Briefing-Fusion für KIT- und ILIAS-Signale
 4. danach erst Dokumentimport / Wave 4

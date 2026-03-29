@@ -16,6 +16,7 @@
 - Active planning:
   - `docs/CONTEXT_CANON.md`
   - `docs/PHASE42_KIT_SYNC_CONNECTOR_EXECUTION_CONTRACT_2026-03-29.md`
+  - `docs/PHASE43_KIT_ILIAS_DASHBOARD_CONNECTOR_2026-03-29.md`
   - `docs/PHASE41_MEASURED_PERFORMANCE_PASS_2026-03-28.md`
   - `docs/PHASE40_PERFORMANCE_AND_CI_STABILIZATION_2026-03-27.md`
 - Context priority map: `docs/CONTEXT_CANON.md` (read first before planning)
@@ -57,6 +58,13 @@ Auth redirects · onboarding gate (`user_metadata.onboarding_completed`) · redi
 ## Database Tables
 `goals` · `job_applications` · `courses` · `exercise_progress` · `daily_tasks` · `focus_sessions` · `admin_audit_logs` · `ops_flow_metrics` · `kit_sync_profiles` · `kit_sync_runs` · `kit_campus_events` · `kit_campus_modules` · `kit_campus_grades` · `kit_ilias_favorites` · `kit_ilias_items` · `events` (legacy, unused)
 RLS: owner-based isolation via `user_id` columns + owner-only policies.
+
+## KIT Sync
+- Wave 1: CAMPUS WebCal (`/api/kit/webcal`, `/api/kit/status`, `/api/kit/sync`, Cron-Import)
+- Wave 2: CAMPUS Academic Snapshot (`campus_connector` für Module, Noten, Prüfungen)
+- Wave 3: ILIAS Snapshot (`ilias_connector` für Favoriten + Items)
+- Lokaler ILIAS-Dashboard-Exporter: `public/connectors/kit-ilias-dashboard-exporter.js`
+- Manueller JSON-Import läuft über `components/features/university/KitSyncPanel.tsx`
 
 ## Commands
 ```bash

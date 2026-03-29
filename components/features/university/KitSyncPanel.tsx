@@ -1,14 +1,18 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { CalendarClock, RefreshCw, ShieldCheck, Signal, ExternalLink } from 'lucide-react';
+import { CalendarClock, RefreshCw, ShieldCheck, Signal, ExternalLink, Copy, FileJson, Upload } from 'lucide-react';
 import { DecisionSurfaceCard } from '@/components/ui/DecisionSurfaceCard';
-import { Input } from '@/components/ui/Input';
+import { Input, Textarea } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { useSoundToast } from '@/lib/hooks/useSoundToast';
+import {
+  KIT_ILIAS_DASHBOARD_CONNECTOR_VERSION,
+  parseIliasDashboardExport,
+} from '@/lib/kit-sync/iliasDashboardExport';
 
 const iliasItemTypeLabels: Record<string, string> = {
   announcement: 'Ankündigung',
@@ -98,10 +102,40 @@ async function triggerSync() {
   return response.json();
 }
 
+async function importIliasDashboardPayload(rawValue: string) {
+  const parsed = parseIliasDashboardExport(rawValue);
+  const response = await fetch('/api/kit/sync', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      source: 'ilias_connector',
+      connectorVersion: KIT_ILIAS_DASHBOARD_CONNECTOR_VERSION,
+      payload: {
+        favorites: parsed.favorites,
+        items: parsed.items,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.error?.message ?? 'ILIAS Dashboard Export konnte nicht importiert werden.');
+  }
+
+  return {
+    ...(await response.json()),
+    favoritesImported: parsed.favorites.length,
+    itemsImported: parsed.items.length,
+  };
+}
+
 export default function KitSyncPanel() {
   const queryClient = useQueryClient();
   const soundToast = useSoundToast();
   const [webcalUrl, setWebcalUrl] = useState('');
+  const [iliasExportText, setIliasExportText] = useState('');
+  const [isCopyingConnector, setIsCopyingConnector] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['kit-sync-status'],
@@ -131,6 +165,48 @@ export default function KitSyncPanel() {
     },
   });
 
+  const iliasImportMutation = useMutation({
+    mutationFn: importIliasDashboardPayload,
+    onSuccess: async (result: { favoritesImported: number; itemsImported: number }) => {
+      await queryClient.invalidateQueries({ queryKey: ['kit-sync-status'] });
+      setIliasExportText('');
+      soundToast.success(`ILIAS Export importiert · ${result.favoritesImported} Favoriten${result.itemsImported > 0 ? ` · ${result.itemsImported} Items` : ''}.`);
+    },
+    onError: (mutationError: Error) => {
+      soundToast.error(mutationError.message);
+    },
+  });
+
+  async function handleCopyConnectorScript() {
+    setIsCopyingConnector(true);
+    try {
+      const response = await fetch('/connectors/kit-ilias-dashboard-exporter.js', { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error('Connector-Skript konnte nicht geladen werden.');
+      }
+
+      const script = await response.text();
+      await navigator.clipboard.writeText(script);
+      soundToast.success('ILIAS Dashboard Export-Skript kopiert.');
+    } catch (error) {
+      soundToast.error(error instanceof Error ? error.message : 'Connector-Skript konnte nicht kopiert werden.');
+    } finally {
+      setIsCopyingConnector(false);
+    }
+  }
+
+  async function handleImportFile(file: File | null) {
+    if (!file) return;
+
+    try {
+      const content = await file.text();
+      setIliasExportText(content);
+      iliasImportMutation.mutate(content);
+    } catch (error) {
+      soundToast.error(error instanceof Error ? error.message : 'Datei konnte nicht gelesen werden.');
+    }
+  }
+
   const chips = useMemo(() => {
     if (!data) return [];
     return [
@@ -149,7 +225,7 @@ export default function KitSyncPanel() {
     <DecisionSurfaceCard
       eyebrow="KIT Sync"
       title="CAMPUS plus ILIAS in einem Sync-Pfad"
-      summary="WebCal und CAMPUS Academic Snapshot laufen bereits. Wave 3 zieht jetzt ILIAS-Favoriten und neue Kurs-Items read-only über denselben Connector-Pfad in INNIS, ohne Passwortspeicherung und ohne komplettes ILIAS-Spiegeln."
+      summary="WebCal und CAMPUS Academic Snapshot laufen bereits. Der nächste testbare Schnitt ist jetzt ein lokaler ILIAS-Dashboard-Export: Favoriten werden read-only in INNIS übernommen, ohne Passwortspeicherung und ohne komplettes ILIAS-Spiegeln."
       chips={chips}
       tone={data?.campusWebcalConfigured ? 'info' : 'warning'}
       icon={<ShieldCheck className="h-4 w-4" />}
@@ -162,7 +238,7 @@ export default function KitSyncPanel() {
           : 'Noch keine CAMPUS-Noten importiert.',
         data?.latestIliasItem
           ? `Letztes ILIAS Signal: ${data.latestIliasItem.favoriteTitle} · ${data.latestIliasItem.title}`
-          : 'Noch keine ILIAS-Favoriten oder Kurs-Items importiert.',
+          : 'Noch keine ILIAS-Favoriten importiert. Der Dashboard-Export ist der nächste testbare Schritt.',
       ]}
       footer={
         <div className="space-y-4">
@@ -273,8 +349,78 @@ export default function KitSyncPanel() {
               <div className="mt-1 text-xs text-text-secondary">
                 {data?.latestIliasItem
                   ? `${iliasItemTypeLabels[data.latestIliasItem.itemType] ?? 'Item'}: ${data.latestIliasItem.title}`
-                  : 'Sobald der ILIAS-Connector läuft, erscheinen hier Ankündigungen und Dokument-Metadaten.'}
+                  : 'Der Dashboard-Export liefert jetzt Favoriten. Kurs-Items und Dokument-Metadaten folgen im nächsten Connector-Schritt.'}
               </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4">
+            <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">ILIAS Dashboard Export</div>
+            <div className="mt-2 text-sm text-text-secondary">
+              1. ILIAS-Dashboard öffnen.
+              <br />
+              2. Export-Skript aus INNIS kopieren und in der Browser-Konsole ausführen.
+              <br />
+              3. Die erzeugte JSON-Datei oder Clipboard-Payload hier importieren.
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button
+                variant="secondary"
+                onClick={handleCopyConnectorScript}
+                loading={isCopyingConnector}
+                leftIcon={<Copy className="h-4 w-4" />}
+              >
+                Export-Skript kopieren
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => window.open('/connectors/kit-ilias-dashboard-exporter.js', '_blank', 'noopener,noreferrer')}
+                leftIcon={<ExternalLink className="h-4 w-4" />}
+              >
+                Skript öffnen
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => fileInputRef.current?.click()}
+                loading={iliasImportMutation.isPending}
+                leftIcon={<FileJson className="h-4 w-4" />}
+              >
+                JSON-Datei importieren
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json,application/json"
+                className="hidden"
+                onChange={(event) => {
+                  const file = event.target.files?.[0] ?? null;
+                  void handleImportFile(file);
+                  event.currentTarget.value = '';
+                }}
+              />
+            </div>
+
+            <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+              <Textarea
+                label="ILIAS Export JSON"
+                value={iliasExportText}
+                onChange={(event) => setIliasExportText(event.target.value)}
+                placeholder='{"exportType":"innis_ilias_dashboard_export","favorites":[...],"items":[]}'
+                description="Akzeptiert den lokalen Dashboard-Export. V1 importiert damit zuerst Favoriten stabil in INNIS."
+                fullWidth
+                rows={8}
+                resize="vertical"
+              />
+              <Button
+                variant="primary"
+                onClick={() => iliasImportMutation.mutate(iliasExportText)}
+                loading={iliasImportMutation.isPending}
+                disabled={!iliasExportText.trim()}
+                leftIcon={<Upload className="h-4 w-4" />}
+              >
+                ILIAS Export importieren
+              </Button>
             </div>
           </div>
         </div>
