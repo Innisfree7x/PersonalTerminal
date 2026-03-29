@@ -134,7 +134,7 @@ export default function UniversityPage() {
       });
       setIsModalOpen(false);
       setEditingCourse(null);
-      soundToast.success('Course created!');
+      soundToast.success('Kurs angelegt.');
     },
     onError: (error: Error, _variables, context) => {
       if (context?.previousCourses) {
@@ -168,7 +168,7 @@ export default function UniversityPage() {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
       setIsModalOpen(false);
       setEditingCourse(null);
-      soundToast.success('Course updated!');
+      soundToast.success('Kurs aktualisiert.');
     },
     onError: (error: Error, _variables, context) => {
       if (context?.previousCourses) {
@@ -190,7 +190,7 @@ export default function UniversityPage() {
       return { previousCourses };
     },
     onSuccess: () => {
-      soundToast.success('Course deleted');
+      soundToast.success('Kurs gelöscht.');
     },
     onError: (error: Error, _variables, context) => {
       if (context?.previousCourses) {
@@ -278,7 +278,7 @@ export default function UniversityPage() {
     return {
       course,
       tone,
-      title: `Critical course: ${course.name}`,
+      title: `Kritischer Kurs: ${course.name}`,
       summary:
         daysUntilExam !== null
           ? `Prüfung in ${daysUntilExam} Tagen. ${remainingExercises} von ${totalExercises} Übungen sind noch offen.`
@@ -290,8 +290,8 @@ export default function UniversityPage() {
       ],
       chips: [
         { label: `${course.ects} ECTS`, tone: 'info' as const },
-        { label: `${completedExercises}/${totalExercises} done`, tone: tone === 'success' ? 'success' as const : 'default' as const },
-        ...(daysUntilExam !== null ? [{ label: `Exam in ${daysUntilExam}d`, tone }] : []),
+        { label: `${completedExercises}/${totalExercises} Übungen`, tone: tone === 'success' ? 'success' as const : 'default' as const },
+        ...(daysUntilExam !== null ? [{ label: `Prüfung in ${daysUntilExam} Tagen`, tone }] : []),
       ],
       nextStep:
         daysUntilExam !== null && daysUntilExam <= 14
@@ -314,7 +314,7 @@ export default function UniversityPage() {
   };
 
   const handleDeleteCourse = (courseId: string) => {
-    if (confirm('Are you sure you want to delete this course? All exercise progress will be lost.')) {
+    if (confirm('Willst du diesen Kurs wirklich löschen? Der gesamte Übungsfortschritt geht dabei verloren.')) {
       deleteMutation.mutate(courseId);
     }
   };
@@ -365,7 +365,7 @@ export default function UniversityPage() {
     if (error) {
       return (
         <div className="rounded-lg border border-error/30 bg-error/10 px-6 py-4 text-error">
-          Error loading courses: {error instanceof Error ? error.message : 'Unknown error'}
+          Kurse konnten nicht geladen werden: {error instanceof Error ? error.message : 'Unbekannter Fehler'}
         </div>
       );
     }
@@ -381,10 +381,10 @@ export default function UniversityPage() {
         <div>
           <h1 className="text-3xl font-bold text-text-primary flex items-center gap-3 mb-2">
             <GraduationCap className="w-8 h-8 text-university-accent" />
-            University
+            Dein KIT-Hub
           </h1>
           <p className="text-text-secondary">
-            WS 2025/26 · Track courses and exercise progress
+            KIT, ILIAS und dein Lernfortschritt in einer Oberfläche.
           </p>
         </div>
         <Button
@@ -397,8 +397,16 @@ export default function UniversityPage() {
           className="shadow-glow"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Add Course
+          Kurs anlegen
         </Button>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.12, delay: 0.02 }}
+      >
+        <KitSyncPanel />
       </motion.div>
 
       {/* Stats Dashboard */}
@@ -421,7 +429,7 @@ export default function UniversityPage() {
               <div className="text-3xl font-bold text-university-accent mb-1">
                 <AnimatedCounter to={totalECTS} />
               </div>
-              <div className="text-sm text-text-tertiary">Total ECTS</div>
+              <div className="text-sm text-text-tertiary">ECTS im Blick</div>
             </div>
           </div>
         </div>
@@ -440,7 +448,7 @@ export default function UniversityPage() {
                 <AnimatedCounter to={completionPercent} suffix="%" />
               </div>
               <div className="text-sm text-text-tertiary mb-3">
-                {completedExercises}/{totalExercises} Exercises
+                {completedExercises}/{totalExercises} Übungen
               </div>
               {/* Mini Progress Bar */}
               <div className="relative w-full h-2 bg-surface-hover rounded-full overflow-hidden border border-border">
@@ -477,7 +485,7 @@ export default function UniversityPage() {
                   variant={daysUntilNextExam < 45 ? 'error' : 'warning'}
                   size="sm"
                 >
-                  {daysUntilNextExam}d left
+                  {daysUntilNextExam} Tage
                 </Badge>
               )}
             </div>
@@ -490,16 +498,16 @@ export default function UniversityPage() {
                   {nextExam.name}
                 </div>
                 <div className="text-sm text-text-tertiary">
-                  Exam: {format(nextExam.examDate, 'dd.MM.yyyy')}
+                  Prüfung am {format(nextExam.examDate, 'dd.MM.yyyy')}
                 </div>
               </div>
             ) : (
               <div>
                 <div className="text-2xl font-bold text-text-tertiary mb-1">
-                  No upcoming exams
+                  Keine Prüfung im Blick
                 </div>
                 <div className="text-sm text-text-tertiary">
-                  You&apos;re all caught up! 🎉
+                  Aktuell ist kein Prüfungsdatum hinterlegt.
                 </div>
               </div>
             )}
@@ -514,7 +522,7 @@ export default function UniversityPage() {
           transition={{ duration: 0.12, delay: 0.04 }}
         >
           <DecisionSurfaceCard
-            eyebrow="Study decision surface"
+            eyebrow="Kritischer Kurs"
             title={criticalCourseDecision.title}
             summary={criticalCourseDecision.summary}
             bullets={criticalCourseDecision.bullets}
@@ -536,14 +544,6 @@ export default function UniversityPage() {
           />
         </motion.div>
       ) : null}
-
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.12, delay: 0.06 }}
-      >
-        <KitSyncPanel />
-      </motion.div>
 
       <LayoutGroup id="university-cards">
         {/* Course Cards */}

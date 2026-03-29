@@ -1,14 +1,26 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { CalendarClock, RefreshCw, ShieldCheck, Signal, ExternalLink, Copy, FileJson, Upload } from 'lucide-react';
+import {
+  BookOpen,
+  CalendarClock,
+  Copy,
+  ExternalLink,
+  FileJson,
+  GraduationCap,
+  RefreshCw,
+  ShieldCheck,
+  Signal,
+  Upload
+} from 'lucide-react';
 import { DecisionSurfaceCard } from '@/components/ui/DecisionSurfaceCard';
 import { Input, Textarea } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { useSoundToast } from '@/lib/hooks/useSoundToast';
+import type { KitSyncStatus } from '@/lib/kit-sync/types';
 import {
   KIT_ILIAS_DASHBOARD_CONNECTOR_VERSION,
   parseIliasDashboardExport,
@@ -21,47 +33,6 @@ const iliasItemTypeLabels: Record<string, string> = {
   link: 'Link',
   other: 'Item',
 };
-
-interface KitSyncStatus {
-  campusWebcalConfigured: boolean;
-  campusWebcalMaskedUrl: string | null;
-  campusWebcalCalendarName: string | null;
-  campusWebcalLastValidatedAt: string | null;
-  campusWebcalLastSyncedAt: string | null;
-  campusWebcalLastError: string | null;
-  connectorVersion: string | null;
-  totalCampusEvents: number;
-  totalCampusModules: number;
-  totalCampusGrades: number;
-  totalIliasFavorites: number;
-  totalIliasItems: number;
-  freshIliasItems: number;
-  nextCampusEvent: { title: string; startsAt: string; kind: string } | null;
-  nextCampusExam: { title: string; startsAt: string; location: string | null } | null;
-  latestCampusGrade: { moduleTitle: string; gradeLabel: string; publishedAt: string | null } | null;
-  latestIliasItem: {
-    favoriteTitle: string;
-    title: string;
-    itemType: string;
-    publishedAt: string | null;
-    itemUrl: string | null;
-  } | null;
-  iliasFavoritePreview: Array<{
-    title: string;
-    semesterLabel: string | null;
-    courseUrl: string | null;
-  }>;
-  lastRun: {
-    source: string;
-    trigger: string;
-    status: string;
-    itemsRead: number;
-    itemsWritten: number;
-    finishedAt: string | null;
-    errorCode: string | null;
-    errorMessage: string | null;
-  } | null;
-}
 
 async function fetchKitStatus(): Promise<KitSyncStatus> {
   const response = await fetch('/api/kit/status', { cache: 'no-store' });
@@ -139,12 +110,21 @@ export default function KitSyncPanel() {
   const [webcalUrl, setWebcalUrl] = useState('');
   const [iliasExportText, setIliasExportText] = useState('');
   const [isCopyingConnector, setIsCopyingConnector] = useState(false);
+  const [isManageOpen, setIsManageOpen] = useState(true);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const { data, isLoading, error } = useQuery({
+  const { data, error } = useQuery({
     queryKey: ['kit-sync-status'],
     queryFn: fetchKitStatus,
+    staleTime: 60_000,
   });
+
+  useEffect(() => {
+    if (!data) return;
+    if (!data.campusWebcalConfigured || data.totalIliasFavorites === 0) {
+      setIsManageOpen(true);
+    }
+  }, [data]);
 
   const saveMutation = useMutation({
     mutationFn: saveWebcal,
@@ -192,8 +172,8 @@ export default function KitSyncPanel() {
       const script = await response.text();
       await navigator.clipboard.writeText(script);
       soundToast.success('ILIAS Dashboard Export-Skript kopiert.');
-    } catch (error) {
-      soundToast.error(error instanceof Error ? error.message : 'Connector-Skript konnte nicht kopiert werden.');
+    } catch (copyError) {
+      soundToast.error(copyError instanceof Error ? copyError.message : 'Connector-Skript konnte nicht kopiert werden.');
     } finally {
       setIsCopyingConnector(false);
     }
@@ -206,130 +186,134 @@ export default function KitSyncPanel() {
       const content = await file.text();
       setIliasExportText(content);
       iliasImportMutation.mutate(content);
-    } catch (error) {
-      soundToast.error(error instanceof Error ? error.message : 'Datei konnte nicht gelesen werden.');
+    } catch (fileError) {
+      soundToast.error(fileError instanceof Error ? fileError.message : 'Datei konnte nicht gelesen werden.');
     }
   }
 
   const chips = useMemo(() => {
     if (!data) return [];
     return [
-      { label: data.campusWebcalConfigured ? 'WebCal aktiv' : 'WebCal fehlt', tone: data.campusWebcalConfigured ? 'success' as const : 'warning' as const },
-      { label: `${data.totalCampusEvents} KIT Events`, tone: 'info' as const },
-      { label: `${data.totalCampusModules} Module`, tone: 'default' as const },
-      { label: `${data.totalCampusGrades} Noten`, tone: 'default' as const },
-      { label: `${data.totalIliasFavorites} ILIAS Favoriten`, tone: 'default' as const },
-      ...(data.freshIliasItems > 0 ? [{ label: `${data.freshIliasItems} neue ILIAS Items`, tone: 'success' as const }] : []),
-      ...(data.connectorVersion ? [{ label: `Connector ${data.connectorVersion}`, tone: 'success' as const }] : []),
-      ...(data.nextCampusEvent ? [{ label: `Nächstes Event ${format(new Date(data.nextCampusEvent.startsAt), 'dd.MM.')}`, tone: 'default' as const }] : []),
+      {
+        label: data.campusWebcalConfigured ? 'KIT-Kalender verbunden' : 'KIT-Kalender fehlt',
+        tone: data.campusWebcalConfigured ? 'success' as const : 'warning' as const
+      },
+      {
+        label: `${data.totalIliasFavorites} ILIAS-Kurse`,
+        tone: data.totalIliasFavorites > 0 ? 'success' as const : 'default' as const
+      },
+      {
+        label: data.totalCampusModules > 0 || data.totalCampusGrades > 0 ? 'Academic Snapshot aktiv' : 'Academic Snapshot folgt',
+        tone: data.totalCampusModules > 0 || data.totalCampusGrades > 0 ? 'success' as const : 'default' as const
+      },
+      ...(data.nextCampusExam
+        ? [{ label: `Prüfung ${format(new Date(data.nextCampusExam.startsAt), 'dd.MM.')}`, tone: 'warning' as const }]
+        : []),
     ];
   }, [data]);
 
+  const panelTone = error
+    ? 'error'
+    : data?.campusWebcalConfigured || (data?.totalIliasFavorites ?? 0) > 0
+      ? 'info'
+      : 'warning';
+
   return (
     <DecisionSurfaceCard
-      eyebrow="KIT Sync"
-      title="CAMPUS plus ILIAS in einem Sync-Pfad"
-      summary="WebCal und CAMPUS Academic Snapshot laufen bereits. Der nächste testbare Schnitt ist jetzt ein lokaler ILIAS-Dashboard-Export: Favoriten werden read-only in INNIS übernommen, ohne Passwortspeicherung und ohne komplettes ILIAS-Spiegeln."
+      eyebrow="KIT Hub"
+      title="Dein KIT-Hub"
+      summary={
+        error
+          ? 'Der KIT-Status ist gerade nicht verfügbar. Deine bestehenden Kursdaten bleiben nutzbar, der Sync-Bereich kann danach separat neu geladen werden.'
+          : 'CAMPUS und ILIAS laufen in INNIS zusammen. Hier siehst du die relevanten KIT-Signale zuerst; den technischen Sync verwaltest du nur noch im Hintergrund.'
+      }
       chips={chips}
-      tone={data?.campusWebcalConfigured ? 'info' : 'warning'}
-      icon={<ShieldCheck className="h-4 w-4" />}
+      tone={panelTone}
+      icon={<GraduationCap className="h-4 w-4" />}
       bullets={[
-        data?.campusWebcalMaskedUrl ? `Gespeicherte Quelle: ${data.campusWebcalMaskedUrl}` : 'Noch keine CAMPUS WebCal-URL hinterlegt.',
-        data?.campusWebcalCalendarName ? `Kalendername: ${data.campusWebcalCalendarName}` : 'Kalendername wird beim ersten erfolgreichen Feed-Check übernommen.',
-        data?.campusWebcalLastSyncedAt ? `Letzter Sync: ${format(new Date(data.campusWebcalLastSyncedAt), 'dd.MM.yyyy HH:mm')}` : 'Noch kein erfolgreicher Event-Import gelaufen.',
+        data?.nextCampusEvent
+          ? `Nächstes KIT-Ereignis: ${data.nextCampusEvent.title} am ${format(new Date(data.nextCampusEvent.startsAt), 'dd.MM.yyyy HH:mm')}.`
+          : 'Sobald dein CAMPUS-Kalender verbunden ist, landen Vorlesungen und Termine direkt hier.',
+        data?.totalIliasFavorites
+          ? `${data.totalIliasFavorites} favorisierte ILIAS-Kurse laufen bereits in INNIS ein.`
+          : 'Importiere im nächsten Schritt deine favorisierten ILIAS-Kurse direkt aus dem ILIAS-Dashboard.',
         data?.latestCampusGrade
-          ? `Letzte Note: ${data.latestCampusGrade.moduleTitle} · ${data.latestCampusGrade.gradeLabel}`
-          : 'Noch keine CAMPUS-Noten importiert.',
-        data?.latestIliasItem
-          ? `Letztes ILIAS Signal: ${data.latestIliasItem.favoriteTitle} · ${data.latestIliasItem.title}`
-          : 'Noch keine ILIAS-Favoriten importiert. Der Dashboard-Export ist der nächste testbare Schritt.',
+          ? `Letzte Note: ${data.latestCampusGrade.moduleTitle} · ${data.latestCampusGrade.gradeLabel}.`
+          : 'Noten und Module folgen mit dem CAMPUS Academic Snapshot im nächsten Connector-Schritt.',
       ]}
       footer={
         <div className="space-y-4">
-          <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto] lg:items-end">
-            <Input
-              label="CAMPUS WebCal-URL"
-              placeholder="webcal://campus.studium.kit.edu/..."
-              value={webcalUrl}
-              onChange={(event) => setWebcalUrl(event.target.value)}
-              fullWidth
-              description="Die URL wird serverseitig validiert und verschlüsselt gespeichert."
-            />
-            <Button
-              variant="secondary"
-              onClick={() => saveMutation.mutate(webcalUrl)}
-              loading={saveMutation.isPending}
-              disabled={!webcalUrl.trim()}
-              leftIcon={<ExternalLink className="h-4 w-4" />}
-            >
-              WebCal speichern
-            </Button>
-            <Button
-              variant="primary"
-              onClick={() => syncMutation.mutate()}
-              loading={syncMutation.isPending}
-              disabled={!data?.campusWebcalConfigured}
-              leftIcon={<RefreshCw className="h-4 w-4" />}
-            >
-              Jetzt synchronisieren
-            </Button>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
-            {data?.lastRun ? (
-              <>
-                <Badge variant={data.lastRun.status === 'success' ? 'success' : data.lastRun.status === 'failed' ? 'error' : 'warning'} size="sm">
-                  Letzter Run: {data.lastRun.status}
-                </Badge>
-                <span>{data.lastRun.itemsWritten} Items geschrieben</span>
-                <span>· Trigger: {data.lastRun.trigger}</span>
-              </>
-            ) : (
-              <span>Noch kein Sync-Run protokolliert.</span>
-            )}
-            {data?.campusWebcalLastError ? (
-              <Badge variant="error" size="sm">{data.campusWebcalLastError}</Badge>
-            ) : null}
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3">
+          <div className="grid gap-3 xl:grid-cols-4">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4">
               <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
-                <Signal className="h-3.5 w-3.5" /> Status
+                <ShieldCheck className="h-3.5 w-3.5" /> Nächste Prüfung
               </div>
               <div className="mt-2 text-sm font-medium text-text-primary">
-                {isLoading ? 'Lädt …' : error ? 'Nicht verfügbar' : data?.campusWebcalConfigured ? 'Bereit' : 'Setup offen'}
-              </div>
-            </div>
-            <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3">
-              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
-                <CalendarClock className="h-3.5 w-3.5" /> Nächstes KIT Event
-              </div>
-              <div className="mt-2 text-sm font-medium text-text-primary">
-                {data?.nextCampusEvent ? data.nextCampusEvent.title : 'Noch keine KIT Events importiert'}
-              </div>
-              {data?.nextCampusEvent ? (
-                <div className="mt-1 text-xs text-text-secondary">{format(new Date(data.nextCampusEvent.startsAt), 'dd.MM.yyyy HH:mm')}</div>
-              ) : null}
-            </div>
-            <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3">
-              <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">Academic Snapshot</div>
-              <div className="mt-2 text-sm font-medium text-text-primary">
-                {data ? `${data.totalCampusModules} Module · ${data.totalCampusGrades} Noten` : 'Lädt …'}
+                {data?.nextCampusExam ? data.nextCampusExam.title : 'Noch keine Prüfung im KIT-Hub'}
               </div>
               <div className="mt-1 text-xs text-text-secondary">
                 {data?.nextCampusExam
-                  ? `Nächste Prüfung: ${data.nextCampusExam.title} am ${format(new Date(data.nextCampusExam.startsAt), 'dd.MM.yyyy HH:mm')}`
-                  : 'Noch keine Prüfungen aus dem CAMPUS-Connector importiert.'}
+                  ? `${format(new Date(data.nextCampusExam.startsAt), 'dd.MM.yyyy HH:mm')}${data.nextCampusExam.location ? ` · ${data.nextCampusExam.location}` : ''}`
+                  : 'Sobald der CAMPUS Academic Snapshot live ist, erscheinen Prüfungen hier zuerst.'}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4">
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
+                <CalendarClock className="h-3.5 w-3.5" /> Nächstes KIT-Ereignis
+              </div>
+              <div className="mt-2 text-sm font-medium text-text-primary">
+                {data?.nextCampusEvent ? data.nextCampusEvent.title : 'Noch kein KIT-Termin importiert'}
+              </div>
+              <div className="mt-1 text-xs text-text-secondary">
+                {data?.nextCampusEvent
+                  ? format(new Date(data.nextCampusEvent.startsAt), 'dd.MM.yyyy HH:mm')
+                  : data?.campusWebcalConfigured
+                    ? 'Kalender verbunden. Starte den nächsten Sync, damit neue Termine hier auftauchen.'
+                    : 'Verbinde zuerst deinen CAMPUS-Kalender über WebCal.'}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4">
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
+                <Signal className="h-3.5 w-3.5" /> Neu in ILIAS
+              </div>
+              <div className="mt-2 text-sm font-medium text-text-primary">
+                {data?.freshIliasItems
+                  ? `${data.freshIliasItems} neue Signale`
+                  : data?.totalIliasFavorites
+                    ? `${data.totalIliasFavorites} Favoriten verbunden`
+                    : 'Noch kein ILIAS-Kurs importiert'}
+              </div>
+              <div className="mt-1 text-xs text-text-secondary">
+                {data?.latestIliasItem
+                  ? `${iliasItemTypeLabels[data.latestIliasItem.itemType] ?? 'Item'} · ${data.latestIliasItem.title}`
+                  : data?.totalIliasFavorites
+                    ? 'Kurs-Items und Dokument-Metadaten folgen im nächsten Connector-Schritt.'
+                    : 'Importiere deine Favoriten direkt aus dem ILIAS-Dashboard.'}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4">
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-text-tertiary">
+                <BookOpen className="h-3.5 w-3.5" /> Letzte Note
+              </div>
+              <div className="mt-2 text-sm font-medium text-text-primary">
+                {data?.latestCampusGrade ? data.latestCampusGrade.gradeLabel : 'Noch keine Note importiert'}
+              </div>
+              <div className="mt-1 text-xs text-text-secondary">
+                {data?.latestCampusGrade
+                  ? data.latestCampusGrade.moduleTitle
+                  : 'Der CAMPUS Academic Snapshot bringt Noten und Module direkt in INNIS.'}
               </div>
             </div>
           </div>
 
-          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3">
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4">
               <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">ILIAS Favoriten</div>
               <div className="mt-2 text-sm font-medium text-text-primary">
-                {data ? `${data.totalIliasFavorites} Kurse · ${data.totalIliasItems} Items` : 'Lädt …'}
+                {data ? `${data.totalIliasFavorites} Kurse verbunden` : 'Lädt …'}
               </div>
               <div className="mt-2 space-y-1.5 text-xs text-text-secondary">
                 {data?.iliasFavoritePreview.length ? (
@@ -345,93 +329,169 @@ export default function KitSyncPanel() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3">
-              <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">Neu in ILIAS</div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4">
+              <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">Studienlage</div>
               <div className="mt-2 text-sm font-medium text-text-primary">
-                {data?.freshIliasItems ? `${data.freshIliasItems} neue Items in 7 Tagen` : 'Aktuell kein neues Signal'}
+                {data
+                  ? data.totalCampusModules > 0 || data.totalCampusGrades > 0
+                    ? `${data.totalCampusModules} Module · ${data.totalCampusGrades} Noten`
+                    : `${data.totalCampusEvents} KIT-Termine im Kalender`
+                  : 'Lädt …'}
               </div>
               <div className="mt-1 text-xs text-text-secondary">
-                {data?.latestIliasItem
-                  ? `${iliasItemTypeLabels[data.latestIliasItem.itemType] ?? 'Item'}: ${data.latestIliasItem.title}`
-                  : 'Der Dashboard-Export liefert jetzt Favoriten. Kurs-Items und Dokument-Metadaten folgen im nächsten Connector-Schritt.'}
+                {data?.nextCampusExam
+                  ? `Nächste Prüfung: ${data.nextCampusExam.title} am ${format(new Date(data.nextCampusExam.startsAt), 'dd.MM.yyyy HH:mm')}.`
+                  : data?.campusWebcalCalendarName
+                    ? `Kalender: ${data.campusWebcalCalendarName}.`
+                    : 'Verbinde zuerst deinen CAMPUS-Kalender, damit Termine und Prüfungen direkt in INNIS landen.'}
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-text-secondary">
+                {data?.lastRun ? (
+                  <>
+                    <Badge variant={data.lastRun.status === 'success' ? 'success' : data.lastRun.status === 'failed' ? 'error' : 'warning'} size="sm">
+                      Letzter Run: {data.lastRun.status}
+                    </Badge>
+                    <span>{data.lastRun.itemsWritten} Einträge geschrieben</span>
+                    <span>· Trigger: {data.lastRun.trigger}</span>
+                  </>
+                ) : (
+                  <span>Noch kein Sync-Run protokolliert.</span>
+                )}
+                {data?.campusWebcalLastError ? (
+                  <Badge variant="error" size="sm">{data.campusWebcalLastError}</Badge>
+                ) : null}
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4">
-            <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">ILIAS Dashboard Export</div>
-            <div className="mt-2 text-sm text-text-secondary">
-              1. ILIAS-Dashboard öffnen.
-              <br />
-              2. Export-Skript aus INNIS kopieren und in der Browser-Konsole ausführen.
-              <br />
-              3. Die erzeugte JSON-Datei oder Clipboard-Payload hier importieren.
-            </div>
+          <details
+            className="rounded-xl border border-white/10 bg-white/[0.02] px-4 py-4"
+            open={isManageOpen}
+            onToggle={(event) => setIsManageOpen(event.currentTarget.open)}
+          >
+            <summary className="cursor-pointer list-none text-sm font-medium text-text-primary">
+              KIT Sync verwalten
+            </summary>
+            <p className="mt-2 text-xs leading-relaxed text-text-secondary">
+              Hier verwaltest du nur noch die Datenquellen. Oben im Hub siehst du die relevanten KIT-Signale, nicht die Technik.
+            </p>
 
-            <div className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/8 px-3 py-3 text-sm text-amber-100">
-              Wenn du <span className="font-medium">JSON-Datei importieren</span> nutzt, musst du das Textfeld darunter nicht anfassen.
-              Das Feld ist nur für den Fall gedacht, dass du den Export direkt aus der Zwischenablage einfügst.
-            </div>
+            <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4">
+                <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">CAMPUS Kalender</div>
+                <div className="mt-2 grid gap-3 lg:grid-cols-[1fr_auto_auto] lg:items-end">
+                  <Input
+                    label="CAMPUS WebCal-URL"
+                    placeholder="webcal://campus.studium.kit.edu/..."
+                    value={webcalUrl}
+                    onChange={(event) => setWebcalUrl(event.target.value)}
+                    fullWidth
+                    description="Die URL wird serverseitig validiert und verschlüsselt gespeichert."
+                  />
+                  <Button
+                    variant="secondary"
+                    onClick={() => saveMutation.mutate(webcalUrl)}
+                    loading={saveMutation.isPending}
+                    disabled={!webcalUrl.trim()}
+                    leftIcon={<ExternalLink className="h-4 w-4" />}
+                  >
+                    WebCal speichern
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => syncMutation.mutate()}
+                    loading={syncMutation.isPending}
+                    disabled={!data?.campusWebcalConfigured}
+                    leftIcon={<RefreshCw className="h-4 w-4" />}
+                  >
+                    Jetzt synchronisieren
+                  </Button>
+                </div>
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Button
-                variant="secondary"
-                onClick={handleCopyConnectorScript}
-                loading={isCopyingConnector}
-                leftIcon={<Copy className="h-4 w-4" />}
-              >
-                Export-Skript kopieren
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => window.open('/connectors/kit-ilias-dashboard-exporter.js', '_blank', 'noopener,noreferrer')}
-                leftIcon={<ExternalLink className="h-4 w-4" />}
-              >
-                Skript öffnen
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => fileInputRef.current?.click()}
-                loading={iliasImportMutation.isPending}
-                leftIcon={<FileJson className="h-4 w-4" />}
-              >
-                JSON-Datei importieren
-              </Button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json,application/json"
-                className="hidden"
-                onChange={(event) => {
-                  const file = event.target.files?.[0] ?? null;
-                  void handleImportFile(file);
-                  event.currentTarget.value = '';
-                }}
-              />
-            </div>
+                <div className="mt-3 text-xs text-text-secondary">
+                  {data?.campusWebcalMaskedUrl
+                    ? `Gespeicherte Quelle: ${data.campusWebcalMaskedUrl}`
+                    : 'Noch keine CAMPUS-WebCal-URL hinterlegt.'}
+                </div>
+              </div>
 
-            <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-              <Textarea
-                label="ILIAS Export JSON"
-                value={iliasExportText}
-                onChange={(event) => setIliasExportText(event.target.value)}
-                placeholder="Füge hier den exportierten JSON-Inhalt aus dem ILIAS-Dashboard ein, wenn du nicht die Datei-Import-Funktion oben nutzt."
-                description="Akzeptiert den lokalen Dashboard-Export. V1 importiert damit zuerst nur Favoriten stabil in INNIS."
-                fullWidth
-                rows={8}
-                resize="vertical"
-              />
-              <Button
-                variant="primary"
-                onClick={() => iliasImportMutation.mutate(iliasExportText)}
-                loading={iliasImportMutation.isPending}
-                disabled={!iliasExportText.trim()}
-                leftIcon={<Upload className="h-4 w-4" />}
-              >
-                ILIAS Export importieren
-              </Button>
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4">
+                <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">ILIAS Dashboard Export</div>
+                <div className="mt-2 text-sm text-text-secondary">
+                  1. ILIAS-Dashboard öffnen.
+                  <br />
+                  2. Export-Skript aus INNIS kopieren und in der Browser-Konsole ausführen.
+                  <br />
+                  3. Die erzeugte JSON-Datei oder Clipboard-Payload hier importieren.
+                </div>
+
+                <div className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/8 px-3 py-3 text-sm text-amber-100">
+                  Wenn du <span className="font-medium">JSON-Datei importieren</span> nutzt, musst du das Textfeld darunter nicht anfassen.
+                  Das Feld ist nur für den Fall gedacht, dass du den Export direkt aus der Zwischenablage einfügst.
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button
+                    variant="secondary"
+                    onClick={handleCopyConnectorScript}
+                    loading={isCopyingConnector}
+                    leftIcon={<Copy className="h-4 w-4" />}
+                  >
+                    Export-Skript kopieren
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => window.open('/connectors/kit-ilias-dashboard-exporter.js', '_blank', 'noopener,noreferrer')}
+                    leftIcon={<ExternalLink className="h-4 w-4" />}
+                  >
+                    Skript öffnen
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => fileInputRef.current?.click()}
+                    loading={iliasImportMutation.isPending}
+                    leftIcon={<FileJson className="h-4 w-4" />}
+                  >
+                    JSON-Datei importieren
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".json,application/json"
+                    className="hidden"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0] ?? null;
+                      void handleImportFile(file);
+                      event.currentTarget.value = '';
+                    }}
+                  />
+                </div>
+
+                <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+                  <Textarea
+                    label="ILIAS Export JSON"
+                    value={iliasExportText}
+                    onChange={(event) => setIliasExportText(event.target.value)}
+                    placeholder="Füge hier den exportierten JSON-Inhalt aus dem ILIAS-Dashboard ein, wenn du nicht die Datei-Import-Funktion oben nutzt."
+                    description="Akzeptiert den lokalen Dashboard-Export. V1 importiert damit zuerst nur Favoriten stabil in INNIS."
+                    fullWidth
+                    rows={8}
+                    resize="vertical"
+                  />
+                  <Button
+                    variant="primary"
+                    onClick={() => iliasImportMutation.mutate(iliasExportText)}
+                    loading={iliasImportMutation.isPending}
+                    disabled={!iliasExportText.trim()}
+                    leftIcon={<Upload className="h-4 w-4" />}
+                  >
+                    ILIAS Export importieren
+                  </Button>
+                </div>
+              </div>
             </div>
-          </div>
+          </details>
         </div>
       }
     />

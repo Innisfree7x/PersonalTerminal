@@ -21,6 +21,10 @@
     'Barrierefreiheit',
   ]);
 
+  // Browser-Connector und App-Parser laufen absichtlich mit spiegelnder Logik.
+  // Änderungen an der Dashboard-Struktur müssen deshalb hier und in
+  // lib/kit-sync/iliasDashboardExport.ts synchron gepflegt werden.
+
   function normalizeText(value) {
     return (value || '').replace(/\s+/g, ' ').trim();
   }

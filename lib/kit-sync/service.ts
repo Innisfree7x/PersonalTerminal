@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { ApiErrors } from '@/lib/api/errors';
 import { createAdminClient } from '@/lib/auth/admin';
+import { createEmptyKitSyncStatus, type KitSyncStatus } from '@/lib/kit-sync/types';
 import type { Database } from '@/lib/supabase/types';
 import { decryptKitSecret, encryptKitSecret } from '@/lib/kit-sync/crypto';
 import {
@@ -23,47 +24,6 @@ import {
   parseCampusWebcalEvents,
 } from '@/lib/kit-sync/webcal';
 
-export interface KitSyncStatusPayload {
-  campusWebcalConfigured: boolean;
-  campusWebcalMaskedUrl: string | null;
-  campusWebcalCalendarName: string | null;
-  campusWebcalLastValidatedAt: string | null;
-  campusWebcalLastSyncedAt: string | null;
-  campusWebcalLastError: string | null;
-  connectorVersion: string | null;
-  totalCampusEvents: number;
-  totalCampusModules: number;
-  totalCampusGrades: number;
-  totalIliasFavorites: number;
-  totalIliasItems: number;
-  freshIliasItems: number;
-  nextCampusEvent: { title: string; startsAt: string; kind: string } | null;
-  nextCampusExam: { title: string; startsAt: string; location: string | null } | null;
-  latestCampusGrade: { moduleTitle: string; gradeLabel: string; publishedAt: string | null } | null;
-  latestIliasItem: {
-    favoriteTitle: string;
-    title: string;
-    itemType: string;
-    publishedAt: string | null;
-    itemUrl: string | null;
-  } | null;
-  iliasFavoritePreview: Array<{
-    title: string;
-    semesterLabel: string | null;
-    courseUrl: string | null;
-  }>;
-  lastRun: {
-    source: string;
-    trigger: string;
-    status: string;
-    itemsRead: number;
-    itemsWritten: number;
-    finishedAt: string | null;
-    errorCode: string | null;
-    errorMessage: string | null;
-  } | null;
-}
-
 type AdminClient = SupabaseClient<Database>;
 
 type KitSyncProfileRow = Database['public']['Tables']['kit_sync_profiles']['Row'];
@@ -71,8 +31,13 @@ type KitSyncRunSource = Database['public']['Tables']['kit_sync_runs']['Row']['so
 type KitSyncRunTrigger = Database['public']['Tables']['kit_sync_runs']['Row']['trigger'];
 type KitSyncRunStatus = Database['public']['Tables']['kit_sync_runs']['Row']['status'];
 
+let adminClient: AdminClient | null = null;
+
 function admin(): AdminClient {
-  return createAdminClient() as AdminClient;
+  if (!adminClient) {
+    adminClient = createAdminClient() as AdminClient;
+  }
+  return adminClient;
 }
 
 function formatSyncError(error: unknown): { code: string; message: string } {
@@ -199,9 +164,15 @@ async function finalizeSyncRun(runId: string, input: {
   }
 }
 
-export async function getKitSyncStatus(userId: string): Promise<KitSyncStatusPayload> {
+export async function getKitSyncStatus(userId: string): Promise<KitSyncStatus> {
   const profile = await findProfileForUser(userId);
+  if (!profile) {
+    return createEmptyKitSyncStatus();
+  }
+
+  const client = admin();
   const freshIliasThreshold = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const nowIso = new Date().toISOString();
 
   const [
     { count: eventCount, error: eventCountError },
@@ -217,27 +188,27 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatusPay
     iliasPreviewResult,
     { data: lastRun, error: lastRunError },
   ] = await Promise.all([
-    admin().from('kit_campus_events').select('id', { count: 'exact', head: true }).eq('user_id', userId),
-    admin().from('kit_campus_modules').select('id', { count: 'exact', head: true }).eq('user_id', userId),
-    admin().from('kit_campus_grades').select('id', { count: 'exact', head: true }).eq('user_id', userId),
-    admin()
+    client.from('kit_campus_events').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    client.from('kit_campus_modules').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    client.from('kit_campus_grades').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    client
       .from('kit_campus_events')
       .select('title, starts_at, kind')
       .eq('user_id', userId)
-      .gte('starts_at', new Date().toISOString())
+      .gte('starts_at', nowIso)
       .order('starts_at', { ascending: true })
       .limit(1)
       .maybeSingle(),
-    admin()
+    client
       .from('kit_campus_events')
       .select('title, starts_at, location')
       .eq('user_id', userId)
       .eq('kind', 'exam')
-      .gte('starts_at', new Date().toISOString())
+      .gte('starts_at', nowIso)
       .order('starts_at', { ascending: true })
       .limit(1)
       .maybeSingle(),
-    admin()
+    client
       .from('kit_campus_grades')
       .select('module_id, grade_label, published_at')
       .eq('user_id', userId)
@@ -245,15 +216,15 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatusPay
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
-    admin().from('kit_ilias_favorites').select('id', { count: 'exact', head: true }).eq('user_id', userId),
-    admin().from('kit_ilias_items').select('id', { count: 'exact', head: true }).eq('user_id', userId),
-    admin()
+    client.from('kit_ilias_favorites').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    client.from('kit_ilias_items').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    client
       .from('kit_ilias_items')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
       .is('acknowledged_at', null)
       .gte('first_seen_at', freshIliasThreshold),
-    admin()
+    client
       .from('kit_ilias_items')
       .select('title, item_type, published_at, item_url, favorite_id')
       .eq('user_id', userId)
@@ -261,13 +232,13 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatusPay
       .order('first_seen_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
-    admin()
+    client
       .from('kit_ilias_favorites')
       .select('title, semester_label, course_url')
       .eq('user_id', userId)
       .order('updated_at', { ascending: false })
       .limit(3),
-    admin()
+    client
       .from('kit_sync_runs')
       .select('source, trigger, status, items_read, items_written, finished_at, error_code, error_message')
       .eq('user_id', userId)
@@ -315,7 +286,7 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatusPay
 
   let latestGradeModuleTitle: string | null = null;
   if (latestGrade?.module_id) {
-    const { data: moduleRow, error: moduleError } = await admin()
+    const { data: moduleRow, error: moduleError } = await client
       .from('kit_campus_modules')
       .select('title')
       .eq('id', latestGrade.module_id)
@@ -330,7 +301,7 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatusPay
 
   let latestIliasFavoriteTitle: string | null = null;
   if (iliasLatestItemResult.data?.favorite_id && !isMissingRelationError(iliasLatestItemResult.error)) {
-    const { data: favoriteRow, error: favoriteError } = await admin()
+    const { data: favoriteRow, error: favoriteError } = await client
       .from('kit_ilias_favorites')
       .select('title')
       .eq('id', iliasLatestItemResult.data.favorite_id)

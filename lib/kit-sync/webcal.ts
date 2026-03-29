@@ -21,6 +21,64 @@ interface ParsedIcsDate {
   allDay: boolean;
 }
 
+function normalizeIcsTimeZone(rawTimeZone: string | undefined): string | null {
+  const timeZone = rawTimeZone?.replace(/^"(.+)"$/, '$1').trim();
+  if (!timeZone) return null;
+
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone }).format(new Date());
+    return timeZone;
+  } catch {
+    return null;
+  }
+}
+
+function getTimeZoneOffsetMs(timeZone: string, date: Date): number {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+
+  const parts = Object.fromEntries(
+    formatter
+      .formatToParts(date)
+      .filter((part) => part.type !== 'literal')
+      .map((part) => [part.type, part.value])
+  );
+
+  const year = Number.parseInt(parts.year ?? '0', 10);
+  const month = Number.parseInt(parts.month ?? '1', 10);
+  const day = Number.parseInt(parts.day ?? '1', 10);
+  const hour = Number.parseInt(parts.hour ?? '0', 10);
+  const minute = Number.parseInt(parts.minute ?? '0', 10);
+  const second = Number.parseInt(parts.second ?? '0', 10);
+
+  const zonedAsUtc = Date.UTC(year, month - 1, day, hour, minute, second);
+  return zonedAsUtc - date.getTime();
+}
+
+function buildUtcDateForIcsLocalTime(input: {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+  timeZone: string;
+}) {
+  const utcGuess = new Date(
+    Date.UTC(input.year, input.month - 1, input.day, input.hour, input.minute, input.second)
+  );
+  const offset = getTimeZoneOffsetMs(input.timeZone, utcGuess);
+  return new Date(utcGuess.getTime() - offset);
+}
+
 function unfoldIcs(raw: string): string[] {
   const normalized = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   const lines = normalized.split('\n');
@@ -114,14 +172,16 @@ function parseIcsDate(rawValue: string, params: Record<string, string>): ParsedI
     const minute = localMatch[5];
     const second = localMatch[6];
     if (!year || !month || !day || !hour || !minute || !second) return null;
-    const date = new Date(
-      Number.parseInt(year, 10),
-      Number.parseInt(month, 10) - 1,
-      Number.parseInt(day, 10),
-      Number.parseInt(hour, 10),
-      Number.parseInt(minute, 10),
-      Number.parseInt(second, 10)
-    );
+    const timeZone = normalizeIcsTimeZone(params.TZID) ?? 'Europe/Berlin';
+    const date = buildUtcDateForIcsLocalTime({
+      year: Number.parseInt(year, 10),
+      month: Number.parseInt(month, 10),
+      day: Number.parseInt(day, 10),
+      hour: Number.parseInt(hour, 10),
+      minute: Number.parseInt(minute, 10),
+      second: Number.parseInt(second, 10),
+      timeZone,
+    });
     return { iso: date.toISOString(), allDay: false };
   }
 

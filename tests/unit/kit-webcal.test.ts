@@ -61,4 +61,22 @@ describe('kit webcal helpers', () => {
       allDay: true,
     });
   });
+
+  it('parses local Europe/Berlin timestamps from tzid-based events into utc safely', () => {
+    const tzidIcs = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'BEGIN:VEVENT',
+      'UID:event-berlin@example',
+      'DTSTART;TZID=Europe/Berlin:20260401T101500',
+      'DTEND;TZID=Europe/Berlin:20260401T114500',
+      'SUMMARY:Vorlesung Financial Data Science',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+    const [event] = parseCampusWebcalEvents(tzidIcs);
+    expect(event?.startsAt).toBe('2026-04-01T08:15:00.000Z');
+    expect(event?.endsAt).toBe('2026-04-01T09:45:00.000Z');
+  });
 });

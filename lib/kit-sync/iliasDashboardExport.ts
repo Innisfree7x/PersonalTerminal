@@ -37,6 +37,10 @@ const blockedLinkLabels = new Set([
   'Barrierefreiheit',
 ]);
 
+// Browser-Connector und App-Parser laufen absichtlich mit spiegelnder Logik.
+// Änderungen an der Dashboard-Struktur müssen deshalb hier und in
+// public/connectors/kit-ilias-dashboard-exporter.js synchron gepflegt werden.
+
 function normalizeText(value: string | null | undefined) {
   return value?.replace(/\s+/g, ' ').trim() ?? '';
 }
