@@ -1,10 +1,10 @@
 # Context Canon (Single Source of Truth)
 
-Stand: 2026-03-29 (post KIT Sync Wave 1 foundation)
+Stand: 2026-03-29 (post KIT Sync Wave 2 academic snapshot)
 Status: Active
 
 ## Neu seit 2026-03-15 (hoch priorisiert)
-- `docs/PHASE42_KIT_SYNC_CONNECTOR_EXECUTION_CONTRACT_2026-03-29.md` (KIT Sync Wave 1: WebCal-Fundament, verschluesselte Feed-Speicherung, KIT Status + manueller Sync)
+- `docs/PHASE42_KIT_SYNC_CONNECTOR_EXECUTION_CONTRACT_2026-03-29.md` (KIT Sync Wave 1+2: WebCal-Fundament plus CAMPUS Academic Snapshot ueber `campus_connector`)
 - `docs/PHASE41_MEASURED_PERFORMANCE_PASS_2026-03-28.md` (Analytics lazy-loaded, Settings in schwere Sektionen gesplittet, CommandPalette/Sidebar/Layout-Interaktionskosten reduziert)
 - `docs/PHASE40_PERFORMANCE_AND_CI_STABILIZATION_2026-03-27.md` (Today/Focus/Dashboard-Performance-Welle, CI-Hotfixes, Blocker-E2E-Härtung, mobile Landing-Dot-Fix, Focus-Timer-Render-Entkopplung)
 - `docs/PHASE39_MARKETING_ART_DIRECTION_2026-03-23.md` (aktive Landing ueber `CinematicLanding`, asymmetrischer Hero, Proof-Layer pro Section, tote Marketing-Mockups bewusst ignoriert)
@@ -37,7 +37,7 @@ Wenn zwei Dokumente widersprüchlich sind, gilt immer diese Prioritätsliste.
 1. `docs/PHASE20_ARCH_UX_RETENTION_HARDENING_2026-03-07.md` (Storage-Migration + Done/Weekly-Rhythm + Typ-Cleanup)
 2. `docs/PHASE21_WAVE1_PERF_RELIABILITY_SECURITY_2026-03-07.md` (API-Hotpath-Optimierung + CSRF-Guard + private SWR + Premium-Polish)
 3. `docs/ERROR_MONITORING_AND_TENANT_ISOLATION_2026-03-07.md` (persistentes Error-Monitoring + reale Tenant-Isolation-Checks)
-4. `docs/PHASE42_KIT_SYNC_CONNECTOR_EXECUTION_CONTRACT_2026-03-29.md` (KIT Sync Wave 1: WebCal-Fundament, verschluesselte Feed-Speicherung, KIT Status + manueller Sync)
+4. `docs/PHASE42_KIT_SYNC_CONNECTOR_EXECUTION_CONTRACT_2026-03-29.md` (KIT Sync Wave 1+2: WebCal-Fundament plus CAMPUS Academic Snapshot ueber `campus_connector`)
 5. `docs/PHASE41_MEASURED_PERFORMANCE_PASS_2026-03-28.md` (Analytics lazy-loaded, Settings in schwere Sektionen gesplittet, CommandPalette/Sidebar/Layout-Interaktionskosten reduziert)
 6. `docs/PHASE40_PERFORMANCE_AND_CI_STABILIZATION_2026-03-27.md` (Today/Focus/Dashboard-Performance-Welle + CI-/Blocker-Stabilisierung + Focus-Timer-Render-Entkopplung)
 7. `docs/PHASE39_MARKETING_ART_DIRECTION_2026-03-23.md` (aktive Landing ueber `CinematicLanding`, asymmetrischer Hero, Proof-Layer und premium Art Direction)
@@ -73,7 +73,7 @@ Wenn zwei Dokumente widersprüchlich sind, gilt immer diese Prioritätsliste.
 37. Historische Phase-Dokumente (nur Referenz, nicht normativ)
 
 ## Aktive Dokumente
-- `docs/PHASE42_KIT_SYNC_CONNECTOR_EXECUTION_CONTRACT_2026-03-29.md` (KIT Sync Wave 1: WebCal-Fundament, verschluesselte Feed-Speicherung, KIT Status + manueller Sync)
+- `docs/PHASE42_KIT_SYNC_CONNECTOR_EXECUTION_CONTRACT_2026-03-29.md` (KIT Sync Wave 1+2: WebCal-Fundament plus CAMPUS Academic Snapshot ueber `campus_connector`)
 - `docs/PHASE41_MEASURED_PERFORMANCE_PASS_2026-03-28.md` (Analytics lazy-loaded, Settings in dynamische Sektionen aufgeteilt, CommandPalette/Sidebar/Layout-Interaktionskosten reduziert)
 - `docs/PHASE40_PERFORMANCE_AND_CI_STABILIZATION_2026-03-27.md` (Today/Focus/Dashboard-Performance-Welle, CI-/Blocker-Stabilisierung, mobile Landing-Dots, Focus-Timer-Render-Entkopplung)
 - `docs/AGENT_STANDARD_COMPLIANCE_2026-03-10.md` (aktueller Compliance-Report fuer Agent-Standard in aktiven Wellen)

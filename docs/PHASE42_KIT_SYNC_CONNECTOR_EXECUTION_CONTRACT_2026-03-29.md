@@ -1,7 +1,7 @@
 # Phase 42 — KIT Sync Connector Execution Contract
 
 Stand: 2026-03-29  
-Status: Wave 1 implementiert
+Status: Wave 2 implementiert
 
 ## Ziel
 
@@ -110,6 +110,34 @@ Nicht Teil von Wave 1:
 - Dokumentimport
 
 Diese Waves bauen auf exakt demselben Sync- und Secret-Modell auf.
+
+## Wave 2 - Implementierter Umfang
+
+Wave 2 erweitert das WebCal-Fundament um den ersten `campus_connector`-Pfad:
+
+- Migration:
+  - `docs/migrations/2026-03-29_phase42_kit_sync_wave2.sql`
+- Tabellen / Schema:
+  - `kit_campus_modules`
+  - `kit_campus_grades`
+  - `kit_campus_events.source` mit `campus_webcal | campus_connector`
+- API:
+  - `POST /api/kit/sync` akzeptiert jetzt auch `campus_connector`
+  - Payload-Limit: `500 KB`
+- Backend-Fundament:
+  - idempotente Upserts für Module und Noten
+  - Prüfungen laufen als `campus_connector`-Events in dieselbe Event-Tabelle
+  - Connector-Version wird im Profil und im Run protokolliert
+  - fehlende Modulreferenzen führen zu `partial`, nicht zu stillem Datenverlust
+- UI / Status:
+  - `KIT Sync` zeigt jetzt Module, Noten, letzte Note und nächste Prüfung
+
+Nicht Teil von Wave 2:
+
+- ILIAS-Favoriten
+- ILIAS-Dokumente
+- echter Dateiimport
+- automatische Today-/Morning-Briefing-Fusion
 
 ## Was genau synchronisiert werden soll
 
@@ -495,6 +523,13 @@ Definition of Done:
 - neue Noten werden erkannt
 - Briefing kann Noten-/Prüfungsereignisse anzeigen
 
+Implementiert:
+
+- `campus_connector`-Payloads laufen über denselben Sync-Endpoint wie WebCal
+- `kit_campus_modules` und `kit_campus_grades` sind owner-isolated via RLS
+- `KIT Sync` in `University` zeigt den ersten Academic Snapshot
+- Prüftermine werden als `campus_connector`-Events in den bestehenden Kalenderpfad geschrieben
+
 ## Wave 3 — ILIAS Favorites Sync
 
 Scope:
@@ -740,9 +775,9 @@ Wir starten die Umsetzung, wenn diese Punkte akzeptiert sind:
 
 ## Nächster direkter Schritt
 
-Wenn dieser Contract bestätigt ist, folgt:
+Nach Wave 2 folgt:
 
-1. Datenmodell / SQL-Migrationen
-2. `KIT Sync`-UI-Grundgerüst in `University`
-3. WebCal-V1
-4. lokales Connector-Interface für CAMPUS/ILIAS
+1. lokales Connector-Interface für CAMPUS-HTML-Snapshots
+2. echte CAMPUS-Parser für Module / Notenspiegel / Prüfungen
+3. erste Today-/Morning-Briefing-Fusion auf Basis der neuen Academic-Snapshot-Daten
+4. danach erst ILIAS-Favoriten

@@ -8,7 +8,7 @@ For current roadmap and implementation decisions, use:
 - `docs/CONTEXT_CANON.md`
 - `docs/PHASE41_MEASURED_PERFORMANCE_PASS_2026-03-28.md` (Analytics lazy loading + Settings-Split mit messbarem Bundle-Rückgang)
 - `docs/PHASE40_PERFORMANCE_AND_CI_STABILIZATION_2026-03-27.md` (Blur-/Motion-Entlastung, CI-Hotfixes, Focus-Timer-Render-Entkopplung)
-- `docs/PHASE42_KIT_SYNC_CONNECTOR_EXECUTION_CONTRACT_2026-03-29.md` (KIT Sync Wave 1: WebCal-Fundament, verschlüsselte Feed-Speicherung, KIT Status + manueller Sync)
+- `docs/PHASE42_KIT_SYNC_CONNECTOR_EXECUTION_CONTRACT_2026-03-29.md` (KIT Sync Wave 1+2: WebCal-Fundament plus CAMPUS Academic Snapshot über `campus_connector`)
 - `docs/PHASE39_MARKETING_ART_DIRECTION_2026-03-23.md`
 - `docs/PHASE38_CAREER_INTELLIGENCE_V3_2026-03-22.md`
 - `docs/PHASE37_CRITICAL_PATH_INTEGRATION_2026-03-21.md`
@@ -46,7 +46,7 @@ Archived phase docs are historical references only.
 - Course management with ECTS, semester (WS 2025/26), and exam date tracking
 - Exercise checkboxes (Blatt 1–N) with animated progress bars
 - Exam countdown with urgency indicators
-- `KIT Sync` Wave 1: validierter CAMPUS-WebCal-Import, verschlüsselte Feed-Speicherung, KIT-Eventstatus und manueller Sync-Trigger
+- `KIT Sync` Wave 1+2: validierter CAMPUS-WebCal-Import, verschlüsselte Feed-Speicherung, KIT-Eventstatus sowie erster Academic Snapshot für Module, Noten und Prüfungen
 
 ### 🎯 Goals (`/goals`)
 - CRUD with categories (Career, Fitness, Learning, Finance) and priority levels

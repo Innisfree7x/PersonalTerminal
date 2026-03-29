@@ -40,8 +40,17 @@ describe('GET /api/kit/status', () => {
       campusWebcalLastValidatedAt: '2026-03-29T10:00:00.000Z',
       campusWebcalLastSyncedAt: null,
       campusWebcalLastError: null,
+      connectorVersion: 'kit-connector/0.1.0',
       totalCampusEvents: 12,
+      totalCampusModules: 5,
+      totalCampusGrades: 2,
       nextCampusEvent: null,
+      nextCampusExam: null,
+      latestCampusGrade: {
+        moduleTitle: 'Operations Research',
+        gradeLabel: '1,7',
+        publishedAt: '2026-03-29T11:00:00.000Z',
+      },
       lastRun: null,
     });
 
@@ -49,6 +58,8 @@ describe('GET /api/kit/status', () => {
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.totalCampusEvents).toBe(12);
+    expect(body.totalCampusModules).toBe(5);
+    expect(body.latestCampusGrade.gradeLabel).toBe('1,7');
     expect(mockedGetKitSyncStatus).toHaveBeenCalledWith('user-1');
   });
 });

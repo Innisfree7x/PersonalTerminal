@@ -242,6 +242,7 @@ export interface Database {
           user_id: string;
           profile_id: string;
           external_id: string;
+          source: 'campus_webcal' | 'campus_connector';
           title: string;
           description: string | null;
           location: string | null;
@@ -259,6 +260,7 @@ export interface Database {
           user_id: string;
           profile_id: string;
           external_id: string;
+          source: 'campus_webcal' | 'campus_connector';
           title: string;
           description?: string | null;
           location?: string | null;
@@ -276,6 +278,7 @@ export interface Database {
           user_id?: string;
           profile_id?: string;
           external_id?: string;
+          source?: 'campus_webcal' | 'campus_connector';
           title?: string;
           description?: string | null;
           location?: string | null;
@@ -285,6 +288,90 @@ export interface Database {
           kind?: 'lecture' | 'exercise' | 'exam' | 'deadline' | 'other';
           source_updated_at?: string | null;
           content_hash?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      kit_campus_modules: {
+        Row: {
+          id: string;
+          user_id: string;
+          external_id: string;
+          module_code: string | null;
+          title: string;
+          status: 'active' | 'completed' | 'dropped' | 'planned' | 'unknown';
+          semester_label: string | null;
+          credits: number | null;
+          source_updated_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          external_id: string;
+          module_code?: string | null;
+          title: string;
+          status?: 'active' | 'completed' | 'dropped' | 'planned' | 'unknown';
+          semester_label?: string | null;
+          credits?: number | null;
+          source_updated_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          external_id?: string;
+          module_code?: string | null;
+          title?: string;
+          status?: 'active' | 'completed' | 'dropped' | 'planned' | 'unknown';
+          semester_label?: string | null;
+          credits?: number | null;
+          source_updated_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      kit_campus_grades: {
+        Row: {
+          id: string;
+          user_id: string;
+          module_id: string;
+          external_grade_id: string;
+          grade_value: number | null;
+          grade_label: string;
+          exam_date: string | null;
+          published_at: string | null;
+          source_updated_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          module_id: string;
+          external_grade_id: string;
+          grade_value?: number | null;
+          grade_label: string;
+          exam_date?: string | null;
+          published_at?: string | null;
+          source_updated_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          module_id?: string;
+          external_grade_id?: string;
+          grade_value?: number | null;
+          grade_label?: string;
+          exam_date?: string | null;
+          published_at?: string | null;
+          source_updated_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

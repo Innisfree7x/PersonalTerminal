@@ -17,8 +17,13 @@ interface KitSyncStatus {
   campusWebcalLastValidatedAt: string | null;
   campusWebcalLastSyncedAt: string | null;
   campusWebcalLastError: string | null;
+  connectorVersion: string | null;
   totalCampusEvents: number;
+  totalCampusModules: number;
+  totalCampusGrades: number;
   nextCampusEvent: { title: string; startsAt: string; kind: string } | null;
+  nextCampusExam: { title: string; startsAt: string; location: string | null } | null;
+  latestCampusGrade: { moduleTitle: string; gradeLabel: string; publishedAt: string | null } | null;
   lastRun: {
     source: string;
     trigger: string;
@@ -108,6 +113,9 @@ export default function KitSyncPanel() {
     return [
       { label: data.campusWebcalConfigured ? 'WebCal aktiv' : 'WebCal fehlt', tone: data.campusWebcalConfigured ? 'success' as const : 'warning' as const },
       { label: `${data.totalCampusEvents} KIT Events`, tone: 'info' as const },
+      { label: `${data.totalCampusModules} Module`, tone: 'default' as const },
+      { label: `${data.totalCampusGrades} Noten`, tone: 'default' as const },
+      ...(data.connectorVersion ? [{ label: `Connector ${data.connectorVersion}`, tone: 'success' as const }] : []),
       ...(data.nextCampusEvent ? [{ label: `Nächstes Event ${format(new Date(data.nextCampusEvent.startsAt), 'dd.MM.')}`, tone: 'default' as const }] : []),
     ];
   }, [data]);
@@ -116,7 +124,7 @@ export default function KitSyncPanel() {
     <DecisionSurfaceCard
       eyebrow="KIT Sync"
       title="CAMPUS zuerst, ILIAS danach"
-      summary="Wave 1 verbindet INNIS mit deinem KIT-Kalender über WebCal. Der Sync bleibt read-only, speichert keine Passwörter und legt die Basis für Module, Noten und später ILIAS-Favoriten."
+      summary="WebCal läuft bereits. Wave 2 erweitert den Stack jetzt um CAMPUS-Module, Noten und Prüfungen über einen read-only Connector mit bestehender Browser-Session statt Passwortspeicherung."
       chips={chips}
       tone={data?.campusWebcalConfigured ? 'info' : 'warning'}
       icon={<ShieldCheck className="h-4 w-4" />}
@@ -124,6 +132,9 @@ export default function KitSyncPanel() {
         data?.campusWebcalMaskedUrl ? `Gespeicherte Quelle: ${data.campusWebcalMaskedUrl}` : 'Noch keine CAMPUS WebCal-URL hinterlegt.',
         data?.campusWebcalCalendarName ? `Kalendername: ${data.campusWebcalCalendarName}` : 'Kalendername wird beim ersten erfolgreichen Feed-Check übernommen.',
         data?.campusWebcalLastSyncedAt ? `Letzter Sync: ${format(new Date(data.campusWebcalLastSyncedAt), 'dd.MM.yyyy HH:mm')}` : 'Noch kein erfolgreicher Event-Import gelaufen.',
+        data?.latestCampusGrade
+          ? `Letzte Note: ${data.latestCampusGrade.moduleTitle} · ${data.latestCampusGrade.gradeLabel}`
+          : 'Noch keine CAMPUS-Noten importiert.',
       ]}
       footer={
         <div className="space-y-4">
@@ -194,9 +205,15 @@ export default function KitSyncPanel() {
               ) : null}
             </div>
             <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3">
-              <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">Nächste Waves</div>
-              <div className="mt-2 text-sm font-medium text-text-primary">Module, Noten, ILIAS-Favoriten</div>
-              <div className="mt-1 text-xs text-text-secondary">Wave 2 baut auf genau diesem Sync-Stack auf.</div>
+              <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">Academic Snapshot</div>
+              <div className="mt-2 text-sm font-medium text-text-primary">
+                {data ? `${data.totalCampusModules} Module · ${data.totalCampusGrades} Noten` : 'Lädt …'}
+              </div>
+              <div className="mt-1 text-xs text-text-secondary">
+                {data?.nextCampusExam
+                  ? `Nächste Prüfung: ${data.nextCampusExam.title} am ${format(new Date(data.nextCampusExam.startsAt), 'dd.MM.yyyy HH:mm')}`
+                  : 'Noch keine Prüfungen aus dem CAMPUS-Connector importiert.'}
+              </div>
             </div>
           </div>
         </div>

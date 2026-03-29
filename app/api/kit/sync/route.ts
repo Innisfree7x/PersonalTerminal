@@ -4,7 +4,9 @@ import { enforceTrustedMutationOrigin } from '@/lib/api/csrf';
 import { applyRateLimitHeaders, consumeRateLimit, readForwardedIpFromRequest } from '@/lib/api/rateLimit';
 import { handleRouteError } from '@/lib/api/server-errors';
 import { triggerKitSyncSchema } from '@/lib/schemas/kit-sync.schema';
-import { syncCampusWebcalForUser } from '@/lib/kit-sync/service';
+import { syncCampusConnectorSnapshotForUser, syncCampusWebcalForUser } from '@/lib/kit-sync/service';
+
+const MAX_CONNECTOR_PAYLOAD_BYTES = 500 * 1024;
 
 export async function POST(request: NextRequest) {
   const originViolation = enforceTrustedMutationOrigin(request);
@@ -14,7 +16,15 @@ export async function POST(request: NextRequest) {
   if (errorResponse) return errorResponse;
 
   try {
-    const body = triggerKitSyncSchema.parse(await request.json().catch(() => ({})));
+    const rawBody = await request.text();
+    if (Buffer.byteLength(rawBody, 'utf8') > MAX_CONNECTOR_PAYLOAD_BYTES) {
+      return NextResponse.json(
+        { error: { code: 'PAYLOAD_TOO_LARGE', message: 'KIT Connector Payload ist zu groß. Maximal 500 KB sind erlaubt.' } },
+        { status: 413 }
+      );
+    }
+
+    const body = triggerKitSyncSchema.parse(rawBody ? JSON.parse(rawBody) : {});
     const rateLimit = consumeRateLimit({
       key: `kit_sync:${body.source}:${user.id}:${readForwardedIpFromRequest(request)}`,
       limit: 1,
@@ -31,7 +41,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await syncCampusWebcalForUser(user.id, 'manual');
+    const result =
+      body.source === 'campus_connector'
+        ? await syncCampusConnectorSnapshotForUser(user.id, {
+            connectorVersion: body.connectorVersion,
+            payload: body.payload,
+          })
+        : await syncCampusWebcalForUser(user.id, 'manual');
+
     return applyRateLimitHeaders(NextResponse.json(result), rateLimit);
   } catch (error) {
     return handleRouteError(error, 'KIT Sync konnte nicht gestartet werden.', 'Error triggering KIT sync');
