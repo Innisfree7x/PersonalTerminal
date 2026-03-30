@@ -210,6 +210,24 @@ async function acknowledgeIliasItems(ids: string[]) {
   return response.json() as Promise<{ acknowledgedCount: number; nextStatus?: KitSyncStatus }>;
 }
 
+async function deleteIliasFavorite(id: string) {
+  const response = await fetch(`/api/kit/ilias-favorites/${id}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.error?.message ?? 'ILIAS-Favorit konnte nicht entfernt werden.');
+  }
+
+  return response.json() as Promise<{
+    removedFavoriteId: string;
+    removedTitle: string;
+    itemsDeleted: number;
+    nextStatus?: KitSyncStatus;
+  }>;
+}
+
 function formatDateTime(value: string | null | undefined) {
   if (!value) return null;
   return format(new Date(value), 'dd.MM.yyyy HH:mm');
@@ -441,6 +459,22 @@ export default function KitSyncPanel() {
     },
   });
 
+  const deleteFavoriteMutation = useMutation({
+    mutationFn: deleteIliasFavorite,
+    onSuccess: async (result) => {
+      if (result.nextStatus) {
+        queryClient.setQueryData(['kit-sync-status'], result.nextStatus);
+      }
+      await queryClient.invalidateQueries({ queryKey: ['kit-sync-status'] });
+      soundToast.success(
+        `${result.removedTitle} entfernt${result.itemsDeleted > 1 ? ` · ${result.itemsDeleted} verknüpfte Einträge gelöscht` : ''}.`
+      );
+    },
+    onError: (mutationError: Error) => {
+      soundToast.error(mutationError.message);
+    },
+  });
+
   async function handleCopyConnectorScript(
     scriptPath: string,
     setPending: (value: boolean) => void,
@@ -502,6 +536,18 @@ export default function KitSyncPanel() {
     }
 
     resetMutation.mutate(scope);
+  }
+
+  function confirmDeleteFavorite(favorite: { id: string; title: string }) {
+    if (
+      !window.confirm(
+        `${favorite.title} wirklich aus den ILIAS-Favoriten entfernen?\n\nDer Kurs und seine verknüpften ILIAS-Items werden nur aus INNIS gelöscht.`
+      )
+    ) {
+      return;
+    }
+
+    deleteFavoriteMutation.mutate(favorite.id);
   }
 
   const chips = useMemo(() => {
@@ -672,23 +718,34 @@ export default function KitSyncPanel() {
                         <div className="grid gap-2 xl:grid-cols-2">
                           {group.favorites.map((favorite) => (
                             <div
-                              key={`${group.semesterLabel}-${favorite.title}-${favorite.courseUrl ?? 'favorite'}`}
+                              key={favorite.id}
                               className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5"
                             >
                               <div className="min-w-0">
                                 <div className="truncate text-sm font-medium text-text-primary">{favorite.title}</div>
                               </div>
-                              {favorite.courseUrl ? (
-                                <a
-                                  href={favorite.courseUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="shrink-0 rounded-full border border-white/10 bg-white/[0.05] p-2 text-text-tertiary transition-colors hover:border-emerald-400/30 hover:text-emerald-200"
-                                  aria-label={`${favorite.title} in ILIAS öffnen`}
+                              <div className="flex shrink-0 items-center gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => confirmDeleteFavorite({ id: favorite.id, title: favorite.title })}
+                                  loading={deleteFavoriteMutation.isPending && deleteFavoriteMutation.variables === favorite.id}
+                                  leftIcon={<Trash2 className="h-3.5 w-3.5" />}
                                 >
-                                  <ExternalLink className="h-3.5 w-3.5" />
-                                </a>
-                              ) : null}
+                                  Entfernen
+                                </Button>
+                                {favorite.courseUrl ? (
+                                  <a
+                                    href={favorite.courseUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="shrink-0 rounded-full border border-white/10 bg-white/[0.05] p-2 text-text-tertiary transition-colors hover:border-emerald-400/30 hover:text-emerald-200"
+                                    aria-label={`${favorite.title} in ILIAS öffnen`}
+                                  >
+                                    <ExternalLink className="h-3.5 w-3.5" />
+                                  </a>
+                                ) : null}
+                              </div>
                             </div>
                           ))}
                         </div>

@@ -11,6 +11,11 @@ import { trackMarketingEvent } from '@/lib/analytics/marketing';
 import { TerminalFrame } from './TerminalFrame';
 import { TodayMockup } from './mockups/TodayMockup';
 import { CareerMockup } from './mockups/CareerMockup';
+import {
+  buildTrajectoryProofInsight,
+  formatTrajectoryProofDateLabel,
+  getTrajectoryProofStatusTone,
+} from './trajectoryProof';
 
 /**
  * ProductShowcase — Today + Career terminals + interactive trajectory demo.
@@ -154,18 +159,13 @@ function TrajectoryDemo() {
   );
 
   const dueDays = useMemo(() => getDaysUntilDate(dueDate), [dueDate]);
-  const prepStartLabel = useMemo(() => {
-    const parsed = new Date(`${preview.startDate}T00:00:00.000Z`);
-    if (Number.isNaN(parsed.getTime())) return preview.startDate;
-    return parsed.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  }, [preview.startDate]);
+  const prepStartLabel = useMemo(() => formatTrajectoryProofDateLabel(preview.startDate), [preview.startDate]);
+  const insight = useMemo(
+    () => buildTrajectoryProofInsight(preview.status, capacityHoursPerWeek, prepStartLabel),
+    [capacityHoursPerWeek, prepStartLabel, preview.status]
+  );
 
-  const statusColor =
-    preview.status === 'on_track'
-      ? 'text-emerald-400'
-      : preview.status === 'tight'
-        ? 'text-[#E8B930]'
-        : 'text-red-400';
+  const statusColor = getTrajectoryProofStatusTone(preview.status);
 
   const trackOnce = (cap: number, eff: number) => {
     if (trackedRef.current) return;
@@ -205,7 +205,7 @@ function TrajectoryDemo() {
           </h2>
 
           <TerminalFrame url="innis.io/trajectory/simulate">
-            <div className="p-6 md:p-8">
+            <div className="p-6 md:p-8" data-landing-interactive="true">
               {/* Sliders */}
               <div className="space-y-8">
                 <label className="block">
@@ -270,6 +270,8 @@ function TrajectoryDemo() {
                   </div>
                 ))}
               </div>
+
+              <p className="mt-6 text-center text-sm leading-6 text-zinc-400">{insight}</p>
             </div>
           </TerminalFrame>
         </motion.div>

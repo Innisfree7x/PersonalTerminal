@@ -74,6 +74,7 @@ describe('GET /api/kit/status', () => {
       ],
       iliasFavoritePreview: [
         {
+          id: '3c40531d-a633-4578-aeb0-61db392c17c2',
           title: 'Investments SS2025',
           semesterLabel: 'SS 2025',
           courseUrl: 'https://ilias.studium.kit.edu/course-1',

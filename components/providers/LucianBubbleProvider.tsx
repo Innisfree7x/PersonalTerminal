@@ -223,57 +223,57 @@ function pickMessage(
 function messageFromEvent(event: ChampionEvent): QueuedMessage | null {
   switch (event.type) {
     case 'TASK_COMPLETED':
-      return pickMessage('celebrate', 1);
+      return pickMessage('hype', 1);
 
     case 'EXERCISE_COMPLETED':
-      return pickMessage('celebrate', 1);
+      return pickMessage('hype', 1);
 
     case 'APPLICATION_SENT':
-      return pickMessage('celebrate', 1);
+      return pickMessage('hype', 1);
 
     case 'GOAL_CREATED':
-      return pickMessage('celebrate', 1);
+      return pickMessage('hype', 1);
 
     case 'FOCUS_END':
-      return pickMessage('celebrate', 1);
+      return pickMessage('hype', 1);
 
     case 'DONE_FOR_TODAY':
-      return pickMessage('celebrate', 0, { n: event.completed, total: event.total });
+      return pickMessage('hype', 0, { n: event.completed, total: event.total });
 
     case 'MORNING_CHECKIN':
       if (event.status === 'at_risk') {
-        return pickMessage('warning', 1, { n: event.daysUntil ?? 0, item: event.title ?? 'Dein Ziel' });
+        return pickMessage('real-talk', 1, { n: event.daysUntil ?? 0, item: event.title ?? 'Dein Ziel' });
       }
       if (event.status === 'tight') {
-        return pickMessage('motivate', 2, { n: event.daysUntil ?? 0, item: event.title ?? 'Dein Ziel' });
+        return pickMessage('real-talk', 2, { n: event.daysUntil ?? 0, item: event.title ?? 'Dein Ziel' });
       }
       if (event.status === 'on_track') {
-        return pickMessage('celebrate', 2, { n: event.daysUntil ?? 0, item: event.title ?? 'Dein Ziel' });
+        return pickMessage('hype', 2, { n: event.daysUntil ?? 0, item: event.title ?? 'Dein Ziel' });
       }
-      return pickMessage('idle', 3);
+      return pickMessage('chill', 3);
 
     case 'LEVEL_UP':
-      return pickMessage('celebrate', 1, { n: event.newLevel });
+      return pickMessage('hype', 1, { n: event.newLevel });
 
     case 'PENTAKILL':
-      return pickMessage('celebrate', 1, { n: event.count });
+      return pickMessage('hype', 1, { n: event.count });
 
     case 'STREAK_BROKEN':
-      return pickMessage('recovery', 2);
+      return pickMessage('comfort', 2);
 
     case 'STREAK_MILESTONE':
-      return pickMessage('celebrate', 1, { n: event.streak });
+      return pickMessage('hype', 1, { n: event.streak });
 
     case 'DEADLINE_WARNING': {
       const days = Math.ceil(event.hoursLeft / 24);
       return event.hoursLeft <= 48
-        ? pickMessage('warning', 0, { n: days })
-        : pickMessage('idle', 3, { n: days });
+        ? pickMessage('real-talk', 0, { n: days })
+        : pickMessage('chill', 3, { n: days });
     }
 
     case 'FOCUS_START':
-      // Fire motivate on ~40% of session starts to avoid repetition
-      return Math.random() < 0.4 ? pickMessage('motivate', 2) : null;
+      // Fire chill/hype on ~40% of session starts to avoid repetition
+      return Math.random() < 0.4 ? pickMessage('chill', 2) : null;
 
     default:
       return null;

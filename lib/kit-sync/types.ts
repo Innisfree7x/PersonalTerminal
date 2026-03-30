@@ -32,6 +32,7 @@ export interface KitSyncStatus {
     firstSeenAt: string;
   }>;
   iliasFavoritePreview: Array<{
+    id: string;
     title: string;
     semesterLabel: string | null;
     courseUrl: string | null;

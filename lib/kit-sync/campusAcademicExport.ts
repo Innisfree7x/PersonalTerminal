@@ -84,6 +84,10 @@ function parseGradeValue(value: string) {
   return match ? Number.parseFloat(match[0]) : null;
 }
 
+function isStandaloneGradeCell(value: string) {
+  return /^(?:[1-4](?:[.,]\d)?|5(?:[.,]0)?)$/.test(normalizeText(value));
+}
+
 function inferStatus(value: string): CampusConnectorModuleInput['status'] {
   const text = normalizeHeader(value);
   if (!text) return 'active';
@@ -227,7 +231,7 @@ function extractTablesFromDocument(doc: Document): ExtractedTable[] {
     });
 
     return { headers, rows };
-  }).filter((table) => table.headers.length > 0 && table.rows.length > 0);
+  }).filter((table) => table.rows.length > 0);
 }
 
 function collectDocuments(doc: Document) {
@@ -255,9 +259,127 @@ function inferSourceUpdatedAt() {
   return new Date().toISOString();
 }
 
+function hasStatusSignal(value: string) {
+  const text = normalizeHeader(value);
+  return Boolean(
+    text &&
+      (text.includes('bestanden') ||
+        text.includes('abgeschlossen') ||
+        text.includes('active') ||
+        text.includes('aktiv') ||
+        text.includes('begonnen') ||
+        text.includes('planned') ||
+        text.includes('geplant') ||
+        text.includes('dropped') ||
+        text.includes('nicht bestanden') ||
+        text.includes('unknown') ||
+        text.includes('unbekannt'))
+  );
+}
+
 function buildModuleExternalId(moduleCode: string | null, title: string, semesterLabel: string | null) {
   if (moduleCode) return `module:${moduleCode}`;
   return `module:${slugify(title)}:${slugify(semesterLabel ?? 'unknown')}:${stableHash([title, semesterLabel])}`;
+}
+
+function findFirstCell(cells: string[], startIndex: number, predicate: (value: string) => boolean) {
+  for (let index = startIndex; index < cells.length; index += 1) {
+    if (predicate(cells[index] ?? '')) {
+      return cells[index] ?? '';
+    }
+  }
+  return '';
+}
+
+function isAcademicSnapshotFallbackRow(cells: string[]) {
+  const titleCell = normalizeText(cells[0]);
+  if (!titleCell) return false;
+  if (blockedLabels.has(titleCell)) return false;
+
+  const normalizedTitle = normalizeHeader(titleCell);
+  if (
+    normalizedTitle.includes('titel (mit kennung)') ||
+    normalizedTitle.includes('persönlicher studienablaufplan') ||
+    normalizedTitle.includes('teilleistungen') ||
+    normalizedTitle.includes('orientierungsprüfung')
+  ) {
+    return false;
+  }
+
+  const parsedTitle = extractModuleCodeAndTitle(titleCell);
+  if (!parsedTitle.title) return false;
+
+  const tail = cells.slice(1);
+  const hasDate = tail.some((cell) => Boolean(parseGermanDate(cell)));
+  const hasGrade = tail.some(isStandaloneGradeCell);
+  const hasStatus = tail.some(hasStatusSignal);
+  const creditValues = tail.map((cell) => parseCredits(cell)).filter((value): value is number => value !== null);
+  const hasCredits = creditValues.length > 0;
+  const looksLikeAggregate = !hasDate && !hasGrade && !hasStatus && creditValues.some((value) => value > 60);
+
+  return !looksLikeAggregate && (hasDate || hasGrade || hasStatus || hasCredits);
+}
+
+function extractFallbackAcademicRows(tables: ExtractedTable[]) {
+  const modules = new Map<string, CampusConnectorModuleInput>();
+  const grades = new Map<string, CampusConnectorGradeInput>();
+
+  for (const table of tables) {
+    for (const row of table.rows) {
+      if (!isAcademicSnapshotFallbackRow(row.cells)) continue;
+
+      const titleCell = normalizeText(row.cells[0]);
+      const parsedTitle = extractModuleCodeAndTitle(titleCell);
+      const moduleCode = parsedTitle.moduleCode;
+      const title = parsedTitle.title;
+      if (!title) continue;
+
+      const statusCell = row.cells[2] ?? findFirstCell(row.cells, 1, hasStatusSignal);
+      const gradeCell = isStandaloneGradeCell(row.cells[3] ?? '')
+        ? row.cells[3] ?? ''
+        : findFirstCell(row.cells, 1, isStandaloneGradeCell);
+      const dateCell = parseGermanDate(row.cells[4] ?? '') ? row.cells[4] ?? '' : findFirstCell(row.cells, 1, (cell) => Boolean(parseGermanDate(cell)));
+      const creditCandidates = (row.cells.length >= 7 ? row.cells.slice(-2) : row.cells.slice(1))
+        .map((cell) => parseCredits(cell))
+        .filter((value): value is number => value !== null && value <= 60);
+      const credits = creditCandidates.length > 0 ? creditCandidates[0] ?? null : null;
+      const semesterLabel = parseSemesterLabel(titleCell);
+      const externalId = buildModuleExternalId(moduleCode, title, semesterLabel);
+
+      modules.set(externalId, {
+        externalId,
+        moduleCode,
+        title,
+        status: inferStatus(statusCell),
+        semesterLabel,
+        credits,
+        sourceUpdatedAt: inferSourceUpdatedAt(),
+      });
+
+      if (gradeCell) {
+        const examDateParts = parseGermanDate(dateCell);
+        const examDate = examDateParts
+          ? `${examDateParts.year}-${String(examDateParts.month).padStart(2, '0')}-${String(examDateParts.day).padStart(2, '0')}`
+          : null;
+        const externalGradeId = `grade:${externalId}:${slugify(gradeCell)}:${examDate ?? stableHash([title, gradeCell, dateCell])}`;
+
+        grades.set(externalGradeId, {
+          externalGradeId,
+          moduleExternalId: externalId,
+          gradeValue: parseGradeValue(gradeCell),
+          gradeLabel: normalizeText(gradeCell),
+          examDate,
+          publishedAt: null,
+          sourceUpdatedAt: inferSourceUpdatedAt(),
+        });
+      }
+    }
+  }
+
+  return {
+    modules: Array.from(modules.values()),
+    grades: Array.from(grades.values()),
+  };
 }
 
 function extractModulesFromTables(tables: ExtractedTable[]): CampusConnectorModuleInput[] {
@@ -448,20 +570,37 @@ function dedupeModules(modules: CampusConnectorModuleInput[]) {
   return Array.from(map.values());
 }
 
+function dedupeByKey<T>(items: T[], getKey: (item: T) => string) {
+  const map = new Map<string, T>();
+  for (const item of items) {
+    const key = getKey(item);
+    if (key) {
+      map.set(key, item);
+    }
+  }
+  return Array.from(map.values());
+}
+
 export function buildCampusAcademicExport(doc: Document, sourceUrl: string) {
   const tables = extractTables(doc);
   const modules = extractModulesFromTables(tables);
   const grades = extractGradesFromTables(tables);
   const exams = extractExamsFromTables(tables);
+  const fallback = modules.length === 0 && grades.length === 0 ? extractFallbackAcademicRows(tables) : { modules: [], grades: [] };
 
   return {
     exportType: KIT_CAMPUS_ACADEMIC_EXPORT_TYPE,
     exportVersion: KIT_CAMPUS_ACADEMIC_EXPORT_VERSION,
     generatedAt: new Date().toISOString(),
     sourceUrl,
-    modules: dedupeModules([...modules, ...deriveModulesFromGrades(grades), ...deriveModulesFromExams(exams)]),
-    grades,
-    exams,
+    modules: dedupeModules([
+      ...modules,
+      ...fallback.modules,
+      ...deriveModulesFromGrades([...grades, ...fallback.grades]),
+      ...deriveModulesFromExams(exams),
+    ]),
+    grades: dedupeByKey([...grades, ...fallback.grades], (grade) => grade.externalGradeId),
+    exams: dedupeByKey(exams, (exam) => exam.externalId),
   };
 }
 

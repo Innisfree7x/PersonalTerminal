@@ -76,6 +76,10 @@ export const acknowledgeKitIliasItemsSchema = z.object({
   ids: z.array(z.string().uuid('Ungültige ILIAS-Item-ID.')).min(1, 'Mindestens ein ILIAS-Item ist erforderlich.').max(20),
 });
 
+export const deleteKitIliasFavoriteParamsSchema = z.object({
+  id: z.string().uuid('Ungültige ILIAS-Favoriten-ID.'),
+});
+
 export const saveKitWebcalSchema = z.object({
   url: z.string().trim().min(1, 'WebCal-URL ist erforderlich.').max(2048, 'WebCal-URL ist zu lang.'),
 });
@@ -108,3 +112,4 @@ export type IliasConnectorItemInput = z.infer<typeof iliasConnectorItemSchema>;
 export type IliasConnectorPayloadInput = z.infer<typeof iliasConnectorPayloadSchema>;
 export type TriggerKitSyncInput = z.infer<typeof triggerKitSyncSchema>;
 export type AcknowledgeKitIliasItemsInput = z.infer<typeof acknowledgeKitIliasItemsSchema>;
+export type DeleteKitIliasFavoriteParams = z.infer<typeof deleteKitIliasFavoriteParamsSchema>;

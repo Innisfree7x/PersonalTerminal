@@ -64,6 +64,10 @@
     return match ? Number.parseFloat(match[0]) : null;
   }
 
+  function isStandaloneGradeCell(value) {
+    return /^(?:[1-4](?:[.,]\d)?|5(?:[.,]0)?)$/.test(normalizeText(value));
+  }
+
   function inferStatus(value) {
     const text = normalizeHeader(value);
     if (!text) return 'active';
@@ -170,7 +174,7 @@
       });
 
       return { headers: headers, rows: rows };
-    }).filter((table) => table.headers.length > 0 && table.rows.length > 0);
+    }).filter((table) => table.rows.length > 0);
   }
 
   function collectDocuments(doc) {
@@ -193,6 +197,126 @@
   function buildModuleExternalId(moduleCode, title, semesterLabel) {
     if (moduleCode) return 'module:' + moduleCode;
     return 'module:' + slugify(title) + ':' + slugify(semesterLabel || 'unknown') + ':' + stableHash([title, semesterLabel]);
+  }
+
+  function hasStatusSignal(value) {
+    const text = normalizeHeader(value);
+    return Boolean(
+      text &&
+        (text.includes('bestanden') ||
+          text.includes('abgeschlossen') ||
+          text.includes('active') ||
+          text.includes('aktiv') ||
+          text.includes('begonnen') ||
+          text.includes('planned') ||
+          text.includes('geplant') ||
+          text.includes('dropped') ||
+          text.includes('nicht bestanden') ||
+          text.includes('unknown') ||
+          text.includes('unbekannt'))
+    );
+  }
+
+  function findFirstCell(cells, startIndex, predicate) {
+    for (let index = startIndex; index < cells.length; index += 1) {
+      if (predicate(cells[index] || '')) {
+        return cells[index] || '';
+      }
+    }
+    return '';
+  }
+
+  function isAcademicSnapshotFallbackRow(cells) {
+    const titleCell = normalizeText(cells[0]);
+    if (!titleCell) return false;
+    if (BLOCKED_LABELS.has(titleCell)) return false;
+
+    const normalizedTitle = normalizeHeader(titleCell);
+    if (
+      normalizedTitle.includes('titel (mit kennung)') ||
+      normalizedTitle.includes('persönlicher studienablaufplan') ||
+      normalizedTitle.includes('teilleistungen') ||
+      normalizedTitle.includes('orientierungsprüfung')
+    ) {
+      return false;
+    }
+
+    const parsedTitle = extractModuleCodeAndTitle(titleCell);
+    if (!parsedTitle.title) return false;
+
+    const tail = cells.slice(1);
+    const hasDate = tail.some((cell) => Boolean(parseGermanDate(cell)));
+    const hasGrade = tail.some(isStandaloneGradeCell);
+    const hasStatus = tail.some(hasStatusSignal);
+    const creditValues = tail.map((cell) => parseCredits(cell)).filter((value) => value !== null);
+    const hasCredits = creditValues.length > 0;
+    const looksLikeAggregate = !hasDate && !hasGrade && !hasStatus && creditValues.some((value) => value > 60);
+
+    return !looksLikeAggregate && (hasDate || hasGrade || hasStatus || hasCredits);
+  }
+
+  function extractFallbackAcademicRows(tables) {
+    const modules = new Map();
+    const grades = new Map();
+
+    tables.forEach((table) => {
+      table.rows.forEach((row) => {
+        if (!isAcademicSnapshotFallbackRow(row.cells)) return;
+
+        const titleCell = normalizeText(row.cells[0]);
+        const parsedTitle = extractModuleCodeAndTitle(titleCell);
+        const moduleCode = parsedTitle.moduleCode;
+        const title = parsedTitle.title;
+        if (!title) return;
+
+        const statusCell = row.cells[2] || findFirstCell(row.cells, 1, hasStatusSignal);
+        const gradeCell = isStandaloneGradeCell(row.cells[3] || '')
+          ? row.cells[3] || ''
+          : findFirstCell(row.cells, 1, isStandaloneGradeCell);
+        const dateCell = parseGermanDate(row.cells[4] || '')
+          ? row.cells[4] || ''
+          : findFirstCell(row.cells, 1, (cell) => Boolean(parseGermanDate(cell)));
+        const creditCandidates = (row.cells.length >= 7 ? row.cells.slice(-2) : row.cells.slice(1))
+          .map((cell) => parseCredits(cell))
+          .filter((value) => value !== null && value <= 60);
+        const credits = creditCandidates.length > 0 ? creditCandidates[0] : null;
+        const semesterLabel = parseSemesterLabel(titleCell);
+        const externalId = buildModuleExternalId(moduleCode, title, semesterLabel);
+
+        modules.set(externalId, {
+          externalId,
+          moduleCode,
+          title,
+          status: inferStatus(statusCell),
+          semesterLabel,
+          credits,
+          sourceUpdatedAt: new Date().toISOString(),
+        });
+
+        if (gradeCell) {
+          const examDateParts = parseGermanDate(dateCell);
+          const examDate = examDateParts
+            ? examDateParts.year + '-' + String(examDateParts.month).padStart(2, '0') + '-' + String(examDateParts.day).padStart(2, '0')
+            : null;
+          const externalGradeId = 'grade:' + externalId + ':' + slugify(gradeCell) + ':' + (examDate || stableHash([title, gradeCell, dateCell]));
+
+          grades.set(externalGradeId, {
+            externalGradeId,
+            moduleExternalId: externalId,
+            gradeValue: parseGradeValue(gradeCell),
+            gradeLabel: normalizeText(gradeCell),
+            examDate,
+            publishedAt: null,
+            sourceUpdatedAt: new Date().toISOString(),
+          });
+        }
+      });
+    });
+
+    return {
+      modules: Array.from(modules.values()),
+      grades: Array.from(grades.values()),
+    };
   }
 
   function extractModulesFromTables(tables) {
@@ -354,6 +478,17 @@
     return Array.from(map.values());
   }
 
+  function dedupeByKey(items, key) {
+    const map = new Map();
+    items.forEach((item) => {
+      const value = item && item[key];
+      if (value) {
+        map.set(value, item);
+      }
+    });
+    return Array.from(map.values());
+  }
+
   function loadSnapshot() {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -374,8 +509,11 @@
   const modules = extractModulesFromTables(tables);
   const grades = extractGradesFromTables(tables);
   const exams = extractExamsFromTables(tables);
+  const fallback = modules.length === 0 && grades.length === 0
+    ? extractFallbackAcademicRows(tables)
+    : { modules: [], grades: [] };
 
-  if (modules.length === 0 && grades.length === 0 && exams.length === 0) {
+  if (modules.length === 0 && grades.length === 0 && exams.length === 0 && fallback.modules.length === 0 && fallback.grades.length === 0) {
     alert('INNIS CAMPUS Export: Auf dieser Seite wurden keine Module, Noten oder Prüfungen erkannt. Öffne Studienaufbau, Notenspiegel oder Prüfungen und führe das Skript dort aus.');
     return;
   }
@@ -383,9 +521,9 @@
   const snapshot = loadSnapshot();
   snapshot.generatedAt = new Date().toISOString();
   snapshot.sourceUrl = window.location.href;
-  snapshot.modules = dedupeByExternalId([].concat(snapshot.modules || [], modules, deriveModulesFromGrades(grades), deriveModulesFromExams(exams)));
-  snapshot.grades = dedupeByExternalId([].concat(snapshot.grades || [], grades));
-  snapshot.exams = dedupeByExternalId([].concat(snapshot.exams || [], exams));
+  snapshot.modules = dedupeByExternalId([].concat(snapshot.modules || [], modules, fallback.modules, deriveModulesFromGrades([].concat(grades, fallback.grades)), deriveModulesFromExams(exams)));
+  snapshot.grades = dedupeByKey([].concat(snapshot.grades || [], grades, fallback.grades), 'externalGradeId');
+  snapshot.exams = dedupeByKey([].concat(snapshot.exams || [], exams), 'externalId');
   saveSnapshot(snapshot);
 
   const message = 'INNIS CAMPUS Export aktualisiert: ' + snapshot.modules.length + ' Module, ' + snapshot.grades.length + ' Noten, ' + snapshot.exams.length + ' Prüfungen.';

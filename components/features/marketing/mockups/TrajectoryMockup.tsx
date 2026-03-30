@@ -33,11 +33,11 @@ const statusStyle = {
     dot: 'bg-emerald-400',
   },
   tight: {
-    bar: 'bg-gradient-to-r from-[#E8B930]/30 to-[#E8B930]/15',
-    border: 'border-[#E8B930]/30',
-    line: 'bg-[#E8B930]',
-    text: 'text-[#E8B930]',
-    dot: 'bg-[#E8B930]',
+    bar: 'bg-gradient-to-r from-primary/30 to-primary/15',
+    border: 'border-primary/30',
+    line: 'bg-primary',
+    text: 'text-primary',
+    dot: 'bg-primary',
   },
   at_risk: {
     bar: 'bg-gradient-to-r from-red-500/30 to-red-500/15',
@@ -57,8 +57,8 @@ export function TrajectoryMockup() {
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E8B930]/10">
-            <svg className="h-4 w-4 text-[#E8B930]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+            <svg className="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 12h4l3-9 4 18 3-9h4" />
             </svg>
           </div>

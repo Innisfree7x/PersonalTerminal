@@ -8,6 +8,11 @@ import {
 } from '@/lib/trajectory/risk-model';
 import { trackMarketingEvent } from '@/lib/analytics/marketing';
 import { TerminalFrame } from './TerminalFrame';
+import {
+  buildTrajectoryProofInsight,
+  formatTrajectoryProofDateLabel,
+  getTrajectoryProofStatusTone,
+} from './trajectoryProof';
 
 export function InteractiveDemo() {
   const [capacityHoursPerWeek, setCapacityHoursPerWeek] = useState(18);
@@ -27,18 +32,12 @@ export function InteractiveDemo() {
   );
 
   const dueDays = useMemo(() => getDaysUntilDate(dueDate), [dueDate]);
-  const prepStartLabel = useMemo(() => {
-    const parsed = new Date(`${preview.startDate}T00:00:00.000Z`);
-    if (Number.isNaN(parsed.getTime())) return preview.startDate;
-    return parsed.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  }, [preview.startDate]);
-
-  const statusColor =
-    preview.status === 'on_track'
-      ? 'text-emerald-400'
-      : preview.status === 'tight'
-        ? 'text-[#E8B930]'
-        : 'text-red-400';
+  const prepStartLabel = useMemo(() => formatTrajectoryProofDateLabel(preview.startDate), [preview.startDate]);
+  const insight = useMemo(
+    () => buildTrajectoryProofInsight(preview.status, capacityHoursPerWeek, prepStartLabel),
+    [capacityHoursPerWeek, prepStartLabel, preview.status]
+  );
+  const statusColor = getTrajectoryProofStatusTone(preview.status);
 
   const trackOnce = (cap: number, eff: number) => {
     if (trackedRef.current) return;
@@ -59,7 +58,7 @@ export function InteractiveDemo() {
 
   return (
     <TerminalFrame url="innis.io/trajectory/simulate">
-      <div className="p-6 md:p-8">
+      <div className="p-6 md:p-8" data-landing-interactive="true">
         <div className="space-y-8">
           <label className="block">
             <span className="flex items-center justify-between text-[12px] uppercase tracking-[0.14em] text-zinc-500">
@@ -77,7 +76,7 @@ export function InteractiveDemo() {
                 setCapacityHoursPerWeek(v);
                 trackOnce(v, effortHours);
               }}
-              className="mt-4 w-full accent-[#E8B930]"
+              className="mt-4 w-full accent-primary"
             />
           </label>
 
@@ -97,7 +96,7 @@ export function InteractiveDemo() {
                 setEffortHours(v);
                 trackOnce(capacityHoursPerWeek, v);
               }}
-              className="mt-4 w-full accent-[#E8B930]"
+              className="mt-4 w-full accent-primary"
             />
           </label>
         </div>
@@ -121,6 +120,8 @@ export function InteractiveDemo() {
             </div>
           ))}
         </div>
+
+        <p className="mt-6 text-center text-sm leading-6 text-zinc-400">{insight}</p>
       </div>
     </TerminalFrame>
   );

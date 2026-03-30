@@ -3,97 +3,97 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Zap, X } from 'lucide-react';
-import type { LucianMood } from '@/lib/lucian/copy';
+import { normalizeLucianMood, type LucianMood, type LucianMoodCore } from '@/lib/lucian/copy';
 import { LucianSpriteAnimator, type LucianAnimation } from '@/components/features/lucian/LucianSpriteAnimator';
 
-const moodAccentText: Record<LucianMood, string> = {
-  motivate: 'text-cyan-300',
-  celebrate: 'text-amber-300',
-  warning: 'text-red-300',
-  recovery: 'text-teal-300',
-  idle: 'text-zinc-400',
+const moodAccentText: Record<LucianMoodCore, string> = {
+  hype: 'text-amber-300',
+  'real-talk': 'text-red-300',
+  chill: 'text-zinc-400',
+  comfort: 'text-teal-300',
+  deep: 'text-cyan-300',
 };
 
-const moodChipBg: Record<LucianMood, string> = {
-  motivate: 'bg-cyan-500/15 border-cyan-300/35',
-  celebrate: 'bg-amber-500/15 border-amber-300/35',
-  warning: 'bg-red-500/15 border-red-300/35',
-  recovery: 'bg-teal-500/15 border-teal-300/35',
-  idle: 'bg-zinc-500/15 border-zinc-300/25',
+const moodChipBg: Record<LucianMoodCore, string> = {
+  hype: 'bg-amber-500/15 border-amber-300/35',
+  'real-talk': 'bg-red-500/15 border-red-300/35',
+  chill: 'bg-zinc-500/15 border-zinc-300/25',
+  comfort: 'bg-teal-500/15 border-teal-300/35',
+  deep: 'bg-cyan-500/15 border-cyan-300/35',
 };
 
-const moodBubbleTint: Record<LucianMood, string> = {
-  motivate: 'from-cyan-400/[0.09]',
-  celebrate: 'from-amber-400/[0.09]',
-  warning: 'from-red-400/[0.1]',
-  recovery: 'from-teal-400/[0.09]',
-  idle: 'from-white/[0.06]',
+const moodBubbleTint: Record<LucianMoodCore, string> = {
+  hype: 'from-amber-400/[0.09]',
+  'real-talk': 'from-red-400/[0.1]',
+  chill: 'from-white/[0.06]',
+  comfort: 'from-teal-400/[0.09]',
+  deep: 'from-cyan-400/[0.09]',
 };
 
-const moodRim: Record<LucianMood, string> = {
-  motivate: 'via-cyan-300/55',
-  celebrate: 'via-amber-300/55',
-  warning: 'via-red-300/60',
-  recovery: 'via-teal-300/55',
-  idle: 'via-white/25',
+const moodRim: Record<LucianMoodCore, string> = {
+  hype: 'via-amber-300/55',
+  'real-talk': 'via-red-300/60',
+  chill: 'via-white/25',
+  comfort: 'via-teal-300/55',
+  deep: 'via-cyan-300/55',
 };
 
-const moodActionButton: Record<LucianMood, string> = {
-  motivate:  'border-cyan-300/35 bg-cyan-400/15 text-cyan-100 hover:bg-cyan-400/25',
-  celebrate: 'border-amber-300/35 bg-amber-400/15 text-amber-100 hover:bg-amber-400/25',
-  warning:   'border-red-300/35 bg-red-400/15 text-red-100 hover:bg-red-400/25',
-  recovery:  'border-teal-300/35 bg-teal-400/15 text-teal-100 hover:bg-teal-400/25',
-  idle:      'border-zinc-300/25 bg-zinc-400/15 text-zinc-200 hover:bg-zinc-400/25',
+const moodActionButton: Record<LucianMoodCore, string> = {
+  hype:        'border-amber-300/35 bg-amber-400/15 text-amber-100 hover:bg-amber-400/25',
+  'real-talk': 'border-red-300/35 bg-red-400/15 text-red-100 hover:bg-red-400/25',
+  chill:       'border-zinc-300/25 bg-zinc-400/15 text-zinc-200 hover:bg-zinc-400/25',
+  comfort:     'border-teal-300/35 bg-teal-400/15 text-teal-100 hover:bg-teal-400/25',
+  deep:        'border-cyan-300/35 bg-cyan-400/15 text-cyan-100 hover:bg-cyan-400/25',
 };
 
-const moodTailColor: Record<LucianMood, string> = {
-  motivate:  'bg-cyan-300/30',
-  celebrate: 'bg-amber-300/30',
-  warning:   'bg-red-300/35',
-  recovery:  'bg-teal-300/30',
-  idle:      'bg-white/[0.12]',
+const moodTailColor: Record<LucianMoodCore, string> = {
+  hype:        'bg-amber-300/30',
+  'real-talk': 'bg-red-300/35',
+  chill:       'bg-white/[0.12]',
+  comfort:     'bg-teal-300/30',
+  deep:        'bg-cyan-300/30',
 };
 
-const moodGlowShadow: Record<LucianMood, string> = {
-  motivate: '0 16px 48px rgba(34,211,238,0.14)',
-  celebrate: '0 16px 48px rgba(245,158,11,0.16)',
-  warning: '0 16px 48px rgba(239,68,68,0.18)',
-  recovery: '0 16px 48px rgba(20,184,166,0.14)',
-  idle: '0 16px 48px rgba(255,255,255,0.08)',
+const moodGlowShadow: Record<LucianMoodCore, string> = {
+  hype: '0 16px 48px rgba(245,158,11,0.16)',
+  'real-talk': '0 16px 48px rgba(239,68,68,0.18)',
+  chill: '0 16px 48px rgba(255,255,255,0.08)',
+  comfort: '0 16px 48px rgba(20,184,166,0.14)',
+  deep: '0 16px 48px rgba(34,211,238,0.14)',
 };
 
-const moodLabel: Record<LucianMood, string> = {
-  motivate: 'MOTIVATE',
-  celebrate: 'CELEBRATE',
-  warning: 'WARNING',
-  recovery: 'RECOVERY',
-  idle: 'IDLE',
+const moodLabel: Record<LucianMoodCore, string> = {
+  hype: 'HYPE',
+  'real-talk': 'REAL TALK',
+  chill: 'CHILL',
+  comfort: 'COMFORT',
+  deep: 'DEEP',
 };
 
-const moodSpell: Record<LucianMood, string> = {
-  motivate: 'Relentless Drive',
-  celebrate: 'Momentum Surge',
-  warning: 'Deadline Pulse',
-  recovery: 'Reset Ritual',
-  idle: 'Standby Field',
+const moodSpell: Record<LucianMoodCore, string> = {
+  hype: 'Momentum Surge',
+  'real-talk': 'Deadline Pulse',
+  chill: 'Standby Field',
+  comfort: 'Reset Ritual',
+  deep: 'Inner Light',
 };
 
 // Settled animation per mood
-const moodAnimation: Record<LucianMood, LucianAnimation> = {
-  motivate: 'idle',
-  celebrate: 'victory',
-  warning: 'panic',
-  recovery: 'meditate',
-  idle: 'idle',
+const moodAnimation: Record<LucianMoodCore, LucianAnimation> = {
+  hype: 'victory',
+  'real-talk': 'panic',
+  chill: 'idle',
+  comfort: 'meditate',
+  deep: 'idle',
 };
 
 // Sprite panel glow per mood
-const moodSpriteGlow: Record<LucianMood, string> = {
-  motivate: 'bg-cyan-500/15',
-  celebrate: 'bg-amber-500/12',
-  warning: 'bg-red-500/15',
-  recovery: 'bg-teal-500/12',
-  idle: 'bg-white/[0.05]',
+const moodSpriteGlow: Record<LucianMoodCore, string> = {
+  hype: 'bg-amber-500/12',
+  'real-talk': 'bg-red-500/15',
+  chill: 'bg-white/[0.05]',
+  comfort: 'bg-teal-500/12',
+  deep: 'bg-cyan-500/15',
 };
 
 interface LucianBubbleProps {
@@ -130,6 +130,7 @@ export function LucianBubble({
   const prefersReducedMotion = useReducedMotion();
   const bubbleRef = useRef<HTMLDivElement | null>(null);
   const phaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const normalizedMood = normalizeLucianMood(mood);
 
   const [anchor, setAnchor] = useState<{
     anchored: boolean;
@@ -167,10 +168,10 @@ export function LucianBubble({
   }, [visible]);
 
   const spriteAnimation: LucianAnimation = prefersReducedMotion
-    ? moodAnimation[mood]
+    ? moodAnimation[normalizedMood]
     : phase === 'entry'
     ? 'walk'
-    : moodAnimation[mood];
+    : moodAnimation[normalizedMood];
 
   useEffect(() => {
     if (!visible) return;
@@ -281,25 +282,25 @@ export function LucianBubble({
           >
             {/* Top rim light */}
             <div
-              className={`pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent ${moodRim[mood]} to-transparent`}
+              className={`pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent ${moodRim[normalizedMood]} to-transparent`}
             />
             {/* Mood tint */}
             <div
-              className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${moodBubbleTint[mood]} via-transparent to-transparent`}
+              className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${moodBubbleTint[normalizedMood]} via-transparent to-transparent`}
             />
             {/* Glow shadow */}
             <div
               className="pointer-events-none absolute inset-0 opacity-90"
-              style={{ boxShadow: moodGlowShadow[mood] }}
+              style={{ boxShadow: moodGlowShadow[normalizedMood] }}
             />
 
             {/* Header — full width */}
             <div className="relative flex items-center justify-between gap-2 border-b border-white/[0.06] px-4 py-3">
               <span
-                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${moodChipBg[mood]} ${moodAccentText[mood]}`}
+                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${moodChipBg[normalizedMood]} ${moodAccentText[normalizedMood]}`}
               >
                 <Zap className="h-3 w-3" />
-                Lucian · {moodLabel[mood]}
+                Lucian · {moodLabel[normalizedMood]}
               </span>
               <button
                 onClick={(event) => {
@@ -318,7 +319,7 @@ export function LucianBubble({
               {/* Sprite panel */}
               <div className="relative flex w-[96px] flex-shrink-0 items-center justify-center border-r border-white/[0.06] py-4">
                 <div
-                  className={`pointer-events-none absolute inset-0 ${moodSpriteGlow[mood]} blur-xl`}
+                  className={`pointer-events-none absolute inset-0 ${moodSpriteGlow[normalizedMood]} blur-xl`}
                 />
                 <LucianSpriteAnimator animation={spriteAnimation} size={72} />
               </div>
@@ -331,7 +332,7 @@ export function LucianBubble({
 
                 <div className="mt-2 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-zinc-400">
                   <span className="h-1 w-1 rounded-full bg-current" />
-                  <span>{moodSpell[mood]}</span>
+                  <span>{moodSpell[normalizedMood]}</span>
                 </div>
 
                 {actionLabel && onAction ? (
@@ -342,7 +343,7 @@ export function LucianBubble({
                       onAction();
                     }}
                     aria-label={actionAriaLabel ?? actionLabel}
-                    className={`mt-3 inline-flex w-fit items-center rounded-lg border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] transition ${moodActionButton[mood]}`}
+                    className={`mt-3 inline-flex w-fit items-center rounded-lg border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] transition ${moodActionButton[normalizedMood]}`}
                   >
                     {actionLabel}
                   </button>
@@ -360,7 +361,7 @@ export function LucianBubble({
                   : { left: anchor.tailOffset - 14, top: -14 }
               }
             >
-              <div className={`absolute inset-0 ${moodTailColor[mood]} ${tailShapeClass}`} />
+              <div className={`absolute inset-0 ${moodTailColor[normalizedMood]} ${tailShapeClass}`} />
               <div className={`absolute inset-[1px] bg-[#0d1119]/95 ${tailShapeClass}`} />
             </div>
           )}

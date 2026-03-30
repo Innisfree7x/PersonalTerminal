@@ -254,7 +254,7 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatus> {
       .limit(5),
     client
       .from('kit_ilias_favorites')
-      .select('title, semester_label, course_url')
+      .select('id, title, semester_label, course_url')
       .eq('user_id', userId)
       .order('updated_at', { ascending: false }),
     client
@@ -414,6 +414,7 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatus> {
       }))
       .filter((item) => Boolean(item.favoriteTitle)),
     iliasFavoritePreview: (iliasPreviewResult.data ?? []).map((favorite) => ({
+      id: favorite.id,
       title: favorite.title,
       semesterLabel: favorite.semester_label,
       courseUrl: favorite.course_url,
@@ -461,6 +462,66 @@ export async function acknowledgeIliasItemsForUser(userId: string, ids: string[]
     acknowledgedCount: data?.length ?? 0,
     nextStatus: await getKitSyncStatus(userId),
   };
+}
+
+export async function removeIliasFavoriteForUser(userId: string, favoriteId: string) {
+  const client = admin();
+
+  const { data: favorite, error: favoriteError } = await client
+    .from('kit_ilias_favorites')
+    .select('id, title')
+    .eq('user_id', userId)
+    .eq('id', favoriteId)
+    .maybeSingle();
+
+  if (favoriteError) {
+    throw ApiErrors.internal(`ILIAS Favorit konnte nicht geladen werden: ${favoriteError.message}`);
+  }
+
+  if (!favorite) {
+    throw ApiErrors.notFound('ILIAS favorite', favoriteId);
+  }
+
+  const runId = await insertSyncRun({
+    userId,
+    source: 'ilias_connector',
+    trigger: 'manual',
+    status: 'running',
+  });
+
+  try {
+    const deletedItems = await deleteRows(client, 'kit_ilias_items', [
+      ['user_id', userId],
+      ['favorite_id', favoriteId],
+    ]);
+    const deletedFavorites = await deleteRows(client, 'kit_ilias_favorites', [
+      ['user_id', userId],
+      ['id', favoriteId],
+    ]);
+
+    await finalizeSyncRun(runId, {
+      status: 'success',
+      itemsRead: 0,
+      itemsWritten: 0,
+    });
+
+    return {
+      removedFavoriteId: favoriteId,
+      removedTitle: favorite.title,
+      itemsDeleted: deletedItems + deletedFavorites,
+      nextStatus: await getKitSyncStatus(userId),
+    };
+  } catch (error) {
+    const normalizedError = formatSyncError(error);
+    await finalizeSyncRun(runId, {
+      status: 'failed',
+      itemsRead: 0,
+      itemsWritten: 0,
+      errorCode: normalizedError.code,
+      errorMessage: normalizedError.message,
+    });
+    throw error;
+  }
 }
 
 export async function saveCampusWebcalForUser(userId: string, rawUrl: string) {

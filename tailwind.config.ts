@@ -15,12 +15,12 @@ const config: Config = {
         mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
       },
 
-      // Colors - Linear-inspired palette
+      // Colors - Obsidian Rebrand palette
       colors: {
         // Base colors
         background: {
           DEFAULT: 'rgb(var(--background) / <alpha-value>)',
-          secondary: 'rgb(var(--surface) / <alpha-value>)', // Mapping secondary to surface for now or create distinct var?
+          secondary: 'rgb(var(--surface) / <alpha-value>)',
           tertiary: 'rgb(var(--surface-hover) / <alpha-value>)',
         },
         surface: {
@@ -30,7 +30,7 @@ const config: Config = {
         border: {
           DEFAULT: 'rgb(var(--border) / <alpha-value>)',
           secondary: 'rgb(var(--border-secondary) / <alpha-value>)',
-          tertiary: 'rgb(var(--border-secondary) / <alpha-value>)', // Fallback
+          tertiary: 'rgb(var(--border-secondary) / <alpha-value>)',
         },
 
         // Text colors
@@ -41,20 +41,27 @@ const config: Config = {
           inverse: 'rgb(var(--background) / <alpha-value>)',
         },
 
-        // Primary purple
+        // Primary Electric Purple
         primary: {
           DEFAULT: 'rgb(var(--primary) / <alpha-value>)',
           hover: 'rgb(var(--primary-hover) / <alpha-value>)',
-          50: '#FAF5FF',
-          100: '#F3E8FF',
-          200: '#E9D5FF',
-          300: '#D8B4FE',
+          light: 'rgb(var(--primary) / 0.15)',
+          50: '#F5F3FF',
+          100: '#EDE9FE',
+          200: '#DDD6FE',
+          300: '#C4B5FD',
           400: '#A78BFA',
           500: 'rgb(var(--primary) / <alpha-value>)',
           600: 'rgb(var(--primary-hover) / <alpha-value>)',
           700: '#6D28D9',
           800: '#5B21B6',
           900: '#4C1D95',
+        },
+
+        // Secondary Steel Blue
+        secondary: {
+          DEFAULT: 'rgb(var(--primary-secondary) / <alpha-value>)',
+          light: 'rgb(var(--primary-secondary) / 0.15)',
         },
 
         // Feature accents
@@ -67,9 +74,9 @@ const config: Config = {
 
         // Status colors
         success: {
-          light: '#34D399',
+          light: '#4ADE80',
           DEFAULT: 'rgb(var(--success) / <alpha-value>)',
-          dark: '#059669',
+          dark: '#16A34A',
         },
         error: {
           light: '#F87171',
@@ -77,7 +84,7 @@ const config: Config = {
           dark: '#DC2626',
         },
         warning: {
-          light: '#FCD34D',
+          light: '#FBBF24',
           DEFAULT: 'rgb(var(--warning) / <alpha-value>)',
           dark: '#D97706',
         },
@@ -142,8 +149,8 @@ const config: Config = {
         md: '0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3)',
         lg: '0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5)',
         xl: '0 20px 25px -5px rgb(0 0 0 / 0.6), 0 8px 10px -6px rgb(0 0 0 / 0.6)',
-        glow: '0 0 20px rgb(139 92 246 / 0.3)',
-        'glow-lg': '0 0 40px rgb(139 92 246 / 0.4)',
+        glow: '0 0 24px rgb(139 92 246 / 0.15)',
+        'glow-lg': '0 0 40px rgb(139 92 246 / 0.25)',
         none: 'none',
       },
 

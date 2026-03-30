@@ -123,6 +123,36 @@ const campusLegacyHtml = `
   </main>
 `;
 
+const campusHeaderlessContractHtml = `
+  <main>
+    <section>
+      <h2>Studiengangsdetails</h2>
+      <table>
+        <tbody>
+          <tr>
+            <td>82-179-H-2015 – Wirtschaftsingenieurwesen Bachelor 2015</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>101,0</td>
+            <td>180,0</td>
+          </tr>
+          <tr>
+            <td>2530575 – Investments SS2025</td>
+            <td>PF</td>
+            <td>bestanden</td>
+            <td>1,7</td>
+            <td>12.03.2026</td>
+            <td>6,0</td>
+            <td>6,0</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+`;
+
 describe('campusAcademicExport helpers', () => {
   it('builds a stable campus academic export from tables', () => {
     const doc = new DOMParser().parseFromString(campusHtml, 'text/html');
@@ -214,6 +244,39 @@ describe('campusAcademicExport helpers', () => {
           gradeLabel: '2,0',
           gradeValue: 2,
           examDate: '2024-07-27',
+        }),
+      ])
+    );
+  });
+
+  it('extracts modules and grades from headerless contractview rows', () => {
+    const doc = new DOMParser().parseFromString(campusHeaderlessContractHtml, 'text/html');
+    const payload = buildCampusAcademicExport(doc, 'https://campus.studium.kit.edu/campus/student/contractview.asp');
+
+    expect(payload.modules).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          externalId: 'module:2530575',
+          title: 'Investments SS2025',
+          status: 'completed',
+          credits: 6,
+        }),
+      ])
+    );
+    expect(payload.modules).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: 'Wirtschaftsingenieurwesen Bachelor 2015',
+        }),
+      ])
+    );
+    expect(payload.grades).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          moduleExternalId: 'module:2530575',
+          gradeLabel: '1,7',
+          gradeValue: 1.7,
+          examDate: '2026-03-12',
         }),
       ])
     );

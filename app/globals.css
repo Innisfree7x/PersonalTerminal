@@ -87,13 +87,13 @@
 
   /* Page-specific Accents */
   --goals-accent: 236 72 153;
-  /* #ec4899 - Pink */
-  --career-accent: 14 165 233;
-  /* #0ea5e9 - Sky Blue */
-  --university-accent: 99 102 241;
-  /* #6366f1 - Indigo */
+  /* #ec4899 */
+  --career-accent: 6 182 212;
+  /* #06b6d4 - Cyan */
+  --university-accent: 139 92 246;
+  /* #8b5cf6 - Purple */
   --calendar-accent: 249 115 22;
-  /* #f97316 - Orange */
+  /* #f97316 */
 
   /* Design Tokens */
   --radius-sm: 0.375rem;
@@ -795,29 +795,29 @@
   }
 
   .premium-heading {
-    font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', 'Times New Roman', serif;
+    font-family: 'Mona Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     letter-spacing: -0.04em;
-    line-height: 0.92;
+    line-height: 0.95;
     text-wrap: balance;
     font-feature-settings: "liga" 1, "clig" 1;
   }
 
   .premium-subtext {
-    color: rgba(200, 200, 210, 0.9);
-    line-height: 1.75;
+    color: var(--text-secondary);
+    line-height: 1.6;
     letter-spacing: -0.01em;
   }
 
   .premium-kicker {
-    @apply mb-5 text-[11px] font-semibold uppercase tracking-[0.25em] text-[#E8B930];
+    @apply mb-5 text-[11px] font-semibold uppercase tracking-[0.35em] text-primary;
   }
 
   .premium-chip {
-    @apply inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-[13px] text-zinc-400 transition-colors hover:border-[#E8B930]/25 hover:text-zinc-300;
+    @apply inline-flex items-center gap-2 rounded-full border border-white/[0.04] bg-white/[0.02] px-4 py-2 text-[13px] text-zinc-500 transition-colors hover:border-primary/25 hover:text-zinc-300;
   }
 
   .premium-cta-primary {
-    @apply inline-flex items-center justify-center gap-2.5 rounded-full bg-[#E8B930] px-8 py-4 text-[15px] font-semibold text-[#0A0A0C] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#F0CA50] active:scale-[0.97];
+    @apply inline-flex items-center justify-center gap-2.5 rounded-full bg-primary px-8 py-4 text-[15px] font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow active:scale-[0.97];
     position: relative;
     isolation: isolate;
   }
@@ -827,7 +827,7 @@
     position: absolute;
     inset: -3px;
     border-radius: inherit;
-    background: radial-gradient(ellipse at center, rgba(232, 185, 48, 0.45), transparent 70%);
+    background: radial-gradient(ellipse at center, rgb(var(--primary) / 0.45), transparent 70%);
     opacity: 0;
     z-index: -1;
     filter: blur(16px);
@@ -839,14 +839,14 @@
   }
 
   .premium-cta-secondary {
-    @apply inline-flex items-center justify-center gap-2.5 rounded-full border border-white/[0.10] bg-white/[0.04] px-8 py-4 text-[15px] font-medium text-zinc-300 transition-all duration-300 hover:border-[#E8B930]/25 hover:bg-white/[0.07] hover:text-[#FAF0E6] active:scale-[0.97];
+    @apply inline-flex items-center justify-center gap-2.5 rounded-full border border-white/[0.06] bg-white/[0.02] px-8 py-4 text-[15px] font-medium text-zinc-400 transition-all duration-300 hover:border-primary/25 hover:bg-white/[0.04] hover:text-white active:scale-[0.97];
   }
 
   /* Section divider — line + soft glow halo */
   .premium-divider {
     position: relative;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(232, 185, 48, 0.22), transparent);
+    background: linear-gradient(90deg, transparent, rgb(var(--primary) / 0.22), transparent);
   }
 
   .premium-divider::before {
@@ -857,7 +857,7 @@
     transform: translateX(-50%);
     width: 55%;
     height: 48px;
-    background: radial-gradient(ellipse at center, rgba(232, 185, 48, 0.06), transparent 70%);
+    background: radial-gradient(ellipse at center, rgb(var(--primary) / 0.06), transparent 70%);
     pointer-events: none;
   }
 
@@ -874,7 +874,7 @@
 
   .scroll-progress-bar {
     height: 100%;
-    background: linear-gradient(90deg, #E8B930, #F5D565, #E8B930);
+    background: linear-gradient(90deg, rgb(var(--primary)), rgb(var(--primary-secondary)), rgb(var(--primary)));
     transform-origin: left;
     will-change: transform;
   }

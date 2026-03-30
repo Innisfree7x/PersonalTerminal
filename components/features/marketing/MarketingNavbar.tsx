@@ -11,43 +11,52 @@ import { TrackedCtaLink } from './TrackedCtaLink';
  * PRISMA-style: Logo + CTA only in desktop. No nav links cluttering the view.
  * On scroll: subtle backdrop blur.
  */
-export function MarketingNavbar() {
+export function MarketingNavbar({ activeStop }: { activeStop?: number }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
+    if (activeStop !== undefined) return;
+
     const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [activeStop]);
+
+  const isElevated = mobileOpen || (activeStop !== undefined ? activeStop > 0 : scrolled);
 
   return (
     <header
       className={`fixed left-0 right-0 top-0 z-50 transition-all duration-700 ${
-        scrolled
-          ? 'border-b border-white/[0.04] bg-black/70 backdrop-blur-2xl'
+        isElevated
+          ? 'border-b border-white/[0.03] bg-[#020204]/80 backdrop-blur-2xl'
           : 'bg-transparent'
       }`}
     >
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-6 sm:px-10">
-        {/* Wordmark — no icon, just text */}
-        <Link href="/" className="text-[18px] font-semibold tracking-[-0.02em] text-white">
-          INNIS
+        {/* Wordmark — OS style */}
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="h-6 w-6 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center">
+            <div className="h-2 w-2 rounded-full bg-primary" />
+          </div>
+          <span className="font-mono text-[16px] font-bold tracking-[-0.02em] text-white">
+            INNIS
+          </span>
         </Link>
 
         {/* Desktop: minimal links + CTA */}
         <div className="hidden items-center gap-8 md:flex">
-          <Link href="/features" className="text-[13px] text-zinc-500 transition-colors hover:text-white">
+          <Link href="/features" className="font-mono text-[11px] uppercase tracking-widest text-zinc-500 transition-colors hover:text-white">
             Features
           </Link>
-          <Link href="/pricing" className="text-[13px] text-zinc-500 transition-colors hover:text-white">
+          <Link href="/pricing" className="font-mono text-[11px] uppercase tracking-widest text-zinc-500 transition-colors hover:text-white">
             Preise
           </Link>
           <TrackedCtaLink
             href="/auth/login"
             eventName="landing_cta_secondary_clicked"
             eventPayload={{ source: 'navbar', variant: 'login' }}
-            className="text-[13px] text-zinc-500 transition-colors hover:text-white"
+            className="font-mono text-[11px] uppercase tracking-widest text-zinc-500 transition-colors hover:text-white"
           >
             Login
           </TrackedCtaLink>
@@ -55,9 +64,9 @@ export function MarketingNavbar() {
             href="/auth/signup"
             eventName="landing_cta_primary_clicked"
             eventPayload={{ source: 'navbar', variant: 'primary' }}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-white px-5 text-[13px] font-semibold text-black transition-all duration-300 hover:bg-zinc-200 active:scale-[0.97]"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-primary px-5 font-mono text-[11px] uppercase tracking-widest font-bold text-white transition-all duration-300 hover:shadow-glow active:scale-[0.97]"
           >
-            Starten
+            Initialize
             <ArrowRight className="h-3 w-3" />
           </TrackedCtaLink>
         </div>
@@ -101,7 +110,7 @@ export function MarketingNavbar() {
               href="/auth/login"
               eventName="landing_cta_secondary_clicked"
               eventPayload={{ source: 'navbar_mobile', variant: 'login' }}
-              className="rounded-lg py-3 text-center text-[15px] text-zinc-500 transition hover:text-white"
+              className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-center font-mono text-[12px] uppercase tracking-[0.18em] text-zinc-400 transition hover:border-white/[0.12] hover:text-white"
             >
               Login
             </TrackedCtaLink>
@@ -109,9 +118,10 @@ export function MarketingNavbar() {
               href="/auth/signup"
               eventName="landing_cta_primary_clicked"
               eventPayload={{ source: 'navbar_mobile', variant: 'primary' }}
-              className="rounded-lg bg-white py-3 text-center text-[14px] font-semibold text-black transition hover:bg-zinc-200"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-primary px-4 py-3 text-center font-mono text-[12px] uppercase tracking-[0.18em] font-semibold text-white shadow-[0_0_24px_rgba(232,185,48,0.2)] transition hover:shadow-[0_0_32px_rgba(232,185,48,0.28)]"
             >
-              Kostenlos starten →
+              Initialize
+              <ArrowRight className="h-3.5 w-3.5" />
             </TrackedCtaLink>
           </div>
         </div>
