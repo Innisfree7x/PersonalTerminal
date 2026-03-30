@@ -61,6 +61,17 @@ describe('GET /api/kit/status', () => {
         publishedAt: '2026-03-29T11:15:00.000Z',
         itemUrl: 'https://ilias.studium.kit.edu/item-1',
       },
+      freshIliasPreview: [
+        {
+          id: '15ab1907-7b8c-44b2-a08f-b2d4b05dd2e1',
+          favoriteTitle: 'Investments SS2025',
+          title: 'Neue Klausurhinweise',
+          itemType: 'announcement',
+          publishedAt: '2026-03-29T11:15:00.000Z',
+          itemUrl: 'https://ilias.studium.kit.edu/item-1',
+          firstSeenAt: '2026-03-29T11:20:00.000Z',
+        },
+      ],
       iliasFavoritePreview: [
         {
           title: 'Investments SS2025',
@@ -79,6 +90,8 @@ describe('GET /api/kit/status', () => {
     expect(body.latestCampusGrade.gradeLabel).toBe('1,7');
     expect(body.totalIliasFavorites).toBe(3);
     expect(body.latestIliasItem.itemType).toBe('announcement');
+    expect(body.freshIliasPreview).toHaveLength(1);
+    expect(body.freshIliasPreview[0].favoriteTitle).toBe('Investments SS2025');
     expect(mockedGetKitSyncStatus).toHaveBeenCalledWith('user-1');
   });
 });

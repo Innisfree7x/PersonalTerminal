@@ -102,6 +102,6 @@ After this wave:
 ## Still Missing
 - true CAMPUS connector automation without repeated manual page execution
 - deeper ILIAS item quality tuning per real course layouts
-- acknowledgement flow for `kit_ilias_items`
+- richer ILIAS read-state and summary quality beyond the implemented acknowledge loop
 - stronger KIT-specific cards in weekly review beyond the compact Morning Briefing signals
 - document binary import into INNIS storage

@@ -196,6 +196,7 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatus> {
     iliasItemsResult,
     iliasFreshResult,
     iliasLatestItemResult,
+    iliasFreshPreviewResult,
     iliasPreviewResult,
     { data: lastRun, error: lastRunError },
   ] = await Promise.all([
@@ -244,6 +245,14 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatus> {
       .limit(1)
       .maybeSingle(),
     client
+      .from('kit_ilias_items')
+      .select('id, title, item_type, published_at, item_url, first_seen_at, favorite_id')
+      .eq('user_id', userId)
+      .is('acknowledged_at', null)
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .order('first_seen_at', { ascending: false })
+      .limit(5),
+    client
       .from('kit_ilias_favorites')
       .select('title, semester_label, course_url')
       .eq('user_id', userId)
@@ -287,6 +296,9 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatus> {
   if (iliasLatestItemResult.error && !isMissingRelationError(iliasLatestItemResult.error)) {
     throw ApiErrors.internal(`Letztes ILIAS Item konnte nicht geladen werden: ${iliasLatestItemResult.error.message}`);
   }
+  if (iliasFreshPreviewResult.error && !isMissingRelationError(iliasFreshPreviewResult.error)) {
+    throw ApiErrors.internal(`Neue ILIAS Items konnten nicht geladen werden: ${iliasFreshPreviewResult.error.message}`);
+  }
   if (iliasPreviewResult.error && !isMissingRelationError(iliasPreviewResult.error)) {
     throw ApiErrors.internal(`ILIAS Favoriten-Preview konnte nicht geladen werden: ${iliasPreviewResult.error.message}`);
   }
@@ -322,6 +334,26 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatus> {
     }
 
     latestIliasFavoriteTitle = favoriteRow?.title ?? null;
+  }
+
+  const freshFavoriteIds = Array.from(
+    new Set((iliasFreshPreviewResult.data ?? []).map((item) => item.favorite_id).filter(Boolean))
+  );
+  const favoriteTitleById = new Map<string, string>();
+
+  if (freshFavoriteIds.length > 0) {
+    const { data: favoriteRows, error: favoriteTitlesError } = await client
+      .from('kit_ilias_favorites')
+      .select('id, title')
+      .in('id', freshFavoriteIds);
+
+    if (favoriteTitlesError && !isMissingRelationError(favoriteTitlesError)) {
+      throw ApiErrors.internal(`Favoritentitel für neue ILIAS Items konnten nicht geladen werden: ${favoriteTitlesError.message}`);
+    }
+
+    for (const favorite of favoriteRows ?? []) {
+      favoriteTitleById.set(favorite.id, favorite.title);
+    }
   }
 
   return {
@@ -370,6 +402,17 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatus> {
             itemUrl: iliasLatestItemResult.data.item_url,
           }
         : null,
+    freshIliasPreview: (iliasFreshPreviewResult.data ?? [])
+      .map((item) => ({
+        id: item.id,
+        favoriteTitle: favoriteTitleById.get(item.favorite_id) ?? 'ILIAS Kurs',
+        title: item.title,
+        itemType: item.item_type,
+        publishedAt: item.published_at,
+        itemUrl: item.item_url,
+        firstSeenAt: item.first_seen_at,
+      }))
+      .filter((item) => Boolean(item.favoriteTitle)),
     iliasFavoritePreview: (iliasPreviewResult.data ?? []).map((favorite) => ({
       title: favorite.title,
       semesterLabel: favorite.semester_label,
@@ -387,6 +430,36 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatus> {
           errorMessage: lastRun.error_message,
         }
       : null,
+  };
+}
+
+export async function acknowledgeIliasItemsForUser(userId: string, ids: string[]) {
+  const uniqueIds = Array.from(new Set(ids));
+  if (uniqueIds.length === 0) {
+    return {
+      acknowledgedCount: 0,
+      nextStatus: await getKitSyncStatus(userId),
+    };
+  }
+
+  const { data, error } = await admin()
+    .from('kit_ilias_items')
+    .update({
+      acknowledged_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('user_id', userId)
+    .in('id', uniqueIds)
+    .is('acknowledged_at', null)
+    .select('id');
+
+  if (error) {
+    throw ApiErrors.internal(`ILIAS Items konnten nicht bestätigt werden: ${error.message}`);
+  }
+
+  return {
+    acknowledgedCount: data?.length ?? 0,
+    nextStatus: await getKitSyncStatus(userId),
   };
 }
 

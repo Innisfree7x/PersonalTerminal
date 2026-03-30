@@ -7,6 +7,9 @@ import { format } from 'date-fns';
 import {
   BookOpen,
   CalendarClock,
+  Check,
+  CheckCheck,
+  Clock3,
   Copy,
   ExternalLink,
   FileJson,
@@ -192,9 +195,30 @@ async function resetKitSyncScope(scope: 'campus_webcal' | 'campus_connector' | '
   return response.json();
 }
 
+async function acknowledgeIliasItems(ids: string[]) {
+  const response = await fetch('/api/kit/ilias-items/acknowledge', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids }),
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.error?.message ?? 'ILIAS-Signale konnten nicht bestätigt werden.');
+  }
+
+  return response.json() as Promise<{ acknowledgedCount: number; nextStatus?: KitSyncStatus }>;
+}
+
 function formatDateTime(value: string | null | undefined) {
   if (!value) return null;
   return format(new Date(value), 'dd.MM.yyyy HH:mm');
+}
+
+function formatIliasItemMeta(input: { publishedAt: string | null; firstSeenAt: string }) {
+  const publishedLabel = formatDateTime(input.publishedAt);
+  if (publishedLabel) return `Veröffentlicht ${publishedLabel}`;
+  return `Erst gesehen ${formatDateTime(input.firstSeenAt) ?? 'unbekannt'}`;
 }
 
 function normalizeSemesterLabel(value: string | null | undefined) {
@@ -401,6 +425,22 @@ export default function KitSyncPanel() {
     },
   });
 
+  const acknowledgeMutation = useMutation({
+    mutationFn: acknowledgeIliasItems,
+    onSuccess: async (result) => {
+      if (result.nextStatus) {
+        queryClient.setQueryData(['kit-sync-status'], result.nextStatus);
+      }
+      await queryClient.invalidateQueries({ queryKey: ['kit-sync-status'] });
+      soundToast.success(
+        `${result.acknowledgedCount} ILIAS-Signal${result.acknowledgedCount === 1 ? '' : 'e'} als gelesen markiert.`
+      );
+    },
+    onError: (mutationError: Error) => {
+      soundToast.error(mutationError.message);
+    },
+  });
+
   async function handleCopyConnectorScript(
     scriptPath: string,
     setPending: (value: boolean) => void,
@@ -507,6 +547,8 @@ export default function KitSyncPanel() {
       }))
       .sort((left, right) => getSemesterSortValue(right.semesterLabel) - getSemesterSortValue(left.semesterLabel));
   }, [data]);
+
+  const freshIliasPreview = data?.freshIliasPreview ?? [];
 
   const panelTone = error
     ? 'error'
@@ -661,47 +703,138 @@ export default function KitSyncPanel() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">Studienlage</div>
-                  <div className="mt-2 text-sm font-semibold text-text-primary">
-                    {data?.totalCampusModules || data?.totalCampusGrades
-                      ? `${data.totalCampusModules} Module · ${data.totalCampusGrades} Noten`
-                      : 'Academic Snapshot folgt'}
-                  </div>
-                </div>
-                <Badge variant={data?.totalCampusModules || data?.totalCampusGrades ? 'success' : 'warning'} size="sm">
-                  {data?.totalCampusModules || data?.totalCampusGrades ? 'Aktiv' : 'Nächster Schritt'}
-                </Badge>
-              </div>
-
-              <div className="mt-3 space-y-2 text-sm text-text-secondary">
-                {data?.nextCampusExam ? (
-                  <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.08] px-3 py-3">
-                    <div className="text-[11px] uppercase tracking-[0.16em] text-amber-200/70">Prüfungsdruck</div>
-                    <div className="mt-1 font-medium text-amber-50">{data.nextCampusExam.title}</div>
-                    <div className="mt-1 text-xs text-amber-100/75">{formatDateTime(data.nextCampusExam.startsAt)}</div>
-                  </div>
-                ) : (
-                  <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-3">
-                    <div className="font-medium text-text-primary">Noch keine Module und Noten verbunden</div>
-                    <div className="mt-1 text-xs text-text-secondary">
-                      Der nächste Connector-Schritt bringt Module, Prüfungen und Noten direkt in diesen Hub.
+            <div className="space-y-3">
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">Neue ILIAS-Signale</div>
+                    <div className="mt-2 text-sm font-semibold text-text-primary">
+                      {freshIliasPreview.length
+                        ? `${freshIliasPreview.length} neue Update${freshIliasPreview.length === 1 ? '' : 's'}`
+                        : 'Alles gelesen'}
                     </div>
                   </div>
-                )}
+                  <div className="flex items-center gap-2">
+                    {freshIliasPreview.length ? (
+                      <Badge variant="success" size="sm">Neu</Badge>
+                    ) : (
+                      <Badge variant="default" size="sm">Ruhig</Badge>
+                    )}
+                    {freshIliasPreview.length ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => acknowledgeMutation.mutate(freshIliasPreview.map((item) => item.id))}
+                        loading={acknowledgeMutation.isPending}
+                        leftIcon={<CheckCheck className="h-3.5 w-3.5" />}
+                      >
+                        Alle gelesen
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
 
-                <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-text-secondary">
-                  <Badge variant={statusBadgeVariant(data?.lastRun?.status)} size="sm">
-                    {data?.lastRun ? `Sync ${data.lastRun.status}` : 'Wartet auf nächsten Sync'}
+                <div className="mt-3 space-y-2">
+                  {freshIliasPreview.length ? (
+                    freshIliasPreview.map((item) => (
+                      <div
+                        key={item.id}
+                        className="rounded-lg border border-emerald-500/16 bg-emerald-500/[0.05] px-3 py-3"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge variant="success" size="sm">
+                                {iliasItemTypeLabels[item.itemType] ?? 'Item'}
+                              </Badge>
+                              <span className="text-[11px] uppercase tracking-[0.16em] text-emerald-100/70">
+                                {item.favoriteTitle}
+                              </span>
+                            </div>
+                            <div className="mt-2 truncate text-sm font-medium text-text-primary">{item.title}</div>
+                            <div className="mt-1 flex items-center gap-1.5 text-xs text-text-secondary">
+                              <Clock3 className="h-3.5 w-3.5 text-emerald-200/70" />
+                              <span>{formatIliasItemMeta(item)}</span>
+                            </div>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2">
+                            {item.itemUrl ? (
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => {
+                                  window.open(item.itemUrl ?? '', '_blank', 'noopener,noreferrer');
+                                  acknowledgeMutation.mutate([item.id]);
+                                }}
+                                disabled={acknowledgeMutation.isPending}
+                                leftIcon={<ExternalLink className="h-3.5 w-3.5" />}
+                              >
+                                Öffnen
+                              </Button>
+                            ) : null}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => acknowledgeMutation.mutate([item.id])}
+                              loading={acknowledgeMutation.isPending}
+                              leftIcon={<Check className="h-3.5 w-3.5" />}
+                            >
+                              Gelesen
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-3 text-sm text-text-secondary">
+                      Keine offenen ILIAS-Signale. Neue Dokumente und Ankündigungen landen nach dem nächsten Kurs-Import hier.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">Studienlage</div>
+                    <div className="mt-2 text-sm font-semibold text-text-primary">
+                      {data?.totalCampusModules || data?.totalCampusGrades
+                        ? `${data.totalCampusModules} Module · ${data.totalCampusGrades} Noten`
+                        : 'Academic Snapshot folgt'}
+                    </div>
+                  </div>
+                  <Badge variant={data?.totalCampusModules || data?.totalCampusGrades ? 'success' : 'warning'} size="sm">
+                    {data?.totalCampusModules || data?.totalCampusGrades ? 'Aktiv' : 'Nächster Schritt'}
                   </Badge>
-                  {data?.campusWebcalCalendarName ? (
-                    <span>Kalender: {data.campusWebcalCalendarName}</span>
-                  ) : null}
-                  {data?.campusWebcalLastError ? (
-                    <Badge variant="error" size="sm">{data.campusWebcalLastError}</Badge>
-                  ) : null}
+                </div>
+
+                <div className="mt-3 space-y-2 text-sm text-text-secondary">
+                  {data?.nextCampusExam ? (
+                    <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.08] px-3 py-3">
+                      <div className="text-[11px] uppercase tracking-[0.16em] text-amber-200/70">Prüfungsdruck</div>
+                      <div className="mt-1 font-medium text-amber-50">{data.nextCampusExam.title}</div>
+                      <div className="mt-1 text-xs text-amber-100/75">{formatDateTime(data.nextCampusExam.startsAt)}</div>
+                    </div>
+                  ) : (
+                    <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-3">
+                      <div className="font-medium text-text-primary">Noch keine Module und Noten verbunden</div>
+                      <div className="mt-1 text-xs text-text-secondary">
+                        Der nächste Connector-Schritt bringt Module, Prüfungen und Noten direkt in diesen Hub.
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-text-secondary">
+                    <Badge variant={statusBadgeVariant(data?.lastRun?.status)} size="sm">
+                      {data?.lastRun ? `Sync ${data.lastRun.status}` : 'Wartet auf nächsten Sync'}
+                    </Badge>
+                    {data?.campusWebcalCalendarName ? (
+                      <span>Kalender: {data.campusWebcalCalendarName}</span>
+                    ) : null}
+                    {data?.campusWebcalLastError ? (
+                      <Badge variant="error" size="sm">{data.campusWebcalLastError}</Badge>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             </div>

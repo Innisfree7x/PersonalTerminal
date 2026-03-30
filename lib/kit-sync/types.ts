@@ -22,6 +22,15 @@ export interface KitSyncStatus {
     publishedAt: string | null;
     itemUrl: string | null;
   } | null;
+  freshIliasPreview: Array<{
+    id: string;
+    favoriteTitle: string;
+    title: string;
+    itemType: string;
+    publishedAt: string | null;
+    itemUrl: string | null;
+    firstSeenAt: string;
+  }>;
   iliasFavoritePreview: Array<{
     title: string;
     semesterLabel: string | null;
@@ -58,6 +67,7 @@ export function createEmptyKitSyncStatus(): KitSyncStatus {
     nextCampusExam: null,
     latestCampusGrade: null,
     latestIliasItem: null,
+    freshIliasPreview: [],
     iliasFavoritePreview: [],
     lastRun: null,
   };
