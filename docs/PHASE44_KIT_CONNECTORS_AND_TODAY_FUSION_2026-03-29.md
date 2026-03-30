@@ -69,6 +69,7 @@ Behavior:
 - `/api/dashboard/next-tasks` now includes `kitSignals`
 - Morning Briefing can surface:
   - next KIT event
+  - weekly KIT event load when the next event is not enough context
   - next KIT exam
   - latest campus grade
   - fresh ILIAS items
@@ -102,5 +103,5 @@ After this wave:
 - true CAMPUS connector automation without repeated manual page execution
 - deeper ILIAS item quality tuning per real course layouts
 - acknowledgement flow for `kit_ilias_items`
-- stronger KIT-specific cards in `Today`, `Morning Briefing`, and weekly review
+- stronger KIT-specific cards in weekly review beyond the compact Morning Briefing signals
 - document binary import into INNIS storage

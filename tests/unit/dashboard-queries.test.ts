@@ -276,6 +276,10 @@ describe('dashboard queries', () => {
             },
             error: null,
           }),
+          makeResolvedQuery({
+            count: 2,
+            error: null,
+          }),
         ],
         kit_campus_grades: [
           makeResolvedQuery({
@@ -382,6 +386,7 @@ describe('dashboard queries', () => {
         publishedAt: '2026-03-18T08:00:00.000Z',
         itemUrl: 'https://ilias.studium.kit.edu/item-1',
       },
+      upcomingEventsCount: 2,
     });
     expect(result.stats).toMatchObject({
       tasksToday: 4,

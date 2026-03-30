@@ -83,6 +83,7 @@ describe('Today critical path integration', () => {
             kind: 'lecture',
             location: 'Ulrich, WIWI',
           },
+          upcomingEventsCount: 2,
           nextCampusExam: {
             title: 'Investments Klausur',
             startsAt: '2026-03-21T08:30:00.000Z',
@@ -186,6 +187,10 @@ describe('Today critical path integration', () => {
     expect(screen.getByRole('link', { name: /KIT 20\.03\./i })).toHaveAttribute(
       'href',
       '/calendar?source=today_kit'
+    );
+    expect(screen.getByRole('link', { name: /\+1 weitere KIT-Termine diese Woche/i })).toHaveAttribute(
+      'href',
+      '/calendar?source=today_kit_week'
     );
     expect(screen.getByRole('link', { name: /2 neue ILIAS-Signale/i })).toHaveAttribute(
       'href',

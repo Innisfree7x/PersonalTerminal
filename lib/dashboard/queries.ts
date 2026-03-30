@@ -115,6 +115,7 @@ export interface DashboardKitSignals {
     publishedAt: string | null;
     itemUrl: string | null;
   } | null;
+  upcomingEventsCount: number;
 }
 
 export interface DashboardNextTasksResponse {
@@ -204,6 +205,7 @@ async function getDashboardKitSignals(
 ): Promise<DashboardKitSignals | null> {
   const nowIso = todayStart.toISOString();
   const freshIliasThreshold = subDays(todayStart, 7).toISOString();
+  const weekEndIso = addDays(todayStart, 7).toISOString();
 
   const [
     nextCampusEventResult,
@@ -211,6 +213,7 @@ async function getDashboardKitSignals(
     latestCampusGradeResult,
     freshIliasItemsResult,
     latestIliasItemResult,
+    upcomingEventsCountResult,
   ] = await Promise.all([
     supabase
       .from('kit_campus_events')
@@ -251,6 +254,12 @@ async function getDashboardKitSignals(
       .order('first_seen_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
+    supabase
+      .from('kit_campus_events')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('starts_at', nowIso)
+      .lt('starts_at', weekEndIso),
   ]);
 
   const handledErrors = [
@@ -259,6 +268,7 @@ async function getDashboardKitSignals(
     latestCampusGradeResult.error,
     freshIliasItemsResult.error,
     latestIliasItemResult.error,
+    upcomingEventsCountResult.error,
   ];
   const fatalError = handledErrors.find((error) => error && !isMissingKitRelationError(error));
   if (fatalError) {
@@ -330,13 +340,15 @@ async function getDashboardKitSignals(
             itemUrl: latestIliasItemResult.data.item_url,
           }
         : null,
+    upcomingEventsCount: upcomingEventsCountResult.count ?? 0,
   };
 
   return signals.nextCampusEvent ||
     signals.nextCampusExam ||
     signals.latestCampusGrade ||
     signals.latestIliasItem ||
-    signals.freshIliasItems > 0
+    signals.freshIliasItems > 0 ||
+    signals.upcomingEventsCount > 0
     ? signals
     : null;
 }

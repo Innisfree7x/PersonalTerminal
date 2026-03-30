@@ -167,4 +167,4 @@ Die folgenden Dokumente sind abgeschlossen oder durch neuere Planung ersetzt:
 - `main` nur via PR-merge mit branch protection; required checks: `Quality Checks` und `E2E Blocker Suite (Authenticated, Serial)`.
 - Jede rote CI/deploy bekommt sofort ein Incident-Ticket aus `.github/ISSUE_TEMPLATE/ci-deploy-incident.yml` (Root cause, Fix SHA, Prevention je Feld Pflicht).
 - Nach jedem größeren Planwechsel muss diese Datei aktualisiert werden.
-- KI-Kontextdateien (`CLAUDE.md`, `llms*.txt`) duerfen keine aktive Anweisung enthalten, die diesem Canon widerspricht.
+- KI-Kontextdateien (`CLAUDE.md`, `GEMINI*.md`, `llms*.txt`) duerfen keine aktive Anweisung enthalten, die diesem Canon widerspricht.

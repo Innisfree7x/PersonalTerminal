@@ -73,6 +73,14 @@ export default function TodayPage() {
   const momentum = trajectorySnapshot?.momentum ?? null;
   const trajectoryTone = trajectoryBriefing ? getRiskStatusTone(trajectoryBriefing.status) : null;
   const kitSignals = nextTasksData?.kitSignals ?? null;
+  const weeklyKitEventsCount = kitSignals?.upcomingEventsCount ?? 0;
+  const showWeeklyKitLoadChip = weeklyKitEventsCount > 0 && (!kitSignals?.nextCampusEvent || weeklyKitEventsCount > 1);
+  const weeklyKitLoadLabel =
+    weeklyKitEventsCount <= 1
+      ? '1 KIT-Termin diese Woche'
+      : kitSignals?.nextCampusEvent
+        ? `+${weeklyKitEventsCount - 1} weitere KIT-Termine diese Woche`
+        : `${weeklyKitEventsCount} KIT-Termine diese Woche`;
 
   const tasksTodayCount = stats?.tasksToday ?? 0;
   const tasksCompletedCount = stats?.tasksCompleted ?? 0;
@@ -217,6 +225,14 @@ export default function TodayPage() {
                       {kitSignals.nextCampusEvent.location}
                     </>
                   ) : null}
+                </Link>
+              ) : null}
+              {showWeeklyKitLoadChip ? (
+                <Link
+                  href="/calendar?source=today_kit_week"
+                  className="inline-flex items-center rounded-full border border-sky-500/20 bg-sky-500/[0.05] px-2.5 py-1 text-[11px] font-medium text-sky-100/90 transition-colors hover:bg-sky-500/[0.11]"
+                >
+                  {weeklyKitLoadLabel}
                 </Link>
               ) : null}
               {kitSignals?.nextCampusExam ? (
