@@ -18,11 +18,29 @@ export type LucianMoodAlias = 'motivate' | 'celebrate' | 'warning' | 'recovery' 
 export type LucianMood = LucianMoodCore | LucianMoodAlias;
 export type TimeSlot = 'morning' | 'afternoon' | 'evening' | 'late-night';
 
+export type LucianActionType =
+  | 'start-focus'
+  | 'open-tasks'
+  | 'open-trajectory'
+  | 'open-goals'
+  | 'open-university'
+  | 'open-career'
+  | 'add-task'
+  | 'add-course'
+  | 'dismiss'
+  | 'break-drill';
+
+export interface LucianDialogOption {
+  label: string;
+  action: LucianActionType;
+}
+
 export interface LucianLine {
   id: string;
   mood: LucianMood;
   text: string; // supports {variable} tokens
   timeSlot?: TimeSlot; // if set, only show during this time window
+  dialog?: LucianDialogOption[]; // if set, show as interactive dialog with buttons
 }
 
 export const LUCIAN_LINES: LucianLine[] = [
@@ -230,6 +248,156 @@ export const LUCIAN_LINES: LucianLine[] = [
   // ══════════════════════════════════════════════════════════════════════════
   { id: 'APP01', mood: 'hype', text: 'bewerbung raus. mutig. respekt' },
   { id: 'APP02', mood: 'chill', text: '{item} — {n} tage ohne rückmeldung. follow-up ist keine schwäche' },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // DIALOGE — Lucian fragt, User antwortet mit Action-Buttons
+  // Diese Lines werden nur angezeigt wenn der Kontext passt.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── Morning: keine Tasks geplant ──────────────────────────────────────
+  {
+    id: 'DLG01', mood: 'chill', text: 'heute noch leer. was steht an?',
+    timeSlot: 'morning',
+    dialog: [
+      { label: 'Fokus starten', action: 'start-focus' },
+      { label: 'Task erstellen', action: 'add-task' },
+      { label: 'Freier Tag', action: 'dismiss' },
+    ],
+  },
+  {
+    id: 'DLG02', mood: 'chill', text: 'kein plan für heute. absicht oder vergessen? kappachungus wenn absicht',
+    timeSlot: 'morning',
+    dialog: [
+      { label: 'Task erstellen', action: 'add-task' },
+      { label: 'Safe Absicht', action: 'dismiss' },
+    ],
+  },
+
+  // ── Nachmittag: nichts erledigt ───────────────────────────────────────
+  {
+    id: 'DLG03', mood: 'real-talk', text: 'halber tag vorbei und liste ist unberührt. eine task? lowkey dringend',
+    timeSlot: 'afternoon',
+    dialog: [
+      { label: 'Fokus starten', action: 'start-focus' },
+      { label: 'Tasks zeigen', action: 'open-tasks' },
+      { label: 'Nicht heute', action: 'dismiss' },
+    ],
+  },
+
+  // ── Prüfung nah ──────────────────────────────────────────────────────
+  {
+    id: 'DLG04', mood: 'real-talk', text: '{item} in {n} tagen. session jetzt oder it\'s joever?',
+    dialog: [
+      { label: '25min Fokus', action: 'start-focus' },
+      { label: 'Später', action: 'dismiss' },
+    ],
+  },
+  {
+    id: 'DLG05', mood: 'real-talk', text: 'morgen {item}. wie fühlst du dich ehrlich?',
+    dialog: [
+      { label: 'Bereit', action: 'dismiss' },
+      { label: 'Naja', action: 'start-focus' },
+      { label: 'Joever', action: 'start-focus' },
+    ],
+  },
+
+  // ── Tasks erledigt, noch offene ───────────────────────────────────────
+  {
+    id: 'DLG06', mood: 'hype', text: 'guter flow. {n} tasks done, noch {open} offen. we\'re barack oder pause?',
+    dialog: [
+      { label: 'Barack — Weiter', action: 'open-tasks' },
+      { label: 'Break Drill', action: 'break-drill' },
+    ],
+  },
+
+  // ── Empty States ──────────────────────────────────────────────────────
+  {
+    id: 'DLG07', mood: 'chill', text: 'keine kurse eingetragen. semester läuft aber trotzdem lmao',
+    dialog: [
+      { label: 'Kurs hinzufügen', action: 'add-course' },
+      { label: 'Später', action: 'dismiss' },
+    ],
+  },
+  {
+    id: 'DLG08', mood: 'chill', text: 'kein trajectory. du planst noch blind. lowkey sus',
+    dialog: [
+      { label: 'Einrichten', action: 'open-trajectory' },
+      { label: 'Nicht jetzt', action: 'dismiss' },
+    ],
+  },
+  {
+    id: 'DLG09', mood: 'chill', text: 'noch keine ziele gesetzt. wo soll die reise hingehen?',
+    dialog: [
+      { label: 'Ziel erstellen', action: 'open-goals' },
+      { label: 'Später', action: 'dismiss' },
+    ],
+  },
+
+  // ── Returning user ────────────────────────────────────────────────────
+  {
+    id: 'DLG10', mood: 'comfort', text: 'lang nicht gesehen. alles ok?',
+    dialog: [
+      { label: 'We\'re barack', action: 'open-tasks' },
+      { label: 'War rough', action: 'dismiss' },
+    ],
+  },
+
+  // ── Feierabend ────────────────────────────────────────────────────────
+  {
+    id: 'DLG11', mood: 'hype', text: 'alles erledigt. was jetzt?',
+    dialog: [
+      { label: 'Feierabend. GIG', action: 'dismiss' },
+      { label: 'Noch eine Runde', action: 'start-focus' },
+    ],
+  },
+
+  // ── Bewerbung stale ───────────────────────────────────────────────────
+  {
+    id: 'DLG12', mood: 'chill', text: '{item} seit {n} tagen ohne rückmeldung. follow-up oder it\'s joever?',
+    dialog: [
+      { label: 'Karriere öffnen', action: 'open-career' },
+      { label: 'Ist ok so', action: 'dismiss' },
+    ],
+  },
+
+  // ── Abends, noch Tasks offen ──────────────────────────────────────────
+  {
+    id: 'DLG13', mood: 'real-talk', text: 'noch {open} tasks offen. letzte runde oder morgen? no cap wird eng',
+    timeSlot: 'evening',
+    dialog: [
+      { label: 'Letzte Runde', action: 'start-focus' },
+      { label: 'Morgen', action: 'dismiss' },
+    ],
+  },
+
+  // ── Late Night ────────────────────────────────────────────────────────
+  {
+    id: 'DLG14', mood: 'comfort', text: 'es ist spät. schlafen oder eine letzte session?',
+    timeSlot: 'late-night',
+    dialog: [
+      { label: 'Eine noch', action: 'start-focus' },
+      { label: 'Schlaf. GIG', action: 'dismiss' },
+    ],
+  },
+
+  // ── Generischer "wie läuft dein tag" dialog ───────────────────────────
+  {
+    id: 'DLG15', mood: 'chill', text: 'yo. wie läuft der tag?',
+    dialog: [
+      { label: 'Läuft safe', action: 'dismiss' },
+      { label: 'Mid', action: 'open-tasks' },
+      { label: 'Joever', action: 'start-focus' },
+    ],
+  },
+
+  // ── Nach Streak broken ────────────────────────────────────────────────
+  {
+    id: 'DLG16', mood: 'comfort', text: 'streak weg. schere von mir — hätte dich erinnern sollen. nochmal?',
+    dialog: [
+      { label: 'Neuer Streak jetzt', action: 'start-focus' },
+      { label: 'Morgen', action: 'dismiss' },
+    ],
+  },
 ];
 
 function hourToTimeSlot(hour: number): TimeSlot {

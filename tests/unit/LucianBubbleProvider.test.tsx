@@ -2,13 +2,17 @@ import { act, cleanup, fireEvent, renderWithProviders, screen } from '@/tests/ut
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { LucianBubbleProvider } from '@/components/providers/LucianBubbleProvider';
 import type { ChampionEvent } from '@/lib/champion/championEvents';
+import * as lucianCopy from '@/lib/lucian/copy';
+import * as commandActions from '@/lib/hooks/useCommandActions';
 
 let mockedPathname = '/today';
 let championListener: ((event: ChampionEvent) => void) | null = null;
+const routerPushMock = vi.fn();
 const originalFetch = globalThis.fetch;
 
 vi.mock('next/navigation', () => ({
   usePathname: () => mockedPathname,
+  useRouter: () => ({ push: routerPushMock, prefetch: vi.fn() }),
 }));
 
 vi.mock('@/lib/champion/championEvents', () => ({
@@ -26,11 +30,22 @@ vi.mock('@/components/features/lucian/LucianBubble', () => ({
     visible: boolean;
     actionLabel?: string;
     onAction?: () => void;
+    dialogOptions?: Array<{ label: string; action: string }>;
+    onDialogAction?: (action: string) => void;
   }) => {
     if (!props.visible) return null;
     return (
       <div data-testid="lucian-bubble">
         <p>{props.text}</p>
+        {props.dialogOptions && props.onDialogAction ? (
+          <div>
+            {props.dialogOptions.map((option) => (
+              <button key={option.action} onClick={() => props.onDialogAction?.(option.action)}>
+                {option.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
         {props.actionLabel && props.onAction ? (
           <button onClick={props.onAction}>{props.actionLabel}</button>
         ) : null}
@@ -77,6 +92,8 @@ describe('LucianBubbleProvider', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-02-23T12:00:00'));
+    routerPushMock.mockReset();
+    vi.restoreAllMocks();
     const keys = [
       'innis_lucian_muted',
       'innis_lucian_cooldown',
@@ -182,5 +199,75 @@ describe('LucianBubbleProvider', () => {
     });
 
     expect(screen.getByText('Stark. 2300 Punkte in 60 Sekunden. Momentum halten.')).toBeInTheDocument();
+  });
+
+  test('renders dialog options from lucian copy lines and routes the selected action', () => {
+    vi.spyOn(lucianCopy, 'getLinesForMood').mockReturnValue([
+      {
+        id: 'DLG_TEST',
+        mood: 'hype',
+        text: 'Wohin jetzt?',
+        dialog: [
+          { label: 'Trajectory öffnen', action: 'open-trajectory' },
+          { label: 'Heute ansehen', action: 'open-tasks' },
+        ],
+      },
+    ]);
+
+    renderWithProviders(
+      <LucianBubbleProvider>
+        <div>child</div>
+      </LucianBubbleProvider>,
+    );
+
+    act(() => {
+      championListener?.({ type: 'TASK_COMPLETED' });
+    });
+
+    expect(screen.getByTestId('lucian-bubble')).toBeInTheDocument();
+    expect(screen.getByText('Wohin jetzt?')).toBeInTheDocument();
+    expect(screen.getByText('Trajectory öffnen')).toBeInTheDocument();
+    expect(screen.getByText('Heute ansehen')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Trajectory öffnen'));
+
+    act(() => {
+      vi.advanceTimersByTime(251);
+    });
+
+    expect(routerPushMock).toHaveBeenCalledWith('/trajectory');
+  });
+
+  test('queues page action for add-task dialogs before routing to today', () => {
+    const queueSpy = vi.spyOn(commandActions, 'queuePrismCommandAction').mockImplementation(() => {});
+    mockedPathname = '/career';
+
+    vi.spyOn(lucianCopy, 'getLinesForMood').mockReturnValue([
+      {
+        id: 'DLG_TASK',
+        mood: 'hype',
+        text: 'Task jetzt anlegen?',
+        dialog: [{ label: 'Task erstellen', action: 'add-task' }],
+      },
+    ]);
+
+    renderWithProviders(
+      <LucianBubbleProvider>
+        <div>child</div>
+      </LucianBubbleProvider>,
+    );
+
+    act(() => {
+      championListener?.({ type: 'TASK_COMPLETED' });
+    });
+
+    fireEvent.click(screen.getByText('Task erstellen'));
+
+    act(() => {
+      vi.advanceTimersByTime(251);
+    });
+
+    expect(queueSpy).toHaveBeenCalledWith('open-new-task');
+    expect(routerPushMock).toHaveBeenCalledWith('/today');
   });
 });

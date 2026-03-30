@@ -209,13 +209,13 @@ function extractTablesFromDocument(doc: Document): ExtractedTable[] {
       return { headers: [], rows: [] };
     }
 
-    const theadHeaders = Array.from(table.querySelectorAll('thead th, thead td'))
-      .map((cell) => normalizeHeader(cell.textContent ?? ''))
-      .filter(Boolean);
+    const theadHeaders = Array.from(table.querySelectorAll('thead th, thead td')).map((cell) =>
+      normalizeHeader(cell.textContent ?? '')
+    );
 
     const firstHeaderCandidate = rawRows.find((row) => isLikelyHeaderRow(row.cells));
-    const fallbackHeaders = firstHeaderCandidate?.cells.map((cell) => normalizeHeader(cell)).filter(Boolean) ?? [];
-    const headers = theadHeaders.length > 0 ? theadHeaders : fallbackHeaders;
+    const fallbackHeaders = firstHeaderCandidate?.cells.map((cell) => normalizeHeader(cell)) ?? [];
+    const headers = theadHeaders.some(Boolean) ? theadHeaders : fallbackHeaders;
 
     const rows = rawRows.filter((row) => {
       if (!row.cells.some(Boolean)) return false;

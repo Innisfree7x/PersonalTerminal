@@ -1,9 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { subscribeChampionEvent, type ChampionEvent } from '@/lib/champion/championEvents';
+import { queuePrismCommandAction } from '@/lib/hooks/useCommandActions';
 import { getLucianHint } from '@/lib/lucian/hints';
 import {
   getLinesForMood,
@@ -11,6 +12,8 @@ import {
   hasUnfilledTokens,
   getDismissDuration,
   type LucianMood,
+  type LucianDialogOption,
+  type LucianActionType,
 } from '@/lib/lucian/copy';
 import { LucianBubble } from '@/components/features/lucian/LucianBubble';
 import { LucianBreakOverlay } from '@/components/features/lucian/LucianBreakOverlay';
@@ -61,8 +64,9 @@ interface QueuedMessage {
   mood: LucianMood;
   priority: 0 | 1 | 2 | 3;
   ariaRole: 'status' | 'alert';
-  kind?: 'default' | 'break-invite';
+  kind?: 'default' | 'break-invite' | 'dialog';
   durationMs?: number;
+  dialogOptions?: LucianDialogOption[];
 }
 
 interface DashboardNextTasksPayload {
@@ -216,6 +220,12 @@ function pickMessage(
     mood:     line.mood,
     priority,
     ariaRole: priority === 0 ? 'alert' : 'status',
+    ...(line.dialog && line.dialog.length > 0
+      ? {
+          kind: 'dialog' as const,
+          dialogOptions: line.dialog,
+        }
+      : {}),
   };
 }
 
@@ -283,6 +293,7 @@ function messageFromEvent(event: ChampionEvent): QueuedMessage | null {
 // ─── Provider ────────────────────────────────────────────────────────────────
 export function LucianBubbleProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [current, setCurrent]     = useState<QueuedMessage | null>(null);
   const [visible, setVisible]     = useState(false);
   const [breakActive, setBreakActive] = useState(false);
@@ -735,6 +746,50 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
     lastActivityRef.current = Date.now();
   }, []);
 
+  // ── Dialog action handler ─────────────────────────────────────────────────
+  const handleDialogAction = useCallback((action: LucianActionType) => {
+    doHide();
+
+    // Small delay so bubble exit animation plays before navigation
+    setTimeout(() => {
+      switch (action) {
+        case 'start-focus':
+          router.push('/focus');
+          break;
+        case 'open-tasks':
+          router.push('/today');
+          break;
+        case 'open-trajectory':
+          router.push('/trajectory');
+          break;
+        case 'open-goals':
+          router.push('/goals');
+          break;
+        case 'open-university':
+          router.push('/university');
+          break;
+        case 'open-career':
+          router.push('/career');
+          break;
+        case 'add-task':
+          queuePrismCommandAction('open-new-task');
+          if (pathname !== '/today') router.push('/today');
+          break;
+        case 'add-course':
+          queuePrismCommandAction('open-new-course');
+          if (pathname !== '/university') router.push('/university');
+          break;
+        case 'break-drill':
+          lastActivityRef.current = Date.now();
+          setBreakActive(true);
+          break;
+        case 'dismiss':
+          // Already hidden via doHide() above
+          break;
+      }
+    }, 250);
+  }, [doHide, pathname, router]);
+
   useEffect(() => {
     if (breakActive) return;
     if (!pendingBreakResult) return;
@@ -763,6 +818,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
   );
 
   const breakInviteActive = current?.kind === 'break-invite';
+  const isDialog = current?.kind === 'dialog' && current.dialogOptions && current.dialogOptions.length > 0;
 
   return (
     <>
@@ -773,12 +829,17 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
           mood={current.mood}
           ariaRole={current.ariaRole}
           visible={visible}
-          dismissOnBodyClick={!breakInviteActive}
+          dismissOnBodyClick={!breakInviteActive && !isDialog}
           onDismiss={handleDismiss}
           onMuteToday={handleMuteToday}
           onPause={pauseDismiss}
           onResume={resumeDismiss}
-          {...(breakInviteActive
+          {...(isDialog
+            ? {
+                dialogOptions: current.dialogOptions ?? [],
+                onDialogAction: handleDialogAction,
+              }
+            : breakInviteActive
             ? {
                 actionLabel: 'Start 60s Drill',
                 actionAriaLabel: 'Lucian Break Challenge starten',

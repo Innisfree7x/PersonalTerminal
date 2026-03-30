@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Zap, X } from 'lucide-react';
-import { normalizeLucianMood, type LucianMood, type LucianMoodCore } from '@/lib/lucian/copy';
+import { normalizeLucianMood, type LucianMood, type LucianMoodCore, type LucianDialogOption } from '@/lib/lucian/copy';
 import { LucianSpriteAnimator, type LucianAnimation } from '@/components/features/lucian/LucianSpriteAnimator';
 
 const moodAccentText: Record<LucianMoodCore, string> = {
@@ -104,12 +104,14 @@ interface LucianBubbleProps {
   anchorSelector?: string;
   actionLabel?: string;
   actionAriaLabel?: string;
+  dialogOptions?: LucianDialogOption[] | undefined;
   dismissOnBodyClick?: boolean;
   onDismiss: () => void;
   onMuteToday: () => void;
   onPause: () => void;
   onResume: () => void;
-  onAction?: () => void;
+  onAction?: (() => void) | undefined;
+  onDialogAction?: ((action: LucianDialogOption['action']) => void) | undefined;
 }
 
 export function LucianBubble({
@@ -120,12 +122,14 @@ export function LucianBubble({
   anchorSelector = '[data-champion-sprite="true"]',
   actionLabel,
   actionAriaLabel,
+  dialogOptions,
   dismissOnBodyClick = false,
   onDismiss,
   onMuteToday,
   onPause,
   onResume,
   onAction,
+  onDialogAction,
 }: LucianBubbleProps) {
   const prefersReducedMotion = useReducedMotion();
   const bubbleRef = useRef<HTMLDivElement | null>(null);
@@ -335,7 +339,24 @@ export function LucianBubble({
                   <span>{moodSpell[normalizedMood]}</span>
                 </div>
 
-                {actionLabel && onAction ? (
+                {/* Dialog options — multiple action buttons */}
+                {dialogOptions && dialogOptions.length > 0 && onDialogAction ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {dialogOptions.map((option) => (
+                      <button
+                        key={option.action + option.label}
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onDialogAction(option.action);
+                        }}
+                        className={`inline-flex items-center rounded-lg border px-3 py-1.5 text-xs font-semibold tracking-[0.04em] transition ${moodActionButton[normalizedMood]}`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : actionLabel && onAction ? (
                   <button
                     type="button"
                     onClick={(event) => {
