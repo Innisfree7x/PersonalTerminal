@@ -68,9 +68,22 @@
     return /^(?:[1-4](?:[.,]\d)?|5(?:[.,]0)?)$/.test(normalizeText(value));
   }
 
+  function isRecognizedGradeCell(value) {
+    const text = normalizeText(value);
+    return (
+      isStandaloneGradeCell(text) ||
+      /^(?:be|nb|an|mbe)$/i.test(text) ||
+      /^\([1-5](?:[.,]\d)?\)$/.test(text) ||
+      /^[1-5](?:[.,]\d)?\s*\d$/.test(text)
+    );
+  }
+
   function inferStatus(value) {
     const text = normalizeHeader(value);
     if (!text) return 'active';
+    if (text === 'be' || text === 'mbe') return 'completed';
+    if (text === 'an') return 'planned';
+    if (text === 'nb') return 'unknown';
     if (text.includes('bestanden') || text.includes('abgeschlossen') || text.includes('completed')) return 'completed';
     if (text.includes('abgemeldet') || text.includes('withdrawn') || text.includes('dropped')) return 'dropped';
     if (text.includes('geplant') || text.includes('planned')) return 'planned';
@@ -291,8 +304,19 @@
       if (!parsedTitle.title || !looksLikeAcademicTitleCell(cell)) continue;
 
       const tail = cells.slice(index + 1);
+      const hasStrongerTrailingTitle =
+        !parsedTitle.moduleCode &&
+        !/[–-]/.test(cell) &&
+        tail.some((tailCell) => {
+          const tailText = normalizeText(tailCell);
+          if (!tailText) return false;
+          const parsedTail = extractModuleCodeAndTitle(tailText);
+          return Boolean(parsedTail.moduleCode || /[–-]/.test(tailText));
+        });
+      if (hasStrongerTrailingTitle) continue;
+
       const hasDate = tail.some((tailCell) => Boolean(parseGermanDate(tailCell)));
-      const hasGrade = tail.some(isStandaloneGradeCell);
+      const hasGrade = tail.some(isRecognizedGradeCell);
       const hasStatus = tail.some(hasStatusSignal);
       const creditValues = tail.map((tailCell) => parseCredits(tailCell)).filter((value) => value !== null);
       const hasCredits = creditValues.length > 0;
@@ -317,7 +341,8 @@
     if (!text) return false;
     const parsed = extractModuleCodeAndTitle(text);
     if (parsed.moduleCode) return true;
-    return /[–-]/.test(text);
+    if (/[–-]/.test(text)) return true;
+    return /[A-Za-zÄÖÜäöü]/.test(text);
   }
 
   function isAcademicSnapshotFallbackRow(cells) {
@@ -341,7 +366,7 @@
 
     const tail = normalizedCells.slice(1);
     const hasDate = tail.some((cell) => Boolean(parseGermanDate(cell)));
-    const hasGrade = tail.some(isStandaloneGradeCell);
+    const hasGrade = tail.some(isRecognizedGradeCell);
     const hasStatus = tail.some(hasStatusSignal);
     const creditValues = tail.map((cell) => parseCredits(cell)).filter((value) => value !== null);
     const hasCredits = creditValues.length > 0;
@@ -366,9 +391,9 @@
         if (!title) return;
 
         const statusCell = normalizedCells[2] || findFirstCell(normalizedCells, 1, hasStatusSignal);
-        const gradeCell = isStandaloneGradeCell(normalizedCells[3] || '')
+        const gradeCell = isRecognizedGradeCell(normalizedCells[3] || '')
           ? normalizedCells[3] || ''
-          : findFirstCell(normalizedCells, 1, isStandaloneGradeCell);
+          : findFirstCell(normalizedCells, 1, isRecognizedGradeCell);
         const dateCell = parseGermanDate(normalizedCells[4] || '')
           ? normalizedCells[4] || ''
           : findFirstCell(normalizedCells, 1, (cell) => Boolean(parseGermanDate(cell)));
@@ -408,6 +433,138 @@
         }
       });
     });
+
+    return {
+      modules: Array.from(modules.values()),
+      grades: Array.from(grades.values()),
+    };
+  }
+
+  function splitAcademicTextLine(line) {
+    const structuredCells = line
+      .split(/\t|\s{2,}/)
+      .map((cell) => normalizeText(cell));
+    if (structuredCells.length >= 6) {
+      return structuredCells;
+    }
+
+    const compact = line.replace(/\u00a0/g, ' ').trim();
+    if (!compact) {
+      return [];
+    }
+
+    const compactParts = { remaining: compact };
+    function pullTail(pattern) {
+      const match = compactParts.remaining.match(pattern);
+      if (!match) return null;
+      const value = normalizeText(match[1] || '');
+      compactParts.remaining = compactParts.remaining.slice(0, typeof match.index === 'number' ? match.index : compactParts.remaining.length).trimEnd();
+      return value || null;
+    }
+
+    const sollLp = pullTail(/(?:^|\s)(\d+(?:,\d+)?)$/);
+    const istLp = pullTail(/(?:^|\s)(\d+(?:,\d+)?)$/);
+    const date = pullTail(/(?:^|\s)(\d{1,2}\.\d{1,2}\.\d{4})$/);
+    const grade = pullTail(/(?:^|\s)(\([1-5](?:[.,]\d)?\)|[1-5](?:[.,]\d)?(?:\s*\d)?|be|nb|an|mbe)$/i);
+    const art = pullTail(/(?:^|\s)(PF|WP|FW|PI)$/i);
+    const title = normalizeText(compactParts.remaining);
+
+    return [title, art || '', grade || '', grade || '', date || '', istLp || '', sollLp || ''];
+  }
+
+  function collectAcademicTextLines(rawText) {
+    const normalized = rawText.replace(/\r/g, '\n');
+    const startIndex = normalized.search(/Titel\s*\(mit Kennung\)/i);
+    if (startIndex < 0) return [];
+
+    const sliced = normalized.slice(startIndex);
+    const endIndex = sliced.search(/Bitte beachten Sie:/i);
+    const relevant = endIndex >= 0 ? sliced.slice(0, endIndex) : sliced;
+
+    return relevant
+      .split('\n')
+      .map((line) => line.replace(/\u00a0/g, ' ').trim())
+      .filter(Boolean);
+  }
+
+  function extractFallbackAcademicRowsFromText(rawText) {
+    const modules = new Map();
+    const grades = new Map();
+    const lines = collectAcademicTextLines(rawText);
+
+    for (let index = 0; index < lines.length; index += 1) {
+      const line = lines[index];
+      if (!line || normalizeHeader(line).includes('titel (mit kennung)')) {
+        continue;
+      }
+
+      let consumed = 1;
+      let cells = splitAcademicTextLine(line);
+
+      if (!isAcademicSnapshotFallbackRow(cells) && index + 1 < lines.length) {
+        const merged = line + ' ' + lines[index + 1];
+        const mergedCells = splitAcademicTextLine(merged);
+        if (isAcademicSnapshotFallbackRow(mergedCells)) {
+          cells = mergedCells;
+          consumed = 2;
+        }
+      }
+
+      if (!isAcademicSnapshotFallbackRow(cells)) {
+        continue;
+      }
+
+      const normalizedCells = normalizeFallbackCells(cells);
+      const titleCell = normalizeText(normalizedCells[0]);
+      const parsedTitle = extractModuleCodeAndTitle(titleCell);
+      const moduleCode = parsedTitle.moduleCode;
+      const title = parsedTitle.title;
+      if (!title) continue;
+
+      const statusCell = normalizedCells[2] || findFirstCell(normalizedCells, 1, hasStatusSignal);
+      const gradeCell = isRecognizedGradeCell(normalizedCells[3] || '')
+        ? normalizedCells[3] || ''
+        : findFirstCell(normalizedCells, 1, isRecognizedGradeCell);
+      const dateCell = parseGermanDate(normalizedCells[4] || '')
+        ? normalizedCells[4] || ''
+        : findFirstCell(normalizedCells, 1, function (cell) { return Boolean(parseGermanDate(cell)); });
+      const creditCandidates = (normalizedCells.length >= 7 ? normalizedCells.slice(-2) : normalizedCells.slice(1))
+        .map((cell) => parseCredits(cell))
+        .filter((value) => value !== null && value <= 60);
+      const credits = creditCandidates.length > 0 ? creditCandidates[0] : null;
+      const semesterLabel = parseSemesterLabel(titleCell);
+      const externalId = buildModuleExternalId(moduleCode, title, semesterLabel);
+
+      modules.set(externalId, {
+        externalId,
+        moduleCode,
+        title,
+        status: inferStatus(statusCell),
+        semesterLabel,
+        credits,
+        sourceUpdatedAt: new Date().toISOString(),
+      });
+
+      if (gradeCell) {
+        const examDateParts = parseGermanDate(dateCell);
+        const examDate = examDateParts
+          ? examDateParts.year + '-' + String(examDateParts.month).padStart(2, '0') + '-' + String(examDateParts.day).padStart(2, '0')
+          : null;
+        const externalGradeId = 'grade:' + externalId + ':' + slugify(gradeCell) + ':' + (examDate || stableHash([title, gradeCell, dateCell]));
+
+        grades.set(externalGradeId, {
+          externalGradeId,
+          moduleExternalId: externalId,
+          gradeValue: parseGradeValue(gradeCell),
+          gradeLabel: normalizeText(gradeCell),
+          examDate,
+          publishedAt: null,
+          sourceUpdatedAt: new Date().toISOString(),
+        });
+      }
+
+      index += consumed - 1;
+    }
 
     return {
       modules: Array.from(modules.values()),
@@ -603,6 +760,11 @@
 
   const documentEntries = collectDocuments(document);
   const tables = extractTables(document);
+  const documentTexts = documentEntries
+    .map((entry) => (entry.doc.body && entry.doc.body.innerText) || (entry.doc.documentElement && entry.doc.documentElement.textContent) || '')
+    .filter(Boolean)
+    .join('\n');
+  const textLineSamples = collectAcademicTextLines(documentTexts).slice(0, 12);
   window.__INNIS_KIT_CAMPUS_DEBUG__ = {
     sourceUrl: window.location.href,
     documents: documentEntries.map((entry) => ({
@@ -615,6 +777,7 @@
     tableCount: tables.length,
     rowCounts: tables.map((table) => table.rows.length),
     headerSamples: tables.slice(0, 5).map((table) => table.headers),
+    textLineSamples: textLineSamples,
     rowSamples: tables.slice(0, 3).map((table) => ({
       sourceHref: table.sourceHref,
       sourceDepth: table.sourceDepth,
@@ -627,8 +790,11 @@
   const fallback = modules.length === 0 && grades.length === 0
     ? extractFallbackAcademicRows(tables)
     : { modules: [], grades: [] };
+  const textFallback = modules.length === 0 && grades.length === 0 && fallback.modules.length === 0 && fallback.grades.length === 0
+    ? extractFallbackAcademicRowsFromText(documentTexts)
+    : { modules: [], grades: [] };
 
-  if (modules.length === 0 && grades.length === 0 && exams.length === 0 && fallback.modules.length === 0 && fallback.grades.length === 0) {
+  if (modules.length === 0 && grades.length === 0 && exams.length === 0 && fallback.modules.length === 0 && fallback.grades.length === 0 && textFallback.modules.length === 0 && textFallback.grades.length === 0) {
     alert('INNIS CAMPUS Export: Auf dieser Seite wurden keine Module, Noten oder Prüfungen erkannt. Öffne Studienaufbau, Notenspiegel oder Prüfungen und führe das Skript dort aus.');
     return;
   }
@@ -636,8 +802,8 @@
   const snapshot = loadSnapshot();
   snapshot.generatedAt = new Date().toISOString();
   snapshot.sourceUrl = window.location.href;
-  snapshot.modules = dedupeByExternalId([].concat(snapshot.modules || [], modules, fallback.modules, deriveModulesFromGrades([].concat(grades, fallback.grades)), deriveModulesFromExams(exams)));
-  snapshot.grades = dedupeByKey([].concat(snapshot.grades || [], grades, fallback.grades), 'externalGradeId');
+  snapshot.modules = dedupeByExternalId([].concat(snapshot.modules || [], modules, fallback.modules, textFallback.modules, deriveModulesFromGrades([].concat(grades, fallback.grades, textFallback.grades)), deriveModulesFromExams(exams)));
+  snapshot.grades = dedupeByKey([].concat(snapshot.grades || [], grades, fallback.grades, textFallback.grades), 'externalGradeId');
   snapshot.exams = dedupeByKey([].concat(snapshot.exams || [], exams), 'externalId');
   saveSnapshot(snapshot);
 
