@@ -238,14 +238,19 @@ function extractTablesFromDocument(doc: Document): ExtractedTable[] {
   }).filter((table) => table.rows.length > 0);
 }
 
-function collectDocuments(doc: Document) {
+function collectDocuments(doc: Document, seen: Set<Document> = new Set()) {
+  if (seen.has(doc)) {
+    return [];
+  }
+
+  seen.add(doc);
   const documents = [doc];
 
   for (const frame of Array.from(doc.querySelectorAll('iframe, frame'))) {
     try {
       const frameDoc = (frame as HTMLIFrameElement).contentDocument;
       if (frameDoc) {
-        documents.push(frameDoc);
+        documents.push(...collectDocuments(frameDoc, seen));
       }
     } catch {
       // Ignore cross-origin frames and keep parsing the current document.

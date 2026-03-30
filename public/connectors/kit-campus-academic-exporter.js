@@ -180,21 +180,60 @@
     }).filter((table) => table.rows.length > 0);
   }
 
+  function safeLocationHref(win) {
+    try {
+      return win.location && win.location.href ? win.location.href : 'unknown';
+    } catch {
+      return 'unavailable';
+    }
+  }
+
+  function collectDocumentEntries(rootWindow, seenWindows, seenDocuments, depth) {
+    if (!rootWindow || seenWindows.has(rootWindow)) {
+      return [];
+    }
+
+    seenWindows.add(rootWindow);
+    const entries = [];
+
+    try {
+      const rootDocument = rootWindow.document;
+      if (rootDocument && !seenDocuments.has(rootDocument)) {
+        seenDocuments.add(rootDocument);
+        entries.push({
+          doc: rootDocument,
+          href: safeLocationHref(rootWindow),
+          depth: depth,
+          frameCount: Number(rootWindow.frames && rootWindow.frames.length) || 0,
+        });
+      }
+    } catch {}
+
+    try {
+      const frameCount = Number(rootWindow.frames && rootWindow.frames.length) || 0;
+      for (let index = 0; index < frameCount; index += 1) {
+        const childWindow = rootWindow.frames[index];
+        entries.push.apply(entries, collectDocumentEntries(childWindow, seenWindows, seenDocuments, depth + 1));
+      }
+    } catch {}
+
+    return entries;
+  }
+
   function collectDocuments(doc) {
-    const documents = [doc];
-    Array.from(doc.querySelectorAll('iframe, frame')).forEach((frame) => {
-      try {
-        const frameDoc = frame.contentDocument;
-        if (frameDoc) {
-          documents.push(frameDoc);
-        }
-      } catch {}
-    });
-    return documents;
+    const rootWindow = doc.defaultView || window;
+    return collectDocumentEntries(rootWindow, new Set(), new Set(), 0);
   }
 
   function extractTables(doc) {
-    return collectDocuments(doc).flatMap((frameDoc) => extractTablesFromDocument(frameDoc));
+    return collectDocuments(doc).flatMap((entry) =>
+      extractTablesFromDocument(entry.doc).map((table) => ({
+        headers: table.headers,
+        rows: table.rows,
+        sourceHref: entry.href,
+        sourceDepth: entry.depth,
+      }))
+    );
   }
 
   function buildModuleExternalId(moduleCode, title, semesterLabel) {
@@ -562,13 +601,25 @@
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
   }
 
+  const documentEntries = collectDocuments(document);
   const tables = extractTables(document);
   window.__INNIS_KIT_CAMPUS_DEBUG__ = {
     sourceUrl: window.location.href,
+    documents: documentEntries.map((entry) => ({
+      href: entry.href,
+      depth: entry.depth,
+      frameCount: entry.frameCount,
+      tableCount: extractTablesFromDocument(entry.doc).length,
+      title: normalizeText(entry.doc.title),
+    })),
     tableCount: tables.length,
     rowCounts: tables.map((table) => table.rows.length),
     headerSamples: tables.slice(0, 5).map((table) => table.headers),
-    rowSamples: tables.slice(0, 3).map((table) => table.rows.slice(0, 5).map((row) => row.cells)),
+    rowSamples: tables.slice(0, 3).map((table) => ({
+      sourceHref: table.sourceHref,
+      sourceDepth: table.sourceDepth,
+      rows: table.rows.slice(0, 5).map((row) => row.cells),
+    })),
   };
   const modules = extractModulesFromTables(tables);
   const grades = extractGradesFromTables(tables);

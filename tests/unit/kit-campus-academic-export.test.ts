@@ -541,4 +541,33 @@ describe('campusAcademicExport helpers', () => {
       ])
     );
   });
+
+  it('recurses through nested frame documents and still finds academic tables', () => {
+    const outerDoc = new DOMParser().parseFromString('<main><iframe id="level-1"></iframe></main>', 'text/html');
+    const middleDoc = new DOMParser().parseFromString('<main><iframe id="level-2"></iframe></main>', 'text/html');
+    const innerDoc = new DOMParser().parseFromString(campusContractViewRealisticHtml, 'text/html');
+
+    const levelOne = outerDoc.getElementById('level-1');
+    const levelTwo = middleDoc.getElementById('level-2');
+
+    expect(levelOne).toBeTruthy();
+    expect(levelTwo).toBeTruthy();
+
+    Object.defineProperty(levelOne, 'contentDocument', {
+      configurable: true,
+      get: () => middleDoc,
+    });
+    Object.defineProperty(levelTwo, 'contentDocument', {
+      configurable: true,
+      get: () => innerDoc,
+    });
+
+    const payload = buildCampusAcademicExport(
+      outerDoc,
+      'https://campus.studium.kit.edu/exams/registration.php#!campus/student/contractview.asp'
+    );
+
+    expect(payload.modules.some((module) => module.moduleCode === '102708')).toBe(true);
+    expect(payload.grades.some((grade) => grade.moduleExternalId === 'module:102708')).toBe(true);
+  });
 });
