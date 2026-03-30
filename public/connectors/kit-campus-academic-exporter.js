@@ -142,9 +142,13 @@
   }
 
   function extractTableRows(table) {
-    return Array.from(table.querySelectorAll('tr')).map((row) => ({
-      cells: Array.from(row.querySelectorAll('th, td')).map((cell) => normalizeText(cell.textContent)),
-    })).filter((row) => row.cells.some(Boolean));
+    return Array.from(table.querySelectorAll('tr'))
+      .filter((row) => row.closest('table') === table)
+      .map((row) => ({
+        cells: Array.from(row.children)
+          .filter((cell) => cell.tagName === 'TH' || cell.tagName === 'TD')
+          .map((cell) => normalizeText(cell.textContent)),
+      })).filter((row) => row.cells.some(Boolean));
   }
 
   function extractTablesFromDocument(doc) {
@@ -225,10 +229,56 @@
     return '';
   }
 
+  function findFallbackTitleIndex(cells) {
+    for (let index = 0; index < cells.length; index += 1) {
+      const cell = normalizeText(cells[index]);
+      if (!cell || BLOCKED_LABELS.has(cell)) continue;
+
+      const normalizedTitle = normalizeHeader(cell);
+      if (
+        normalizedTitle.includes('titel (mit kennung)') ||
+        normalizedTitle.includes('persönlicher studienablaufplan') ||
+        normalizedTitle.includes('teilleistungen') ||
+        normalizedTitle.includes('orientierungsprüfung')
+      ) {
+        continue;
+      }
+
+      if (hasStatusSignal(cell) || isStandaloneGradeCell(cell) || Boolean(parseGermanDate(cell))) {
+        continue;
+      }
+
+      const parsedTitle = extractModuleCodeAndTitle(cell);
+      if (!parsedTitle.title || !looksLikeAcademicTitleCell(cell)) continue;
+
+      const tail = cells.slice(index + 1);
+      const hasDate = tail.some((tailCell) => Boolean(parseGermanDate(tailCell)));
+      const hasGrade = tail.some(isStandaloneGradeCell);
+      const hasStatus = tail.some(hasStatusSignal);
+      const creditValues = tail.map((tailCell) => parseCredits(tailCell)).filter((value) => value !== null);
+      const hasCredits = creditValues.length > 0;
+      const looksLikeAggregate = !hasDate && !hasGrade && !hasStatus && creditValues.some((value) => value > 60);
+
+      if (!looksLikeAggregate && (hasDate || hasGrade || hasStatus || hasCredits)) {
+        return index;
+      }
+    }
+
+    return cells.findIndex((cell) => Boolean(normalizeText(cell)));
+  }
+
   function normalizeFallbackCells(cells) {
-    const firstMeaningfulIndex = cells.findIndex((cell) => Boolean(normalizeText(cell)));
+    const firstMeaningfulIndex = findFallbackTitleIndex(cells);
     if (firstMeaningfulIndex <= 0) return cells;
     return cells.slice(firstMeaningfulIndex);
+  }
+
+  function looksLikeAcademicTitleCell(value) {
+    const text = normalizeText(value);
+    if (!text) return false;
+    const parsed = extractModuleCodeAndTitle(text);
+    if (parsed.moduleCode) return true;
+    return /[–-]/.test(text);
   }
 
   function isAcademicSnapshotFallbackRow(cells) {
@@ -248,7 +298,7 @@
     }
 
     const parsedTitle = extractModuleCodeAndTitle(titleCell);
-    if (!parsedTitle.title) return false;
+    if (!parsedTitle.title || !looksLikeAcademicTitleCell(titleCell)) return false;
 
     const tail = normalizedCells.slice(1);
     const hasDate = tail.some((cell) => Boolean(parseGermanDate(cell)));
@@ -513,6 +563,13 @@
   }
 
   const tables = extractTables(document);
+  window.__INNIS_KIT_CAMPUS_DEBUG__ = {
+    sourceUrl: window.location.href,
+    tableCount: tables.length,
+    rowCounts: tables.map((table) => table.rows.length),
+    headerSamples: tables.slice(0, 5).map((table) => table.headers),
+    rowSamples: tables.slice(0, 3).map((table) => table.rows.slice(0, 5).map((row) => row.cells)),
+  };
   const modules = extractModulesFromTables(tables);
   const grades = extractGradesFromTables(tables);
   const exams = extractExamsFromTables(tables);

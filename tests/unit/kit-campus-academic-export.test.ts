@@ -288,6 +288,31 @@ const campusContractViewRealisticHtml = `
   </main>
 `;
 
+const campusNestedContractHtml = `
+  <main>
+    <table>
+      <tbody>
+        <tr>
+          <td>
+            <table>
+              <tbody>
+                <tr><td>nested noise</td></tr>
+              </tbody>
+            </table>
+          </td>
+          <td>T-WIWI-102708 – Volkswirtschaftslehre I: Mikroökonomie</td>
+          <td>PF</td>
+          <td></td>
+          <td>4,0</td>
+          <td>22.02.2024</td>
+          <td>5,0</td>
+          <td>5,0</td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+`;
+
 describe('campusAcademicExport helpers', () => {
   it('builds a stable campus academic export from tables', () => {
     const doc = new DOMParser().parseFromString(campusHtml, 'text/html');
@@ -487,6 +512,31 @@ describe('campusAcademicExport helpers', () => {
           gradeLabel: '3,8',
           gradeValue: 3.8,
           examDate: '2026-03-12',
+        }),
+      ])
+    );
+  });
+
+  it('ignores nested table cells when reading contractview rows', () => {
+    const doc = new DOMParser().parseFromString(campusNestedContractHtml, 'text/html');
+    const payload = buildCampusAcademicExport(doc, 'https://campus.studium.kit.edu/exams/registration.php#!campus/student/contractview.asp');
+
+    expect(payload.modules).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          externalId: 'module:102708',
+          title: 'Volkswirtschaftslehre I: Mikroökonomie',
+          credits: 5,
+        }),
+      ])
+    );
+    expect(payload.grades).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          moduleExternalId: 'module:102708',
+          gradeLabel: '4,0',
+          gradeValue: 4,
+          examDate: '2024-02-22',
         }),
       ])
     );

@@ -196,8 +196,12 @@ function isLikelyHeaderRow(cells: string[]) {
 }
 
 function extractTableRows(table: Element) {
-  return Array.from(table.querySelectorAll('tr')).map((row) => {
-    const cells = Array.from(row.querySelectorAll('th, td')).map((cell) => normalizeText(cell.textContent ?? ''));
+  return Array.from(table.querySelectorAll('tr'))
+    .filter((row) => row.closest('table') === table)
+    .map((row) => {
+    const cells = Array.from(row.children)
+      .filter((child): child is HTMLTableCellElement => child instanceof HTMLTableCellElement)
+      .map((cell) => normalizeText(cell.textContent ?? ''));
     return { cells };
   }).filter((row) => row.cells.some(Boolean));
 }
@@ -291,10 +295,56 @@ function findFirstCell(cells: string[], startIndex: number, predicate: (value: s
   return '';
 }
 
+function findFallbackTitleIndex(cells: string[]) {
+  for (let index = 0; index < cells.length; index += 1) {
+    const cell = normalizeText(cells[index]);
+    if (!cell || blockedLabels.has(cell)) continue;
+
+    const normalizedTitle = normalizeHeader(cell);
+    if (
+      normalizedTitle.includes('titel (mit kennung)') ||
+      normalizedTitle.includes('persönlicher studienablaufplan') ||
+      normalizedTitle.includes('teilleistungen') ||
+      normalizedTitle.includes('orientierungsprüfung')
+    ) {
+      continue;
+    }
+
+    if (hasStatusSignal(cell) || isStandaloneGradeCell(cell) || Boolean(parseGermanDate(cell))) {
+      continue;
+    }
+
+    const parsedTitle = extractModuleCodeAndTitle(cell);
+    if (!parsedTitle.title || !looksLikeAcademicTitleCell(cell)) continue;
+
+    const tail = cells.slice(index + 1);
+    const hasDate = tail.some((tailCell) => Boolean(parseGermanDate(tailCell)));
+    const hasGrade = tail.some(isStandaloneGradeCell);
+    const hasStatus = tail.some(hasStatusSignal);
+    const creditValues = tail.map((tailCell) => parseCredits(tailCell)).filter((value): value is number => value !== null);
+    const hasCredits = creditValues.length > 0;
+    const looksLikeAggregate = !hasDate && !hasGrade && !hasStatus && creditValues.some((value) => value > 60);
+
+    if (!looksLikeAggregate && (hasDate || hasGrade || hasStatus || hasCredits)) {
+      return index;
+    }
+  }
+
+  return cells.findIndex((cell) => Boolean(normalizeText(cell)));
+}
+
 function normalizeFallbackCells(cells: string[]) {
-  const firstMeaningfulIndex = cells.findIndex((cell) => Boolean(normalizeText(cell)));
+  const firstMeaningfulIndex = findFallbackTitleIndex(cells);
   if (firstMeaningfulIndex <= 0) return cells;
   return cells.slice(firstMeaningfulIndex);
+}
+
+function looksLikeAcademicTitleCell(value: string) {
+  const text = normalizeText(value);
+  if (!text) return false;
+  const parsed = extractModuleCodeAndTitle(text);
+  if (parsed.moduleCode) return true;
+  return /[–-]/.test(text);
 }
 
 function isAcademicSnapshotFallbackRow(cells: string[]) {
@@ -314,7 +364,7 @@ function isAcademicSnapshotFallbackRow(cells: string[]) {
   }
 
   const parsedTitle = extractModuleCodeAndTitle(titleCell);
-  if (!parsedTitle.title) return false;
+  if (!parsedTitle.title || !looksLikeAcademicTitleCell(titleCell)) return false;
 
   const tail = normalizedCells.slice(1);
   const hasDate = tail.some((cell) => Boolean(parseGermanDate(cell)));
