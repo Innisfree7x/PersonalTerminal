@@ -205,6 +205,89 @@ const campusIndentedContractHtml = `
   </main>
 `;
 
+
+const campusContractViewRealisticHtml = `
+  <main>
+    <section>
+      <h2>Studiengangsdetails (2464504)</h2>
+      <table>
+        <tbody>
+          <tr>
+            <td></td>
+            <td>Titel (mit Kennung)</td>
+            <td>Art</td>
+            <td>Status</td>
+            <td>Note</td>
+            <td>Datum</td>
+            <td>Ist-LP</td>
+            <td>Soll-LP</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>82-179-H-2015 – Wirtschaftsingenieurwesen Bachelor 2015</td>
+            <td></td>
+            <td></td>
+            <td>2,7 1</td>
+            <td>12.03.2026</td>
+            <td>101,0</td>
+            <td>180,0</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>Orientierungsprüfung</td>
+            <td>PF</td>
+            <td></td>
+            <td>be</td>
+            <td>27.07.2024</td>
+            <td>0,0</td>
+            <td>0,0</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>M-WIWI-100950 – Orientierungsprüfung</td>
+            <td>PF</td>
+            <td></td>
+            <td>be</td>
+            <td>27.07.2024</td>
+            <td>0,0</td>
+            <td>0,0</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>T-WIWI-102708 – Volkswirtschaftslehre I: Mikroökonomie</td>
+            <td>PF</td>
+            <td></td>
+            <td>4,0</td>
+            <td>22.02.2024</td>
+            <td>5,0</td>
+            <td>5,0</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>T-WIWI-102737 – Statistik I</td>
+            <td>PF</td>
+            <td></td>
+            <td>2,0</td>
+            <td>27.07.2024</td>
+            <td>5,0</td>
+            <td>5,0</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>M-MATH-105754 – Mathematik 1</td>
+            <td>PF</td>
+            <td></td>
+            <td>3,8</td>
+            <td>12.03.2026</td>
+            <td>10,0</td>
+            <td>10,0</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+`;
+
 describe('campusAcademicExport helpers', () => {
   it('builds a stable campus academic export from tables', () => {
     const doc = new DOMParser().parseFromString(campusHtml, 'text/html');
@@ -363,6 +446,47 @@ describe('campusAcademicExport helpers', () => {
           gradeLabel: '2,0',
           gradeValue: 2,
           examDate: '2024-07-27',
+        }),
+      ])
+    );
+  });
+
+  it('extracts realistic contractview rows from Studiengangsdetails with leading blank cells', () => {
+    const doc = new DOMParser().parseFromString(campusContractViewRealisticHtml, 'text/html');
+    const payload = buildCampusAcademicExport(doc, 'https://campus.studium.kit.edu/exams/registration.php#!campus/student/contractview.asp');
+
+    expect(payload.modules).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          externalId: 'module:102708',
+          title: 'Volkswirtschaftslehre I: Mikroökonomie',
+          credits: 5,
+        }),
+        expect.objectContaining({
+          externalId: 'module:102737',
+          title: 'Statistik I',
+          credits: 5,
+        }),
+        expect.objectContaining({
+          externalId: 'module:105754',
+          title: 'Mathematik 1',
+          credits: 10,
+        }),
+      ])
+    );
+    expect(payload.grades).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          moduleExternalId: 'module:102708',
+          gradeLabel: '4,0',
+          gradeValue: 4,
+          examDate: '2024-02-22',
+        }),
+        expect.objectContaining({
+          moduleExternalId: 'module:105754',
+          gradeLabel: '3,8',
+          gradeValue: 3.8,
+          examDate: '2026-03-12',
         }),
       ])
     );

@@ -291,8 +291,15 @@ function findFirstCell(cells: string[], startIndex: number, predicate: (value: s
   return '';
 }
 
+function normalizeFallbackCells(cells: string[]) {
+  const firstMeaningfulIndex = cells.findIndex((cell) => Boolean(normalizeText(cell)));
+  if (firstMeaningfulIndex <= 0) return cells;
+  return cells.slice(firstMeaningfulIndex);
+}
+
 function isAcademicSnapshotFallbackRow(cells: string[]) {
-  const titleCell = normalizeText(cells[0]);
+  const normalizedCells = normalizeFallbackCells(cells);
+  const titleCell = normalizeText(normalizedCells[0]);
   if (!titleCell) return false;
   if (blockedLabels.has(titleCell)) return false;
 
@@ -309,7 +316,7 @@ function isAcademicSnapshotFallbackRow(cells: string[]) {
   const parsedTitle = extractModuleCodeAndTitle(titleCell);
   if (!parsedTitle.title) return false;
 
-  const tail = cells.slice(1);
+  const tail = normalizedCells.slice(1);
   const hasDate = tail.some((cell) => Boolean(parseGermanDate(cell)));
   const hasGrade = tail.some(isStandaloneGradeCell);
   const hasStatus = tail.some(hasStatusSignal);
@@ -328,18 +335,19 @@ function extractFallbackAcademicRows(tables: ExtractedTable[]) {
     for (const row of table.rows) {
       if (!isAcademicSnapshotFallbackRow(row.cells)) continue;
 
-      const titleCell = normalizeText(row.cells[0]);
+      const normalizedCells = normalizeFallbackCells(row.cells);
+      const titleCell = normalizeText(normalizedCells[0]);
       const parsedTitle = extractModuleCodeAndTitle(titleCell);
       const moduleCode = parsedTitle.moduleCode;
       const title = parsedTitle.title;
       if (!title) continue;
 
-      const statusCell = row.cells[2] ?? findFirstCell(row.cells, 1, hasStatusSignal);
-      const gradeCell = isStandaloneGradeCell(row.cells[3] ?? '')
-        ? row.cells[3] ?? ''
-        : findFirstCell(row.cells, 1, isStandaloneGradeCell);
-      const dateCell = parseGermanDate(row.cells[4] ?? '') ? row.cells[4] ?? '' : findFirstCell(row.cells, 1, (cell) => Boolean(parseGermanDate(cell)));
-      const creditCandidates = (row.cells.length >= 7 ? row.cells.slice(-2) : row.cells.slice(1))
+      const statusCell = normalizedCells[2] ?? findFirstCell(normalizedCells, 1, hasStatusSignal);
+      const gradeCell = isStandaloneGradeCell(normalizedCells[3] ?? '')
+        ? normalizedCells[3] ?? ''
+        : findFirstCell(normalizedCells, 1, isStandaloneGradeCell);
+      const dateCell = parseGermanDate(normalizedCells[4] ?? '') ? normalizedCells[4] ?? '' : findFirstCell(normalizedCells, 1, (cell) => Boolean(parseGermanDate(cell)));
+      const creditCandidates = (normalizedCells.length >= 7 ? normalizedCells.slice(-2) : normalizedCells.slice(1))
         .map((cell) => parseCredits(cell))
         .filter((value): value is number => value !== null && value <= 60);
       const credits = creditCandidates.length > 0 ? creditCandidates[0] ?? null : null;
