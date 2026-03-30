@@ -201,6 +201,16 @@
     }
   }
 
+  function safeDocumentHref(doc, fallbackHref) {
+    try {
+      if (doc && doc.location && doc.location.href) {
+        return doc.location.href;
+      }
+    } catch {}
+
+    return fallbackHref || 'unknown';
+  }
+
   function collectDocumentEntries(rootWindow, seenWindows, seenDocuments, depth) {
     if (!rootWindow || seenWindows.has(rootWindow)) {
       return [];
@@ -219,6 +229,42 @@
           depth: depth,
           frameCount: Number(rootWindow.frames && rootWindow.frames.length) || 0,
         });
+      }
+    } catch {}
+
+    try {
+      const rootDocument = rootWindow.document;
+      const parentHref = safeLocationHref(rootWindow);
+      const frameNodes = Array.from(rootDocument.querySelectorAll('iframe, frame'));
+
+      for (const frameNode of frameNodes) {
+        try {
+          const childWindow = frameNode.contentWindow;
+          if (childWindow) {
+            entries.push.apply(entries, collectDocumentEntries(childWindow, seenWindows, seenDocuments, depth + 1));
+            continue;
+          }
+
+          const childDocument = frameNode.contentDocument;
+          if (childDocument && !seenDocuments.has(childDocument)) {
+            seenDocuments.add(childDocument);
+            const childHref = safeDocumentHref(childDocument, parentHref);
+            entries.push({
+              doc: childDocument,
+              href: childHref,
+              depth: depth + 1,
+              frameCount: Number((childDocument.defaultView && childDocument.defaultView.frames && childDocument.defaultView.frames.length) || 0),
+            });
+
+            const nestedNodes = Array.from(childDocument.querySelectorAll('iframe, frame'));
+            if (nestedNodes.length > 0) {
+              const syntheticWindow = childDocument.defaultView;
+              if (syntheticWindow) {
+                entries.push.apply(entries, collectDocumentEntries(syntheticWindow, seenWindows, seenDocuments, depth + 1));
+              }
+            }
+          }
+        } catch {}
       }
     } catch {}
 
