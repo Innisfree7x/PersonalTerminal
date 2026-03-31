@@ -27,6 +27,20 @@
     return (value || '').replace(/\s+/g, ' ').trim();
   }
 
+  function normalizeAcademicDashes(value) {
+    return value.replace(/[‐‑‒–—−]/g, '–');
+  }
+
+  function decodeBasicHtmlEntities(value) {
+    return value
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>');
+  }
+
   function slugify(value) {
     return normalizeText(value)
       .toLowerCase()
@@ -39,7 +53,12 @@
   }
 
   function stableHash(parts) {
-    return btoa(parts.map((part) => part || '').join('|')).replace(/[^a-z0-9]/gi, '').slice(0, 16);
+    var str = parts.map(function (part) { return part || ''; }).join('|');
+    var hash = 0;
+    for (var i = 0; i < str.length; i++) {
+      hash = (Math.imul(hash, 31) + str.charCodeAt(i)) >>> 0;
+    }
+    return hash.toString(16).padStart(8, '0');
   }
 
   function normalizeHeader(value) {
@@ -125,15 +144,39 @@
   }
 
   function extractModuleCodeAndTitle(rawValue) {
-    const text = normalizeText(rawValue);
+    const text = normalizeAcademicDashes(normalizeText(rawValue));
     if (!text) return { moduleCode: null, title: null };
+
+    function trimAggregateTail(value) {
+      const normalized = normalizeText(value);
+      if (!normalized) return normalized;
+
+      const aggregateTailMatchers = [
+        /\s+[A-ZÄÖÜ][A-Za-zÄÖÜäöü0-9()/:,.'\- ]{2,120}?(?:Module wählen|Teilleistungen wählen)\b/,
+        /\s+(?:Berufspraktikum|Bachelorarbeit|Orientierungsprüfung|Mathematik ab \d{2}\.\d{2}\.\d{4}|Statistik)\b/,
+      ];
+
+      let stripped = normalized;
+      for (const matcher of aggregateTailMatchers) {
+        const match = stripped.match(matcher);
+        if (typeof match?.index === 'number' && match.index > 10) {
+          stripped = stripped.slice(0, match.index).trim();
+          break;
+        }
+      }
+
+      return stripped
+        .replace(/\s+(?:PF|WP|FW|PI)(?:\s+\d+(?:,\d+)?){0,2}\s*$/i, '')
+        .trim();
+    }
+
     const structuredCode = text.match(/^([A-Z0-9ÄÖÜ]+(?:-[A-Z0-9ÄÖÜ]+)*-\d{5,}|\d{5,})\s*[–-]\s*(.+)$/i);
     if (structuredCode) {
       const numericCodeMatch = structuredCode[1].match(/\d{5,}/);
-      return { moduleCode: numericCodeMatch ? numericCodeMatch[0] : structuredCode[1], title: structuredCode[2].trim() };
+      return { moduleCode: numericCodeMatch ? numericCodeMatch[0] : structuredCode[1], title: trimAggregateTail(structuredCode[2]) };
     }
     const prefixed = text.match(/^(\d{5,})\s*[–-]\s*(.+)$/);
-    if (prefixed) return { moduleCode: prefixed[1], title: prefixed[2].trim() };
+    if (prefixed) return { moduleCode: prefixed[1], title: trimAggregateTail(prefixed[2]) };
     const codeOnly = text.match(/\b(\d{5,})\b/);
     if (codeOnly) {
       const cleanedTitle = text
@@ -141,9 +184,21 @@
         .replace(codeOnly[1], '')
         .replace(/^[–-]\s*/, '')
         .trim();
-      return { moduleCode: codeOnly[1], title: cleanedTitle || text };
+      return { moduleCode: codeOnly[1], title: trimAggregateTail(cleanedTitle || text) };
     }
-    return { moduleCode: null, title: text };
+    return { moduleCode: null, title: trimAggregateTail(text) };
+  }
+
+  function looksLikeAggregateAcademicTitle(value) {
+    const text = normalizeHeader(value);
+    if (!text) return false;
+
+    return (
+      text.endsWith('module waehlen') ||
+      text.endsWith('module wählen') ||
+      text.endsWith('teilleistungen waehlen') ||
+      text.endsWith('teilleistungen wählen')
+    );
   }
 
   function isLikelyHeaderRow(cells) {
@@ -396,6 +451,7 @@
     const titleCell = normalizeText(normalizedCells[0]);
     if (!titleCell) return false;
     if (BLOCKED_LABELS.has(titleCell)) return false;
+    if (/^(PF|WP|FW|PI)$/i.test(titleCell)) return false;
 
     const normalizedTitle = normalizeHeader(titleCell);
     if (
@@ -408,6 +464,8 @@
     }
 
     const parsedTitle = extractModuleCodeAndTitle(titleCell);
+    if (parsedTitle.title && /^(PF|WP|FW|PI)$/i.test(parsedTitle.title)) return false;
+    if (looksLikeAggregateAcademicTitle(parsedTitle.title)) return false;
     if (!parsedTitle.title || !looksLikeAcademicTitleCell(titleCell)) return false;
 
     const tail = normalizedCells.slice(1);
@@ -518,19 +576,119 @@
     return [title, art || '', grade || '', grade || '', date || '', istLp || '', sollLp || ''];
   }
 
-  function collectAcademicTextLines(rawText) {
-    const normalized = rawText.replace(/\r/g, '\n');
-    const startIndex = normalized.search(/Titel\s*\(mit Kennung\)/i);
-    if (startIndex < 0) return [];
+  function collectCodedAcademicSegments(rawText) {
+    const relevant = sliceAcademicRelevantText(rawText);
+    if (!relevant) return [];
 
-    const sliced = normalized.slice(startIndex);
+    const compact = relevant
+      .replace(/^.*?Titel\s*\(mit Kennung\)\s*(?:Art\s*Status\s*Note\s*Datum\s*Ist-LP\s*Soll-LP)?/i, '')
+      .replace(/\n+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!compact) return [];
+
+    const endIndex = compact.search(/Bitte beachten Sie:/i);
+    const searchable = endIndex >= 0 ? compact.slice(0, endIndex).trim() : compact;
+    const rowStartPattern = /(?:^|\s)((?:[A-ZÄÖÜ0-9]+(?:-[A-ZÄÖÜ0-9]+)*-\d{5,}|\d{5,})\s+[–-]\s+)/g;
+    const starts = [];
+    let match;
+
+    while ((match = rowStartPattern.exec(searchable))) {
+      const prefix = match[1] || '';
+      const startIndex = (typeof match.index === 'number' ? match.index : 0) + match[0].length - prefix.length;
+      starts.push(startIndex);
+    }
+
+    return starts.map((start, index) => searchable.slice(start, starts[index + 1] || searchable.length).trim()).filter(Boolean);
+  }
+
+  function sliceAcademicRelevantText(rawText) {
+    const normalized = rawText.replace(/\r/g, '\n').replace(/\u00a0/g, ' ');
+
+    const headerStart = normalized.search(/Titel\s*\(mit Kennung\)/i);
+    const fallbackStart = headerStart >= 0
+      ? headerStart
+      : Math.max(
+          normalized.search(/Persönlicher\s+Studienablaufplan/i),
+          normalized.search(/Studiengangsdetails/i)
+        );
+
+    if (fallbackStart < 0) return '';
+
+    const sliced = normalized.slice(fallbackStart);
     const endIndex = sliced.search(/Bitte beachten Sie:/i);
-    const relevant = endIndex >= 0 ? sliced.slice(0, endIndex) : sliced;
+    return (endIndex >= 0 ? sliced.slice(0, endIndex) : sliced).trim();
+  }
 
-    return relevant
+  function collectAcademicTextSegments(rawText) {
+    const relevant = sliceAcademicRelevantText(rawText);
+    if (!relevant) return [];
+
+    const compact = relevant
+      .replace(/^.*?Titel\s*\(mit Kennung\)\s*(?:Art\s*Status\s*Note\s*Datum\s*Ist-LP\s*Soll-LP)?/i, '')
+      .replace(/\n+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!compact) return [];
+
+    return compact
+      .replace(/\s+(?=(?:[A-ZÄÖÜ]+(?:-[A-ZÄÖÜ0-9]+)*-\d{5,}\s+[–-]))/g, '\n')
+      .replace(/\s+(?=(?:\d{2}-\d{3}-[A-Z]-\d{4}\s+[–-]))/g, '\n')
+      .replace(
+        /(\d+(?:,\d+)?\s+\d+(?:,\d+)?)(?=\s+(?:[A-ZÄÖÜ][A-Za-zÄÖÜäöü0-9()/:,.'\-]{2,120}?\s+(?:PF|WP|FW|PI)\b))/g,
+        '$1\n'
+      )
+      .replace(
+        /\s+(?=(?:[A-ZÄÖÜ][A-Za-zÄÖÜäöü0-9()/:,.'\- ]{2,120}?(?:Module wählen|Teilleistungen wählen|Berufspraktikum|Bachelorarbeit|Orientierungsprüfung|Mathematik ab \d{2}\.\d{2}\.\d{4}|Statistik)\b)\s+(?:PF|WP|FW|PI)\b)/g,
+        '\n'
+      )
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
+  }
+
+  function collectAcademicTextLines(rawText) {
+    const relevant = sliceAcademicRelevantText(rawText);
+    const lineSplit = relevant
       .split('\n')
       .map((line) => line.replace(/\u00a0/g, ' ').trim())
       .filter(Boolean);
+    const compactSegments = collectAcademicTextSegments(rawText);
+    const codedSegments = collectCodedAcademicSegments(rawText);
+    return Array.from(new Set(lineSplit.concat(compactSegments, codedSegments)));
+  }
+
+  function extractHtmlTextFallback(value) {
+    const html = value || '';
+    if (!html) return '';
+
+    return normalizeAcademicDashes(
+      normalizeText(
+        decodeBasicHtmlEntities(
+          html
+            .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+            .replace(/<\/?(?:tr|thead|tbody|tfoot|table|div|section|article|header|footer|aside|main|ul|ol|li|p|br|hr|h[1-6]|td|th)\b[^>]*>/gi, '\n')
+            .replace(/<[^>]+>/g, ' ')
+        )
+      )
+    );
+  }
+
+  function extractDocumentText(doc) {
+    const candidates = [
+      (doc.body && doc.body.innerText) || '',
+      (doc.documentElement && doc.documentElement.innerText) || '',
+      (doc.body && doc.body.textContent) || '',
+      (doc.documentElement && doc.documentElement.textContent) || '',
+      extractHtmlTextFallback(doc.body && doc.body.outerHTML),
+      extractHtmlTextFallback(doc.documentElement && doc.documentElement.outerHTML),
+    ]
+      .map((value) => normalizeAcademicDashes(normalizeText(value)))
+      .filter(Boolean);
+
+    return Array.from(new Set(candidates)).join('\n');
   }
 
   function extractFallbackAcademicRowsFromText(rawText) {
@@ -565,6 +723,7 @@
       const parsedTitle = extractModuleCodeAndTitle(titleCell);
       const moduleCode = parsedTitle.moduleCode;
       const title = parsedTitle.title;
+      if (looksLikeAggregateAcademicTitle(title)) continue;
       if (!title) continue;
 
       const statusCell = normalizedCells[2] || findFirstCell(normalizedCells, 1, hasStatusSignal);
@@ -807,7 +966,7 @@
   const documentEntries = collectDocuments(document);
   const tables = extractTables(document);
   const documentTexts = documentEntries
-    .map((entry) => (entry.doc.body && entry.doc.body.innerText) || (entry.doc.documentElement && entry.doc.documentElement.textContent) || '')
+    .map((entry) => extractDocumentText(entry.doc))
     .filter(Boolean)
     .join('\n');
   const textLineSamples = collectAcademicTextLines(documentTexts).slice(0, 12);
@@ -821,9 +980,11 @@
       title: normalizeText(entry.doc.title),
     })),
     tableCount: tables.length,
+    documentTextLength: documentTexts.length,
     rowCounts: tables.map((table) => table.rows.length),
     headerSamples: tables.slice(0, 5).map((table) => table.headers),
     textLineSamples: textLineSamples,
+    textPreview: documentTexts.slice(0, 600),
     rowSamples: tables.slice(0, 3).map((table) => ({
       sourceHref: table.sourceHref,
       sourceDepth: table.sourceDepth,
