@@ -342,8 +342,11 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatus> {
         status: mod.status,
       };
     })
-    // Filter out category headers like "Operations Research Module wählen"
-    .filter((m) => !m.moduleTitle.toLowerCase().includes('module wählen'))
+    // Clean "Module wählen" suffix from category titles (e.g. "Operations Research Module wählen" → "Operations Research")
+    .map((m) => ({
+      ...m,
+      moduleTitle: m.moduleTitle.replace(/\s*Module wählen$/i, '').trim(),
+    }))
     // Clean gradeLabel: strip trailing attempt number (e.g. "3,0 1" → "3,0")
     .map((m) => ({
       ...m,
