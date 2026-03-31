@@ -1009,7 +1009,13 @@
   const snapshot = loadSnapshot();
   snapshot.generatedAt = new Date().toISOString();
   snapshot.sourceUrl = window.location.href;
-  snapshot.modules = dedupeByExternalId([].concat(snapshot.modules || [], modules, fallback.modules, textFallback.modules, deriveModulesFromGrades([].concat(grades, fallback.grades, textFallback.grades)), deriveModulesFromExams(exams)));
+  snapshot.modules = dedupeByExternalId([].concat(snapshot.modules || [], modules, fallback.modules, textFallback.modules, deriveModulesFromGrades([].concat(grades, fallback.grades, textFallback.grades)), deriveModulesFromExams(exams)))
+    .map(function (mod) {
+      if (mod.credits !== null && mod.credits !== undefined && mod.credits > 60) {
+        mod.credits = null;
+      }
+      return mod;
+    });
   snapshot.grades = dedupeByKey([].concat(snapshot.grades || [], grades, fallback.grades, textFallback.grades), 'externalGradeId');
   snapshot.exams = dedupeByKey([].concat(snapshot.exams || [], exams), 'externalId');
   saveSnapshot(snapshot);
