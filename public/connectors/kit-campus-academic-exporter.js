@@ -1019,23 +1019,57 @@
   const filename = 'innis-kit-campus-academic-export-' + new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-') + '.json';
   window.__INNIS_KIT_CAMPUS_EXPORT__ = snapshot;
 
+  function triggerDownload(jsonString, downloadFilename) {
+    try {
+      var targetDoc = (window.top && window.top.document) || document;
+      var blob = new Blob([jsonString], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var link = targetDoc.createElement('a');
+      link.href = url;
+      link.download = downloadFilename;
+      link.style.display = 'none';
+      targetDoc.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      return true;
+    } catch (_topError) {
+      try {
+        var blob2 = new Blob([jsonString], { type: 'application/json' });
+        var url2 = URL.createObjectURL(blob2);
+        var link2 = document.createElement('a');
+        link2.href = url2;
+        link2.download = downloadFilename;
+        link2.style.display = 'none';
+        document.body.appendChild(link2);
+        link2.click();
+        link2.remove();
+        setTimeout(function () { URL.revokeObjectURL(url2); }, 1000);
+        return true;
+      } catch (_localError) {
+        return false;
+      }
+    }
+  }
+
+  var downloaded = triggerDownload(serialized, filename);
+
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(serialized).then(
       function () {
-        const blob = new Blob([serialized], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-        alert(message + ' JSON wurde in die Zwischenablage kopiert. Wenn der Datei-Download blockiert oder wegen Speicher scheitert, füge den Inhalt direkt in INNIS ein.');
+        alert(message + (downloaded
+          ? ' Datei wurde heruntergeladen und JSON in die Zwischenablage kopiert.'
+          : ' JSON in Zwischenablage kopiert. Download fehlgeschlagen — füge den JSON in INNIS manuell ein.'));
       },
-      function () { alert(message + ' JSON liegt auf window.__INNIS_KIT_CAMPUS_EXPORT__ und kann direkt in INNIS eingefügt werden.'); }
+      function () {
+        alert(message + (downloaded
+          ? ' Datei wurde heruntergeladen. Zwischenablage nicht verfügbar.'
+          : ' JSON liegt auf window.__INNIS_KIT_CAMPUS_EXPORT__'));
+      }
     );
   } else {
-    alert(message + ' JSON liegt auf window.__INNIS_KIT_CAMPUS_EXPORT__ und kann direkt in INNIS eingefügt werden.');
+    alert(message + (downloaded
+      ? ' Datei wurde heruntergeladen.'
+      : ' JSON liegt auf window.__INNIS_KIT_CAMPUS_EXPORT__'));
   }
 })();
