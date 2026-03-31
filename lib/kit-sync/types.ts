@@ -15,6 +15,17 @@ export interface KitSyncStatus {
   nextCampusEvent: { title: string; startsAt: string; kind: string } | null;
   nextCampusExam: { title: string; startsAt: string; location: string | null } | null;
   latestCampusGrade: { moduleTitle: string; gradeLabel: string; publishedAt: string | null } | null;
+  campusGradeAverage: number | null;
+  campusGradedModuleCount: number;
+  campusModulesWithGrades: Array<{
+    moduleTitle: string;
+    moduleCode: string | null;
+    credits: number | null;
+    gradeValue: number | null;
+    gradeLabel: string;
+    examDate: string | null;
+    status: string;
+  }>;
   latestIliasItem: {
     favoriteTitle: string;
     title: string;
@@ -67,6 +78,9 @@ export function createEmptyKitSyncStatus(): KitSyncStatus {
     nextCampusEvent: null,
     nextCampusExam: null,
     latestCampusGrade: null,
+    campusGradeAverage: null,
+    campusGradedModuleCount: 0,
+    campusModulesWithGrades: [],
     latestIliasItem: null,
     freshIliasPreview: [],
     iliasFavoritePreview: [],

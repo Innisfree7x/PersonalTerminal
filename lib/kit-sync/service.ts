@@ -192,6 +192,7 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatus> {
     { data: nextEvent, error: nextEventError },
     { data: nextExam, error: nextExamError },
     { data: latestGrade, error: latestGradeError },
+    { data: gradesWithModules },
     iliasFavoritesResult,
     iliasItemsResult,
     iliasFreshResult,
@@ -228,6 +229,12 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatus> {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
+    client
+      .from('kit_campus_grades')
+      .select('grade_value, grade_label, exam_date, module_id, kit_campus_modules!inner(title, module_code, credits, status)')
+      .eq('user_id', userId)
+      .not('grade_value', 'is', null)
+      .order('exam_date', { ascending: false, nullsFirst: false }),
     client.from('kit_ilias_favorites').select('id', { count: 'exact', head: true }).eq('user_id', userId),
     client.from('kit_ilias_items').select('id', { count: 'exact', head: true }).eq('user_id', userId),
     client
@@ -321,6 +328,25 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatus> {
     latestGradeModuleTitle = moduleRow?.title ?? null;
   }
 
+  // Build graded modules list and compute average
+  const modulesWithGrades: KitSyncStatus['campusModulesWithGrades'] = (gradesWithModules ?? []).map((row) => {
+    const mod = row.kit_campus_modules as unknown as { title: string; module_code: string | null; credits: number | null; status: string };
+    return {
+      moduleTitle: mod.title,
+      moduleCode: mod.module_code,
+      credits: mod.credits,
+      gradeValue: row.grade_value,
+      gradeLabel: row.grade_label,
+      examDate: row.exam_date,
+      status: mod.status,
+    };
+  });
+
+  const numericGrades = modulesWithGrades.filter((m) => m.gradeValue !== null).map((m) => m.gradeValue as number);
+  const gradeAverage = numericGrades.length > 0
+    ? Math.round((numericGrades.reduce((sum, g) => sum + g, 0) / numericGrades.length) * 100) / 100
+    : null;
+
   let latestIliasFavoriteTitle: string | null = null;
   if (iliasLatestItemResult.data?.favorite_id && !isMissingRelationError(iliasLatestItemResult.error)) {
     const { data: favoriteRow, error: favoriteError } = await client
@@ -392,6 +418,9 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatus> {
             publishedAt: latestGrade.published_at,
           }
         : null,
+    campusGradeAverage: gradeAverage,
+    campusGradedModuleCount: numericGrades.length,
+    campusModulesWithGrades: modulesWithGrades,
     latestIliasItem:
       iliasLatestItemResult.data && latestIliasFavoriteTitle
         ? {
