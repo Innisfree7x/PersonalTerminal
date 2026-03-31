@@ -329,18 +329,26 @@ export async function getKitSyncStatus(userId: string): Promise<KitSyncStatus> {
   }
 
   // Build graded modules list and compute average
-  const modulesWithGrades: KitSyncStatus['campusModulesWithGrades'] = (gradesWithModules ?? []).map((row) => {
-    const mod = row.kit_campus_modules as unknown as { title: string; module_code: string | null; credits: number | null; status: string };
-    return {
-      moduleTitle: mod.title,
-      moduleCode: mod.module_code,
-      credits: mod.credits,
-      gradeValue: row.grade_value,
-      gradeLabel: row.grade_label,
-      examDate: row.exam_date,
-      status: mod.status,
-    };
-  });
+  const modulesWithGrades: KitSyncStatus['campusModulesWithGrades'] = (gradesWithModules ?? [])
+    .map((row) => {
+      const mod = row.kit_campus_modules as unknown as { title: string; module_code: string | null; credits: number | null; status: string };
+      return {
+        moduleTitle: mod.title,
+        moduleCode: mod.module_code,
+        credits: mod.credits,
+        gradeValue: row.grade_value,
+        gradeLabel: row.grade_label,
+        examDate: row.exam_date,
+        status: mod.status,
+      };
+    })
+    // Filter out category headers like "Operations Research Module wählen"
+    .filter((m) => !m.moduleTitle.toLowerCase().includes('module wählen'))
+    // Clean gradeLabel: strip trailing attempt number (e.g. "3,0 1" → "3,0")
+    .map((m) => ({
+      ...m,
+      gradeLabel: m.gradeLabel.replace(/\s+\d+$/, ''),
+    }));
 
   const numericGrades = modulesWithGrades.filter((m) => m.gradeValue !== null).map((m) => m.gradeValue as number);
   const gradeAverage = numericGrades.length > 0
