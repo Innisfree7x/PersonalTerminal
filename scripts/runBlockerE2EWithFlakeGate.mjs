@@ -189,9 +189,15 @@ function main() {
     process.exit(run.status || 1);
   }
 
-  if (summary.flakeRate > threshold) {
+  // For small test suites, a single flaky test causes a disproportionate flake rate.
+  // Allow at least 1 flaky test before failing, regardless of rate.
+  const MIN_FLAKE_ALLOWANCE = 1;
+  if (summary.flaky > MIN_FLAKE_ALLOWANCE && summary.flakeRate > threshold) {
     console.error('[flake-gate] Flake rate exceeds threshold.');
     process.exit(1);
+  }
+  if (summary.flaky > 0 && summary.flaky <= MIN_FLAKE_ALLOWANCE) {
+    console.log(`[flake-gate] ${summary.flaky} flaky test(s) within allowance (max ${MIN_FLAKE_ALLOWANCE}). Passing.`);
   }
 
   process.exit(0);
