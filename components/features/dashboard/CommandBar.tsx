@@ -397,7 +397,7 @@ export default function CommandBar({
     ) : undefined;
 
   return (
-    <div className="card-surface dashboard-premium-card-soft relative overflow-hidden rounded-xl border shadow-2xl">
+    <div className="card-warm relative overflow-hidden rounded-xl border shadow-2xl">
       {/* Top inset highlight */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
       {/* Bottom 4-color gradient line */}

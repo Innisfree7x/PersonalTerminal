@@ -198,7 +198,7 @@ export default function Header() {
 
             {/* Notification Dropdown (placeholder) */}
             {notificationsOpen && (
-              <div className="absolute top-full right-0 mt-2 w-80 card-surface dashboard-premium-card-soft rounded-lg p-3">
+              <div className="absolute top-full right-0 mt-2 w-80 card-warm rounded-lg p-3">
                 <div className="text-xs text-text-tertiary text-center py-4">
                   {copy.header.noNotifications}
                 </div>

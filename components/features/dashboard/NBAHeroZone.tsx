@@ -148,7 +148,7 @@ export default function NBAHeroZone({ nextBestAction, alternatives, riskSignals,
 
   if (!activeCandidate) {
     return (
-      <div className="card-surface dashboard-premium-card relative overflow-hidden rounded-xl p-6 text-center">
+      <div className="card-warm-accent relative overflow-hidden rounded-xl p-6 text-center">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
         <p className="text-sm text-text-secondary">Kein offener Move — gut gemacht.</p>
       </div>
@@ -156,7 +156,7 @@ export default function NBAHeroZone({ nextBestAction, alternatives, riskSignals,
   }
 
   return (
-    <div className="card-surface dashboard-premium-card relative overflow-hidden rounded-xl">
+    <div className="card-warm-accent relative overflow-hidden rounded-xl">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/45 to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-r-full bg-primary/70 shadow-[0_0_12px_rgb(var(--primary)/0.35)]" />
 

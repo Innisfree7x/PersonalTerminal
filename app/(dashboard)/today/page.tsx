@@ -23,7 +23,7 @@ import { useStreak } from '@/lib/hooks/useStreak';
 const LAST_MOMENTUM_SCORE_KEY = 'innis:last-momentum-score:v1';
 
 const widgetSkeleton = (
-  <div className="card-surface dashboard-premium-card-soft h-[160px] animate-pulse p-4">
+  <div className="card-warm h-[160px] animate-pulse p-4">
     <div className="h-4 w-28 rounded bg-white/10" />
     <div className="mt-3 h-3 w-2/3 rounded bg-white/10" />
     <div className="mt-2 h-3 w-1/2 rounded bg-white/10" />
@@ -142,7 +142,7 @@ export default function TodayPage() {
     <div className="space-y-4 md:space-y-5" data-testid="today-page-root">
       {/* ── 1. Morning Briefing — single compact line ── */}
       <ErrorBoundary fallbackTitle="Morning Briefing Error">
-        <div className="card-surface dashboard-premium-card relative overflow-hidden rounded-xl px-4 py-2.5">
+        <div className="card-warm-accent relative overflow-hidden rounded-xl px-4 py-2.5">
           <div className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-r-full bg-primary/70 shadow-[0_0_10px_rgb(var(--primary)/0.3)]" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
 
@@ -317,7 +317,7 @@ export default function TodayPage() {
       </div>
 
       {/* ── 4. Bottom Stats Line ── */}
-      <div className="card-surface dashboard-premium-card-soft relative overflow-hidden rounded-xl">
+      <div className="card-warm relative overflow-hidden rounded-xl">
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1 px-4 py-2.5">
           <StatItem
             icon={<CheckCircle2 className="h-3.5 w-3.5 text-red-300/70" />}

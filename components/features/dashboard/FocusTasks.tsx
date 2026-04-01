@@ -469,7 +469,7 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
   );
 
   return (
-    <div className="card-surface dashboard-premium-card-soft p-6">
+    <div className="card-warm p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
           <BookOpen className="w-5 h-5 text-primary" />

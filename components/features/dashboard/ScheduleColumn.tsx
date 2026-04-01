@@ -177,7 +177,7 @@ export default function ScheduleColumn({
 
   if (isConnected === false) {
     return (
-      <div className="card-surface dashboard-premium-card-soft p-5">
+      <div className="card-warm p-5">
         <div className="flex flex-col items-center justify-center gap-3 py-8 px-4 text-center">
           <div className="h-10 w-10 rounded-xl bg-primary/[0.12] border border-primary/20 flex items-center justify-center">
             <Calendar className="h-5 w-5 text-primary/80" />
@@ -201,7 +201,7 @@ export default function ScheduleColumn({
 
   if (isLoading) {
     return (
-      <div className="card-surface dashboard-premium-card-soft p-8 text-center">
+      <div className="card-warm p-8 text-center">
         <div className="animate-spin inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full mb-4" />
         <p className="text-sm text-text-tertiary">Loading schedule...</p>
       </div>
@@ -209,7 +209,7 @@ export default function ScheduleColumn({
   }
 
   return (
-    <div className="card-surface dashboard-premium-card-soft p-6">
+    <div className="card-warm p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">

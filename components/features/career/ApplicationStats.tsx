@@ -73,7 +73,7 @@ export default function ApplicationStats({ applications }: ApplicationStatsProps
   return (
     <div className="space-y-3">
       {/* Pipeline Score Strip */}
-      <div className="card-surface dashboard-premium-card-soft rounded-xl px-4 py-2.5 flex items-center gap-4">
+      <div className="card-warm rounded-xl px-4 py-2.5 flex items-center gap-4">
         <div className="flex items-center gap-2 shrink-0">
           <span className="text-[10px] uppercase tracking-[0.12em] text-zinc-500">Pipeline</span>
           <span className="text-sm font-bold text-text-primary font-mono">{pipeline.score}</span>

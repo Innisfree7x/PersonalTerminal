@@ -392,7 +392,7 @@ export default function CalendarPage() {
       </div>
 
       {/* Week Navigation */}
-      <div className="card-surface dashboard-premium-card-soft flex items-center justify-between rounded-lg p-4">
+      <div className="card-warm flex items-center justify-between rounded-lg p-4">
         <button
           onClick={handlePreviousWeek}
           className="px-4 py-2 text-sm rounded-lg border border-border bg-surface/70 text-text-secondary hover:bg-surface-hover/70 hover:text-text-primary transition-colors"
@@ -454,7 +454,7 @@ export default function CalendarPage() {
 
       {/* Not Connected State */}
       {isConnected === false && !hasRealEvents && !hasGhostEvents && (
-        <div className="card-surface dashboard-premium-card-soft rounded-lg border px-6 py-8 text-center">
+        <div className="card-warm rounded-lg border px-6 py-8 text-center">
           <div className="text-4xl mb-4">📅</div>
           <h2 className="text-xl font-semibold text-text-primary mb-2">
             Google Kalender verbinden

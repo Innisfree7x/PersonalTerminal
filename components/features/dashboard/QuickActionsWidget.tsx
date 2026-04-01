@@ -26,7 +26,7 @@ const QuickActionsWidget = memo(function QuickActionsWidget({ isLoading = false 
 
   if (isLoading) {
     return (
-      <div className="card-surface dashboard-premium-card-soft rounded-xl p-5">
+      <div className="card-warm rounded-xl p-5">
         <div className="mb-4 flex items-center gap-2">
           <Plus className="h-4 w-4 text-primary/75" />
           <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-text-tertiary">Quick Actions</h3>
@@ -44,7 +44,7 @@ const QuickActionsWidget = memo(function QuickActionsWidget({ isLoading = false 
   }
 
   return (
-    <div className="card-surface dashboard-premium-card-soft rounded-xl p-5 space-y-3">
+    <div className="card-warm rounded-xl p-5 space-y-3">
       <div className="flex items-center gap-2">
         <Plus className="h-4 w-4 text-primary/75" />
         <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-text-tertiary">Quick Actions</h3>
