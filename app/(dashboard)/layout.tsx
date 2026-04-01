@@ -48,19 +48,8 @@ function DashboardLayoutInner({
 
           {/* Main content with max-width and centered */}
           <main className="relative">
-            {/* Atmospheric background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
-            {/* Subtle dot grid — adds premium depth */}
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px)',
-                backgroundSize: '28px 28px',
-              }}
-            />
-
             {/* Content container */}
-            <div className="relative max-w-[1600px] mx-auto px-6 pt-5 pb-8">
+            <div className="max-w-[1600px] mx-auto px-6 pt-5 pb-8">
               <div key={pathname} className="animate-dashboard-page-in">
                 {children}
               </div>

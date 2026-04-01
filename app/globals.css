@@ -409,42 +409,7 @@
   background: radial-gradient(circle at 50% -20%, rgb(80 200 120 / 0.12) 0%, rgb(5 5 5) 55%);
 }
 
-[data-theme='gold'] body::before,
-[data-theme='platinum'] body::before,
-[data-theme='sapphire'] body::before,
-[data-theme='copper'] body::before,
-[data-theme='amethyst'] body::before,
-[data-theme='obsidian'] body::before,
-[data-theme='rosegold'] body::before,
-[data-theme='carbon'] body::before,
-[data-theme='titanium'] body::before,
-[data-theme='onyx'] body::before {
-  content: '';
-  position: fixed;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: conic-gradient(from 0deg at 50% 50%,
-      transparent 0deg,
-      rgb(var(--primary) / 0.06) 60deg,
-      rgb(var(--primary-secondary) / 0.04) 100deg,
-      transparent 120deg,
-      transparent 360deg);
-  animation: metal-sheen 20s linear infinite;
-  pointer-events: none;
-  z-index: -1;
-}
-
-@keyframes metal-sheen {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
+/* Metal-sheen animation removed in V2 redesign */
 
 
 @layer base {
@@ -464,11 +429,11 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     min-height: 100dvh;
     overscroll-behavior-y: none;
-    /* Ambient depth glow — subtle primary halo at top */
+    /* Ambient depth glow — very subtle primary tint at top */
     background-image: radial-gradient(
       ellipse 80% 45% at 50% -8%,
-      rgb(var(--primary) / 0.08) 0%,
-      rgb(var(--primary-secondary) / 0.04) 35%,
+      rgb(var(--primary) / 0.04) 0%,
+      rgb(var(--primary-secondary) / 0.02) 35%,
       transparent 60%
     );
   }
@@ -588,6 +553,44 @@
       inset 0 1px 0 rgb(255 255 255 / 0.04),
       10px 0 34px rgb(0 0 0 / 0.24),
       0 0 0 1px rgb(var(--primary) / 0.06);
+  }
+
+  /* ── V2 "Lucians Welt" — Warm Card System ────────── */
+
+  .card-warm {
+    @apply rounded-xl border;
+    background: rgb(var(--surface) / 0.88);
+    border-color: rgb(var(--border) / 0.55);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.12);
+  }
+
+  .card-warm-hover {
+    @apply rounded-xl border transition-all duration-200;
+    background: rgb(var(--surface) / 0.88);
+    border-color: rgb(var(--border) / 0.55);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.12);
+  }
+  .card-warm-hover:hover {
+    border-color: rgb(var(--primary) / 0.3);
+    box-shadow:
+      0 4px 16px rgb(0 0 0 / 0.18),
+      0 0 0 1px rgb(var(--primary) / 0.08);
+    transform: translateY(-1px);
+  }
+
+  .card-warm-accent {
+    @apply rounded-xl border;
+    background: rgb(var(--surface) / 0.92);
+    border-color: rgb(var(--primary) / 0.2);
+    box-shadow:
+      0 2px 12px rgb(0 0 0 / 0.14),
+      0 0 0 1px rgb(var(--primary) / 0.06);
+  }
+
+  .sidebar-warm {
+    background: linear-gradient(180deg, rgb(var(--surface) / 0.92), rgb(var(--background) / 0.96));
+    border-color: rgb(var(--border) / 0.5);
+    box-shadow: 1px 0 8px rgb(0 0 0 / 0.12);
   }
 
   /* Gold/Platinum need slightly stronger glass layers to avoid black crush. */
