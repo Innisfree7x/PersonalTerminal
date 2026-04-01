@@ -771,7 +771,6 @@ describe('campusAcademicExport helpers', () => {
           credits: 5,
         }),
         expect.objectContaining({
-          externalId: 'module:102611',
           title: 'Berufspraktikum',
           status: 'completed',
           credits: 10,
@@ -792,7 +791,6 @@ describe('campusAcademicExport helpers', () => {
           examDate: '2024-02-22',
         }),
         expect.objectContaining({
-          moduleExternalId: 'module:102611',
           gradeLabel: 'be',
           gradeValue: null,
           examDate: '2025-04-09',
@@ -805,5 +803,70 @@ describe('campusAcademicExport helpers', () => {
         }),
       ])
     );
+  });
+
+  it('falls back to collapsed document text when innerText is empty on contractview pages', () => {
+    const doc = new DOMParser().parseFromString('<main><section id="fallback"></section></main>', 'text/html');
+    const collapsed = campusContractViewExactUserTextFallback.replace(/\s+/g, ' ').trim();
+
+    Object.defineProperty(doc.body, 'innerText', {
+      configurable: true,
+      get: () => '',
+    });
+
+    Object.defineProperty(doc.documentElement, 'textContent', {
+      configurable: true,
+      get: () => collapsed,
+    });
+
+    const payload = buildCampusAcademicExport(
+      doc,
+      'https://campus.studium.kit.edu/exams/registration.php#!campus/student/contractview.asp'
+    );
+
+    expect(payload.modules).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          externalId: 'module:102708',
+          title: 'Volkswirtschaftslehre I: Mikroökonomie',
+          credits: 5,
+        }),
+        expect.objectContaining({
+          title: 'Berufspraktikum',
+          status: 'completed',
+          credits: 10,
+        }),
+        expect.objectContaining({
+          externalId: 'module:105754',
+          title: 'Mathematik 1',
+          credits: 10,
+        }),
+      ])
+    );
+    expect(payload.grades).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          moduleExternalId: 'module:102708',
+          gradeLabel: '4,0',
+          gradeValue: 4,
+          examDate: '2024-02-22',
+        }),
+        expect.objectContaining({
+          gradeLabel: 'be',
+          gradeValue: null,
+          examDate: '2025-04-09',
+        }),
+        expect.objectContaining({
+          moduleExternalId: 'module:105754',
+          gradeLabel: '3,8',
+          gradeValue: 3.8,
+          examDate: '2026-03-12',
+        }),
+      ])
+    );
+    expect(payload.modules.some((module) => module.title === 'PF')).toBe(false);
+    expect(
+      payload.modules.some((module) => module.title.includes('Informatik Module wählen'))
+    ).toBe(false);
   });
 });
