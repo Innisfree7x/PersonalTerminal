@@ -45,7 +45,7 @@ vi.mock('@/lib/hooks/useSoundToast', () => ({
   }),
 }));
 
-import TrajectoryPage from '@/app/(dashboard)/trajectory/page';
+import TrajectoryPage from '@/app/(dashboard)/career/trajectory/page';
 
 function installStorageMock() {
   const store = new Map<string, string>();

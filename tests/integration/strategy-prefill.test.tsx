@@ -20,7 +20,7 @@ vi.mock('@/lib/hooks/useSoundToast', () => ({
   }),
 }));
 
-import StrategyPage from '@/app/(dashboard)/strategy/page';
+import StrategyPage from '@/app/(dashboard)/career/strategy/page';
 
 describe('Strategy career prefill integration', () => {
   beforeEach(() => {
