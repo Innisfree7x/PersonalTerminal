@@ -96,7 +96,7 @@ export default function OpsHealthClient() {
           >
             {isFetching ? 'Refreshing...' : 'Refresh'}
           </button>
-          <Link href="/analytics" className="px-3 py-2 rounded-lg bg-surface border border-border text-text-secondary hover:text-text-primary inline-flex items-center gap-1.5">
+          <Link href="/reflect/analytics" className="px-3 py-2 rounded-lg bg-surface border border-border text-text-secondary hover:text-text-primary inline-flex items-center gap-1.5">
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
@@ -119,7 +119,7 @@ export default function OpsHealthClient() {
 
       {data ? (
         <>
-          <div className="card-surface rounded-xl p-4 flex items-center justify-between">
+          <div className="card-warm rounded-xl p-4 flex items-center justify-between">
             <div>
               <div className="text-xs text-text-tertiary uppercase tracking-wider">Audit Log Migration</div>
               <div className="text-sm text-text-secondary mt-1">
@@ -137,7 +137,7 @@ export default function OpsHealthClient() {
             </span>
           </div>
 
-          <div className="card-surface rounded-xl p-4 space-y-3">
+          <div className="card-warm rounded-xl p-4 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div>
                 <div className="text-sm font-semibold text-text-primary">Flow SLO Snapshot (7d)</div>
@@ -221,7 +221,7 @@ export default function OpsHealthClient() {
             )}
           </div>
 
-          <div className="card-surface rounded-xl p-4 space-y-3">
+          <div className="card-warm rounded-xl p-4 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div>
                 <div className="text-sm font-semibold text-text-primary">Trajectory Activation Snapshot</div>
@@ -293,7 +293,7 @@ export default function OpsHealthClient() {
             )}
           </div>
 
-          <div className="card-surface rounded-xl p-4 space-y-3">
+          <div className="card-warm rounded-xl p-4 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div>
                 <div className="text-sm font-semibold text-text-primary">Persistent Error Events (24h)</div>
@@ -372,29 +372,29 @@ export default function OpsHealthClient() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="card-surface rounded-xl p-4">
+            <div className="card-warm rounded-xl p-4">
               <div className="text-xs text-text-tertiary">Incidents</div>
               <div className="text-2xl font-bold text-text-primary">{data.totals.incidents}</div>
             </div>
-            <div className="card-surface rounded-xl p-4">
+            <div className="card-warm rounded-xl p-4">
               <div className="text-xs text-text-tertiary">Events</div>
               <div className="text-2xl font-bold text-text-primary">{data.totals.events}</div>
             </div>
-            <div className="card-surface rounded-xl p-4">
+            <div className="card-warm rounded-xl p-4">
               <div className="text-xs text-text-tertiary">Critical</div>
               <div className="text-2xl font-bold text-error">{data.totals.bySeverity.critical}</div>
             </div>
-            <div className="card-surface rounded-xl p-4">
+            <div className="card-warm rounded-xl p-4">
               <div className="text-xs text-text-tertiary">Errors</div>
               <div className="text-2xl font-bold text-warning">{data.totals.bySeverity.error}</div>
             </div>
-            <div className="card-surface rounded-xl p-4">
+            <div className="card-warm rounded-xl p-4">
               <div className="text-xs text-text-tertiary">Warnings</div>
               <div className="text-2xl font-bold text-info">{data.totals.bySeverity.warning}</div>
             </div>
           </div>
 
-          <div className="card-surface rounded-xl p-4 space-y-3">
+          <div className="card-warm rounded-xl p-4 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div className="text-sm font-semibold text-text-primary">Top Incidents</div>
               {data.topIncidents.length > 0 && (
@@ -471,7 +471,7 @@ export default function OpsHealthClient() {
             )}
           </div>
 
-          <div className="card-surface rounded-xl p-4 space-y-3">
+          <div className="card-warm rounded-xl p-4 space-y-3">
             <div className="text-sm font-semibold text-text-primary flex items-center gap-2">
               <Flame className="w-4 h-4 text-warning" />
               Burn Rate Status (Multi-Window)
@@ -531,7 +531,7 @@ export default function OpsHealthClient() {
             )}
           </div>
 
-          <div className="card-surface rounded-xl p-4 space-y-3">
+          <div className="card-warm rounded-xl p-4 space-y-3">
             <div className="text-sm font-semibold text-text-primary flex items-center gap-2">
               <Server className="w-4 h-4 text-primary" />
               Dependency Health (Circuit Breakers)
@@ -568,7 +568,7 @@ export default function OpsHealthClient() {
             )}
           </div>
 
-          <div className="card-surface rounded-xl p-4 space-y-3">
+          <div className="card-warm rounded-xl p-4 space-y-3">
             <div className="text-sm font-semibold text-text-primary">Recent Admin Actions</div>
             {(data.recentAdminAuditLogs || []).length === 0 ? (
               <div className="text-sm text-text-tertiary">No audit entries yet.</div>

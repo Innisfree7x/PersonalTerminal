@@ -54,7 +54,7 @@ const StudyProgress = memo(function StudyProgress({ courses }: StudyProgressProp
         <div className="text-center py-4 space-y-2">
           <p className="text-sm text-text-tertiary">Noch keine Kurse angelegt.</p>
           <Link
-            href="/university"
+            href="/uni/courses"
             className="inline-block text-xs font-medium text-primary hover:underline"
           >
             Ersten Kurs hinzufügen →
@@ -72,7 +72,7 @@ const StudyProgress = memo(function StudyProgress({ courses }: StudyProgressProp
           <h3 className="text-base font-semibold text-text-primary">Lernfortschritt</h3>
         </div>
         <Link
-          href="/university"
+          href="/uni/courses"
           className="text-xs text-text-tertiary hover:text-primary transition-colors"
         >
           Alle anzeigen

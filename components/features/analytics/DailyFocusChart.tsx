@@ -46,7 +46,7 @@ const DailyFocusChart = memo(function DailyFocusChart({ data }: DailyFocusChartP
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="card-surface rounded-xl p-5"
+      className="card-warm rounded-xl p-5"
     >
       <h3 className="text-sm font-medium text-text-primary mb-4">Daily Focus Time</h3>
       <div className="h-64">

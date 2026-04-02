@@ -116,7 +116,7 @@ const ActivityFeed = memo(function ActivityFeed({ activities: propActivities, ma
   const displayActivities = activities.slice(0, maxItems);
 
   return (
-    <div className="card-surface rounded-xl p-4">
+    <div className="card-warm rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4">
         <Activity className="w-5 h-5 text-info" />
         <h3 className="text-base font-semibold text-text-primary">Letzte Aktivität</h3>

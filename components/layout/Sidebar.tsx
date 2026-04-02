@@ -6,14 +6,11 @@ import { useState, useMemo, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   LayoutDashboard,
-  Calendar,
-  Target,
+  Hammer,
   GraduationCap,
   Briefcase,
-  BarChart3,
+  LineChart,
   Timer,
-  FlaskConical,
-  Route,
   ShieldCheck,
   ChevronLeft,
   Settings,
@@ -41,13 +38,10 @@ export default function Sidebar() {
     () =>
       [
         { name: copy.nav.today, href: '/today', icon: LayoutDashboard, shortcut: '1' },
-        { name: copy.nav.calendar, href: '/calendar', icon: Calendar, shortcut: '2' },
-        { name: copy.nav.goals, href: '/goals', icon: Target, shortcut: '3' },
-        { name: copy.nav.university, href: '/university', icon: GraduationCap, shortcut: '4' },
-        { name: copy.nav.career, href: '/career', icon: Briefcase, shortcut: '5' },
-        { name: copy.nav.analytics, href: '/analytics', icon: BarChart3, shortcut: '6' },
-        { name: copy.nav.strategy, href: '/strategy', icon: FlaskConical, shortcut: '7' },
-        { name: copy.nav.trajectory, href: '/trajectory', icon: Route, shortcut: '8' },
+        { name: copy.nav.workspace, href: '/workspace/tasks', icon: Hammer, shortcut: '2', matchPrefix: '/workspace' },
+        { name: copy.nav.uni, href: '/uni/courses', icon: GraduationCap, shortcut: '3', matchPrefix: '/uni' },
+        { name: copy.nav.career, href: '/career/applications', icon: Briefcase, shortcut: '4', matchPrefix: '/career' },
+        { name: copy.nav.reflect, href: '/reflect/analytics', icon: LineChart, shortcut: '5', matchPrefix: '/reflect' },
         { name: copy.nav.focus, href: '/focus', icon: Timer, shortcut: 'F' },
         ...(isAdmin
           ? [{ name: copy.nav.opsHealth, href: '/analytics/ops', icon: ShieldCheck, shortcut: 'O' }]
@@ -87,7 +81,7 @@ export default function Sidebar() {
     (href: string) => {
       router.prefetch(href);
 
-      if (href === '/goals') {
+      if (href === '/workspace/goals') {
         prefetchIfStale(['goals'], 5 * 60 * 1000, async () => {
           const goals = await fetchGoalsAction();
           return goals.map((goal) => ({
@@ -99,7 +93,7 @@ export default function Sidebar() {
         return;
       }
 
-      if (href === '/university') {
+      if (href === '/uni/courses') {
         prefetchIfStale(['courses'], 5 * 60 * 1000, async () => {
           const courses = await fetchCoursesAction();
           return courses.map((course) => ({
@@ -133,7 +127,7 @@ export default function Sidebar() {
         return;
       }
 
-      if (href === '/trajectory') {
+      if (href === '/career/trajectory') {
         prefetchIfStale(['trajectory', 'overview'], 20 * 1000, async () => {
           const response = await fetch('/api/trajectory/overview');
           if (!response.ok) throw new Error('Failed to fetch trajectory overview');
@@ -142,7 +136,7 @@ export default function Sidebar() {
         return;
       }
 
-      if (href === '/strategy') {
+      if (href === '/career/strategy') {
         prefetchIfStale(['strategy', 'decisions'], 20 * 1000, async () => {
           const response = await fetch('/api/strategy/decisions');
           if (!response.ok) throw new Error('Failed to fetch strategy decisions');
@@ -241,7 +235,10 @@ export default function Sidebar() {
           {/* Navigation */}
           <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
             {navigation.map((item) => {
-              const isActive = pathname === item.href;
+              const matchPrefix = (item as { matchPrefix?: string }).matchPrefix;
+              const isActive = matchPrefix
+                ? pathname.startsWith(matchPrefix)
+                : pathname === item.href;
               const Icon = item.icon;
 
               return (

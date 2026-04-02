@@ -51,7 +51,7 @@ const HourlyDistributionChart = memo(function HourlyDistributionChart({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
-      className="card-surface rounded-xl p-5"
+      className="card-warm rounded-xl p-5"
     >
       <h3 className="text-sm font-medium text-text-primary mb-4">Peak Hours</h3>
       <div className="h-64">

@@ -34,7 +34,7 @@ const RecentSessionsList = memo(function RecentSessionsList({
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="card-surface rounded-xl p-8 text-center"
+        className="card-warm rounded-xl p-8 text-center"
       >
         <Clock className="w-8 h-8 text-text-tertiary mx-auto mb-2" />
         <p className="text-sm text-text-tertiary">No focus sessions yet. Start your first timer!</p>
@@ -47,7 +47,7 @@ const RecentSessionsList = memo(function RecentSessionsList({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.6 }}
-      className="card-surface rounded-xl overflow-hidden"
+      className="card-warm rounded-xl overflow-hidden"
     >
       <div className="px-5 py-3 border-b border-border/50">
         <h3 className="text-sm font-medium text-text-primary">Recent Sessions</h3>

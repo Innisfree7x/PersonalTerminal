@@ -157,7 +157,7 @@ export default function NextBestActionWidget({
   });
 
   return (
-    <div className="card-surface rounded-xl border border-border px-4 py-3">
+    <div className="card-warm rounded-xl border border-border px-4 py-3">
       <div className="mb-2 flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
           <div className="rounded-lg border border-primary/30 bg-primary/15 p-1.5">

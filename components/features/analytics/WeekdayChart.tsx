@@ -66,7 +66,7 @@ const WeekdayChart = memo(function WeekdayChart({ data }: WeekdayChartProps) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.5 }}
-      className="card-surface rounded-xl p-5"
+      className="card-warm rounded-xl p-5"
     >
       <h3 className="text-sm font-medium text-text-primary mb-4">Weekday Pattern</h3>
       <div className="h-64">

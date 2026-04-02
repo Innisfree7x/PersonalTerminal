@@ -42,8 +42,8 @@ const BREAK_ROUND_SECONDS = 60;
 
 // ─── Dashboard route guard ───────────────────────────────────────────────────
 const DASHBOARD_PREFIXES = [
-  '/today', '/goals', '/university', '/career',
-  '/analytics', '/calendar', '/settings', '/onboarding',
+  '/today', '/workspace', '/uni', '/career',
+  '/reflect', '/settings', '/onboarding',
 ];
 
 function isDashboardPath(pathname: string): boolean {
@@ -760,16 +760,16 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
           router.push('/today');
           break;
         case 'open-trajectory':
-          router.push('/trajectory');
+          router.push('/career/trajectory');
           break;
         case 'open-goals':
-          router.push('/goals');
+          router.push('/workspace/goals');
           break;
         case 'open-university':
-          router.push('/university');
+          router.push('/uni/courses');
           break;
         case 'open-career':
-          router.push('/career');
+          router.push('/career/applications');
           break;
         case 'add-task':
           queuePrismCommandAction('open-new-task');
@@ -777,7 +777,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
           break;
         case 'add-course':
           queuePrismCommandAction('open-new-course');
-          if (pathname !== '/university') router.push('/university');
+          if (!pathname.startsWith('/uni')) router.push('/uni/courses');
           break;
         case 'break-drill':
           lastActivityRef.current = Date.now();

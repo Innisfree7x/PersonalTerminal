@@ -29,7 +29,7 @@ const AnalyticsStatCard = memo(function AnalyticsStatCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.3 }}
-      className="card-surface rounded-xl p-4"
+      className="card-warm rounded-xl p-4"
     >
       <div className="flex items-start justify-between mb-2">
         <span className="text-xs text-text-tertiary font-medium">{title}</span>

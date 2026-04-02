@@ -26,12 +26,11 @@ interface PowerHotkeysContextValue {
 
 const PAGE_HOTKEYS: Record<string, string> = {
   '1': '/today',
-  '2': '/calendar',
-  '3': '/goals',
-  '4': '/university',
-  '5': '/career',
-  '6': '/analytics',
-  '7': '/settings',
+  '2': '/workspace/tasks',
+  '3': '/uni/courses',
+  '4': '/career/applications',
+  '5': '/reflect/analytics',
+  '6': '/settings',
 };
 
 export type SummonerSpellAction =
@@ -78,11 +77,12 @@ function normalizeSummonerSpells(value: unknown): SummonerSpells {
 
 function getPageKey(pathname: string): 'today' | 'goals' | 'career' | 'university' | 'analytics' | 'calendar' | 'settings' | 'other' {
   if (pathname.startsWith('/today')) return 'today';
-  if (pathname.startsWith('/goals')) return 'goals';
+  if (pathname.startsWith('/workspace/goals')) return 'goals';
+  if (pathname.startsWith('/workspace/calendar')) return 'calendar';
+  if (pathname.startsWith('/workspace')) return 'today';
   if (pathname.startsWith('/career')) return 'career';
-  if (pathname.startsWith('/university')) return 'university';
-  if (pathname.startsWith('/analytics')) return 'analytics';
-  if (pathname.startsWith('/calendar')) return 'calendar';
+  if (pathname.startsWith('/uni')) return 'university';
+  if (pathname.startsWith('/reflect')) return 'analytics';
   if (pathname.startsWith('/settings')) return 'settings';
   return 'other';
 }
@@ -341,7 +341,7 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
           if (pathname !== '/today') router.push('/today');
           return;
         case 'new-goal':
-          triggerPageAction('/goals', 'open-new-goal');
+          triggerPageAction('/workspace/goals', 'open-new-goal');
           return;
         case 'start-next-best':
           triggerPageAction('/today', 'start-next-best-action');
@@ -378,7 +378,7 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
 
       if (page === 'goals') {
         if (key === 'q') {
-          triggerPageAction('/goals', 'open-new-goal');
+          triggerPageAction('/workspace/goals', 'open-new-goal');
           return true;
         }
         if (key === 'e') {
@@ -386,14 +386,14 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
           return true;
         }
         if (key === 'r') {
-          router.push('/goals');
+          router.push('/workspace/goals');
           return true;
         }
       }
 
       if (page === 'career') {
         if (key === 'q') {
-          triggerPageAction('/career', 'open-new-application');
+          triggerPageAction('/career/applications', 'open-new-application');
           return true;
         }
         if (key === 'e') {
@@ -401,14 +401,14 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
           return true;
         }
         if (key === 'r') {
-          router.push('/career');
+          router.push('/career/applications');
           return true;
         }
       }
 
       if (page === 'university') {
         if (key === 'q') {
-          triggerPageAction('/university', 'open-new-course');
+          triggerPageAction('/uni/courses', 'open-new-course');
           return true;
         }
         if (key === 'e') {
@@ -416,21 +416,21 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
           return true;
         }
         if (key === 'r') {
-          router.push('/university');
+          router.push('/uni/courses');
           return true;
         }
       }
 
       if (page === 'analytics') {
         if (key === 'q' || key === 'r') {
-          router.push('/analytics');
+          router.push('/reflect/analytics');
           return true;
         }
       }
 
       if (page === 'calendar') {
         if (key === 'q' || key === 'r') {
-          router.push('/calendar');
+          router.push('/workspace/calendar');
           return true;
         }
       }
@@ -445,7 +445,7 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
       .filter((item) => item.daysUntilExam !== undefined && item.daysUntilExam <= 7)
       .sort((a, b) => (a.daysUntilExam ?? 999) - (b.daysUntilExam ?? 999))[0];
     if (urgentExam) {
-      router.push('/university');
+      router.push('/uni/courses');
       play('swoosh');
       return;
     }
@@ -454,7 +454,7 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
       .filter((item) => item.daysUntil <= 1)
       .sort((a, b) => a.daysUntil - b.daysUntil)[0];
     if (urgentInterview) {
-      router.push('/career');
+      router.push('/career/applications');
       play('swoosh');
       return;
     }
@@ -469,7 +469,7 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
       .filter((item) => item.daysUntil <= 0)
       .sort((a, b) => a.daysUntil - b.daysUntil)[0];
     if (goalToday) {
-      router.push('/goals');
+      router.push('/workspace/goals');
       play('click');
       return;
     }

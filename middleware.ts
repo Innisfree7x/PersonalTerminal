@@ -5,13 +5,19 @@ import { isAdminUser } from '@/lib/auth/authorization';
 
 const PROTECTED_PREFIXES = [
   '/today',
+  '/workspace',
+  '/uni',
+  '/career',
+  '/reflect',
+  '/focus',
+  '/settings',
+  // Legacy redirects (old routes still hit middleware before redirect)
   '/calendar',
   '/goals',
   '/university',
-  '/career',
   '/analytics',
-  '/focus',
-  '/settings',
+  '/strategy',
+  '/trajectory',
 ];
 
 export async function middleware(request: NextRequest) {
@@ -67,7 +73,7 @@ export async function middleware(request: NextRequest) {
 
   // Restrict ops monitoring page to admins only.
   if (user && path.startsWith('/analytics/ops') && !isAdminUser(user)) {
-    return NextResponse.redirect(new URL('/analytics', request.url));
+    return NextResponse.redirect(new URL('/reflect/analytics', request.url));
   }
 
   return response;

@@ -53,7 +53,7 @@ const CategoryBreakdown = memo(function CategoryBreakdown({ data }: CategoryBrea
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4 }}
-      className="card-surface rounded-xl p-5"
+      className="card-warm rounded-xl p-5"
     >
       <h3 className="text-sm font-medium text-text-primary mb-4">Category Breakdown</h3>
       {data.length === 0 ? (

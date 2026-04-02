@@ -235,7 +235,7 @@ describe('LucianBubbleProvider', () => {
       vi.advanceTimersByTime(251);
     });
 
-    expect(routerPushMock).toHaveBeenCalledWith('/trajectory');
+    expect(routerPushMock).toHaveBeenCalledWith('/career/trajectory');
   });
 
   test('queues page action for add-task dialogs before routing to today', () => {

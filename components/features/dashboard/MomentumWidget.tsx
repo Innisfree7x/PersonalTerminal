@@ -92,7 +92,7 @@ export default function MomentumWidget({ momentum, goals = [], isLoading }: Mome
 
   if (isLoading) {
     return (
-      <div className="card-surface rounded-2xl p-5 animate-pulse">
+      <div className="card-warm rounded-2xl p-5 animate-pulse">
         <div className="h-4 bg-surface-hover rounded w-1/3 mb-4" />
         <div className="flex justify-center mb-4">
           <div className="w-24 h-24 rounded-full bg-surface-hover" />
@@ -112,7 +112,7 @@ export default function MomentumWidget({ momentum, goals = [], isLoading }: Mome
   const trendLabel = momentum.delta > 0 ? `+${momentum.delta}` : `${momentum.delta}`;
 
   return (
-    <div className="card-surface rounded-2xl p-5">
+    <div className="card-warm rounded-2xl p-5">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">
