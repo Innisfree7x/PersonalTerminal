@@ -141,7 +141,7 @@ export default function TodayPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4 md:space-y-5" data-testid="today-page-root">
+      <div className="space-y-4 md:space-y-5" data-testid="today-page-loading">
         <div className="card-warm-accent rounded-xl px-4 py-3 animate-pulse">
           <div className="h-4 w-48 rounded bg-white/10" />
           <div className="mt-2 h-3 w-80 rounded bg-white/10" />
@@ -171,7 +171,7 @@ export default function TodayPage() {
 
   if (isError) {
     return (
-      <div className="space-y-4 md:space-y-5" data-testid="today-page-root">
+      <div className="space-y-4 md:space-y-5" data-testid="today-page-error">
         <div className="card-warm rounded-xl p-6">
           <div className="flex items-center gap-3">
             <AlertTriangle className="h-5 w-5 text-error shrink-0" />
