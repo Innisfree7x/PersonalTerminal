@@ -19,7 +19,6 @@ import {
 import { useSidebar } from './SidebarProvider';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { isAdminUser } from '@/lib/auth/authorization';
-import { fetchGoalsAction } from '@/app/actions/goals';
 import { fetchCoursesAction } from '@/app/actions/university';
 import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 import { BrandLockup, BrandMark } from '@/components/shared/BrandLogo';
@@ -81,18 +80,6 @@ export default function Sidebar() {
     (href: string) => {
       router.prefetch(href);
 
-      if (href === '/workspace/goals') {
-        prefetchIfStale(['goals'], 5 * 60 * 1000, async () => {
-          const goals = await fetchGoalsAction();
-          return goals.map((goal) => ({
-            ...goal,
-            targetDate: new Date(goal.targetDate),
-            createdAt: new Date(goal.createdAt),
-          }));
-        });
-        return;
-      }
-
       if (href === '/uni/courses') {
         prefetchIfStale(['courses'], 5 * 60 * 1000, async () => {
           const courses = await fetchCoursesAction();
@@ -113,13 +100,13 @@ export default function Sidebar() {
       if (href === '/today') {
         const today = new Date().toISOString().split('T')[0] ?? '';
 
-        prefetchIfStale(['dashboard', 'next-tasks'], 15 * 1000, async () => {
-          const response = await fetch('/api/dashboard/next-tasks');
+        prefetchIfStale(['dashboard', 'next-tasks', 'today-bundle'], 2 * 60 * 1000, async () => {
+          const response = await fetch('/api/dashboard/next-tasks?include=trajectory_morning,week_events');
           if (!response.ok) throw new Error('Failed to fetch next tasks');
           return (await response.json()) as DashboardNextTasksResponse;
         });
 
-        prefetchIfStale(['daily-tasks', today], 30 * 1000, async () => {
+        prefetchIfStale(['daily-tasks', today], 2 * 60 * 1000, async () => {
           const response = await fetch(`/api/daily-tasks?date=${today}`);
           if (!response.ok) throw new Error('Failed to fetch tasks');
           return response.json();
@@ -273,7 +260,7 @@ export default function Sidebar() {
                     {!isCollapsed && (
                       <>
                         <span className="flex-1 truncate">{item.name}</span>
-                        <kbd className="hidden rounded border border-border bg-surface-hover px-1.5 py-0.5 font-mono text-[10px] text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100 sm:inline-flex">
+                        <kbd className="hidden rounded border border-border bg-surface-hover px-1.5 py-0.5 font-mono text-xs text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100 sm:inline-flex">
                           {item.shortcut}
                         </kbd>
                       </>

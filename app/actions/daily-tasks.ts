@@ -26,7 +26,7 @@ export async function createDailyTaskAction(data: CreateDailyTaskActionInput) {
 
     revalidatePath('/today');
 
-    await recordFlowMetric({
+    void recordFlowMetric({
       flow: 'create_task',
       status: 'success',
       durationMs: Date.now() - startedAt,
@@ -36,19 +36,19 @@ export async function createDailyTaskAction(data: CreateDailyTaskActionInput) {
         source: validated.source ?? 'manual',
         hasTimeEstimate: Boolean(validated.timeEstimate),
       },
-    });
+    }).catch(() => {});
 
     return created;
   } catch (error) {
     if (userId) {
-      await recordFlowMetric({
+      void recordFlowMetric({
         flow: 'create_task',
         status: 'failure',
         durationMs: Date.now() - startedAt,
         userId,
         route: '/today',
         errorCode: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
-      });
+      }).catch(() => {});
     }
     throw error;
   }

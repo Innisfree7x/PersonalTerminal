@@ -355,13 +355,22 @@ async function getDashboardKitSignals(
 
 export async function getDashboardStats(userId: string): Promise<DashboardStats> {
   const today = new Date();
+  const todayStart = startOfDay(today);
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
+  const sevenDaysAgo = subDays(today, 7);
   const supabase = createClient();
 
   const [
-    { data: goalsData, error: goalsError },
-    { data: applicationsData, error: applicationsError },
+    { data: goalCategoriesData, error: goalCategoriesError },
+    { count: overdueGoalsCount, error: overdueGoalsError },
+    { data: weekGoalsData, error: weekGoalsError },
+    { count: todayGoalsCount, error: todayGoalsError },
+    { data: nextInterviewData, error: nextInterviewError },
+    { count: pendingCount, error: pendingCountError },
+    { data: oldestPendingData, error: oldestPendingError },
+    { count: followUpCount, error: followUpError },
+    { count: interviewCount, error: interviewCountError },
     { data: coursesData, error: coursesError },
     { count: totalExercisesCount, error: totalExercisesError },
     { count: completedExercisesCount, error: completedExercisesError },
@@ -369,12 +378,59 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
   ] = await Promise.all([
     supabase
       .from('goals')
-      .select('id, title, category, target_date, metrics_current, metrics_target, metrics_unit')
+      .select('category')
       .eq('user_id', userId),
     supabase
+      .from('goals')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .lt('target_date', todayStart.toISOString()),
+    supabase
+      .from('goals')
+      .select('id, metrics_current, metrics_target, metrics_unit')
+      .eq('user_id', userId)
+      .gte('target_date', weekStart.toISOString())
+      .lte('target_date', weekEnd.toISOString()),
+    supabase
+      .from('goals')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('target_date', todayStart.toISOString())
+      .lt('target_date', new Date(todayStart.getTime() + 24 * 60 * 60 * 1000).toISOString()),
+    supabase
       .from('job_applications')
-      .select('id, company, position, status, application_date, interview_date, updated_at')
-      .eq('user_id', userId),
+      .select('company, position, interview_date')
+      .eq('user_id', userId)
+      .eq('status', 'interview')
+      .gte('interview_date', today.toISOString())
+      .order('interview_date', { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from('job_applications')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('status', 'applied'),
+    supabase
+      .from('job_applications')
+      .select('application_date')
+      .eq('user_id', userId)
+      .eq('status', 'applied')
+      .order('application_date', { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from('job_applications')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('status', 'applied')
+      .lt('application_date', sevenDaysAgo.toISOString()),
+    supabase
+      .from('job_applications')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('status', 'interview')
+      .gte('interview_date', today.toISOString()),
     supabase
       .from('courses')
       .select('id, name, exam_date')
@@ -397,91 +453,47 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
       .lte('completed_at', today.toISOString()),
   ]);
 
-  if (goalsError) {
-    throw new Error(`Failed to fetch dashboard goals: ${goalsError.message}`);
-  }
-  if (applicationsError) {
-    throw new Error(`Failed to fetch dashboard applications: ${applicationsError.message}`);
-  }
-  if (coursesError) {
-    throw new Error(`Failed to fetch dashboard courses: ${coursesError.message}`);
-  }
-  if (totalExercisesError) {
-    throw new Error(`Failed to fetch dashboard total exercises count: ${totalExercisesError.message}`);
-  }
-  if (completedExercisesError) {
-    throw new Error(`Failed to fetch dashboard completed exercises count: ${completedExercisesError.message}`);
-  }
-  if (weekCompletedError) {
-    throw new Error(`Failed to fetch dashboard week-completed exercises count: ${weekCompletedError.message}`);
-  }
+  if (goalCategoriesError) throw new Error(`Failed to fetch goal categories: ${goalCategoriesError.message}`);
+  if (overdueGoalsError) throw new Error(`Failed to fetch overdue goals: ${overdueGoalsError.message}`);
+  if (weekGoalsError) throw new Error(`Failed to fetch week goals: ${weekGoalsError.message}`);
+  if (todayGoalsError) throw new Error(`Failed to fetch today goals: ${todayGoalsError.message}`);
+  if (nextInterviewError) throw new Error(`Failed to fetch next interview: ${nextInterviewError.message}`);
+  if (pendingCountError) throw new Error(`Failed to fetch pending count: ${pendingCountError.message}`);
+  if (oldestPendingError) throw new Error(`Failed to fetch oldest pending: ${oldestPendingError.message}`);
+  if (followUpError) throw new Error(`Failed to fetch follow-up count: ${followUpError.message}`);
+  if (interviewCountError) throw new Error(`Failed to fetch interview count: ${interviewCountError.message}`);
+  if (coursesError) throw new Error(`Failed to fetch courses: ${coursesError.message}`);
+  if (totalExercisesError) throw new Error(`Failed to fetch total exercises: ${totalExercisesError.message}`);
+  if (completedExercisesError) throw new Error(`Failed to fetch completed exercises: ${completedExercisesError.message}`);
+  if (weekCompletedError) throw new Error(`Failed to fetch week exercises: ${weekCompletedError.message}`);
 
-  const allGoals = (goalsData as DashboardGoalRecord[] | null ?? []).map(toGoalModel);
-  const allApplications = (applicationsData as DashboardApplicationRecord[] | null ?? []).map(
-    toApplicationModel
-  );
-
-  const interviews = allApplications.filter((app) => app.status === 'interview');
-  const upcomingInterviews = interviews
-    .filter((app) => app.interviewDate && new Date(app.interviewDate) >= today)
-    .sort((a, b) => {
-      if (!a.interviewDate || !b.interviewDate) return 0;
-      return new Date(a.interviewDate).getTime() - new Date(b.interviewDate).getTime();
-    });
-
-  const firstUpcoming = upcomingInterviews[0];
-  const nextInterview = firstUpcoming?.interviewDate
+  const nextInterview = nextInterviewData?.interview_date
     ? {
-        company: firstUpcoming.company,
-        position: firstUpcoming.position,
-        date: new Date(firstUpcoming.interviewDate).toISOString(),
+        company: nextInterviewData.company,
+        position: nextInterviewData.position,
+        date: new Date(nextInterviewData.interview_date).toISOString(),
       }
     : undefined;
 
-  const applicationsPending = allApplications.filter((app) => app.status === 'applied').length;
-  const oldestPending =
-    applicationsPending > 0
-      ? allApplications
-          .filter((app) => app.status === 'applied')
-          .sort((a, b) => a.applicationDate.getTime() - b.applicationDate.getTime())[0]
-      : null;
-  const pendingDays = oldestPending
-    ? differenceInDays(today, startOfDay(oldestPending.applicationDate))
+  const applicationsPending = pendingCount ?? 0;
+  const pendingDays = oldestPendingData?.application_date
+    ? differenceInDays(today, startOfDay(new Date(oldestPendingData.application_date)))
     : 0;
+  const followUpNeeded = followUpCount ?? 0;
 
-  const sevenDaysAgo = new Date(today);
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  const followUpNeeded = allApplications.filter(
-    (app) => app.status === 'applied' && app.applicationDate < sevenDaysAgo
-  ).length;
-
-  const weekGoals = allGoals.filter((goal) => {
-    const goalDate = startOfDay(goal.targetDate);
-    return goalDate >= weekStart && goalDate <= weekEnd;
-  });
-
+  const weekGoals = weekGoalsData ?? [];
   const onTrackGoals = weekGoals.filter((goal) => {
-    if (!goal.metrics) return false;
-    const progress = goal.metrics.current / goal.metrics.target;
-    return progress >= 0.5;
+    if (goal.metrics_current === null || goal.metrics_target === null || !goal.metrics_target) return false;
+    return goal.metrics_current / goal.metrics_target >= 0.5;
   });
 
   const goalsByCategory: Record<string, number> = {};
-  allGoals.forEach((goal) => {
+  (goalCategoriesData ?? []).forEach((goal) => {
     const cat = goal.category;
     goalsByCategory[cat] = (goalsByCategory[cat] ?? 0) + 1;
   });
 
-  const overdueGoals = allGoals.filter((goal) => {
-    const goalDate = startOfDay(goal.targetDate);
-    return goalDate < startOfDay(today);
-  }).length;
-
-  const todayGoals = allGoals.filter((goal) => {
-    const goalDate = startOfDay(goal.targetDate);
-    return goalDate.getTime() === startOfDay(today).getTime();
-  }).length;
-  const todayCompletion = todayGoals > 0 ? 50 : 0;
+  const todayCompletion = (todayGoalsCount ?? 0) > 0 ? 50 : 0;
 
   const dayOfWeek = today.getDay() === 0 ? 7 : today.getDay();
   const weekProgress = { day: dayOfWeek, total: 7 };
@@ -517,7 +529,7 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
 
   return {
     career: {
-      activeInterviews: interviews.length,
+      activeInterviews: interviewCount ?? 0,
       ...(nextInterview ? { nextInterview } : {}),
       applicationsPending,
       pendingDays,
@@ -526,7 +538,7 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
     goals: {
       weeklyProgress: { onTrack: onTrackGoals.length, total: weekGoals.length },
       byCategory: goalsByCategory,
-      overdue: overdueGoals,
+      overdue: overdueGoalsCount ?? 0,
     },
     study: {
       weekCompleted: weekCompletedExercises,

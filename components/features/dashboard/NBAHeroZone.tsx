@@ -20,9 +20,10 @@ interface NBAHeroZoneProps {
   alternatives: RankedExecutionCandidate[];
   riskSignals: ExecutionRiskSignal[];
   onChanged: (() => void) | undefined;
+  isLoading?: boolean;
 }
 
-export default function NBAHeroZone({ nextBestAction, alternatives, riskSignals, onChanged }: NBAHeroZoneProps) {
+export default function NBAHeroZone({ nextBestAction, alternatives, riskSignals, onChanged, isLoading }: NBAHeroZoneProps) {
   const router = useRouter();
   const { play } = useAppSound();
   const { status: timerStatus } = useFocusTimerSession();
@@ -146,6 +147,22 @@ export default function NBAHeroZone({ nextBestAction, alternatives, riskSignals,
 
   const timerRunning = timerStatus === 'running' || timerStatus === 'paused';
 
+  if (isLoading) {
+    return (
+      <div className="card-warm-accent relative overflow-hidden rounded-xl">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/45 to-transparent" />
+        <div className="px-5 py-4 sm:px-6 sm:py-5 animate-pulse">
+          <div className="h-3 w-24 rounded bg-white/10" />
+          <div className="mt-3 h-6 w-56 rounded bg-white/10" />
+          <div className="mt-4 flex gap-2">
+            <div className="h-9 w-32 rounded-lg bg-white/10" />
+            <div className="h-9 w-20 rounded-lg bg-white/10" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!activeCandidate) {
     return (
       <div className="card-warm-accent relative overflow-hidden rounded-xl p-6 text-center">
@@ -168,7 +185,7 @@ export default function NBAHeroZone({ nextBestAction, alternatives, riskSignals,
             Nächster Move
           </span>
           {topRisk && (
-            <span className="rounded-full border border-warning/30 bg-warning/10 px-2 py-0.5 text-[9px] font-semibold uppercase text-warning">
+            <span className="rounded-full border border-warning/30 bg-warning/10 px-2 py-0.5 text-xs font-semibold uppercase text-warning">
               {topRisk.severity}
             </span>
           )}
@@ -210,6 +227,7 @@ export default function NBAHeroZone({ nextBestAction, alternatives, riskSignals,
             onClick={handlePlanLater}
             disabled={isPending}
             title="Auf morgen verschieben"
+            aria-label="Auf morgen verschieben"
             className="rounded-lg p-2 text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary"
           >
             <CalendarClock className="h-4 w-4" />
@@ -218,6 +236,7 @@ export default function NBAHeroZone({ nextBestAction, alternatives, riskSignals,
             onClick={handleDrop}
             disabled={isPending}
             title="Entfernen"
+            aria-label="Aktion entfernen"
             className="rounded-lg p-2 text-text-secondary transition-colors hover:bg-error/10 hover:text-error"
           >
             <XCircle className="h-4 w-4" />

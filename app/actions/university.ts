@@ -68,7 +68,7 @@ export async function toggleExerciseCompletionAction(
     revalidatePath('/university');
     revalidatePath('/today');
 
-    await recordFlowMetric({
+    void recordFlowMetric({
       flow: 'toggle_exercise',
       status: 'success',
       durationMs: Date.now() - startedAt,
@@ -78,12 +78,12 @@ export async function toggleExerciseCompletionAction(
         completed,
         exerciseNumber,
       },
-    });
+    }).catch(() => {});
 
     return result;
   } catch (error) {
     if (userId) {
-      await recordFlowMetric({
+      void recordFlowMetric({
         flow: 'toggle_exercise',
         status: 'failure',
         durationMs: Date.now() - startedAt,
@@ -94,7 +94,7 @@ export async function toggleExerciseCompletionAction(
           completed,
           exerciseNumber,
         },
-      });
+      }).catch(() => {});
     }
     throw error;
   }

@@ -25,6 +25,7 @@ export default function SpaceTabBar({ tabs }: SpaceTabBarProps) {
             <Link
               key={tab.href}
               href={tab.href}
+              aria-current={isActive ? 'page' : undefined}
               className={cn(
                 'relative px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors',
                 isActive

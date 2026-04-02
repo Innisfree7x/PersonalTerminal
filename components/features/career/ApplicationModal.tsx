@@ -42,7 +42,7 @@ export default function ApplicationModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="application-modal-title">
       {/* Overlay */}
       <div
         className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
@@ -57,7 +57,7 @@ export default function ApplicationModal({
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            <h2 id="application-modal-title" className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {isEdit
                 ? language === 'de'
                   ? 'Bewerbung bearbeiten'

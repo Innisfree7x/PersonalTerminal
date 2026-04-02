@@ -15,6 +15,7 @@ import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 import { buildTrajectoryMorningBriefing } from '@/lib/dashboard/trajectoryBriefing';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { STORAGE_KEYS } from '@/lib/storage/keys';
 import { getTodayKey } from '@/lib/dashboard/nbaDismissals';
 import { getRiskStatusTone } from '@/lib/design-system/statusTone';
@@ -23,7 +24,7 @@ import { useStreak } from '@/lib/hooks/useStreak';
 const LAST_MOMENTUM_SCORE_KEY = 'innis:last-momentum-score:v1';
 
 const widgetSkeleton = (
-  <div className="card-warm h-[160px] animate-pulse p-4">
+  <div className="card-warm h-[160px] animate-pulse p-5">
     <div className="h-4 w-28 rounded bg-white/10" />
     <div className="mt-3 h-3 w-2/3 rounded bg-white/10" />
     <div className="mt-2 h-3 w-1/2 rounded bg-white/10" />
@@ -54,14 +55,14 @@ export default function TodayPage() {
   }, [play]);
 
   // Fetch next-tasks data (powers stats, study progress, NBA)
-  const { data: nextTasksData, isFetched: isNextTasksFetched } = useQuery<DashboardNextTasksResponse>({
+  const { data: nextTasksData, isFetched: isNextTasksFetched, isLoading, isError, error } = useQuery<DashboardNextTasksResponse>({
     queryKey: ['dashboard', 'next-tasks', 'today-bundle'],
     queryFn: async () => {
       const response = await fetch('/api/dashboard/next-tasks?include=trajectory_morning,week_events');
       if (!response.ok) throw new Error('Failed to fetch next tasks');
       return response.json();
     },
-    staleTime: 30 * 1000,
+    staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
@@ -137,6 +138,61 @@ export default function TodayPage() {
   const trajectoryBriefingHref = trajectoryBriefing
     ? `/trajectory?goalId=${encodeURIComponent(trajectoryBriefing.goalId)}&source=morning_briefing`
     : '/trajectory?source=morning_briefing';
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4 md:space-y-5" data-testid="today-page-root">
+        <div className="card-warm-accent rounded-xl px-4 py-3 animate-pulse">
+          <div className="h-4 w-48 rounded bg-white/10" />
+          <div className="mt-2 h-3 w-80 rounded bg-white/10" />
+        </div>
+        <div className="card-warm-accent rounded-xl p-6 animate-pulse">
+          <div className="h-3 w-24 rounded bg-white/10" />
+          <div className="mt-3 h-6 w-64 rounded bg-white/10" />
+          <div className="mt-4 flex gap-2">
+            <div className="h-9 w-32 rounded-lg bg-white/10" />
+            <div className="h-9 w-20 rounded-lg bg-white/10" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
+          <div className="card-warm p-6 animate-pulse">
+            <div className="h-5 w-20 rounded bg-white/10" />
+            <div className="mt-4 space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-14 rounded-lg bg-white/[0.06]" />
+              ))}
+            </div>
+          </div>
+          {widgetSkeleton}
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="space-y-4 md:space-y-5" data-testid="today-page-root">
+        <div className="card-warm rounded-xl p-6">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-error shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-text-primary">Dashboard konnte nicht geladen werden</p>
+              <p className="text-xs text-text-tertiary mt-0.5">
+                {error instanceof Error ? error.message : 'Ein unbekannter Fehler ist aufgetreten.'}
+              </p>
+            </div>
+            <button
+              onClick={() => queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks', 'today-bundle'] })}
+              className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-secondary hover:bg-surface-hover transition-colors"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Erneut versuchen
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 md:space-y-5" data-testid="today-page-root">
@@ -290,6 +346,7 @@ export default function TodayPage() {
           alternatives={nextTasksData?.nextBestAlternatives ?? []}
           riskSignals={nextTasksData?.riskSignals ?? []}
           onChanged={handleChanged}
+          isLoading={isLoading}
         />
       </ErrorBoundary>
 

@@ -96,10 +96,10 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
     setShowAddInput(true);
   });
 
-  const { data: dailyTasks = [] } = useQuery({
+  const { data: dailyTasks = [], isLoading: isTasksLoading } = useQuery({
     queryKey: ['daily-tasks', today],
     queryFn: () => fetchDailyTasks(today),
-    staleTime: 30 * 1000,
+    staleTime: 2 * 60 * 1000,
   });
 
   const { data: fetchedNextTasksData } = useQuery({
@@ -110,7 +110,7 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
       return response.json();
     },
     enabled: !prefetchedNextTasksData,
-    staleTime: 30 * 1000,
+    staleTime: 2 * 60 * 1000,
   });
   const nextTasksData = prefetchedNextTasksData ?? fetchedNextTasksData;
 
@@ -179,6 +179,8 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
         newSet.delete(variables.id);
         return newSet;
       });
+      play('error');
+      toast.error('Task konnte nicht aktualisiert werden.');
     },
   });
 
@@ -198,6 +200,8 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
         newSet.delete(taskId);
         return newSet;
       });
+      play('error');
+      toast.error('Übung konnte nicht abgeschlossen werden.');
     },
   });
 
@@ -487,7 +491,13 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
         </div>
       </div>
 
-      {sortedTasks.length === 0 ? (
+      {isTasksLoading ? (
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-14 rounded-lg bg-surface animate-pulse" />
+          ))}
+        </div>
+      ) : sortedTasks.length === 0 ? (
         completedTasks.length === 0 ? (
           <div className="flex flex-col items-center text-center py-10 gap-3">
             <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
@@ -549,10 +559,11 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
               <div className="flex gap-2">
                 <button
                   onClick={handleAddTask}
+                  disabled={createMutation.isPending}
                   data-testid="today-add-task-submit"
-                  className="flex-1 px-3 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
+                  className="flex-1 px-3 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50"
                 >
-                  Add
+                  {createMutation.isPending ? 'Wird erstellt…' : 'Add'}
                 </button>
                 <button
                   onClick={() => setShowAddInput(false)}

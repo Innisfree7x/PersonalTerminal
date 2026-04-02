@@ -189,8 +189,8 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
   const { data: todaySummary } = useQuery({
     queryKey: ['focus', 'today'],
     queryFn: fetchTodayFocusSummary,
-    refetchInterval: 60000,
-    staleTime: 30 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
     retry: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,

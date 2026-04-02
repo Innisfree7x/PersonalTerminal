@@ -46,7 +46,7 @@ export default function OpsHealthClient() {
       }
       return result;
     },
-    refetchInterval: 30_000,
+    refetchInterval: 60_000,
     refetchOnWindowFocus: false,
   });
 
@@ -64,7 +64,7 @@ export default function OpsHealthClient() {
   const { data: reliability } = useQuery({
     queryKey: ['monitoring', 'reliability'],
     queryFn: () => fetchOpsReliabilityAction(),
-    refetchInterval: 30_000,
+    refetchInterval: 60_000,
     refetchOnWindowFocus: false,
   });
 
@@ -119,7 +119,7 @@ export default function OpsHealthClient() {
 
       {data ? (
         <>
-          <div className="card-warm rounded-xl p-4 flex items-center justify-between">
+          <div className="card-warm rounded-xl p-5 flex items-center justify-between">
             <div>
               <div className="text-xs text-text-tertiary uppercase tracking-wider">Audit Log Migration</div>
               <div className="text-sm text-text-secondary mt-1">
@@ -137,7 +137,7 @@ export default function OpsHealthClient() {
             </span>
           </div>
 
-          <div className="card-warm rounded-xl p-4 space-y-3">
+          <div className="card-warm rounded-xl p-5 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div>
                 <div className="text-sm font-semibold text-text-primary">Flow SLO Snapshot (7d)</div>
@@ -191,7 +191,7 @@ export default function OpsHealthClient() {
 
                 {data.flowSlo.routeLatency && data.flowSlo.routeLatency.length > 0 ? (
                   <div className="rounded-lg border border-border bg-surface/50 px-3 py-2">
-                    <div className="text-[10px] uppercase tracking-wide text-text-tertiary mb-2">
+                    <div className="text-xs uppercase tracking-wide text-text-tertiary mb-2">
                       Today Route Latency (p95)
                     </div>
                     <div className="space-y-1.5">
@@ -221,7 +221,7 @@ export default function OpsHealthClient() {
             )}
           </div>
 
-          <div className="card-warm rounded-xl p-4 space-y-3">
+          <div className="card-warm rounded-xl p-5 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div>
                 <div className="text-sm font-semibold text-text-primary">Trajectory Activation Snapshot</div>
@@ -244,15 +244,15 @@ export default function OpsHealthClient() {
               <>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                   <div className="rounded-lg border border-border bg-surface/60 px-3 py-2">
-                    <div className="text-[10px] uppercase tracking-wide text-text-tertiary">Users with goal (total)</div>
+                    <div className="text-xs uppercase tracking-wide text-text-tertiary">Users with goal (total)</div>
                     <div className="mt-1 text-xl font-bold text-text-primary">{data.activationMetrics.usersWithTrajectoryGoalTotal}</div>
                   </div>
                   <div className="rounded-lg border border-border bg-surface/60 px-3 py-2">
-                    <div className="text-[10px] uppercase tracking-wide text-text-tertiary">Users with goal (7d)</div>
+                    <div className="text-xs uppercase tracking-wide text-text-tertiary">Users with goal (7d)</div>
                     <div className="mt-1 text-xl font-bold text-text-primary">{data.activationMetrics.usersWithTrajectoryGoalLast7d}</div>
                   </div>
                   <div className="rounded-lg border border-border bg-surface/60 px-3 py-2">
-                    <div className="text-[10px] uppercase tracking-wide text-text-tertiary">Avg signup → status shown</div>
+                    <div className="text-xs uppercase tracking-wide text-text-tertiary">Avg signup → status shown</div>
                     <div className="mt-1 text-xl font-bold text-text-primary">
                       {data.activationMetrics.avgMinutesSignupToTrajectoryStatusShown === null
                         ? 'n/a'
@@ -265,7 +265,7 @@ export default function OpsHealthClient() {
                 </div>
 
                 <div className="rounded-lg border border-border bg-surface/60 px-3 py-2">
-                  <div className="text-[10px] uppercase tracking-wide text-text-tertiary mb-1">Waitlist segments</div>
+                  <div className="text-xs uppercase tracking-wide text-text-tertiary mb-1">Waitlist segments</div>
                   {data.activationMetrics.waitlistSegments.length > 0 ? (
                     <div className="flex flex-wrap gap-1.5">
                       {data.activationMetrics.waitlistSegments.map((entry) => (
@@ -293,7 +293,7 @@ export default function OpsHealthClient() {
             )}
           </div>
 
-          <div className="card-warm rounded-xl p-4 space-y-3">
+          <div className="card-warm rounded-xl p-5 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div>
                 <div className="text-sm font-semibold text-text-primary">Persistent Error Events (24h)</div>
@@ -316,25 +316,25 @@ export default function OpsHealthClient() {
               <>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   <div className="rounded-lg border border-border bg-surface/60 px-3 py-2">
-                    <div className="text-[10px] uppercase tracking-wide text-text-tertiary">Total</div>
+                    <div className="text-xs uppercase tracking-wide text-text-tertiary">Total</div>
                     <div className="mt-1 text-xl font-bold text-text-primary">
                       {data.persistentErrors.totalLast24h}
                     </div>
                   </div>
                   <div className="rounded-lg border border-border bg-surface/60 px-3 py-2">
-                    <div className="text-[10px] uppercase tracking-wide text-text-tertiary">Critical</div>
+                    <div className="text-xs uppercase tracking-wide text-text-tertiary">Critical</div>
                     <div className="mt-1 text-xl font-bold text-error">
                       {data.persistentErrors.bySeverityLast24h.critical}
                     </div>
                   </div>
                   <div className="rounded-lg border border-border bg-surface/60 px-3 py-2">
-                    <div className="text-[10px] uppercase tracking-wide text-text-tertiary">Error</div>
+                    <div className="text-xs uppercase tracking-wide text-text-tertiary">Error</div>
                     <div className="mt-1 text-xl font-bold text-warning">
                       {data.persistentErrors.bySeverityLast24h.error}
                     </div>
                   </div>
                   <div className="rounded-lg border border-border bg-surface/60 px-3 py-2">
-                    <div className="text-[10px] uppercase tracking-wide text-text-tertiary">Warning</div>
+                    <div className="text-xs uppercase tracking-wide text-text-tertiary">Warning</div>
                     <div className="mt-1 text-xl font-bold text-info">
                       {data.persistentErrors.bySeverityLast24h.warning}
                     </div>
@@ -342,7 +342,7 @@ export default function OpsHealthClient() {
                 </div>
 
                 <div className="rounded-lg border border-border bg-surface/60 px-3 py-2">
-                  <div className="text-[10px] uppercase tracking-wide text-text-tertiary mb-1">
+                  <div className="text-xs uppercase tracking-wide text-text-tertiary mb-1">
                     Top messages
                   </div>
                   {data.persistentErrors.topMessagesLast24h.length > 0 ? (
@@ -372,29 +372,29 @@ export default function OpsHealthClient() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="card-warm rounded-xl p-4">
+            <div className="card-warm rounded-xl p-5">
               <div className="text-xs text-text-tertiary">Incidents</div>
               <div className="text-2xl font-bold text-text-primary">{data.totals.incidents}</div>
             </div>
-            <div className="card-warm rounded-xl p-4">
+            <div className="card-warm rounded-xl p-5">
               <div className="text-xs text-text-tertiary">Events</div>
               <div className="text-2xl font-bold text-text-primary">{data.totals.events}</div>
             </div>
-            <div className="card-warm rounded-xl p-4">
+            <div className="card-warm rounded-xl p-5">
               <div className="text-xs text-text-tertiary">Critical</div>
               <div className="text-2xl font-bold text-error">{data.totals.bySeverity.critical}</div>
             </div>
-            <div className="card-warm rounded-xl p-4">
+            <div className="card-warm rounded-xl p-5">
               <div className="text-xs text-text-tertiary">Errors</div>
               <div className="text-2xl font-bold text-warning">{data.totals.bySeverity.error}</div>
             </div>
-            <div className="card-warm rounded-xl p-4">
+            <div className="card-warm rounded-xl p-5">
               <div className="text-xs text-text-tertiary">Warnings</div>
               <div className="text-2xl font-bold text-info">{data.totals.bySeverity.warning}</div>
             </div>
           </div>
 
-          <div className="card-warm rounded-xl p-4 space-y-3">
+          <div className="card-warm rounded-xl p-5 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div className="text-sm font-semibold text-text-primary">Top Incidents</div>
               {data.topIncidents.length > 0 && (
@@ -426,7 +426,7 @@ export default function OpsHealthClient() {
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <span
-                          className={`text-[10px] px-1.5 py-0.5 rounded border ${
+                          className={`text-xs px-1.5 py-0.5 rounded border ${
                             incident.status === 'resolved'
                               ? 'border-success/30 text-success bg-success/10'
                               : incident.status === 'acknowledged'
@@ -471,7 +471,7 @@ export default function OpsHealthClient() {
             )}
           </div>
 
-          <div className="card-warm rounded-xl p-4 space-y-3">
+          <div className="card-warm rounded-xl p-5 space-y-3">
             <div className="text-sm font-semibold text-text-primary flex items-center gap-2">
               <Flame className="w-4 h-4 text-warning" />
               Burn Rate Status (Multi-Window)
@@ -531,7 +531,7 @@ export default function OpsHealthClient() {
             )}
           </div>
 
-          <div className="card-warm rounded-xl p-4 space-y-3">
+          <div className="card-warm rounded-xl p-5 space-y-3">
             <div className="text-sm font-semibold text-text-primary flex items-center gap-2">
               <Server className="w-4 h-4 text-primary" />
               Dependency Health (Circuit Breakers)
@@ -549,7 +549,7 @@ export default function OpsHealthClient() {
                     <div key={dep.name} className="rounded-lg border border-border bg-surface/60 px-3 py-2">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-text-primary">{dep.name}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${stateBg} ${stateColor}`}>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${stateBg} ${stateColor}`}>
                           {dep.state.replace('_', ' ').toUpperCase()}
                         </span>
                       </div>
@@ -568,7 +568,7 @@ export default function OpsHealthClient() {
             )}
           </div>
 
-          <div className="card-warm rounded-xl p-4 space-y-3">
+          <div className="card-warm rounded-xl p-5 space-y-3">
             <div className="text-sm font-semibold text-text-primary">Recent Admin Actions</div>
             {(data.recentAdminAuditLogs || []).length === 0 ? (
               <div className="text-sm text-text-tertiary">No audit entries yet.</div>

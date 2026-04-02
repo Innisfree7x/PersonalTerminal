@@ -51,72 +51,49 @@ describe('dashboard queries', () => {
     mockedCreateClient.mockReturnValue(
       makeSupabase({
         goals: [
+          // 1: categories query
           makeResolvedQuery({
             data: [
-              {
-                id: 'goal-week',
-                title: 'GMAT Mock 1',
-                category: 'career',
-                target_date: '2026-03-20',
-                metrics_current: 60,
-                metrics_target: 100,
-                metrics_unit: 'points',
-              },
-              {
-                id: 'goal-overdue',
-                title: 'Deck finalisieren',
-                category: 'career',
-                target_date: '2026-03-15',
-                metrics_current: null,
-                metrics_target: null,
-                metrics_unit: null,
-              },
-              {
-                id: 'goal-today',
-                title: 'Kapitel 5 Review',
-                category: 'learning',
-                target_date: '2026-03-18',
-                metrics_current: 2,
-                metrics_target: 4,
-                metrics_unit: 'chapters',
-              },
+              { category: 'career' },
+              { category: 'career' },
+              { category: 'learning' },
             ],
             error: null,
           }),
+          // 2: overdue count
+          makeResolvedQuery({ count: 1, error: null }),
+          // 3: week goals with metrics
+          makeResolvedQuery({
+            data: [
+              { id: 'goal-week', metrics_current: 60, metrics_target: 100, metrics_unit: 'points' },
+              { id: 'goal-today', metrics_current: 2, metrics_target: 4, metrics_unit: 'chapters' },
+            ],
+            error: null,
+          }),
+          // 4: today goals count
+          makeResolvedQuery({ count: 1, error: null }),
         ],
         job_applications: [
+          // 1: next interview (single row)
           makeResolvedQuery({
-            data: [
-              {
-                id: 'app-pending-old',
-                company: 'Deloitte',
-                position: 'Intern M&A',
-                status: 'applied',
-                application_date: '2026-03-08T09:00:00.000Z',
-                interview_date: null,
-                updated_at: '2026-03-08T09:00:00.000Z',
-              },
-              {
-                id: 'app-pending-new',
-                company: 'Rothschild',
-                position: 'Intern TS',
-                status: 'applied',
-                application_date: '2026-03-16T09:00:00.000Z',
-                interview_date: null,
-                updated_at: '2026-03-16T09:00:00.000Z',
-              },
-              {
-                id: 'app-interview',
-                company: 'Lazard',
-                position: 'Intern PE',
-                status: 'interview',
-                application_date: '2026-03-11T09:00:00.000Z',
-                interview_date: '2026-03-19T13:00:00.000Z',
-                updated_at: '2026-03-17T09:00:00.000Z',
-              },
-            ],
+            data: {
+              company: 'Lazard',
+              position: 'Intern PE',
+              interview_date: '2026-03-19T13:00:00.000Z',
+            },
             error: null,
           }),
+          // 2: pending count
+          makeResolvedQuery({ count: 2, error: null }),
+          // 3: oldest pending (single row)
+          makeResolvedQuery({
+            data: { application_date: '2026-03-08T09:00:00.000Z' },
+            error: null,
+          }),
+          // 4: follow-up count
+          makeResolvedQuery({ count: 1, error: null }),
+          // 5: interview count
+          makeResolvedQuery({ count: 1, error: null }),
         ],
         courses: [
           makeResolvedQuery({

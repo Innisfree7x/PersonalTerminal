@@ -34,7 +34,7 @@ function HeaderClock({ language }: { language: 'de' | 'en' }) {
     <div className="hidden md:flex items-center gap-3 rounded-lg border border-primary/24 bg-surface/70 px-4 py-1.5 relative overflow-hidden shadow-[0_0_0_1px_rgb(var(--primary)/0.05)]">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/28 to-transparent" />
       <div className="flex flex-col">
-        <span className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary" suppressHydrationWarning>
+        <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary" suppressHydrationWarning>
           {currentTime ? format(currentTime, datePattern, { locale }) : '\u00A0'}
         </span>
         <span className="text-base font-bold text-text-primary font-mono tabular-nums tracking-tight leading-tight" suppressHydrationWarning>
@@ -58,8 +58,8 @@ export default function Header() {
   const { data: stats } = useQuery({
     queryKey: ['dashboard', 'stats'],
     queryFn: fetchDashboardStatsAction,
-    refetchInterval: 60000, // Refetch every minute
-    staleTime: 30 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
@@ -145,7 +145,7 @@ export default function Header() {
           >
             <Search className="w-4 h-4" />
             <span className="hidden sm:inline text-[11px] font-medium">{copy.header.search}</span>
-            <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-surface-hover px-1.5 py-0.5 text-[10px]">
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-surface-hover px-1.5 py-0.5 text-xs">
               <Command className="w-2.5 h-2.5" />
               K
             </kbd>
