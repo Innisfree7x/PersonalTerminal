@@ -444,6 +444,87 @@
     return entries;
   }
 
+  async function loadCandidateDocumentsViaIframes(candidateUrls) {
+    const entries = [];
+
+    if (!document || !document.body) {
+      return entries;
+    }
+
+    for (const candidateUrl of candidateUrls) {
+      try {
+        const entry = await new Promise((resolve) => {
+          const iframe = document.createElement('iframe');
+          let finished = false;
+
+          function finalize(value) {
+            if (finished) return;
+            finished = true;
+            try {
+              iframe.remove();
+            } catch {}
+            resolve(value || null);
+          }
+
+          const timeoutId = window.setTimeout(function () {
+            finalize(null);
+          }, 4000);
+
+          function handleLoad() {
+            try {
+              const childWindow = iframe.contentWindow;
+              const childDocument = iframe.contentDocument || (childWindow && childWindow.document) || null;
+
+              if (!childDocument) {
+                window.clearTimeout(timeoutId);
+                finalize(null);
+                return;
+              }
+
+              const text = extractDocumentText(childDocument);
+              const tableCount = extractTablesFromDocument(childDocument).length;
+
+              if (!text && tableCount === 0) {
+                window.clearTimeout(timeoutId);
+                finalize(null);
+                return;
+              }
+
+              window.clearTimeout(timeoutId);
+              finalize({
+                doc: childDocument,
+                href: candidateUrl,
+                depth: 98,
+                frameCount: Number((childWindow && childWindow.frames && childWindow.frames.length) || 0),
+                fetched: true,
+                viaIframe: true,
+              });
+            } catch {
+              window.clearTimeout(timeoutId);
+              finalize(null);
+            }
+          }
+
+          iframe.style.display = 'none';
+          iframe.setAttribute('aria-hidden', 'true');
+          iframe.addEventListener('load', handleLoad, { once: true });
+          iframe.addEventListener('error', function () {
+            window.clearTimeout(timeoutId);
+            finalize(null);
+          }, { once: true });
+          iframe.src = candidateUrl;
+          document.body.appendChild(iframe);
+        });
+
+        if (entry) {
+          entries.push(entry);
+        }
+      } catch {}
+    }
+
+    return entries;
+  }
+
   function mergeDocumentEntries(baseEntries, extraEntries) {
     const merged = [];
     const seenKeys = new Set();
@@ -1115,7 +1196,15 @@
       ? await fetchCandidateDocuments(candidateUrls)
       : [];
 
-  const documentEntries = mergeDocumentEntries(initialDocumentEntries, fetchedDocumentEntries);
+  const iframeDocumentEntries =
+    initialTables.length === 0
+      ? await loadCandidateDocumentsViaIframes(candidateUrls)
+      : [];
+
+  const documentEntries = mergeDocumentEntries(
+    mergeDocumentEntries(initialDocumentEntries, fetchedDocumentEntries),
+    iframeDocumentEntries
+  );
   const tables = extractTablesFromEntries(documentEntries);
   const documentTexts = extractTextFromEntries(documentEntries);
   const textLineSamples = collectAcademicTextLines(documentTexts).slice(0, 12);
@@ -1127,9 +1216,12 @@
       depth: entry.depth,
       frameCount: entry.frameCount,
       fetched: Boolean(entry.fetched),
+      viaIframe: Boolean(entry.viaIframe),
       tableCount: extractTablesFromDocument(entry.doc).length,
       title: normalizeText(entry.doc.title),
     })),
+    fetchedDocumentCount: fetchedDocumentEntries.length,
+    iframeDocumentCount: iframeDocumentEntries.length,
     tableCount: tables.length,
     documentTextLength: documentTexts.length,
     rowCounts: tables.map((table) => table.rows.length),
