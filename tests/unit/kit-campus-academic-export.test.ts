@@ -869,4 +869,55 @@ describe('campusAcademicExport helpers', () => {
       payload.modules.some((module) => module.title.includes('Informatik Module wählen'))
     ).toBe(false);
   });
+
+  it('parses academic snapshot text rendered inside an open shadow root', () => {
+    const doc = new DOMParser().parseFromString('<main><div id="host"></div></main>', 'text/html');
+    const host = doc.getElementById('host') as HTMLDivElement;
+    const shadowRoot = host.attachShadow({ mode: 'open' });
+    shadowRoot.innerHTML = `<section>${campusContractViewExactUserTextFallback}</section>`;
+
+    Object.defineProperty(doc.body, 'innerText', {
+      configurable: true,
+      get: () => '',
+    });
+
+    Object.defineProperty(doc.documentElement, 'textContent', {
+      configurable: true,
+      get: () => '',
+    });
+
+    const payload = buildCampusAcademicExport(
+      doc,
+      'https://campus.studium.kit.edu/exams/registration.php#!campus/student/contractview.asp'
+    );
+
+    expect(payload.modules).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          externalId: 'module:102708',
+          title: 'Volkswirtschaftslehre I: Mikroökonomie',
+          credits: 5,
+        }),
+        expect.objectContaining({
+          externalId: 'module:105754',
+          title: 'Mathematik 1',
+          credits: 10,
+        }),
+      ])
+    );
+    expect(payload.grades).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          moduleExternalId: 'module:102708',
+          gradeLabel: '4,0',
+          examDate: '2024-02-22',
+        }),
+        expect.objectContaining({
+          moduleExternalId: 'module:105754',
+          gradeLabel: '3,8',
+          examDate: '2026-03-12',
+        }),
+      ])
+    );
+  });
 });

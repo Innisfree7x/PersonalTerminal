@@ -269,7 +269,16 @@ function extractTableRows(table: Element) {
 }
 
 function extractTablesFromDocument(doc: Document): ExtractedTable[] {
-  return Array.from(doc.querySelectorAll('table')).map((table) => {
+  const tableRoots = [doc, ...collectOpenShadowRoots(doc)];
+  const tables = tableRoots.flatMap((root) => {
+    try {
+      return Array.from(root.querySelectorAll('table'));
+    } catch {
+      return [];
+    }
+  });
+
+  return tables.map((table) => {
     const rawRows = extractTableRows(table);
     if (rawRows.length === 0) {
       return { headers: [], rows: [] };
@@ -298,6 +307,35 @@ function extractTablesFromDocument(doc: Document): ExtractedTable[] {
 
     return { headers, rows };
   }).filter((table) => table.rows.length > 0);
+}
+
+function collectOpenShadowRoots(root: ParentNode) {
+  const shadowRoots: ShadowRoot[] = [];
+  const seen = new Set<ParentNode>();
+
+  const visit = (currentRoot: ParentNode) => {
+    if (seen.has(currentRoot)) {
+      return;
+    }
+
+    seen.add(currentRoot);
+
+    try {
+      const elements = Array.from(currentRoot.querySelectorAll('*')) as Element[];
+      for (const element of elements) {
+        const shadowRoot = (element as HTMLElement & { shadowRoot?: ShadowRoot | null }).shadowRoot;
+        if (shadowRoot && !seen.has(shadowRoot)) {
+          shadowRoots.push(shadowRoot);
+          visit(shadowRoot);
+        }
+      }
+    } catch {
+      // Ignore shadow traversal failures and keep parsing regular DOM.
+    }
+  };
+
+  visit(root);
+  return shadowRoots;
 }
 
 function collectDocuments(doc: Document, seen: Set<Document> = new Set()) {
@@ -664,7 +702,21 @@ function normalizeVisibleText(value: string | null | undefined) {
   );
 }
 
+function extractShadowRootText(shadowRoot: ShadowRoot) {
+  const candidates = [
+    normalizeVisibleText(shadowRoot.textContent),
+    normalizeVisibleText(shadowRoot.innerHTML),
+    extractHtmlTextFallback(shadowRoot.innerHTML),
+  ].filter(Boolean);
+
+  return Array.from(new Set(candidates)).join('\n');
+}
+
 function extractDocumentText(doc: Document) {
+  const shadowTexts = collectOpenShadowRoots(doc)
+    .map((shadowRoot) => extractShadowRootText(shadowRoot))
+    .filter(Boolean);
+
   const candidates = [
     normalizeVisibleText(doc.body?.innerText),
     normalizeVisibleText(doc.documentElement?.innerText),
@@ -674,6 +726,7 @@ function extractDocumentText(doc: Document) {
     normalizeAcademicDashes(normalizeText(doc.documentElement?.textContent ?? '')),
     extractHtmlTextFallback(doc.body?.outerHTML),
     extractHtmlTextFallback(doc.documentElement?.outerHTML),
+    ...shadowTexts,
   ]
     .filter(Boolean);
 

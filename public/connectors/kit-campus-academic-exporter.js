@@ -219,8 +219,41 @@
       })).filter((row) => row.cells.some(Boolean));
   }
 
+  function collectOpenShadowRoots(root) {
+    const shadowRoots = [];
+    const seen = new Set();
+
+    function visit(currentRoot) {
+      if (!currentRoot || seen.has(currentRoot)) return;
+      seen.add(currentRoot);
+
+      try {
+        const elements = Array.from(currentRoot.querySelectorAll('*'));
+        for (const element of elements) {
+          const shadowRoot = element && element.shadowRoot;
+          if (shadowRoot && !seen.has(shadowRoot)) {
+            shadowRoots.push(shadowRoot);
+            visit(shadowRoot);
+          }
+        }
+      } catch {}
+    }
+
+    visit(root);
+    return shadowRoots;
+  }
+
   function extractTablesFromDocument(doc) {
-    return Array.from(doc.querySelectorAll('table')).map((table) => {
+    const tableRoots = [doc].concat(collectOpenShadowRoots(doc));
+    const tables = tableRoots.flatMap((root) => {
+      try {
+        return Array.from(root.querySelectorAll('table'));
+      } catch {
+        return [];
+      }
+    });
+
+    return tables.map((table) => {
       const rawRows = extractTableRows(table);
       if (rawRows.length === 0) {
         return { headers: [], rows: [] };
@@ -900,7 +933,21 @@
     );
   }
 
+  function extractShadowRootText(shadowRoot) {
+    const candidates = [
+      normalizeVisibleText(shadowRoot.textContent),
+      normalizeVisibleText(shadowRoot.innerHTML),
+      extractHtmlTextFallback(shadowRoot.innerHTML),
+    ].filter(Boolean);
+
+    return Array.from(new Set(candidates)).join('\n');
+  }
+
   function extractDocumentText(doc) {
+    const shadowTexts = collectOpenShadowRoots(doc)
+      .map((shadowRoot) => extractShadowRootText(shadowRoot))
+      .filter(Boolean);
+
     const candidates = [
       normalizeVisibleText(doc.body && doc.body.innerText),
       normalizeVisibleText(doc.documentElement && doc.documentElement.innerText),
@@ -910,7 +957,9 @@
       normalizeAcademicDashes(normalizeText((doc.documentElement && doc.documentElement.textContent) || '')),
       extractHtmlTextFallback(doc.body && doc.body.outerHTML),
       extractHtmlTextFallback(doc.documentElement && doc.documentElement.outerHTML),
-    ].filter(Boolean);
+    ]
+      .concat(shadowTexts)
+      .filter(Boolean);
 
     return Array.from(new Set(candidates)).join('\n');
   }
