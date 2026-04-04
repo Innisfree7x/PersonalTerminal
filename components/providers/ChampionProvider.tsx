@@ -532,7 +532,7 @@ function ChampionOverlay({
             }}
           >
             <span className="text-[8px] font-medium uppercase tracking-wider text-amber-500/55">Lv</span>
-            <span className="text-[10px] font-bold text-amber-300">{stats.level}</span>
+            <span className="text-xs font-bold text-amber-300">{stats.level}</span>
           </div>
         </motion.div>
       </motion.button>

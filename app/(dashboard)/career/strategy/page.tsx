@@ -172,7 +172,7 @@ function ScoreInputCard({ label, description, value, onChange, tone, weightLabel
     <div className={cn('rounded-xl border px-3 py-2 shadow-[0_8px_24px_-18px_rgba(0,0,0,0.75)] backdrop-blur-[1px]', cardToneClasses)}>
       <div className="mb-1 flex items-center justify-between gap-2">
         <p className="text-xs font-semibold text-text-primary">{label}</p>
-        <span className={cn('rounded-full border px-2 py-0.5 text-[10px] font-medium', chipToneClasses)}>
+        <span className={cn('rounded-full border px-2 py-0.5 text-xs font-medium', chipToneClasses)}>
           {value}/10 · {band}
         </span>
       </div>
@@ -197,7 +197,7 @@ function ScoreInputCard({ label, description, value, onChange, tone, weightLabel
           className="w-[72px]"
         />
       </div>
-      <div className="mt-1 flex items-center justify-between text-[10px] text-text-tertiary">
+      <div className="mt-1 flex items-center justify-between text-xs text-text-tertiary">
         <span>1</span>
         <span>{hint}</span>
         <span>10 · {weightLabel}</span>
@@ -1067,7 +1067,7 @@ export default function StrategyPage() {
                             </Button>
                           ) : null}
                           {localScore.winner ? (
-                            <span className="rounded-full border border-white/10 bg-black/20 px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-text-tertiary">
+                            <span className="rounded-full border border-white/10 bg-black/20 px-2 py-1 text-xs uppercase tracking-[0.14em] text-text-tertiary">
                               Winner vorhanden
                             </span>
                           ) : null}
@@ -1096,7 +1096,7 @@ export default function StrategyPage() {
                         <div className="mb-2 flex items-start justify-between gap-2">
                           <div>
                             <div className="mb-1 flex items-center gap-2">
-                              <span className="rounded-md border border-white/15 bg-black/20 px-1.5 py-0.5 text-[10px] font-semibold text-text-secondary">
+                              <span className="rounded-md border border-white/15 bg-black/20 px-1.5 py-0.5 text-xs font-semibold text-text-secondary">
                                 #{index + 1}
                               </span>
                               <p className="text-sm font-semibold text-text-primary">{option.title}</p>

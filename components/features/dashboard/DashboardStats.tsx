@@ -49,7 +49,7 @@ function RailChip({ label, tone, pulse = false }: { label: string; tone: ChipTon
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.14em] ${toneClasses[tone]}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-mono text-xs font-semibold uppercase tracking-[0.14em] ${toneClasses[tone]}`}
     >
       {pulse ? <PulseDot className={pulseColor[tone]} /> : null}
       {label}
@@ -114,7 +114,7 @@ function RailSegment({
       <div className="relative z-10 min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <Icon className={`h-4 w-4 flex-shrink-0 ${style.icon}`} />
-          <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-text-tertiary/70">
+          <span className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-text-tertiary/70">
             {label}
           </span>
           {chip ? <div className="ml-auto">{chip}</div> : null}

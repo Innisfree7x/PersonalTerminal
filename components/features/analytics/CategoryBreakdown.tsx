@@ -38,7 +38,7 @@ function CustomTooltip({ active, payload }: any) {
       <p className="text-xs font-semibold text-text-primary">
         {CATEGORY_LABELS[data.category] || data.category}
       </p>
-      <p className="text-[10px] text-zinc-500 mt-0.5">
+      <p className="text-xs text-zinc-500 mt-0.5">
         {data.totalMinutes} min · {data.sessions} sessions
       </p>
     </div>

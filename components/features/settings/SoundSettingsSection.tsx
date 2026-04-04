@@ -5,10 +5,13 @@ import { Music, Volume2, VolumeX } from 'lucide-react';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { useAppLanguage } from '@/components/providers/LanguageProvider';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import { SOUND_PACKS, type SoundPack } from '@/lib/sound/packs';
+
+const PACK_KEYS: SoundPack[] = ['default', 'lofi', 'nature', 'silent'];
 
 export default function SoundSettingsSection() {
   const { language, copy } = useAppLanguage();
-  const { play, settings: soundSettings, setEnabled: setSoundEnabled, setMasterVolume, setNotificationSound } = useAppSound();
+  const { play, settings: soundSettings, setEnabled: setSoundEnabled, setMasterVolume, setNotificationSound, setSoundPack } = useAppSound();
   const isGerman = language === 'de';
 
   return (
@@ -19,6 +22,31 @@ export default function SoundSettingsSection() {
           {copy.settings.sound}
         </h2>
         <span className="settings-chip">{copy.settings.savedLocal}</span>
+      </div>
+
+      {/* Sound Pack Picker */}
+      <div className="grid grid-cols-2 gap-3">
+        {PACK_KEYS.map((key) => {
+          const def = SOUND_PACKS[key];
+          const isActive = soundSettings.soundPack === key;
+          return (
+            <button
+              key={key}
+              onClick={() => setSoundPack(key)}
+              className={`rounded-xl border p-4 text-left transition-colors ${
+                isActive
+                  ? 'border-primary/50 bg-primary/5'
+                  : 'card-warm border-border hover:border-border/80'
+              }`}
+            >
+              <span className="text-2xl" role="img" aria-label={def.label}>
+                {def.emoji}
+              </span>
+              <p className="mt-2 text-sm font-medium text-text-primary">{def.label}</p>
+              <p className="mt-0.5 text-xs text-text-tertiary">{def.description}</p>
+            </button>
+          );
+        })}
       </div>
 
       <div className="p-6 bg-surface border border-border rounded-xl space-y-6">

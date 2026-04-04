@@ -140,7 +140,7 @@ export function StepComplete({ completedData, onComplete }: StepCompleteProps) {
           {/* Status header */}
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.04]">
             <p className="text-[13px] font-medium text-[#FAF0E6]">{trajectory.goalTitle}</p>
-            <span className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[10px] font-semibold ${statusColor.border} ${statusColor.bg} ${statusColor.text}`}>
+            <span className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-semibold ${statusColor.border} ${statusColor.bg} ${statusColor.text}`}>
               <span className={`h-1.5 w-1.5 rounded-full ${statusColor.dot} animate-pulse`} />
               {formatTrajectoryRiskLabel(trajectory.status)}
             </span>

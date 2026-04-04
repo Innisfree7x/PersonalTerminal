@@ -69,7 +69,7 @@ export function DecisionSurfaceCard({
       <div className="flex items-start justify-between gap-3">
         <div>
           {eyebrow ? (
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">{eyebrow}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-tertiary">{eyebrow}</p>
           ) : null}
           <h3 className="mt-1 text-sm font-semibold text-text-primary">{title}</h3>
           <p className="mt-1 text-xs leading-relaxed text-text-secondary">{summary}</p>
@@ -85,7 +85,7 @@ export function DecisionSurfaceCard({
               <span
                 key={chip.label}
                 className={cn(
-                  'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium',
+                  'inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium',
                   chipTone.chip
                 )}
               >

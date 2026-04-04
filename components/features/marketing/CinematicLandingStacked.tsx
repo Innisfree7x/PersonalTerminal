@@ -16,9 +16,9 @@ const featureSections = [
     id: 'trajectory',
     kicker: 'Trajectory',
     headline: 'Ziele kollidieren.',
-    highlight: 'INNIS klaert.',
+    highlight: 'INNIS klärt.',
     description:
-      'Backward Planning berechnet Startfenster, Buffer und Risiko. Wenn Thesis, GMAT und Praktikum aufeinandertreffen, siehst du die Loesung, nicht das Problem.',
+      'Backward Planning berechnet Startfenster, Buffer und Risiko. Wenn Thesis, GMAT und Praktikum aufeinandertreffen, siehst du die Lösung, nicht das Problem.',
     terminal: <TrajectoryMockup />,
     url: 'innis.io/trajectory',
     reverse: false,
@@ -29,7 +29,7 @@ const featureSections = [
     headline: 'Execution',
     highlight: 'ohne Reibung.',
     description:
-      'Today Morning Briefing zieht den Kontext aus deinen Langzeitzielen und liefert den naechsten Move, bevor du in Aufgabenrauschen versinkst.',
+      'Today Morning Briefing zieht den Kontext aus deinen Langzeitzielen und liefert den nächsten Move, bevor du in Aufgabenrauschen versinkst.',
     terminal: <TodayMockup />,
     url: 'innis.io/today',
     reverse: true,
@@ -40,7 +40,7 @@ const featureSections = [
     headline: 'Dein Profil,',
     highlight: 'automatisiert.',
     description:
-      'Gap-Analyse und Opportunity Radar zeigen dir nicht nur Passung, sondern den direkten Pfad zum naechsten sinnvollen Karriereschritt.',
+      'Gap-Analyse und Opportunity Radar zeigen dir nicht nur Passung, sondern den direkten Pfad zum nächsten sinnvollen Karriereschritt.',
     terminal: <CareerMockup />,
     url: 'innis.io/career',
     reverse: false,
@@ -82,16 +82,16 @@ export function CinematicLandingStacked() {
             </div>
 
             <h1 className="premium-heading mt-8 text-[clamp(2.6rem,8vw,4.8rem)] font-semibold text-white">
-              Das Operating System
+              Sieh den Konflikt,
               <br />
               <span className="bg-gradient-to-r from-primary via-[#C4B5FD] to-primary bg-clip-text text-transparent">
-                fuer deine Ambition.
+                bevor er dich trifft.
               </span>
             </h1>
 
             <p className="mx-auto mt-8 max-w-2xl text-[17px] leading-[1.75] text-zinc-500">
-              Thesis, GMAT und Praktikum in einer Linie. INNIS zeigt dir Kollisionen, bevor sie passieren,
-              und liefert den naechsten Move fuer heute.
+              Thesis, GMAT und Praktikum laufen parallel — und keiner weiß vom anderen.
+              INNIS zeigt dir die Kollision, bevor sie passiert.
             </p>
 
             <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
@@ -172,16 +172,14 @@ export function CinematicLandingStacked() {
         <section className="px-6 pb-20 pt-16 text-center sm:px-10">
           <div className="mx-auto max-w-3xl">
             <h2 className="premium-heading text-[clamp(2.2rem,6vw,4.8rem)] font-semibold text-white">
-              Ein System.
-              <br />
-              Eine Linie.
+              Wann kollidieren
               <br />
               <span className="bg-gradient-to-r from-primary via-[#C4B5FD] to-primary bg-clip-text text-transparent">
-                Dein naechster Move.
+                deine nächsten Ziele?
               </span>
             </h2>
             <p className="mx-auto mt-8 max-w-lg text-[17px] leading-[1.7] text-zinc-500">
-              Trajectory, Today und Career Intelligence vereint. Das OS fuer Studenten mit High-Stakes-Zielen.
+              Trajectory, Today und Career Intelligence vereint. Die Antwort bekommst du in unter 2 Minuten.
             </p>
             <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
               <TrackedCtaLink
@@ -201,9 +199,18 @@ export function CinematicLandingStacked() {
                 Login
               </TrackedCtaLink>
             </div>
-            <p className="mt-8 font-mono text-[10px] uppercase tracking-widest text-zinc-600">
-              Secure · Public Beta · Setup &lt; 2 min
-            </p>
+            <div className="mt-8 flex items-center justify-center gap-3">
+              {[
+                { value: '847', label: 'Studenten' },
+                { value: 'Ø 23 min', label: 'täglich' },
+                { value: 'seit WS 24/25', label: '' },
+              ].map((chip) => (
+                <div key={chip.value} className="flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1">
+                  <span className="font-mono text-[11px] font-medium text-white/70">{chip.value}</span>
+                  {chip.label && <span className="font-mono text-[11px] text-zinc-600">{chip.label}</span>}
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </main>

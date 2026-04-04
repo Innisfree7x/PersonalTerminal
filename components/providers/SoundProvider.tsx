@@ -9,6 +9,7 @@ import {
 } from 'react';
 
 import { getReverbSend } from '@/lib/sound/reverb';
+import { type SoundPack, isValidSoundPack, resolvePackSoundPath } from '@/lib/sound/packs';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -44,6 +45,7 @@ export interface SoundSettings {
   enabled: boolean;
   masterVolume: number; // 0..1
   notificationSound: NotificationSound;
+  soundPack: SoundPack;
 }
 
 export interface SoundContextType {
@@ -51,6 +53,7 @@ export interface SoundContextType {
   setEnabled: (v: boolean) => void;
   setMasterVolume: (v: number) => void;
   setNotificationSound: (v: NotificationSound) => void;
+  setSoundPack: (v: SoundPack) => void;
   play: (
     event: SoundEvent,
     options?: {
@@ -66,6 +69,7 @@ const DEFAULTS: SoundSettings = {
   enabled: false,
   masterVolume: 0.35,
   notificationSound: 'classic',
+  soundPack: 'default',
 };
 const STORAGE_KEY = 'innis:sound-settings:v1';
 const LEGACY_STORAGE_KEYS = ['prism-sound-settings'];
@@ -1144,6 +1148,7 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
           ...(parsed.notificationSound === 'classic' || parsed.notificationSound === 'teams-default'
             ? { notificationSound: parsed.notificationSound }
             : {}),
+          ...(isValidSoundPack(parsed.soundPack) ? { soundPack: parsed.soundPack } : {}),
         }));
       }
     } catch {
@@ -1171,6 +1176,10 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
     setSettings((s) => ({ ...s, notificationSound: v }));
   }, []);
 
+  const setSoundPack = useCallback((v: SoundPack) => {
+    setSettings((s) => ({ ...s, soundPack: v }));
+  }, []);
+
   const play = useCallback(
     (
       event: SoundEvent,
@@ -1182,6 +1191,9 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
       if (!mounted) return;
       if (!settings.enabled && !options?.force) return;
       if (typeof window === 'undefined') return;
+
+      // Silent pack: skip entirely
+      if (settings.soundPack === 'silent') return;
 
       // Respect prefers-reduced-motion
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -1222,38 +1234,59 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
       function runSynth() {
         if (!ctx) return;
         const baseGain = EVENT_GAIN[event] * settings.masterVolume;
-        const sampleSrc = resolveSampleSrcForEvent(
-          event,
-          options?.notificationSound ?? settings.notificationSound
-        );
-        if (sampleSrc) {
-          let audio = sampleAudioRef.current[sampleSrc] ?? null;
+
+        // Sound pack override (lofi/nature) — try pack-specific sample first
+        const packSrc = resolvePackSoundPath(settings.soundPack, event);
+        if (packSrc) {
+          let audio = sampleAudioRef.current[packSrc] ?? null;
           if (!audio) {
-            audio = new Audio(sampleSrc);
+            audio = new Audio(packSrc);
             audio.preload = 'auto';
-            sampleAudioRef.current[sampleSrc] = audio;
+            sampleAudioRef.current[packSrc] = audio;
           }
           audio.currentTime = 0;
           audio.volume = Math.max(0, Math.min(1, baseGain));
           void audio.play().catch(() => {
-            // Fallback to synth when media playback is blocked by browser policy.
-            const gain = jitter(baseGain, baseGain * 0.05);
-            SYNTHS[event](ctx, gain);
+            // Graceful fallback: pack sample missing → use default synth/sample
+            fallbackToDefault(baseGain);
           });
           return;
         }
 
-        // Tiny volume jitter ±5%
-        const gain = jitter(baseGain, baseGain * 0.05);
-        SYNTHS[event](ctx, gain);
+        fallbackToDefault(baseGain);
+
+        function fallbackToDefault(gain: number) {
+          if (!ctx) return;
+          const sampleSrc = resolveSampleSrcForEvent(
+            event,
+            options?.notificationSound ?? settings.notificationSound
+          );
+          if (sampleSrc) {
+            let audio = sampleAudioRef.current[sampleSrc] ?? null;
+            if (!audio) {
+              audio = new Audio(sampleSrc);
+              audio.preload = 'auto';
+              sampleAudioRef.current[sampleSrc] = audio;
+            }
+            audio.currentTime = 0;
+            audio.volume = Math.max(0, Math.min(1, gain));
+            void audio.play().catch(() => {
+              const g = jitter(gain, gain * 0.05);
+              SYNTHS[event](ctx, g);
+            });
+            return;
+          }
+          const g = jitter(gain, gain * 0.05);
+          SYNTHS[event](ctx, g);
+        }
       }
     },
-    [mounted, settings.enabled, settings.masterVolume, settings.notificationSound]
+    [mounted, settings.enabled, settings.masterVolume, settings.notificationSound, settings.soundPack]
   );
 
   return (
     <SoundContext.Provider
-      value={{ settings, setEnabled, setMasterVolume, setNotificationSound, play }}
+      value={{ settings, setEnabled, setMasterVolume, setNotificationSound, setSoundPack, play }}
     >
       {children}
     </SoundContext.Provider>

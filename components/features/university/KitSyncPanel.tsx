@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { useSoundToast } from '@/lib/hooks/useSoundToast';
 import type { KitSyncStatus } from '@/lib/kit-sync/types';
+import { fetchKitStatus } from '@/lib/kit-sync/client';
 import {
   KIT_CAMPUS_ACADEMIC_CONNECTOR_VERSION,
   parseCampusAcademicExport,
@@ -47,15 +48,6 @@ const iliasItemTypeLabels: Record<string, string> = {
   link: 'Link',
   other: 'Item',
 };
-
-async function fetchKitStatus(): Promise<KitSyncStatus> {
-  const response = await fetch('/api/kit/status', { cache: 'no-store' });
-  if (!response.ok) {
-    const payload = await response.json().catch(() => null);
-    throw new Error(payload?.error?.message ?? 'KIT Sync Status konnte nicht geladen werden.');
-  }
-  return response.json() as Promise<KitSyncStatus>;
-}
 
 async function saveWebcal(url: string) {
   const response = await fetch('/api/kit/webcal', {
@@ -878,7 +870,7 @@ export default function KitSyncPanel() {
                     <div className="max-h-[28rem] overflow-y-auto rounded-lg border border-white/10 bg-white/[0.02]">
                       <table className="w-full text-left text-xs">
                         <thead className="sticky top-0 border-b border-white/10 bg-[#0d1119]/95 backdrop-blur-sm">
-                          <tr className="text-[10px] uppercase tracking-[0.14em] text-text-tertiary">
+                          <tr className="text-xs uppercase tracking-[0.14em] text-text-tertiary">
                             <th className="px-3 py-2.5 font-medium">Modul</th>
                             <th className="px-3 py-2.5 font-medium text-right">Note</th>
                             <th className="hidden px-3 py-2.5 font-medium text-right sm:table-cell">ECTS</th>

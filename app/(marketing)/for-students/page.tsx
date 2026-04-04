@@ -131,7 +131,7 @@ export default function ForStudentsPage() {
                 className="flex gap-6 rounded-xl border border-white/[0.08] bg-white/[0.02] p-6"
               >
                 <div className="flex flex-col items-center gap-2 shrink-0">
-                  <span className="text-[10px] font-mono text-text-tertiary">{step.step}</span>
+                  <span className="text-xs font-mono text-text-tertiary">{step.step}</span>
                   <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
                     <Icon className="w-5 h-5 text-primary" />
                   </div>
@@ -139,7 +139,7 @@ export default function ForStudentsPage() {
                 <div className="flex-1">
                   <div className="flex items-start justify-between gap-4 mb-2">
                     <h3 className="font-semibold text-text-primary">{step.title}</h3>
-                    <span className={`text-[10px] font-semibold uppercase tracking-[0.1em] rounded-full border px-2 py-0.5 shrink-0 ${status.color} ${status.bg}`}>
+                    <span className={`text-xs font-semibold uppercase tracking-[0.1em] rounded-full border px-2 py-0.5 shrink-0 ${status.color} ${status.bg}`}>
                       {status.label}
                     </span>
                   </div>

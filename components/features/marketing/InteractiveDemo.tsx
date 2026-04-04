@@ -122,6 +122,18 @@ export function InteractiveDemo() {
         </div>
 
         <p className="mt-6 text-center text-sm leading-6 text-zinc-400">{insight}</p>
+
+        {preview.status === 'at_risk' && (
+          <div className="mt-4 flex items-center justify-center gap-2 rounded-lg border border-red-500/20 bg-red-500/[0.06] px-4 py-2.5">
+            <span className="relative flex h-1.5 w-1.5 shrink-0">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-60" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-red-500" />
+            </span>
+            <span className="font-mono text-[11px] text-red-400">
+              INNIS hätte dich 8 Wochen früher gewarnt.
+            </span>
+          </div>
+        )}
       </div>
     </TerminalFrame>
   );

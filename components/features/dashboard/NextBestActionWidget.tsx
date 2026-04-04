@@ -174,7 +174,7 @@ export default function NextBestActionWidget({
           </Badge>
           <div className="text-right leading-tight">
             <div className="text-lg font-bold text-text-primary">{executionScore}</div>
-            <div className="text-[9px] uppercase tracking-wider text-text-tertiary">Execution</div>
+            <div className="text-xs uppercase tracking-wider text-text-tertiary">Execution</div>
           </div>
         </div>
       </div>
@@ -203,7 +203,7 @@ export default function NextBestActionWidget({
                   {activeCandidate.reasons.slice(0, 1).map((reason) => (
                     <span
                       key={reason}
-                      className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[9px] uppercase tracking-wider text-text-tertiary"
+                      className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs uppercase tracking-wider text-text-tertiary"
                     >
                       {reason}
                     </span>
@@ -214,7 +214,7 @@ export default function NextBestActionWidget({
 
             {topRisk ? (
               <div className="rounded-xl border border-warning/25 bg-warning/[0.08] px-3 py-2.5">
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-warning">
+                <div className="text-xs font-semibold uppercase tracking-wider text-warning">
                   Risk: {topRisk.severity}
                 </div>
                 <div className="text-base leading-tight text-text-primary">{topRisk.title}</div>

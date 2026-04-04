@@ -223,7 +223,7 @@ export default function CourseModal({
             <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.06] p-3">
               <label htmlFor="course-expected-grade" className="block text-sm font-medium text-emerald-400 mb-1">
                 {isGerman ? 'Erwartete Note' : 'Expected grade'}
-                <span className="ml-1.5 text-[10px] font-normal text-gray-400">{isGerman ? '(Klausur geschrieben)' : '(exam already taken)'}</span>
+                <span className="ml-1.5 text-xs font-normal text-gray-400">{isGerman ? '(Klausur geschrieben)' : '(exam already taken)'}</span>
               </label>
               <select
                 id="course-expected-grade"

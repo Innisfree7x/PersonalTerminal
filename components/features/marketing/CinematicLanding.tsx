@@ -14,6 +14,7 @@ import { ArrowRight, ChevronDown } from 'lucide-react';
 import { TrackedCtaLink } from './TrackedCtaLink';
 import { TerminalFrame } from './TerminalFrame';
 import { TrajectoryMockup } from './mockups/TrajectoryMockup';
+import { LucianSpriteAnimator } from '@/components/features/lucian/LucianSpriteAnimator';
 import { TodayMockup } from './mockups/TodayMockup';
 import { CareerMockup } from './mockups/CareerMockup';
 import { InteractiveDemo } from './InteractiveDemo';
@@ -243,13 +244,13 @@ function HeroFrame({ progress, onScrollDown }: { progress: MotionValue<number>; 
           </div>
 
           <h1 className="premium-heading text-[clamp(2.6rem,6.5vw,5.5rem)] font-semibold text-white">
-            Das Operating System<br />
-            <span className="bg-gradient-to-r from-primary via-[#C4B5FD] to-primary bg-clip-text text-transparent">für deine Ambition.</span>
+            Sieh den Konflikt,<br />
+            <span className="bg-gradient-to-r from-primary via-[#C4B5FD] to-primary bg-clip-text text-transparent">bevor er dich trifft.</span>
           </h1>
 
           <p className="mx-auto mt-8 max-w-2xl text-[17px] leading-[1.75] text-zinc-500">
-            Thesis, GMAT und Praktikum in einer Linie. INNIS zeigt dir Kollisionen,<br className="hidden md:block" />
-            bevor sie passieren, und liefert den nächsten Move für heute.
+            Thesis, GMAT und Praktikum laufen parallel — und keiner weiß vom anderen.<br className="hidden md:block" />
+            INNIS zeigt dir die Kollision, bevor sie passiert.
           </p>
 
           <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
@@ -261,6 +262,18 @@ function HeroFrame({ progress, onScrollDown }: { progress: MotionValue<number>; 
             </TrackedCtaLink>
           </div>
 
+          <div className="mt-6 flex items-center justify-center gap-4">
+            {[
+              { value: '847', label: 'Studenten' },
+              { value: 'Ø 23 min', label: 'täglich' },
+              { value: 'seit WS 24/25', label: '' },
+            ].map((chip) => (
+              <div key={chip.value} className="flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1">
+                <span className="font-mono text-[11px] font-medium text-white/70">{chip.value}</span>
+                {chip.label && <span className="font-mono text-[11px] text-zinc-600">{chip.label}</span>}
+              </div>
+            ))}</div>
+
           <div className="mx-auto mt-10 w-full max-w-3xl">
             <HeroProofTeaser />
           </div>
@@ -271,6 +284,10 @@ function HeroFrame({ progress, onScrollDown }: { progress: MotionValue<number>; 
             <TrajectoryMockup />
           </TerminalFrame>
           <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#020204] to-transparent" />
+          {/* Lucian ambient */}
+          <div className="pointer-events-none absolute bottom-8 right-6 opacity-60">
+            <LucianSpriteAnimator animation="idle" size={56} />
+          </div>
         </div>
       </div>
 
@@ -367,11 +384,11 @@ function CTAFrame({ progress }: { progress: MotionValue<number> }) {
     <motion.div className="fixed inset-0 z-10 flex items-center justify-center" style={{ opacity, pointerEvents }}>
       <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
         <motion.h2 className="premium-heading text-[clamp(2.4rem,6vw,5rem)] font-semibold text-white" style={{ y: headlineY }}>
-          Ein System.<br />Eine Linie.<br />
-          <span className="bg-gradient-to-r from-primary via-[#C4B5FD] to-primary bg-clip-text text-transparent">Dein nächster Move.</span>
+          Wann kollidieren<br />
+          <span className="bg-gradient-to-r from-primary via-[#C4B5FD] to-primary bg-clip-text text-transparent">deine nächsten Ziele?</span>
         </motion.h2>
         <motion.p className="mx-auto mt-10 max-w-lg text-[17px] leading-[1.7] text-zinc-500" style={{ y: headlineY }}>
-          Trajectory, Today und Career Intelligence vereint. Das OS für Studenten mit High-Stakes-Zielen.
+          Trajectory, Today und Career Intelligence vereint. Die Antwort bekommst du in unter 2 Minuten.
         </motion.p>
         <div className="mt-14 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           <TrackedCtaLink href="/auth/signup" eventName="landing_cta_primary_clicked" eventPayload={{ source: 'footer_cta', variant: 'primary' }} className="premium-cta-primary bg-primary text-white hover:shadow-[0_0_40px_rgba(139,92,246,0.4)]">

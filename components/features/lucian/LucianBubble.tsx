@@ -301,7 +301,7 @@ export function LucianBubble({
             {/* Header — full width */}
             <div className="relative flex items-center justify-between gap-2 border-b border-white/[0.06] px-4 py-3">
               <span
-                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${moodChipBg[normalizedMood]} ${moodAccentText[normalizedMood]}`}
+                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold uppercase tracking-[0.16em] ${moodChipBg[normalizedMood]} ${moodAccentText[normalizedMood]}`}
               >
                 <Zap className="h-3 w-3" />
                 Lucian · {moodLabel[normalizedMood]}
@@ -334,7 +334,7 @@ export function LucianBubble({
                   {text}
                 </p>
 
-                <div className="mt-2 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-zinc-400">
+                <div className="mt-2 inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.16em] text-zinc-400">
                   <span className="h-1 w-1 rounded-full bg-current" />
                   <span>{moodSpell[normalizedMood]}</span>
                 </div>

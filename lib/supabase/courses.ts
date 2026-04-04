@@ -50,53 +50,30 @@ export function courseToSupabaseInsert(course: CreateCourseInput): Omit<CourseIn
 }
 
 /**
- * Fetch all courses with their exercise progress
+ * Fetch all courses with their exercise progress in a single query
  */
 export async function fetchCoursesWithExercises(userId: string): Promise<CourseWithExercises[]> {
   const supabase = createClient();
 
-  // Fetch all courses
-  const { data: coursesData, error: coursesError } = await supabase
+  const { data, error } = await supabase
     .from('courses')
-    .select('*')
+    .select('*, exercise_progress(*)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
-  if (coursesError) {
-    throw new Error(`Failed to fetch courses: ${coursesError.message}`);
+  if (error) {
+    throw new Error(`Failed to fetch courses: ${error.message}`);
   }
 
-  if (!coursesData || coursesData.length === 0) {
+  if (!data || data.length === 0) {
     return [];
   }
 
-  // Fetch all exercise progress for all courses
-  const courseIds = coursesData.map((c) => c.id);
-  const { data: exercisesData, error: exercisesError } = await supabase
-    .from('exercise_progress')
-    .select('*')
-    .eq('user_id', userId)
-    .in('course_id', courseIds)
-    .order('exercise_number', { ascending: true });
-
-  if (exercisesError) {
-    throw new Error(`Failed to fetch exercise progress: ${exercisesError.message}`);
-  }
-
-  // Group exercises by course
-  const exercisesByCourse: Record<string, ExerciseProgress[]> = {};
-  (exercisesData || []).forEach((ex) => {
-    const courseId = ex.course_id;
-    if (!exercisesByCourse[courseId]) {
-      exercisesByCourse[courseId] = [];
-    }
-    exercisesByCourse[courseId]?.push(supabaseExerciseProgressToExerciseProgress(ex));
-  });
-
-  // Combine courses with exercises
-  return coursesData.map((course) => ({
+  return data.map((course) => ({
     ...supabaseCoursetoCourse(course),
-    exercises: exercisesByCourse[course.id] || [],
+    exercises: ((course as any).exercise_progress || [])
+      .sort((a: SupabaseExerciseProgress, b: SupabaseExerciseProgress) => a.exercise_number - b.exercise_number)
+      .map(supabaseExerciseProgressToExerciseProgress),
   }));
 }
 

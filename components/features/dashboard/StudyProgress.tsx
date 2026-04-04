@@ -46,7 +46,7 @@ const StudyProgress = memo(function StudyProgress({ courses }: StudyProgressProp
 
   if (courses.length === 0) {
     return (
-      <div className="card-warm rounded-xl p-4">
+      <div className="card-warm rounded-xl p-5">
         <div className="flex items-center gap-2 mb-3">
           <GraduationCap className="w-5 h-5 text-university-accent" />
           <h3 className="text-base font-semibold text-text-primary">Lernfortschritt</h3>
@@ -65,7 +65,7 @@ const StudyProgress = memo(function StudyProgress({ courses }: StudyProgressProp
   }
 
   return (
-    <div className="card-warm rounded-xl p-4">
+    <div className="card-warm rounded-xl p-5">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <GraduationCap className="w-5 h-5 text-university-accent" />
@@ -124,7 +124,7 @@ const StudyProgress = memo(function StudyProgress({ courses }: StudyProgressProp
               {course.daysUntilExam !== undefined && (
                 <div className="flex justify-end">
                   {examWritten ? (
-                    <span className="text-[10px] font-medium text-emerald-400/80">
+                    <span className="text-xs font-medium text-emerald-400/80">
                       Geschrieben
                       {course.expectedGrade && (
                         <span className="ml-1.5 font-bold">· {course.expectedGrade.toFixed(1)}</span>
@@ -132,7 +132,7 @@ const StudyProgress = memo(function StudyProgress({ courses }: StudyProgressProp
                     </span>
                   ) : (
                     <span
-                      className={`text-[10px] font-medium ${
+                      className={`text-xs font-medium ${
                         examUrgency === 'urgent'
                           ? 'text-error'
                           : examUrgency === 'warning'

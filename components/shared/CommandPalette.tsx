@@ -439,7 +439,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                     value={search}
                     onValueChange={setSearch}
                   />
-                  <kbd className="hidden rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[10px] text-zinc-500 sm:inline-flex">
+                  <kbd className="hidden rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-xs text-zinc-500 sm:inline-flex">
                     ESC
                   </kbd>
                 </div>
@@ -454,7 +454,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                           className={`h-4 w-4 flex-shrink-0 ${intentMeta[intentResult.intent.kind].accent}`}
                         />
                         <div className="min-w-0 flex-1">
-                          <p className={`text-[10px] font-semibold uppercase tracking-[0.14em] ${intentMeta[intentResult.intent.kind].accent}`}>
+                          <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${intentMeta[intentResult.intent.kind].accent}`}>
                             {intentMeta[intentResult.intent.kind].label}
                           </p>
                           <p className="mt-0.5 truncate text-[13px] text-zinc-200">
@@ -490,7 +490,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                   {/* Navigation */}
                   <Command.Group
                     heading={copy.command.navigation}
-                    className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary"
+                    className="px-2 pb-1 pt-2 text-xs font-semibold uppercase tracking-[0.14em] text-text-tertiary"
                   >
                     {navigationCommands.map((cmd) => {
                       const Icon = cmd.icon;
@@ -511,7 +511,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                   {/* Themes */}
                   <Command.Group
                     heading={copy.command.themes}
-                    className="mt-1 px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary"
+                    className="mt-1 px-2 pb-1 pt-2 text-xs font-semibold uppercase tracking-[0.14em] text-text-tertiary"
                   >
                     {themeCommands.map((cmd) => {
                       const Icon = cmd.icon;
@@ -526,7 +526,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                           <Icon className="command-item-icon h-4 w-4 flex-shrink-0" />
                           <span className="flex-1">{cmd.label}</span>
                           {isActive && (
-                            <span className="rounded-full border border-primary/25 bg-primary/15 px-2 py-0.5 text-[10px] text-primary">
+                            <span className="rounded-full border border-primary/25 bg-primary/15 px-2 py-0.5 text-xs text-primary">
                               {copy.command.active}
                             </span>
                           )}
@@ -539,7 +539,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                   {focusCommands.length > 0 && (
                     <Command.Group
                       heading={copy.command.focusTimer}
-                      className="mt-1 px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary"
+                      className="mt-1 px-2 pb-1 pt-2 text-xs font-semibold uppercase tracking-[0.14em] text-text-tertiary"
                     >
                       {focusCommands.map((cmd) => {
                         const Icon = cmd.icon;
@@ -553,7 +553,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                             <Icon className="command-item-icon h-4 w-4 flex-shrink-0" />
                             <span className="flex-1">{cmd.label}</span>
                             {'shortcut' in cmd && cmd.shortcut && (
-                              <kbd className="rounded border border-border bg-surface-hover px-1.5 py-0.5 text-[10px] text-text-tertiary">
+                              <kbd className="rounded border border-border bg-surface-hover px-1.5 py-0.5 text-xs text-text-tertiary">
                                 {cmd.shortcut}
                               </kbd>
                             )}
@@ -566,7 +566,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                   {/* Quick Actions */}
                   <Command.Group
                     heading={copy.command.quickActions}
-                    className="mt-1 px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary"
+                    className="mt-1 px-2 pb-1 pt-2 text-xs font-semibold uppercase tracking-[0.14em] text-text-tertiary"
                   >
                     {quickActions.map((cmd) => {
                       const Icon = cmd.icon;
@@ -580,7 +580,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                           <Icon className="command-item-icon h-4 w-4 flex-shrink-0" />
                           <span className="flex-1">{cmd.label}</span>
                           {cmd.shortcut && (
-                            <kbd className="rounded border border-border bg-surface-hover px-1.5 py-0.5 text-[10px] text-text-tertiary">
+                            <kbd className="rounded border border-border bg-surface-hover px-1.5 py-0.5 text-xs text-text-tertiary">
                               ⌘{cmd.shortcut}
                             </kbd>
                           )}
@@ -592,13 +592,13 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
 
                 {/* Footer */}
                 <div className="flex items-center justify-between border-t border-border/70 bg-surface/35 px-4 py-2.5">
-                  <div className="flex items-center gap-4 text-[10px] text-text-tertiary">
+                  <div className="flex items-center gap-4 text-xs text-text-tertiary">
                     <span className="flex items-center gap-1">
-                      <kbd className="rounded border border-border bg-surface-hover px-1 py-0.5 text-[9px]">↑↓</kbd>
+                      <kbd className="rounded border border-border bg-surface-hover px-1 py-0.5 text-xs">↑↓</kbd>
                       {copy.command.navigate}
                     </span>
                     <span className="flex items-center gap-1">
-                      <kbd className="rounded border border-border bg-surface-hover px-1 py-0.5 text-[9px]">↵</kbd>
+                      <kbd className="rounded border border-border bg-surface-hover px-1 py-0.5 text-xs">↵</kbd>
                       {copy.command.execute}
                     </span>
                     {isIntentMode && (
@@ -608,7 +608,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 text-[10px] text-text-tertiary">
+                  <div className="flex items-center gap-1 text-xs text-text-tertiary">
                     <Zap className="h-3 w-3" />
                     {copy.command.commandBrand}
                   </div>

@@ -858,19 +858,19 @@ export default function TrajectoryPage() {
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-xl border border-border bg-surface/80 px-3 py-2">
-                <div className="text-[10px] uppercase tracking-wider text-text-tertiary">Horizon</div>
+                <div className="text-xs uppercase tracking-wider text-text-tertiary">Horizon</div>
                 <div className="mt-1 text-lg font-semibold text-text-primary">{timelineHorizonMonths}m</div>
               </div>
               <div className="rounded-xl border border-border bg-surface/80 px-3 py-2">
-                <div className="text-[10px] uppercase tracking-wider text-text-tertiary">Baseline</div>
+                <div className="text-xs uppercase tracking-wider text-text-tertiary">Baseline</div>
                 <div className="mt-1 text-lg font-semibold text-text-primary">{overview.settings.hoursPerWeek}h/w</div>
               </div>
               <div className="rounded-xl border border-border bg-surface/80 px-3 py-2">
-                <div className="text-[10px] uppercase tracking-wider text-text-tertiary">Simulated</div>
+                <div className="text-xs uppercase tracking-wider text-text-tertiary">Simulated</div>
                 <div className="mt-1 text-lg font-semibold text-primary">{effectiveCapacity}h/w</div>
               </div>
               <div className="rounded-xl border border-border bg-surface/80 px-3 py-2">
-                <div className="text-[10px] uppercase tracking-wider text-text-tertiary">Risk</div>
+                <div className="text-xs uppercase tracking-wider text-text-tertiary">Risk</div>
                 <div className="mt-1 text-lg font-semibold text-error">{computed.summary.atRisk}</div>
               </div>
             </div>
@@ -1110,7 +1110,7 @@ export default function TrajectoryPage() {
                         width: `${Math.max(0, segment.endPercent - segment.startPercent)}%`,
                       }}
                     >
-                      <span className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.14em] text-primary/85">
+                      <span className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-xs uppercase tracking-[0.14em] text-primary/85">
                         {segment.label}
                       </span>
                     </div>
@@ -1126,17 +1126,17 @@ export default function TrajectoryPage() {
                     </div>
                   ))}
 
-                  <span className="absolute bottom-1 left-3 font-mono text-[10px] tracking-[0.08em] text-text-tertiary">
+                  <span className="absolute bottom-1 left-3 font-mono text-xs tracking-[0.08em] text-text-tertiary">
                     {timelineRangeStart}
                   </span>
-                  <span className="absolute bottom-1 right-3 font-mono text-[10px] tracking-[0.08em] text-text-tertiary">
+                  <span className="absolute bottom-1 right-3 font-mono text-xs tracking-[0.08em] text-text-tertiary">
                     {timelineRangeEnd}
                   </span>
                 </div>
 
                 <div className="relative h-[280px] rounded-xl border border-border/80 bg-background/45 px-3 py-3">
                   <div className="absolute inset-y-3 left-[0.7%] w-[2px] rounded-full bg-primary/70 shadow-[0_0_14px_rgba(251,191,36,0.4)]" />
-                  <span className="absolute left-[0.2%] top-2 rounded-full border border-primary/35 bg-primary/10 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] text-primary">
+                  <span className="absolute left-[0.2%] top-2 rounded-full border border-primary/35 bg-primary/10 px-1.5 py-0.5 text-xs uppercase tracking-[0.12em] text-primary">
                     Now
                   </span>
 
@@ -1503,7 +1503,7 @@ export default function TrajectoryPage() {
                 const tone = getRiskStatusTone(entry.status);
                 return (
                   <div key={entry.status} className={cn('rounded-xl border px-2.5 py-2', tone.surface, tone.border)}>
-                    <div className={cn('text-[10px] uppercase tracking-wider', tone.text)}>
+                    <div className={cn('text-xs uppercase tracking-wider', tone.text)}>
                       {getRiskStatusLabel(entry.status)}
                     </div>
                     <div className={cn('mt-1 text-xl font-bold', tone.text)}>{entry.value}</div>
@@ -1615,7 +1615,7 @@ export default function TrajectoryPage() {
                             type="button"
                             onClick={() => setSelectedGoalId(goal.id)}
                             className={cn(
-                              'rounded-md border px-1.5 py-1 text-[10px] font-medium transition-colors',
+                              'rounded-md border px-1.5 py-1 text-xs font-medium transition-colors',
                               isSelected
                                 ? 'border-primary/40 bg-primary/15 text-primary'
                                 : 'border-border text-text-tertiary hover:border-primary/30 hover:text-text-primary'
@@ -1626,7 +1626,7 @@ export default function TrajectoryPage() {
                           {risk && (
                             <span
                               className={cn(
-                                'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em]',
+                                'inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold uppercase tracking-[0.08em]',
                                 getRiskStatusTone(risk).badge
                               )}
                             >
@@ -1682,7 +1682,7 @@ export default function TrajectoryPage() {
                             setShowWindows(true);
                           }}
                           className={cn(
-                            'rounded-md border px-1.5 py-1 text-[10px] font-medium transition-colors',
+                            'rounded-md border px-1.5 py-1 text-xs font-medium transition-colors',
                             isSelected
                               ? 'border-info/45 bg-info/15 text-info'
                               : 'border-border text-text-tertiary hover:border-info/30 hover:text-info'

@@ -36,6 +36,16 @@ const SoundSettingsSection = dynamic(
     { loading: () => <SettingsSectionSkeleton titleWidth="w-28" rows={2} /> },
 );
 
+const RoomSettingsSection = dynamic(
+    () => import('@/components/features/settings/RoomSettingsSection'),
+    { loading: () => <SettingsSectionSkeleton titleWidth="w-28" rows={2} /> },
+);
+
+const LucianSettingsSection = dynamic(
+    () => import('@/components/features/settings/LucianSettingsSection'),
+    { loading: () => <SettingsSectionSkeleton titleWidth="w-32" rows={2} /> },
+);
+
 const ChampionSettingsSection = dynamic(
     () => import('@/components/features/settings/ChampionSettingsSection'),
     { loading: () => <SettingsSectionSkeleton titleWidth="w-40" rows={3} /> },
@@ -269,6 +279,10 @@ export default function SettingsPage() {
             <AppearanceSettingsSection />
 
             <SoundSettingsSection />
+
+            <RoomSettingsSection />
+
+            <LucianSettingsSection />
 
             {/* Lucian Companion Section */}
             <section className="space-y-6">

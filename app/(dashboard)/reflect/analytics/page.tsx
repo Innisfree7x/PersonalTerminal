@@ -130,7 +130,7 @@ export default function AnalyticsPage() {
       {analyticsLoading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="card-warm rounded-xl p-4 h-24 animate-pulse" />
+            <div key={i} className="card-warm rounded-xl p-5 h-24 animate-pulse" />
           ))}
         </div>
       ) : analytics ? (

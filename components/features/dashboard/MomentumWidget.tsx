@@ -68,7 +68,7 @@ function BreakdownBar({ label, value, max, icon }: BreakdownBarProps) {
       <div className="w-4 h-4 flex items-center justify-center text-text-tertiary flex-shrink-0">
         {icon}
       </div>
-      <span className="text-[10px] uppercase tracking-wider text-text-tertiary w-16 flex-shrink-0">{label}</span>
+      <span className="text-xs uppercase tracking-wider text-text-tertiary w-16 flex-shrink-0">{label}</span>
       <div className="flex-1 h-1.5 bg-surface-hover rounded-full overflow-hidden">
         <motion.div
           className="h-full bg-primary rounded-full"
@@ -77,7 +77,7 @@ function BreakdownBar({ label, value, max, icon }: BreakdownBarProps) {
           transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
         />
       </div>
-      <span className="text-[10px] text-text-tertiary w-8 text-right flex-shrink-0">
+      <span className="text-xs text-text-tertiary w-8 text-right flex-shrink-0">
         {value.toFixed(0)}/{max}
       </span>
     </div>
@@ -200,7 +200,7 @@ export default function MomentumWidget({ momentum, goals = [], isLoading }: Mome
       {/* Goal Health Bars */}
       {goals.length > 0 && (
         <div className="border-t border-border pt-3 mt-3">
-          <h4 className="text-[10px] font-semibold uppercase tracking-wider text-text-tertiary mb-2">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-2">
             Goal Health
           </h4>
           <div className="space-y-2.5">
@@ -211,10 +211,10 @@ export default function MomentumWidget({ momentum, goals = [], isLoading }: Mome
                     {goal.title}
                   </span>
                   <div className="flex items-center gap-1.5">
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${statusBadgeClass(goal.status)}`}>
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full border ${statusBadgeClass(goal.status)}`}>
                       {statusLabel(goal.status)}
                     </span>
-                    <span className="text-[10px] text-text-tertiary">
+                    <span className="text-xs text-text-tertiary">
                       {goal.daysLeft}d
                     </span>
                   </div>

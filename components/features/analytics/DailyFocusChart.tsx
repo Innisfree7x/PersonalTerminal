@@ -27,13 +27,13 @@ function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-xl border border-white/[0.12] bg-zinc-950/90 px-3 py-2 shadow-2xl backdrop-blur-md">
-      <p className="text-[10px] text-zinc-500 mb-0.5">
+      <p className="text-xs text-zinc-500 mb-0.5">
         {format(parseISO(label), 'EEE, MMM d')}
       </p>
       <p className="text-xs font-semibold text-text-primary">
         {payload[0].value} min
       </p>
-      <p className="text-[10px] text-zinc-500">
+      <p className="text-xs text-zinc-500">
         {payload[0].payload.sessions} sessions
       </p>
     </div>

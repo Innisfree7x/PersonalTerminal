@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
 import { format } from 'date-fns';
@@ -10,6 +10,16 @@ import toast from 'react-hot-toast';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import FocusTasks from '@/components/features/dashboard/FocusTasks';
 import NBAHeroZone from '@/components/features/dashboard/NBAHeroZone';
+import LucianRoom from '@/components/features/room/LucianRoom';
+import MorningRitual from '@/components/features/room/MorningRitual';
+import AchievementUnlockOverlay from '@/components/features/room/AchievementUnlockOverlay';
+import { useRoomState } from '@/lib/hooks/useRoomState';
+import { useRoomItems } from '@/lib/hooks/useRoomItems';
+import { useLucianOutfit } from '@/lib/hooks/useLucianOutfit';
+import { useAchievements } from '@/lib/hooks/useAchievements';
+import { checkNewAchievements } from '@/lib/achievements/checker';
+import type { AchievementCheckInput } from '@/lib/achievements/registry';
+import { getLinesForMood } from '@/lib/lucian/copy';
 import { parseOAuthCallbackParams } from '@/lib/hooks/useNotifications';
 import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
@@ -40,6 +50,12 @@ export default function TodayPage() {
   const queryClient = useQueryClient();
   const { play } = useAppSound();
   const { streak } = useStreak();
+  const [ritualDone, setRitualDone] = useState(false);
+  const { unlockedKeys, unlock } = useAchievements();
+  const roomItems = useRoomItems();
+  const { outfit } = useLucianOutfit();
+  const [pendingAchievementKey, setPendingAchievementKey] = useState<string | null>(null);
+  const achievementCheckedRef = useRef(false);
 
   // Check URL params for OAuth callback messages
   useEffect(() => {
@@ -66,6 +82,12 @@ export default function TodayPage() {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
+
+  const roomState = useRoomState(nextTasksData);
+  const momentumScore = nextTasksData?.trajectoryMorning?.momentum?.score ?? 40;
+  const morningMood = momentumScore >= 70 ? 'hype' : momentumScore >= 40 ? 'chill' : 'comfort';
+  const morningLines = getLinesForMood(morningMood);
+  const morningMessage = morningLines[0]?.text ?? 'Bereit für einen produktiven Tag!';
 
   const stats = nextTasksData?.stats;
   const studyProgress = nextTasksData?.studyProgress || [];
@@ -128,6 +150,29 @@ export default function TodayPage() {
     }
     window.localStorage.setItem(LAST_MOMENTUM_SCORE_KEY, String(momentum.score));
   }, [momentum, play]);
+
+  // Achievement check — runs once after initial data load
+  useEffect(() => {
+    if (achievementCheckedRef.current || !isNextTasksFetched || !nextTasksData) return;
+    achievementCheckedRef.current = true;
+
+    const momentum = nextTasksData.trajectoryMorning?.momentum;
+    const input: AchievementCheckInput = {
+      streakDays: streak,
+      tasksCompletedAllTime: nextTasksData.stats?.tasksCompleted ?? 0,
+      passedModulesCount: nextTasksData.studyProgress?.filter((c) => c.percentage >= 100).length ?? 0,
+      trajectoryScore: momentum?.score ?? 0,
+      focusMinutesAllTime: 0,
+    };
+
+    const newAchievements = checkNewAchievements(input, unlockedKeys);
+    if (newAchievements.length > 0) {
+      for (const a of newAchievements) {
+        unlock(a.key);
+      }
+      setPendingAchievementKey(newAchievements[0]?.key ?? null);
+    }
+  }, [isNextTasksFetched, nextTasksData, streak, unlockedKeys, unlock]);
 
   const handleChanged = () => {
     queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
@@ -196,6 +241,21 @@ export default function TodayPage() {
 
   return (
     <div className="space-y-4 md:space-y-5" data-testid="today-page-root">
+      {/* ── 0. Lucians Raum ── */}
+      <ErrorBoundary fallbackTitle="Room Error">
+        <div
+          className="relative w-full overflow-hidden rounded-2xl h-[min(30vh,240px)] sm:h-[min(42vh,380px)]"
+        >
+          {!ritualDone && (
+            <MorningRitual
+              onComplete={() => setRitualDone(true)}
+              morningMessage={morningMessage}
+            />
+          )}
+          <LucianRoom state={roomState} roomItems={roomItems} lucianOutfit={outfit} className="w-full h-full" />
+        </div>
+      </ErrorBoundary>
+
       {/* ── 1. Morning Briefing — single compact line ── */}
       <ErrorBoundary fallbackTitle="Morning Briefing Error">
         <div className="card-warm-accent relative overflow-hidden rounded-xl px-4 py-2.5">
@@ -402,6 +462,11 @@ export default function TodayPage() {
           }}
         />
       </div>
+
+      <AchievementUnlockOverlay
+        achievementKey={pendingAchievementKey}
+        onDismiss={() => setPendingAchievementKey(null)}
+      />
     </div>
   );
 }

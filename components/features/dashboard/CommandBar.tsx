@@ -84,7 +84,7 @@ function RailChip({ label, tone, pulse = false }: { label: string; tone: ChipTon
   };
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.14em] transition-shadow duration-200 ${toneClasses[tone]} ${glowClasses[tone]}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-mono text-xs font-semibold uppercase tracking-[0.14em] transition-shadow duration-200 ${toneClasses[tone]} ${glowClasses[tone]}`}
     >
       {pulse ? <PulseDot className={pulseColor[tone]} /> : null}
       {label}
@@ -137,7 +137,7 @@ function StatChip({
           {meta && <span className="text-[11px] text-text-secondary/80">{meta}</span>}
         </div>
         <div className="mt-0.5 flex items-center gap-1.5">
-          <span className="font-mono text-[9px] uppercase tracking-[0.11em] text-text-secondary/75">{label}</span>
+          <span className="font-mono text-xs uppercase tracking-[0.11em] text-text-secondary/75">{label}</span>
           {chip}
         </div>
       </div>
@@ -286,7 +286,7 @@ function ActionSection({ nextBestAction, alternatives, riskSignals, onChanged }:
               {activeCandidate.title}
             </motion.p>
             <div className="mt-0.5 flex items-center gap-1.5">
-              <span className="font-mono text-[9px] uppercase tracking-[0.11em] text-text-secondary/75">
+              <span className="font-mono text-xs uppercase tracking-[0.11em] text-text-secondary/75">
                 {activeCandidate.urgencyLabel}
               </span>
               {topRisk && (

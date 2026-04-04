@@ -102,7 +102,7 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
   }, []);
 
   return (
-    <div className="card-warm rounded-xl p-4">
+    <div className="card-warm rounded-xl p-5">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -163,7 +163,7 @@ const WeekOverview = memo(function WeekOverview({ events: propEvents, isLoading:
               aria-label={`${format(day, 'EEEE, MMMM d')}${today ? ' (Today)' : ''}: ${getEventCount(day)} event${getEventCount(day) !== 1 ? 's' : ''}`}
             >
               {/* Day name */}
-              <span className="text-[10px] font-medium text-text-tertiary uppercase">
+              <span className="text-xs font-medium text-text-tertiary uppercase">
                 {format(day, 'EEE')}
               </span>
 

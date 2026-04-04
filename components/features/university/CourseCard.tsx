@@ -173,19 +173,19 @@ export default function CourseCard({
                   </div>
                   {examWritten ? (
                     <div className="flex items-center gap-1.5">
-                      <div className="flex items-center gap-1 rounded-md bg-emerald-500/12 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-400">
+                      <div className="flex items-center gap-1 rounded-md bg-emerald-500/12 px-1.5 py-0.5 text-xs font-semibold text-emerald-400">
                         <CheckCircle2 className="h-3 w-3" />
                         Klausur geschrieben
                       </div>
                       {course.expectedGrade ? (
-                        <div className={`flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold bg-white/[0.06] ${gradeColor(course.expectedGrade)}`}>
+                        <div className={`flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-bold bg-white/[0.06] ${gradeColor(course.expectedGrade)}`}>
                           <Star className="h-3 w-3" />
                           {course.expectedGrade.toFixed(1)}
                         </div>
                       ) : (
                         <button
                           onClick={(e) => { e.stopPropagation(); onEdit(); }}
-                          className="rounded-md bg-white/[0.05] px-1.5 py-0.5 text-[10px] text-text-tertiary hover:text-text-primary hover:bg-white/[0.09] transition-colors"
+                          className="rounded-md bg-white/[0.05] px-1.5 py-0.5 text-xs text-text-tertiary hover:text-text-primary hover:bg-white/[0.09] transition-colors"
                         >
                           Note eintragen →
                         </button>
@@ -193,7 +193,7 @@ export default function CourseCard({
                     </div>
                   ) : daysUntilExam !== null ? (
                     daysUntilExam <= 7 ? (
-                      <span className="font-mono text-[10px] font-semibold text-amber-300">
+                      <span className="font-mono text-xs font-semibold text-amber-300">
                         {daysUntilExam === 0 ? 'Heute' : daysUntilExam === 1 ? 'Morgen' : `${daysUntilExam}d`}
                       </span>
                     ) : (

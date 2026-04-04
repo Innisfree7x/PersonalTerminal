@@ -82,14 +82,18 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/today/:path*',
+    '/workspace/:path*',
+    '/uni/:path*',
+    '/career/:path*',
+    '/reflect/:path*',
+    '/focus/:path*',
+    '/settings/:path*',
+    '/analytics/:path*',
+    '/onboarding/:path*',
+    '/auth/:path*',
+    // Legacy routes (still hit middleware before redirect)
     '/calendar/:path*',
     '/goals/:path*',
     '/university/:path*',
-    '/career/:path*',
-    '/analytics/:path*',
-    '/focus/:path*',
-    '/settings/:path*',
-    '/onboarding/:path*',
-    '/auth/:path*',
   ],
 };

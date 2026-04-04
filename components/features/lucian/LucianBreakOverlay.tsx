@@ -186,7 +186,7 @@ export function LucianBreakOverlay({
             <div className="pointer-events-auto w-full max-w-2xl rounded-2xl border border-white/10 bg-[#090c14]/90 px-4 py-3 shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_18px_48px_rgba(0,0,0,0.55)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-500">Break Mode</p>
+                  <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">Break Mode</p>
                   <p className="text-sm font-semibold text-[#FAF0E6]">{title}</p>
                 </div>
                 <button
@@ -262,7 +262,7 @@ export function LucianBreakOverlay({
                   <div className="mx-auto mb-3 grid h-10 w-10 place-items-center rounded-full bg-amber-300/15 text-amber-200">
                     <Trophy className="h-5 w-5" />
                   </div>
-                  <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-500">Session Result</p>
+                  <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">Session Result</p>
                   <p className="mt-1 text-xl font-semibold text-[#FAF0E6]">{score} Punkte</p>
                   <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
                     <div className="rounded-lg border border-white/10 bg-white/[0.02] p-2">

@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useReducedMotion } from 'framer-motion';
+import { OUTFITS, type LucianOutfit } from '@/lib/lucian/outfits';
 
 export type LucianAnimation = 'idle' | 'walk' | 'victory' | 'panic' | 'meditate';
 
@@ -12,7 +13,8 @@ const SPRITE_SHEET_PATH = '/sprites/lucian-sprites-v3.svg';
 
 interface LucianSpriteAnimatorProps {
   animation: LucianAnimation;
-  size?: number;
+  size?: number | undefined;
+  outfit?: LucianOutfit | undefined;
 }
 
 function animationRow(animation: LucianAnimation): number {
@@ -44,9 +46,35 @@ function frameDuration(animation: LucianAnimation): number {
   }
 }
 
-export function LucianSpriteAnimator({ animation, size = DEFAULT_SIZE }: LucianSpriteAnimatorProps) {
+export function LucianSpriteAnimator({ animation, size = DEFAULT_SIZE, outfit }: LucianSpriteAnimatorProps) {
   const [frame, setFrame] = useState(0);
   const prefersReducedMotion = useReducedMotion();
+  const [sheetPath, setSheetPath] = useState(SPRITE_SHEET_PATH);
+
+  useEffect(() => {
+    if (!outfit || outfit === 'default') {
+      setSheetPath(SPRITE_SHEET_PATH);
+      return;
+    }
+    const def = OUTFITS[outfit];
+    if (!def) {
+      setSheetPath(SPRITE_SHEET_PATH);
+      return;
+    }
+    setSheetPath(def.spriteSheet);
+  }, [outfit]);
+
+  const handleImageError = useCallback(() => {
+    setSheetPath(SPRITE_SHEET_PATH);
+  }, []);
+
+  // Preload outfit sprite sheet to detect load errors
+  useEffect(() => {
+    if (sheetPath === SPRITE_SHEET_PATH) return;
+    const img = new Image();
+    img.onerror = handleImageError;
+    img.src = sheetPath;
+  }, [sheetPath, handleImageError]);
 
   useEffect(() => {
     const count = frameCount(animation);
@@ -68,7 +96,7 @@ export function LucianSpriteAnimator({ animation, size = DEFAULT_SIZE }: LucianS
       style={{
         width: size,
         height: size,
-        backgroundImage: `url('${SPRITE_SHEET_PATH}')`,
+        backgroundImage: `url('${sheetPath}')`,
         backgroundSize: `${SHEET_COLUMNS * size}px ${SHEET_ROWS * size}px`,
         backgroundPosition: `-${frame * size}px -${row * size}px`,
         imageRendering: 'pixelated',

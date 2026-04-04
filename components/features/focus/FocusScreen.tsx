@@ -360,7 +360,7 @@ function VisualPresetPicker({
   const selectedLabel = options.find((o) => o.id === selectedId)?.label ?? '';
   return (
     <div className="rounded-2xl border border-white/12 bg-black/38 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-      <p className="mb-1.5 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-zinc-500">
+      <p className="mb-1.5 inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.14em] text-zinc-500">
         <Icon className="h-3.5 w-3.5 text-zinc-400" />
         {label}: <span className="text-zinc-300">{selectedLabel}</span>
       </p>
@@ -412,7 +412,7 @@ function FocusTodoWidget({ tasks }: { tasks: FocusTaskItem[] }) {
 
   return (
     <div className="mt-4 w-full max-w-md rounded-2xl border border-white/8 bg-black/32 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
-      <p className="mb-2 text-[10px] uppercase tracking-[0.14em] text-zinc-500">
+      <p className="mb-2 text-xs uppercase tracking-[0.14em] text-zinc-500">
         Heute offen · {incomplete.length}
       </p>
       <div className="flex flex-col gap-1.5">
@@ -427,14 +427,14 @@ function FocusTodoWidget({ tasks }: { tasks: FocusTaskItem[] }) {
                 {task.title}
               </span>
               {task.subtitle && (
-                <span className="block truncate text-[10px] text-zinc-600">{task.subtitle}</span>
+                <span className="block truncate text-xs text-zinc-600">{task.subtitle}</span>
               )}
             </div>
           </div>
         ))}
       </div>
       {completedCount > 0 && (
-        <p className="mt-2 flex items-center gap-1 text-[10px] text-zinc-600">
+        <p className="mt-2 flex items-center gap-1 text-xs text-zinc-600">
           <Check className="h-3 w-3" />
           {completedCount} erledigt
         </p>
@@ -850,7 +850,7 @@ export default function FocusScreen() {
           'sm:items-end sm:justify-between'
         }`}>
           <div className="w-full shrink-0 rounded-2xl border border-white/10 bg-black/40 p-3 sm:w-auto sm:max-w-[560px]">
-            <p className="text-[10px] uppercase tracking-[0.15em] text-zinc-500">Session Controls</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-zinc-500">Session Controls</p>
             {isIdle ? (
               <div className="mt-2 flex min-h-[5.5rem] flex-col gap-2">
                 <div className="flex flex-wrap items-center gap-2">
@@ -933,7 +933,7 @@ export default function FocusScreen() {
           </div>
 
           <div className="w-full rounded-2xl border border-white/10 bg-black/46 px-4 py-3.5 text-right shadow-[0_8px_28px_rgba(0,0,0,0.42)] sm:ml-auto sm:w-auto sm:min-w-[190px]">
-            <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-500">{timerLabel} Timer</p>
+            <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">{timerLabel} Timer</p>
             <p
               data-testid="focus-timer-readout"
               className={`mt-1 font-mono text-2xl font-semibold ${isBreak ? 'text-amber-200' : 'text-cyan-100'}`}

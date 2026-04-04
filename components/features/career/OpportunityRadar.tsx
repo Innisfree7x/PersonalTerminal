@@ -589,7 +589,7 @@ export default function OpportunityRadar({
             <div className="rounded-xl border border-border bg-background/30 p-4">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="max-w-3xl">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">CV-Signal</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-tertiary">CV-Signal</p>
                   <h3 className="mt-1 text-sm font-semibold text-text-primary">
                     {cvRankLabel ? `${cvRankLabel} im Radar aktiv` : 'CV-Profil aktiv'}
                   </h3>
@@ -614,7 +614,7 @@ export default function OpportunityRadar({
 
               <div className="mt-3 grid gap-3 md:grid-cols-2">
                 <div className="rounded-lg border border-border/80 bg-surface/35 p-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-tertiary">Stärkste Signale</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-text-tertiary">Stärkste Signale</p>
                   <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-text-secondary">
                     {(meta.cvTopStrengths?.length ? meta.cvTopStrengths : ['Noch keine klaren Stärken im Profil gespeichert.']).map((item) => (
                       <li key={`cv-strength-${item}`}>• {item}</li>
@@ -622,7 +622,7 @@ export default function OpportunityRadar({
                   </ul>
                 </div>
                 <div className="rounded-lg border border-border/80 bg-surface/35 p-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-tertiary">Nächste CV-Hebel</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-text-tertiary">Nächste CV-Hebel</p>
                   <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-text-secondary">
                     {(meta.cvTopGaps?.length ? meta.cvTopGaps : ['Keine kritischen Lücken im gespeicherten Profil.']).map((item) => (
                       <li key={`cv-gap-${item}`}>• {item}</li>
@@ -679,7 +679,7 @@ export default function OpportunityRadar({
             >
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div className="max-w-3xl">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">Career Dossier</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-tertiary">Career Dossier</p>
                   <h3 className="mt-2 text-xl font-semibold text-text-primary">{selectedOpportunity.title}</h3>
                   <p className="mt-1 text-sm text-text-secondary">
                     {selectedOpportunity.company} · {selectedOpportunity.city}, {selectedOpportunity.country} · {selectedOpportunity.track}
@@ -716,7 +716,7 @@ export default function OpportunityRadar({
                       key={`${selectedOpportunity.id}-${metric.label}`}
                       className="rounded-xl border border-border/80 bg-background/35 px-3 py-3"
                     >
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-tertiary">{metric.label}</p>
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-text-tertiary">{metric.label}</p>
                       <p
                         className={`mt-2 text-sm font-semibold ${
                           metric.tone === 'success'
@@ -766,7 +766,7 @@ export default function OpportunityRadar({
                           className="rounded-lg border border-border/70 bg-surface/25 px-3 py-2"
                         >
                           <div className="flex items-center justify-between gap-3">
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-tertiary">
+                            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-text-tertiary">
                               {action.label}
                             </p>
                             <Badge
@@ -897,7 +897,7 @@ export default function OpportunityRadar({
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-black tabular-nums text-career-accent">{toDisplayFitIndex(item.fitScore)}</p>
-                      <p className="text-[10px] uppercase tracking-[0.16em] text-text-tertiary">Fit</p>
+                      <p className="text-xs uppercase tracking-[0.16em] text-text-tertiary">Fit</p>
                     </div>
                   </div>
 
@@ -936,11 +936,11 @@ export default function OpportunityRadar({
 
                   <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <div className="rounded-lg border border-border/80 bg-background/35 p-3">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-tertiary">Kurzreadout</p>
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-text-tertiary">Kurzreadout</p>
                       <p className="mt-1 text-xs leading-relaxed text-text-secondary">{fitReadout.summary}</p>
                     </div>
                     <div className="rounded-lg border border-border/80 bg-background/35 p-3">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-tertiary">Schnellblick</p>
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-text-tertiary">Schnellblick</p>
                       <div className="mt-1 space-y-1 text-xs text-text-secondary">
                         <p>Grund: {item.topReasons[0] ?? 'Kein Primärgrund verfügbar.'}</p>
                         <p>Lücke: {item.topGaps[0] ?? 'Keine Hauptlücke erkannt.'}</p>

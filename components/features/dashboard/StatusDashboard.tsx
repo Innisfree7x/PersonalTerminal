@@ -18,7 +18,7 @@ export default function StatusDashboard() {
 
   if (isError) {
     return (
-      <div className="card-warm p-4 text-center text-sm text-text-tertiary">
+      <div className="card-warm p-5 text-center text-sm text-text-tertiary">
         Stats konnten nicht geladen werden.
       </div>
     );

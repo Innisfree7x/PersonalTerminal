@@ -392,7 +392,7 @@ export default function CalendarPage() {
       </div>
 
       {/* Week Navigation */}
-      <div className="card-warm flex items-center justify-between rounded-lg p-4">
+      <div className="card-warm flex items-center justify-between rounded-lg p-5">
         <button
           onClick={handlePreviousWeek}
           className="px-4 py-2 text-sm rounded-lg border border-border bg-surface/70 text-text-secondary hover:bg-surface-hover/70 hover:text-text-primary transition-colors"
@@ -627,7 +627,7 @@ export default function CalendarPage() {
                                       {format(event.startTime, 'HH:mm')} {event.title}
                                     </div>
                                     {event.location ? (
-                                      <div className="truncate text-[10px] opacity-80">
+                                      <div className="truncate text-xs opacity-80">
                                         {event.location}
                                       </div>
                                     ) : null}
@@ -649,11 +649,11 @@ export default function CalendarPage() {
                                 <span className="font-semibold truncate">
                                   ◌ {ghostEvent.title}
                                 </span>
-                                <span className="text-[9px] uppercase tracking-wide opacity-80">
+                                <span className="text-xs uppercase tracking-wide opacity-80">
                                   trajectory
                                 </span>
                               </div>
-                              <div className="truncate text-[10px] opacity-80">
+                              <div className="truncate text-xs opacity-80">
                                 {ghostEvent.subtitle} · open
                               </div>
                             </button>

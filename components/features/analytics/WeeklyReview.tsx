@@ -232,7 +232,7 @@ function StatTile({
     <div className="flex flex-col gap-1.5 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3.5">
       <div className="flex items-center gap-1.5">
         <Icon className={`h-3.5 w-3.5 ${accent}`} />
-        <span className="text-[10px] uppercase tracking-[0.14em] text-zinc-500">{label}</span>
+        <span className="text-xs uppercase tracking-[0.14em] text-zinc-500">{label}</span>
       </div>
       <p className={`text-xl font-semibold leading-none ${accent}`}>{value}</p>
       {sub && <p className="text-[11px] text-zinc-500">{sub}</p>}
@@ -417,11 +417,11 @@ export default function WeeklyReview() {
             <CalendarDays className="h-4 w-4 text-amber-400" />
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-500">Weekly Review</p>
+            <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">Weekly Review</p>
             <p className="text-sm font-semibold text-zinc-200">{weekLabel}</p>
           </div>
         </div>
-        <div className="flex items-center gap-1 text-[10px] text-zinc-600">
+        <div className="flex items-center gap-1 text-xs text-zinc-600">
           <Zap className="h-3 w-3" />
           <span>Rule-based · Montag Reset</span>
         </div>
@@ -486,7 +486,7 @@ export default function WeeklyReview() {
 
             {/* Recommendations */}
             <div className="mt-5">
-              <p className="mb-3 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-zinc-500">
+              <p className="mb-3 flex items-center gap-1.5 text-xs uppercase tracking-[0.14em] text-zinc-500">
                 <Zap className="h-3 w-3 text-amber-400" />
                 Empfehlungen für nächste Woche
               </p>
@@ -519,7 +519,7 @@ export default function WeeklyReview() {
 
       {/* Focus distribution (always 7-day normalized) */}
       <div className="border-t border-white/[0.05] px-5 py-3.5">
-        <div className="flex items-center justify-between gap-2 text-[10px]">
+        <div className="flex items-center justify-between gap-2 text-xs">
           <p className="flex items-center gap-1 text-zinc-500">
             <Trend value={weekData.focusMinutes} prev={prevWeekMinutes} />
             Fokus-Verteilung (7 Tage)
@@ -554,8 +554,8 @@ export default function WeeklyReview() {
                     style={{ height: `${barHeight}px` }}
                   />
                 </div>
-                <p className={`mt-1 text-[10px] uppercase ${day.isToday ? 'text-amber-300' : 'text-zinc-500'}`}>{day.label}</p>
-                <p className={`mt-0.5 text-[10px] ${day.totalMinutes > 0 ? 'text-zinc-300' : 'text-zinc-600'}`}>
+                <p className={`mt-1 text-xs uppercase ${day.isToday ? 'text-amber-300' : 'text-zinc-500'}`}>{day.label}</p>
+                <p className={`mt-0.5 text-xs ${day.totalMinutes > 0 ? 'text-zinc-300' : 'text-zinc-600'}`}>
                   {day.totalMinutes > 0 ? formatMinutes(day.totalMinutes) : '0m'}
                 </p>
               </div>
@@ -563,7 +563,7 @@ export default function WeeklyReview() {
           })}
         </div>
 
-        <div className="mt-2 flex items-center justify-between text-[10px] text-zinc-600">
+        <div className="mt-2 flex items-center justify-between text-xs text-zinc-600">
           <span>{weeklyFocusDistribution.activeDays}/7 aktive Tage</span>
           <span>
             {weeklyFocusDistribution.bestDay && weeklyFocusDistribution.bestDay.totalMinutes > 0
