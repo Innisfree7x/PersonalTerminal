@@ -49,6 +49,11 @@ export async function updateProfileAction(input: {
   onboardingCompleted?: boolean;
   demoDataIds?: DemoDataIds | null;
   emailNotifications?: boolean;
+  onboardingContext?: {
+    currentSemester: number;
+    studyLoad: 'light' | 'normal' | 'heavy';
+    weeklyFocusHours: number;
+  };
   trajectoryStatusShown?: {
     status: 'on_track' | 'tight' | 'at_risk';
     shownAt?: string;
@@ -73,6 +78,11 @@ export async function updateProfileAction(input: {
       : {}),
     ...(input.emailNotifications !== undefined
       ? { email_notifications: input.emailNotifications }
+      : {}),
+    ...(input.onboardingContext !== undefined
+      ? {
+          onboarding_context: input.onboardingContext,
+        }
       : {}),
     ...(input.trajectoryStatusShown !== undefined
       ? {

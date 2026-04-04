@@ -55,6 +55,7 @@ const baseCompletedData = {
   trajectory: {
     goalId: 'goal-1',
     goalTitle: 'GMAT Sprint',
+    targetDate: '2026-12-15',
     status: 'on_track' as const,
     startDate: '2026-09-01',
     explanation: 'Stable trajectory.',
@@ -80,7 +81,7 @@ describe('Onboarding StepComplete gate', () => {
 
     expect(screen.getByText(/Trajectory-Daten fehlen/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Trajectory öffnen/i })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /Direkt zu Today/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /INNIS starten/i })).toBeDisabled();
     expect(mockedUpdateProfileAction).not.toHaveBeenCalled();
   });
 

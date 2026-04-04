@@ -40,14 +40,6 @@ vi.mock('@/components/features/onboarding/OnboardingLayout', () => ({
   ),
 }));
 
-vi.mock('@/components/features/onboarding/StepWelcome', () => ({
-  StepWelcome: ({ onNext }: { onNext: () => void }) => (
-    <button type="button" onClick={onNext}>
-      welcome-next
-    </button>
-  ),
-}));
-
 vi.mock('@/components/features/onboarding/StepTrajectoryGoal', () => ({
   StepTrajectoryGoal: ({
     onNext,
@@ -69,16 +61,13 @@ vi.mock('@/components/features/onboarding/StepTrajectoryGoal', () => ({
         title: string;
         category: 'gmat';
         dueDate: string;
+        effortUnit: 'months';
         effortHours: number;
+        effortMonths: number;
+        bufferUnit: 'months';
         bufferWeeks: number;
-        capacityHoursPerWeek: number;
-      },
-      settings: { hoursPerWeek: number; horizonMonths: number },
-      summary: {
-        status: 'on_track';
-        startDate: string;
-        explanation: string;
-        effectiveCapacityHoursPerWeek: number;
+        bufferMonths: number;
+        priority: number;
       }
     ) => void;
   }) => (
@@ -103,16 +92,13 @@ vi.mock('@/components/features/onboarding/StepTrajectoryGoal', () => ({
               title: 'GMAT Sprint',
               category: 'gmat',
               dueDate: '2026-09-01',
+              effortUnit: 'months',
               effortHours: 80,
+              effortMonths: 2.5,
+              bufferUnit: 'months',
               bufferWeeks: 2,
-              capacityHoursPerWeek: 10,
-            },
-            { hoursPerWeek: 10, horizonMonths: 24 },
-            {
-              status: 'on_track',
-              startDate: '2026-06-01',
-              explanation: 'Stable trajectory.',
-              effectiveCapacityHoursPerWeek: 10,
+              bufferMonths: 0.5,
+              priority: 3,
             }
           )
         }
@@ -129,6 +115,7 @@ vi.mock('@/components/features/onboarding/StepTrajectoryPlan', () => ({
   }: {
     onNext: (
       settings: { hoursPerWeek: number; horizonMonths: number },
+      context: { currentSemester: number; studyLoad: 'normal'; weeklyFocusHours: number },
       summary: {
         status: 'on_track';
         startDate: string;
@@ -143,6 +130,7 @@ vi.mock('@/components/features/onboarding/StepTrajectoryPlan', () => ({
         onClick={() =>
           onNext(
             { hoursPerWeek: 10, horizonMonths: 24 },
+            { currentSemester: 4, studyLoad: 'normal', weeklyFocusHours: 10 },
             {
               status: 'on_track',
               startDate: '2026-06-01',
@@ -171,6 +159,7 @@ import OnboardingPage from '@/app/onboarding/page';
 
 const mockedFetchProfileAction = vi.mocked(fetchProfileAction);
 const storageState = new Map<string, string>();
+let fetchSpy: ReturnType<typeof vi.spyOn<typeof globalThis, 'fetch'>>;
 
 function installLocalStorageMock() {
   const storage: Storage = {
@@ -204,9 +193,10 @@ function okJson(payload: unknown): Response {
   });
 }
 
-describe('Onboarding V2 page flow (4-step)', () => {
+describe('Onboarding V2 page flow (3-step)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    fetchSpy?.mockRestore();
     storageState.clear();
     installLocalStorageMock();
     localStorage.removeItem('innis_onboarding_v1');
@@ -216,7 +206,7 @@ describe('Onboarding V2 page flow (4-step)', () => {
       onboardingCompleted: false,
       onboardingCompletedAt: null,
     });
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(okJson({ hoursPerWeek: 8, horizonMonths: 24 }));
+    fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(okJson({ hoursPerWeek: 8, horizonMonths: 24 }));
   });
 
   test('starts at step 1 with no persisted state', async () => {
@@ -227,19 +217,16 @@ describe('Onboarding V2 page flow (4-step)', () => {
     });
   });
 
-  test('happy path: welcome → goal → plan → complete', async () => {
+  test('happy path: goal → plan → complete', async () => {
     const user = userEvent.setup();
     render(<OnboardingPage />);
 
     await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:1'));
-    await user.click(screen.getByRole('button', { name: 'welcome-next' }));
+    await user.click(await screen.findByRole('button', { name: 'goal-success' }));
     await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:2'));
 
-    await user.click(await screen.findByRole('button', { name: 'goal-success' }));
-    await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:3'));
-
     await user.click(await screen.findByRole('button', { name: 'plan-success' }));
-    await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:4'));
+    await waitFor(() => expect(screen.getByTestId('current-step')).toHaveTextContent('step:3'));
 
     expect(await screen.findByTestId('mock-step-complete')).toHaveTextContent('status:on_track');
   });

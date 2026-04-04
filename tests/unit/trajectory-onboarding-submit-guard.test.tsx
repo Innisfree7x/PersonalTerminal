@@ -46,8 +46,8 @@ describe('Onboarding V2 trajectory goal step', () => {
       />
     );
 
-    await user.type(screen.getByPlaceholderText('e.g. GMAT 680+ or thesis submission'), 'GMAT Sprint');
-    const form = screen.getByRole('button', { name: /create goal & continue/i }).closest('form');
+    await user.type(screen.getByPlaceholderText('z. B. GMAT 680+, Bachelorarbeit abgeben oder PE-Praktikum'), 'GMAT Sprint');
+    const form = screen.getByRole('button', { name: /Ziel speichern und weiter/i }).closest('form');
     expect(form).not.toBeNull();
 
     fireEvent.submit(form!);
@@ -85,12 +85,12 @@ describe('Onboarding V2 trajectory goal step', () => {
       />
     );
 
-    await user.type(screen.getByPlaceholderText('e.g. GMAT 680+ or thesis submission'), 'Thesis Sprint');
-    await user.click(screen.getByRole('button', { name: /create goal & continue/i }));
+    await user.type(screen.getByPlaceholderText('z. B. GMAT 680+, Bachelorarbeit abgeben oder PE-Praktikum'), 'Thesis Sprint');
+    await user.click(screen.getByRole('button', { name: /Ziel speichern und weiter/i }));
     await screen.findByText(/temporary goal create failure/i);
     expect(onNext).not.toHaveBeenCalled();
 
-    await user.click(screen.getByRole('button', { name: /create goal & continue/i }));
+    await user.click(screen.getByRole('button', { name: /Ziel speichern und weiter/i }));
     await waitFor(() => expect(onNext).toHaveBeenCalledTimes(1));
   });
 });
