@@ -39,6 +39,7 @@ import {
   KIT_ILIAS_COURSE_CONNECTOR_VERSION,
   parseIliasCourseExport,
 } from '@/lib/kit-sync/iliasCourseExport';
+import KitCampusGradesTable from '@/components/features/university/KitCampusGradesTable';
 import { cn } from '@/lib/utils';
 
 const iliasItemTypeLabels: Record<string, string> = {
@@ -624,6 +625,13 @@ export default function KitSyncPanel() {
     ? `${data.campusGradedModuleCount} benotete Prüfungen`
     : 'Sobald der CAMPUS-Connector live ist, erscheinen Noten direkt hier.';
 
+  const campusStatusTitle = data?.totalCampusModules || data?.totalCampusGrades
+    ? `${data.totalCampusModules} Module · ${data.totalCampusGrades} Noten`
+    : 'Academic Snapshot folgt';
+
+  const campusStatusTone = data?.totalCampusModules || data?.totalCampusGrades ? 'success' : 'warning';
+  const iliasStatusTone = data?.totalIliasFavorites ? 'success' : 'warning';
+
   return (
     <DecisionSurfaceCard
       eyebrow="KIT Hub"
@@ -669,19 +677,83 @@ export default function KitSyncPanel() {
             />
           </div>
 
-          <div className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+          <div className="grid gap-3 xl:grid-cols-2">
             <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">ILIAS Favoriten</div>
+                  <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">KIT CAMPUS</div>
+                  <div className="mt-2 text-sm font-semibold text-text-primary">{campusStatusTitle}</div>
+                  <div className="mt-1 text-xs text-text-secondary">
+                    Kalender, Prüfungen, Module und Noten aus CAMPUS in einer klaren Fläche.
+                  </div>
+                </div>
+                <Badge variant={campusStatusTone} size="sm">
+                  {data?.totalCampusModules || data?.totalCampusGrades ? 'Snapshot aktiv' : 'Connector offen'}
+                </Badge>
+              </div>
+
+              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2.5">
+                  <div className="text-[11px] uppercase tracking-[0.14em] text-text-tertiary">Kalender</div>
+                  <div className="mt-1 text-sm font-semibold text-text-primary">
+                    {data?.campusWebcalConfigured ? `${data.totalCampusEvents} Termine` : 'Nicht verbunden'}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2.5">
+                  <div className="text-[11px] uppercase tracking-[0.14em] text-text-tertiary">Module</div>
+                  <div className="mt-1 text-sm font-semibold text-text-primary">{data?.totalCampusModules ?? 0}</div>
+                </div>
+                <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2.5">
+                  <div className="text-[11px] uppercase tracking-[0.14em] text-text-tertiary">Noten</div>
+                  <div className="mt-1 text-sm font-semibold text-text-primary">{data?.totalCampusGrades ?? 0}</div>
+                </div>
+              </div>
+
+              <div className="mt-3 space-y-3 text-sm text-text-secondary">
+                {data?.nextCampusExam ? (
+                  <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.08] px-3 py-3">
+                    <div className="text-[11px] uppercase tracking-[0.16em] text-amber-200/70">Nächste Prüfung</div>
+                    <div className="mt-1 font-medium text-amber-50">{data.nextCampusExam.title}</div>
+                    <div className="mt-1 text-xs text-amber-100/75">{formatDateTime(data.nextCampusExam.startsAt)}</div>
+                  </div>
+                ) : null}
+
+                {data?.campusModulesWithGrades && data.campusModulesWithGrades.length > 0 ? (
+                  <KitCampusGradesTable rows={data.campusModulesWithGrades} />
+                ) : (
+                  <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-3">
+                    <div className="font-medium text-text-primary">Noch keine Module und Noten verbunden</div>
+                    <div className="mt-1 text-xs text-text-secondary">
+                      Führe zuerst den CAMPUS Academic Snapshot aus. Danach erscheinen Noten und Module direkt hier.
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-text-secondary">
+                  <Badge variant={statusBadgeVariant(data?.lastRun?.status)} size="sm">
+                    {data?.lastRun ? `Sync ${data.lastRun.status}` : 'Wartet auf nächsten Sync'}
+                  </Badge>
+                  {data?.campusWebcalCalendarName ? <span>Kalender: {data.campusWebcalCalendarName}</span> : null}
+                  {data?.campusWebcalLastError ? <Badge variant="error" size="sm">{data.campusWebcalLastError}</Badge> : null}
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">KIT ILIAS</div>
                   <div className="mt-2 text-sm font-semibold text-text-primary">
-                    {data ? `${data.totalIliasFavorites} Kurse verbunden` : 'Lädt …'}
+                    {data ? `${data.totalIliasFavorites} Kurse · ${data.totalIliasItems} Signale` : 'Lädt …'}
+                  </div>
+                  <div className="mt-1 text-xs text-text-secondary">
+                    Favoriten und neue Dokumente/Ankündigungen getrennt von CAMPUS, damit der Kurskontext lesbar bleibt.
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {data?.totalIliasFavorites ? (
-                    <Badge variant="success" size="sm">Favoriten live</Badge>
-                  ) : null}
+                  <Badge variant={iliasStatusTone} size="sm">
+                    {data?.totalIliasFavorites ? 'Favoriten live' : 'Import offen'}
+                  </Badge>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -694,93 +766,27 @@ export default function KitSyncPanel() {
                 </div>
               </div>
 
-              <div className="mt-3 max-h-[22rem] space-y-2 overflow-y-auto pr-1">
-                {groupedIliasFavorites.length ? (
-                  <div className="space-y-4">
-                    {groupedIliasFavorites.map((group) => (
-                      <div key={group.semesterLabel}>
-                        <div className="mb-2 flex items-center justify-between gap-3">
-                          <div className="text-[11px] font-medium uppercase tracking-[0.16em] text-emerald-200/85">
-                            {group.semesterLabel}
-                          </div>
-                          <div className="text-[11px] text-text-tertiary">
-                            {group.favorites.length} Kurs{group.favorites.length === 1 ? '' : 'e'}
-                          </div>
-                        </div>
-                        <div className="grid gap-2 xl:grid-cols-2">
-                          {group.favorites.map((favorite) => (
-                            <div
-                              key={favorite.id}
-                              className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5"
-                            >
-                              <div className="min-w-0">
-                                <div className="truncate text-sm font-medium text-text-primary">{favorite.title}</div>
-                              </div>
-                              <div className="flex shrink-0 items-center gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => confirmDeleteFavorite({ id: favorite.id, title: favorite.title })}
-                                  loading={deleteFavoriteMutation.isPending && deleteFavoriteMutation.variables === favorite.id}
-                                  leftIcon={<Trash2 className="h-3.5 w-3.5" />}
-                                >
-                                  Entfernen
-                                </Button>
-                                {favorite.courseUrl ? (
-                                  <a
-                                    href={favorite.courseUrl}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="shrink-0 rounded-full border border-white/10 bg-white/[0.05] p-2 text-text-tertiary transition-colors hover:border-emerald-400/30 hover:text-emerald-200"
-                                    aria-label={`${favorite.title} in ILIAS öffnen`}
-                                  >
-                                    <ExternalLink className="h-3.5 w-3.5" />
-                                  </a>
-                                ) : null}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="rounded-lg border border-dashed border-white/10 bg-white/[0.02] px-3 py-4 text-sm text-text-secondary">
-                    Noch keine ILIAS-Favoriten sichtbar. Importiere den Dashboard-Export im Verwaltungsblock unten.
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+              <div className="mt-3 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-3">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">Neue ILIAS-Signale</div>
-                    <div className="mt-2 text-sm font-semibold text-text-primary">
+                    <div className="text-[11px] uppercase tracking-[0.14em] text-text-tertiary">Neue ILIAS-Signale</div>
+                    <div className="mt-1 text-sm font-semibold text-text-primary">
                       {freshIliasPreview.length
                         ? `${freshIliasPreview.length} neue Update${freshIliasPreview.length === 1 ? '' : 's'}`
                         : 'Alles gelesen'}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {freshIliasPreview.length ? (
-                      <Badge variant="success" size="sm">Neu</Badge>
-                    ) : (
-                      <Badge variant="default" size="sm">Ruhig</Badge>
-                    )}
-                    {freshIliasPreview.length ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => acknowledgeMutation.mutate(freshIliasPreview.map((item) => item.id))}
-                        loading={acknowledgeMutation.isPending}
-                        leftIcon={<CheckCheck className="h-3.5 w-3.5" />}
-                      >
-                        Alle gelesen
-                      </Button>
-                    ) : null}
-                  </div>
+                  {freshIliasPreview.length ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => acknowledgeMutation.mutate(freshIliasPreview.map((item) => item.id))}
+                      loading={acknowledgeMutation.isPending}
+                      leftIcon={<CheckCheck className="h-3.5 w-3.5" />}
+                    >
+                      Alle gelesen
+                    </Button>
+                  ) : null}
                 </div>
 
                 <div className="mt-3 space-y-2">
@@ -842,95 +848,71 @@ export default function KitSyncPanel() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+              <div className="mt-3 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-3">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <div className="text-[11px] uppercase tracking-[0.16em] text-text-tertiary">Studienlage</div>
-                    <div className="mt-2 text-sm font-semibold text-text-primary">
-                      {data?.totalCampusModules || data?.totalCampusGrades
-                        ? `${data.totalCampusModules} Module · ${data.totalCampusGrades} Noten`
-                        : 'Academic Snapshot folgt'}
+                    <div className="text-[11px] uppercase tracking-[0.14em] text-text-tertiary">Favoriten nach Semester</div>
+                    <div className="mt-1 text-sm font-semibold text-text-primary">
+                      {data ? `${data.totalIliasFavorites} Kurse verbunden` : 'Lädt …'}
                     </div>
                   </div>
-                  <Badge variant={data?.totalCampusModules || data?.totalCampusGrades ? 'success' : 'warning'} size="sm">
-                    {data?.totalCampusModules || data?.totalCampusGrades ? 'Aktiv' : 'Nächster Schritt'}
-                  </Badge>
                 </div>
 
-                <div className="mt-3 space-y-3 text-sm text-text-secondary">
-                  {data?.nextCampusExam ? (
-                    <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.08] px-3 py-3">
-                      <div className="text-[11px] uppercase tracking-[0.16em] text-amber-200/70">Prüfungsdruck</div>
-                      <div className="mt-1 font-medium text-amber-50">{data.nextCampusExam.title}</div>
-                      <div className="mt-1 text-xs text-amber-100/75">{formatDateTime(data.nextCampusExam.startsAt)}</div>
-                    </div>
-                  ) : null}
-
-                  {data?.campusModulesWithGrades && data.campusModulesWithGrades.length > 0 ? (
-                    <div className="max-h-[28rem] overflow-y-auto rounded-lg border border-white/10 bg-white/[0.02]">
-                      <table className="w-full text-left text-xs">
-                        <thead className="sticky top-0 border-b border-white/10 bg-[#0d1119]/95 backdrop-blur-sm">
-                          <tr className="text-xs uppercase tracking-[0.14em] text-text-tertiary">
-                            <th className="px-3 py-2.5 font-medium">Modul</th>
-                            <th className="px-3 py-2.5 font-medium text-right">Note</th>
-                            <th className="hidden px-3 py-2.5 font-medium text-right sm:table-cell">ECTS</th>
-                            <th className="hidden px-3 py-2.5 font-medium text-right md:table-cell">Datum</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/[0.06]">
-                          {data.campusModulesWithGrades.map((mod, index) => {
-                            const gradeColor = mod.gradeValue === null
-                              ? 'text-text-secondary'
-                              : mod.gradeValue <= 1.5
-                                ? 'text-emerald-400'
-                                : mod.gradeValue <= 2.5
-                                  ? 'text-sky-400'
-                                  : mod.gradeValue <= 3.5
-                                    ? 'text-amber-400'
-                                    : 'text-red-400';
-                            return (
-                              <tr key={`${mod.moduleCode ?? mod.moduleTitle}-${index}`} className="transition-colors hover:bg-white/[0.03]">
-                                <td className="max-w-[200px] truncate px-3 py-2 text-text-primary" title={mod.moduleTitle}>
-                                  {mod.moduleCode ? (
-                                    <span className="mr-1.5 text-text-tertiary">{mod.moduleCode}</span>
+                <div className="mt-3 max-h-[19rem] space-y-2 overflow-y-auto pr-1">
+                  {groupedIliasFavorites.length ? (
+                    <div className="space-y-4">
+                      {groupedIliasFavorites.map((group) => (
+                        <div key={group.semesterLabel}>
+                          <div className="mb-2 flex items-center justify-between gap-3">
+                            <div className="text-[11px] font-medium uppercase tracking-[0.16em] text-emerald-200/85">
+                              {group.semesterLabel}
+                            </div>
+                            <div className="text-[11px] text-text-tertiary">
+                              {group.favorites.length} Kurs{group.favorites.length === 1 ? '' : 'e'}
+                            </div>
+                          </div>
+                          <div className="grid gap-2">
+                            {group.favorites.map((favorite) => (
+                              <div
+                                key={favorite.id}
+                                className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5"
+                              >
+                                <div className="min-w-0">
+                                  <div className="truncate text-sm font-medium text-text-primary">{favorite.title}</div>
+                                </div>
+                                <div className="flex shrink-0 items-center gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => confirmDeleteFavorite({ id: favorite.id, title: favorite.title })}
+                                    loading={deleteFavoriteMutation.isPending && deleteFavoriteMutation.variables === favorite.id}
+                                    leftIcon={<Trash2 className="h-3.5 w-3.5" />}
+                                  >
+                                    Entfernen
+                                  </Button>
+                                  {favorite.courseUrl ? (
+                                    <a
+                                      href={favorite.courseUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="shrink-0 rounded-full border border-white/10 bg-white/[0.05] p-2 text-text-tertiary transition-colors hover:border-emerald-400/30 hover:text-emerald-200"
+                                      aria-label={`${favorite.title} in ILIAS öffnen`}
+                                    >
+                                      <ExternalLink className="h-3.5 w-3.5" />
+                                    </a>
                                   ) : null}
-                                  {mod.moduleTitle}
-                                </td>
-                                <td className={`whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums ${gradeColor}`}>
-                                  {mod.gradeLabel}
-                                </td>
-                                <td className="hidden whitespace-nowrap px-3 py-2 text-right tabular-nums text-text-secondary sm:table-cell">
-                                  {mod.credits !== null ? mod.credits : '–'}
-                                </td>
-                                <td className="hidden whitespace-nowrap px-3 py-2 text-right tabular-nums text-text-secondary md:table-cell">
-                                  {mod.examDate ?? '–'}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ) : (
-                    <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-3">
-                      <div className="font-medium text-text-primary">Noch keine Module und Noten verbunden</div>
-                      <div className="mt-1 text-xs text-text-secondary">
-                        Der nächste Connector-Schritt bringt Module, Prüfungen und Noten direkt in diesen Hub.
-                      </div>
+                    <div className="rounded-lg border border-dashed border-white/10 bg-white/[0.02] px-3 py-4 text-sm text-text-secondary">
+                      Noch keine ILIAS-Favoriten sichtbar. Importiere den Dashboard-Export im Verwaltungsblock unten.
                     </div>
                   )}
-
-                  <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-text-secondary">
-                    <Badge variant={statusBadgeVariant(data?.lastRun?.status)} size="sm">
-                      {data?.lastRun ? `Sync ${data.lastRun.status}` : 'Wartet auf nächsten Sync'}
-                    </Badge>
-                    {data?.campusWebcalCalendarName ? (
-                      <span>Kalender: {data.campusWebcalCalendarName}</span>
-                    ) : null}
-                    {data?.campusWebcalLastError ? (
-                      <Badge variant="error" size="sm">{data.campusWebcalLastError}</Badge>
-                    ) : null}
-                  </div>
                 </div>
               </div>
             </div>
