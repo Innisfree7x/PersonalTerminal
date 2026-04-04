@@ -1,4 +1,4 @@
-(function () {
+(async function () {
   const EXPORT_TYPE = 'innis_kit_campus_academic_export';
   const EXPORT_VERSION = 1;
   const STORAGE_KEY = 'innis:kit-campus-academic-export:v1';
@@ -339,8 +339,130 @@
     return collectDocumentEntries(rootWindow, new Set(), new Set(), 0);
   }
 
-  function extractTables(doc) {
-    return collectDocuments(doc).flatMap((entry) =>
+  function normalizeSameOriginUrl(rawValue) {
+    if (!rawValue) return null;
+
+    try {
+      const url = new URL(rawValue, window.location.href);
+      if (url.origin !== window.location.origin) return null;
+      url.hash = '';
+      return url.toString();
+    } catch {
+      return null;
+    }
+  }
+
+  function collectCampusCandidateUrls() {
+    const candidates = new Set();
+
+    function addCandidate(rawValue) {
+      const normalized = normalizeSameOriginUrl(rawValue);
+      if (!normalized) return;
+      if (!/contractview\.asp|notenspiegel|leistung|pruefung|exam|registration/i.test(normalized)) return;
+      candidates.add(normalized);
+    }
+
+    function addHashRouteCandidates(rawRoute) {
+      const hashRoute = normalizeText((rawRoute || '').replace(/^#!/, '').replace(/^\/+/, ''));
+      if (!hashRoute) return;
+
+      const currentDir = window.location.origin + window.location.pathname.replace(/[^/]*$/, '/');
+      const strippedCampusStudent = hashRoute.replace(/^campus\/student\//i, '');
+      const strippedCampus = hashRoute.replace(/^campus\//i, '');
+      const variants = [
+        hashRoute,
+        '/' + hashRoute,
+        currentDir + hashRoute,
+        strippedCampusStudent,
+        '/' + strippedCampusStudent,
+        currentDir + strippedCampusStudent,
+        strippedCampus,
+        '/' + strippedCampus,
+        currentDir + strippedCampus,
+      ];
+
+      variants.forEach((variant) => {
+        if (variant && /contractview\.asp|notenspiegel|leistung|pruefung|exam|registration/i.test(variant)) {
+          addCandidate(variant);
+        }
+      });
+    }
+
+    try {
+      const hashRoute = (window.location.hash || '').replace(/^#!/, '').trim();
+      if (hashRoute) {
+        addHashRouteCandidates(hashRoute);
+      }
+    } catch {}
+
+    try {
+      Array.from(document.querySelectorAll('iframe[src], frame[src]')).forEach((frameNode) => {
+        addCandidate(frameNode.getAttribute('src'));
+      });
+    } catch {}
+
+    try {
+      const entries = performance.getEntriesByType('resource');
+      entries.forEach((entry) => {
+        if (entry && typeof entry.name === 'string') {
+          addCandidate(entry.name);
+        }
+      });
+    } catch {}
+
+    return Array.from(candidates);
+  }
+
+  async function fetchCandidateDocuments(candidateUrls) {
+    const entries = [];
+
+    for (const candidateUrl of candidateUrls) {
+      try {
+        const response = await fetch(candidateUrl, {
+          credentials: 'include',
+          redirect: 'follow',
+        });
+
+        if (!response.ok) {
+          continue;
+        }
+
+        const html = await response.text();
+        if (!html) continue;
+
+        const parsedDoc = new DOMParser().parseFromString(html, 'text/html');
+        entries.push({
+          doc: parsedDoc,
+          href: candidateUrl,
+          depth: 99,
+          frameCount: 0,
+          fetched: true,
+        });
+      } catch {}
+    }
+
+    return entries;
+  }
+
+  function mergeDocumentEntries(baseEntries, extraEntries) {
+    const merged = [];
+    const seenKeys = new Set();
+
+    function pushEntry(entry) {
+      if (!entry || !entry.doc) return;
+      const key = (entry.href || 'unknown') + '::' + normalizeText(entry.doc.title || '');
+      if (seenKeys.has(key)) return;
+      seenKeys.add(key);
+      merged.push(entry);
+    }
+
+    baseEntries.forEach(pushEntry);
+    extraEntries.forEach(pushEntry);
+    return merged;
+  }
+
+  function extractTablesFromEntries(documentEntries) {
+    return documentEntries.flatMap((entry) =>
       extractTablesFromDocument(entry.doc).map((table) => ({
         headers: table.headers,
         rows: table.rows,
@@ -348,6 +470,17 @@
         sourceDepth: entry.depth,
       }))
     );
+  }
+
+  function extractTextFromEntries(documentEntries) {
+    return documentEntries
+      .map((entry) => extractDocumentText(entry.doc))
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  function extractTables(doc) {
+    return extractTablesFromEntries(collectDocuments(doc));
   }
 
   function buildModuleExternalId(moduleCode, title, semesterLabel) {
@@ -664,29 +797,39 @@
     const html = value || '';
     if (!html) return '';
 
-    return normalizeAcademicDashes(
-      normalizeText(
-        decodeBasicHtmlEntities(
-          html
-            .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
-            .replace(/<\/?(?:tr|thead|tbody|tfoot|table|div|section|article|header|footer|aside|main|ul|ol|li|p|br|hr|h[1-6]|td|th)\b[^>]*>/gi, '\n')
-            .replace(/<[^>]+>/g, ' ')
-        )
+    return normalizeVisibleText(
+      decodeBasicHtmlEntities(
+        html
+          .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+          .replace(/<\/?(?:tr|thead|tbody|tfoot|table|div|section|article|header|footer|aside|main|ul|ol|li|p|br|hr|h[1-6]|td|th)\b[^>]*>/gi, '\n')
+          .replace(/<[^>]+>/g, ' ')
       )
+    );
+  }
+
+  function normalizeVisibleText(value) {
+    return normalizeAcademicDashes(
+      String(value || '')
+        .replace(/\r/g, '\n')
+        .replace(/\u00a0/g, ' ')
+        .replace(/[ \t]+\n/g, '\n')
+        .replace(/\n[ \t]+/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
     );
   }
 
   function extractDocumentText(doc) {
     const candidates = [
-      (doc.body && doc.body.innerText) || '',
-      (doc.documentElement && doc.documentElement.innerText) || '',
-      (doc.body && doc.body.textContent) || '',
-      (doc.documentElement && doc.documentElement.textContent) || '',
+      normalizeVisibleText(doc.body && doc.body.innerText),
+      normalizeVisibleText(doc.documentElement && doc.documentElement.innerText),
+      normalizeVisibleText(doc.body && doc.body.textContent),
+      normalizeVisibleText(doc.documentElement && doc.documentElement.textContent),
+      normalizeAcademicDashes(normalizeText((doc.body && doc.body.textContent) || '')),
+      normalizeAcademicDashes(normalizeText((doc.documentElement && doc.documentElement.textContent) || '')),
       extractHtmlTextFallback(doc.body && doc.body.outerHTML),
       extractHtmlTextFallback(doc.documentElement && doc.documentElement.outerHTML),
-    ]
-      .map((value) => normalizeAcademicDashes(normalizeText(value)))
-      .filter(Boolean);
+    ].filter(Boolean);
 
     return Array.from(new Set(candidates)).join('\n');
   }
@@ -963,19 +1106,27 @@
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
   }
 
-  const documentEntries = collectDocuments(document);
-  const tables = extractTables(document);
-  const documentTexts = documentEntries
-    .map((entry) => extractDocumentText(entry.doc))
-    .filter(Boolean)
-    .join('\n');
+  const initialDocumentEntries = collectDocuments(document);
+  const initialTables = extractTablesFromEntries(initialDocumentEntries);
+  const initialDocumentTexts = extractTextFromEntries(initialDocumentEntries);
+  const candidateUrls = collectCampusCandidateUrls();
+  const fetchedDocumentEntries =
+    initialTables.length === 0 || initialDocumentTexts.length < 1200
+      ? await fetchCandidateDocuments(candidateUrls)
+      : [];
+
+  const documentEntries = mergeDocumentEntries(initialDocumentEntries, fetchedDocumentEntries);
+  const tables = extractTablesFromEntries(documentEntries);
+  const documentTexts = extractTextFromEntries(documentEntries);
   const textLineSamples = collectAcademicTextLines(documentTexts).slice(0, 12);
   window.__INNIS_KIT_CAMPUS_DEBUG__ = {
     sourceUrl: window.location.href,
+    candidateUrls: candidateUrls,
     documents: documentEntries.map((entry) => ({
       href: entry.href,
       depth: entry.depth,
       frameCount: entry.frameCount,
+      fetched: Boolean(entry.fetched),
       tableCount: extractTablesFromDocument(entry.doc).length,
       title: normalizeText(entry.doc.title),
     })),

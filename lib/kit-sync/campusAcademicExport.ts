@@ -642,28 +642,39 @@ function extractHtmlTextFallback(value: string | null | undefined) {
   const html = value ?? '';
   if (!html) return '';
 
-  return normalizeAcademicDashes(
-    normalizeText(
-      decodeBasicHtmlEntities(
-        html
-          .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
-          .replace(/<\/?(?:tr|thead|tbody|tfoot|table|div|section|article|header|footer|aside|main|ul|ol|li|p|br|hr|h[1-6]|td|th)\b[^>]*>/gi, '\n')
-          .replace(/<[^>]+>/g, ' ')
-      )
+  return normalizeVisibleText(
+    decodeBasicHtmlEntities(
+      html
+        .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+        .replace(/<\/?(?:tr|thead|tbody|tfoot|table|div|section|article|header|footer|aside|main|ul|ol|li|p|br|hr|h[1-6]|td|th)\b[^>]*>/gi, '\n')
+        .replace(/<[^>]+>/g, ' ')
     )
+  );
+}
+
+function normalizeVisibleText(value: string | null | undefined) {
+  return normalizeAcademicDashes(
+    String(value ?? '')
+      .replace(/\r/g, '\n')
+      .replace(/\u00a0/g, ' ')
+      .replace(/[ \t]+\n/g, '\n')
+      .replace(/\n[ \t]+/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim()
   );
 }
 
 function extractDocumentText(doc: Document) {
   const candidates = [
-    doc.body?.innerText ?? '',
-    doc.documentElement?.innerText ?? '',
-    doc.body?.textContent ?? '',
-    doc.documentElement?.textContent ?? '',
+    normalizeVisibleText(doc.body?.innerText),
+    normalizeVisibleText(doc.documentElement?.innerText),
+    normalizeVisibleText(doc.body?.textContent),
+    normalizeVisibleText(doc.documentElement?.textContent),
+    normalizeAcademicDashes(normalizeText(doc.body?.textContent ?? '')),
+    normalizeAcademicDashes(normalizeText(doc.documentElement?.textContent ?? '')),
     extractHtmlTextFallback(doc.body?.outerHTML),
     extractHtmlTextFallback(doc.documentElement?.outerHTML),
   ]
-    .map((value) => normalizeAcademicDashes(normalizeText(value)))
     .filter(Boolean);
 
   return Array.from(new Set(candidates)).join('\n');
