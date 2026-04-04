@@ -13,7 +13,6 @@ import {
 } from '@/app/actions/university';
 import CourseCard from '@/components/features/university/CourseCard';
 import CourseModal from '@/components/features/university/CourseModal';
-import KitSyncPanel from '@/components/features/university/KitSyncPanel';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { DecisionSurfaceCard } from '@/components/ui/DecisionSurfaceCard';
@@ -406,7 +405,32 @@ export default function UniversityPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.12, delay: 0.02 }}
       >
-        <KitSyncPanel />
+        <DecisionSurfaceCard
+          eyebrow="KIT Hub"
+          title="Sync und Noten sind jetzt in eigenen Bereichen"
+          summary="Kurse bleiben hier fokussiert auf Lernfortschritt. CAMPUS/ILIAS-Signale und Noten liegen getrennt unter Sync bzw. Noten."
+          bullets={[
+            'KIT Sync: CAMPUS-Kalender, Academic Snapshot und ILIAS-Imports verwalten.',
+            'Noten: importierte CAMPUS-Module und benotete Prüfungen in einer eigenen Fläche.',
+          ]}
+          chips={[
+            { label: 'Kurse', tone: 'info' },
+            { label: 'KIT Sync', tone: 'warning' },
+            { label: 'Noten', tone: 'success' },
+          ]}
+          tone="info"
+          icon={<GraduationCap className="h-4 w-4" />}
+          footer={
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button size="sm" variant="secondary" onClick={() => router.push('/uni/grades')}>
+                Noten öffnen
+              </Button>
+              <Button size="sm" variant="primary" onClick={() => router.push('/uni/sync')}>
+                KIT Sync öffnen
+              </Button>
+            </div>
+          }
+        />
       </motion.div>
 
       {/* Stats Dashboard */}

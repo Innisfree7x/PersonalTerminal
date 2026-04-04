@@ -167,9 +167,9 @@ export function CinematicLanding() {
           backgroundImage: `
             linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
             linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px),
-            radial-gradient(ellipse 70% 50% at 50% -10%, rgba(139,92,246,0.12) 0%, transparent 70%),
-            radial-gradient(ellipse 50% 40% at 10% 80%, rgba(59,130,246,0.08) 0%, transparent 60%),
-            radial-gradient(ellipse 40% 35% at 90% 40%, rgba(139,92,246,0.06) 0%, transparent 60%)
+            radial-gradient(ellipse 72% 52% at 50% -10%, rgba(232,185,48,0.13) 0%, transparent 70%),
+            radial-gradient(ellipse 52% 42% at 10% 80%, rgba(220,56,56,0.08) 0%, transparent 60%),
+            radial-gradient(ellipse 42% 36% at 90% 40%, rgba(245,158,11,0.07) 0%, transparent 60%)
           `,
           backgroundSize: '80px 80px, 80px 80px, 100% 100%, 100% 100%, 100% 100%',
         }}
@@ -192,7 +192,7 @@ export function CinematicLanding() {
             <span className={`pointer-events-none absolute right-full mr-3 hidden whitespace-nowrap font-mono text-[9px] uppercase tracking-wider transition-all duration-300 md:block ${activeStop === i ? 'translate-x-0 opacity-100 text-primary' : 'translate-x-1 opacity-0 text-zinc-500 group-hover/dot:translate-x-0 group-hover/dot:opacity-100 group-hover/dot:text-white/70'}`}>
               {STOP_LABELS[i]}
             </span>
-            <span className={`block transition-all duration-500 ${activeStop === i ? 'h-8 w-1 rounded-full bg-primary shadow-[0_0_12px_rgba(139,92,246,0.5)]' : 'h-1.5 w-1.5 rounded-full bg-white/10 group-hover/dot:bg-white/30'}`} />
+            <span className={`block transition-all duration-500 ${activeStop === i ? 'h-8 w-1 rounded-full bg-primary shadow-[0_0_12px_rgba(232,185,48,0.42)]' : 'h-1.5 w-1.5 rounded-full bg-white/10 group-hover/dot:bg-white/30'}`} />
           </button>
         ))}
       </div>
@@ -245,7 +245,7 @@ function HeroFrame({ progress, onScrollDown }: { progress: MotionValue<number>; 
 
           <h1 className="premium-heading text-[clamp(2.6rem,6.5vw,5.5rem)] font-semibold text-white">
             Sieh den Konflikt,<br />
-            <span className="bg-gradient-to-r from-primary via-[#C4B5FD] to-primary bg-clip-text text-transparent">bevor er dich trifft.</span>
+            <span className="bg-gradient-to-r from-[#FAF0E6] via-[#E8B930] to-[#DC3232] bg-clip-text text-transparent">bevor er dich trifft.</span>
           </h1>
 
           <p className="mx-auto mt-8 max-w-2xl text-[17px] leading-[1.75] text-zinc-500">
@@ -254,7 +254,7 @@ function HeroFrame({ progress, onScrollDown }: { progress: MotionValue<number>; 
           </p>
 
           <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-            <TrackedCtaLink href="/auth/signup" eventName="landing_cta_primary_clicked" eventPayload={{ source: 'hero', variant: 'primary' }} className="premium-cta-primary bg-primary text-white hover:shadow-[0_0_30px_rgba(139,92,246,0.3)]">
+            <TrackedCtaLink href="/auth/signup" eventName="landing_cta_primary_clicked" eventPayload={{ source: 'hero', variant: 'primary' }} className="premium-cta-primary bg-primary text-black hover:shadow-[0_0_30px_rgba(232,185,48,0.28)]">
               System starten <ArrowRight className="h-4 w-4" />
             </TrackedCtaLink>
             <TrackedCtaLink href="/auth/login" eventName="landing_cta_secondary_clicked" eventPayload={{ source: 'hero', variant: 'login' }} className="premium-cta-secondary border-white/5 bg-white/[0.02]">
@@ -332,7 +332,7 @@ function FeatureFrame({ progress, stop, kicker, headline, highlight, description
       <p className="mb-5 font-mono text-[11px] font-medium uppercase tracking-[0.4em] text-primary">{kicker}</p>
       <h2 className="premium-heading text-[clamp(1.8rem,4vw,3.2rem)] font-semibold text-white">
         {headline}<br />
-        <span className="bg-gradient-to-r from-primary via-[#C4B5FD] to-primary bg-clip-text text-transparent">{highlight}</span>
+        <span className="bg-gradient-to-r from-[#FAF0E6] via-[#E8B930] to-[#DC3232] bg-clip-text text-transparent">{highlight}</span>
       </h2>
       <p className="mt-8 max-w-md text-[16px] leading-[1.8] text-zinc-500">{description}</p>
     </motion.div>
@@ -385,13 +385,13 @@ function CTAFrame({ progress }: { progress: MotionValue<number> }) {
       <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
         <motion.h2 className="premium-heading text-[clamp(2.4rem,6vw,5rem)] font-semibold text-white" style={{ y: headlineY }}>
           Wann kollidieren<br />
-          <span className="bg-gradient-to-r from-primary via-[#C4B5FD] to-primary bg-clip-text text-transparent">deine nächsten Ziele?</span>
+              <span className="bg-gradient-to-r from-[#FAF0E6] via-[#E8B930] to-[#DC3232] bg-clip-text text-transparent">deine nächsten Ziele?</span>
         </motion.h2>
         <motion.p className="mx-auto mt-10 max-w-lg text-[17px] leading-[1.7] text-zinc-500" style={{ y: headlineY }}>
           Trajectory, Today und Career Intelligence vereint. Die Antwort bekommst du in unter 2 Minuten.
         </motion.p>
         <div className="mt-14 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-          <TrackedCtaLink href="/auth/signup" eventName="landing_cta_primary_clicked" eventPayload={{ source: 'footer_cta', variant: 'primary' }} className="premium-cta-primary bg-primary text-white hover:shadow-[0_0_40px_rgba(139,92,246,0.4)]">
+          <TrackedCtaLink href="/auth/signup" eventName="landing_cta_primary_clicked" eventPayload={{ source: 'footer_cta', variant: 'primary' }} className="premium-cta-primary bg-primary text-black hover:shadow-[0_0_40px_rgba(232,185,48,0.34)]">
             System starten <ArrowRight className="h-4 w-4" />
           </TrackedCtaLink>
           <TrackedCtaLink href="/auth/login" eventName="landing_cta_secondary_clicked" eventPayload={{ source: 'footer_cta', variant: 'login' }} className="premium-cta-secondary border-white/5 bg-white/[0.02]">

@@ -9,7 +9,7 @@ const timelineStops = ["Q3 '26", "Q4 '26", "Q1 '27", "Q2 '27"];
 const todayMoves = [
   { title: 'GMAT verbal block', meta: 'Start 09.11.2026', tone: 'text-[#E8B930]' },
   { title: 'DCF Stichworte in CV', meta: 'Gap aus Career Radar', tone: 'text-emerald-300' },
-  { title: 'Internship Q3 shortlist', meta: '2 realistische Treffer', tone: 'text-sky-300' },
+  { title: 'Internship Q3 shortlist', meta: '2 realistische Treffer', tone: 'text-[#FAF0E6]' },
 ];
 
 export function ProductMockup() {
@@ -84,7 +84,7 @@ export function ProductMockup() {
                 <div className="mt-3 flex flex-wrap gap-2">
                   <span className="rounded-full border border-white/10 bg-white/[0.03] px-2 py-1 text-[10px] text-zinc-400">Risk sichtbar</span>
                   <span className="rounded-full border border-[#E8B930]/20 bg-[#E8B930]/10 px-2 py-1 text-[10px] text-[#E8B930]">Next Move ready</span>
-                  <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2 py-1 text-[10px] text-sky-300">Career live</span>
+                  <span className="rounded-full border border-[#DC3232]/20 bg-[#DC3232]/10 px-2 py-1 text-[10px] text-[#F7A8A8]">Career live</span>
                 </div>
               </motion.div>
 
@@ -172,15 +172,15 @@ export function ProductMockup() {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <BriefcaseBusiness className="h-4 w-4 text-sky-300" />
+                        <BriefcaseBusiness className="h-4 w-4 text-[#DC3232]" />
                         <p className="text-sm font-semibold text-[#FAF0E6]">Career Intelligence</p>
                       </div>
-                      <span className="text-xl font-black tabular-nums text-sky-300">8.2</span>
+                      <span className="text-xl font-black tabular-nums text-[#FAF0E6]">8.2</span>
                     </div>
                     <p className="mt-2 text-[11px] font-medium text-[#FAF0E6]">Intern M&A Advisory · Rothenstein Partners</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[10px] text-emerald-300">Realistic</span>
-                      <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2 py-1 text-[10px] text-sky-300">2 Quellen</span>
+                      <span className="rounded-full border border-[#E8B930]/20 bg-[#E8B930]/10 px-2 py-1 text-[10px] text-[#E8B930]">2 Quellen</span>
                       <span className="rounded-full border border-white/10 bg-white/[0.03] px-2 py-1 text-[10px] text-zinc-400">Track-fit direkt</span>
                     </div>
                     <div className="mt-3 grid grid-cols-2 gap-2">
@@ -206,15 +206,15 @@ export function ProductMockup() {
                     className="rounded-2xl border border-white/10 bg-[#171717]/90 p-4"
                   >
                     <div className="flex items-center gap-2">
-                      <Command className="h-4 w-4 text-violet-300" />
+                      <Command className="h-4 w-4 text-[#E8B930]" />
                       <p className="text-sm font-semibold text-[#FAF0E6]">Command Rail</p>
                     </div>
-                    <div className="mt-3 rounded-xl border border-violet-500/20 bg-violet-500/[0.08] px-3 py-2 font-mono text-[10px] text-violet-100">
+                    <div className="mt-3 rounded-xl border border-[#DC3232]/20 bg-[#DC3232]/[0.08] px-3 py-2 font-mono text-[10px] text-[#FAF0E6]">
                       &gt; create task &quot;DCF lines in CV&quot; tomorrow
                     </div>
                     <div className="mt-3 rounded-xl border border-white/8 bg-black/20 p-3">
                       <div className="flex items-center gap-2">
-                        <Sparkles className="h-3.5 w-3.5 text-violet-300" />
+                        <Sparkles className="h-3.5 w-3.5 text-[#DC3232]" />
                         <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-600">Intent preview</p>
                       </div>
                       <p className="mt-2 text-[11px] text-zinc-300">Task wird morgen angelegt und mit Career Gap verknüpft.</p>

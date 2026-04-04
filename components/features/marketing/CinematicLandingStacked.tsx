@@ -56,9 +56,9 @@ export function CinematicLandingStacked() {
           backgroundImage: `
             linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
             linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px),
-            radial-gradient(ellipse 70% 50% at 50% -10%, rgba(139,92,246,0.12) 0%, transparent 70%),
-            radial-gradient(ellipse 50% 40% at 10% 80%, rgba(59,130,246,0.08) 0%, transparent 60%),
-            radial-gradient(ellipse 40% 35% at 90% 40%, rgba(139,92,246,0.06) 0%, transparent 60%)
+            radial-gradient(ellipse 72% 52% at 50% -10%, rgba(232,185,48,0.13) 0%, transparent 70%),
+            radial-gradient(ellipse 52% 42% at 10% 80%, rgba(220,56,56,0.08) 0%, transparent 60%),
+            radial-gradient(ellipse 42% 36% at 90% 40%, rgba(245,158,11,0.07) 0%, transparent 60%)
           `,
           backgroundSize: '80px 80px, 80px 80px, 100% 100%, 100% 100%, 100% 100%',
         }}
@@ -84,7 +84,7 @@ export function CinematicLandingStacked() {
             <h1 className="premium-heading mt-8 text-[clamp(2.6rem,8vw,4.8rem)] font-semibold text-white">
               Sieh den Konflikt,
               <br />
-              <span className="bg-gradient-to-r from-primary via-[#C4B5FD] to-primary bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#FAF0E6] via-[#E8B930] to-[#DC3232] bg-clip-text text-transparent">
                 bevor er dich trifft.
               </span>
             </h1>
@@ -99,7 +99,7 @@ export function CinematicLandingStacked() {
                 href="/auth/signup"
                 eventName="landing_cta_primary_clicked"
                 eventPayload={{ source: 'hero_stacked', variant: 'primary' }}
-                className="premium-cta-primary bg-primary text-white hover:shadow-[0_0_30px_rgba(139,92,246,0.3)]"
+                className="premium-cta-primary bg-primary text-black hover:shadow-[0_0_30px_rgba(232,185,48,0.28)]"
               >
                 System starten <ArrowRight className="h-4 w-4" />
               </TrackedCtaLink>
@@ -140,7 +140,7 @@ export function CinematicLandingStacked() {
                   <h2 className="premium-heading text-[clamp(1.8rem,5vw,3.2rem)] font-semibold text-white">
                     {section.headline}
                     <br />
-                    <span className="bg-gradient-to-r from-primary via-[#C4B5FD] to-primary bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-[#FAF0E6] via-[#E8B930] to-[#DC3232] bg-clip-text text-transparent">
                       {section.highlight}
                     </span>
                   </h2>
@@ -174,7 +174,7 @@ export function CinematicLandingStacked() {
             <h2 className="premium-heading text-[clamp(2.2rem,6vw,4.8rem)] font-semibold text-white">
               Wann kollidieren
               <br />
-              <span className="bg-gradient-to-r from-primary via-[#C4B5FD] to-primary bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#FAF0E6] via-[#E8B930] to-[#DC3232] bg-clip-text text-transparent">
                 deine nächsten Ziele?
               </span>
             </h2>
@@ -186,7 +186,7 @@ export function CinematicLandingStacked() {
                 href="/auth/signup"
                 eventName="landing_cta_primary_clicked"
                 eventPayload={{ source: 'footer_stacked', variant: 'primary' }}
-                className="premium-cta-primary bg-primary text-white hover:shadow-[0_0_40px_rgba(139,92,246,0.4)]"
+                className="premium-cta-primary bg-primary text-black hover:shadow-[0_0_40px_rgba(232,185,48,0.34)]"
               >
                 System starten <ArrowRight className="h-4 w-4" />
               </TrackedCtaLink>

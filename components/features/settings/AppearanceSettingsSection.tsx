@@ -111,11 +111,11 @@ export default function AppearanceSettingsSection() {
                     {t.name}
                   </span>
                   {'tag' in t && t.tag ? (
-                    <span className="rounded-full border border-white/15 bg-white/5 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-text-tertiary">
+                    <span className="rounded-full border border-white/15 bg-white/5 px-1.5 py-0.5 text-xs uppercase tracking-wide text-text-tertiary">
                       {t.tag}
                     </span>
                   ) : (
-                    <span className="rounded-full border border-white/10 bg-white/[0.03] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-text-tertiary">
+                    <span className="rounded-full border border-white/10 bg-white/[0.03] px-1.5 py-0.5 text-xs uppercase tracking-wide text-text-tertiary">
                       Core
                     </span>
                   )}
