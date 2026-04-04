@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
   motion,
   animate,
@@ -14,7 +14,7 @@ import { ArrowRight, ChevronDown } from 'lucide-react';
 import { TrackedCtaLink } from './TrackedCtaLink';
 import { TerminalFrame } from './TerminalFrame';
 import { TrajectoryMockup } from './mockups/TrajectoryMockup';
-import { LucianSpriteAnimator } from '@/components/features/lucian/LucianSpriteAnimator';
+import { LucianSpriteAnimator, type LucianAnimation } from '@/components/features/lucian/LucianSpriteAnimator';
 import { TodayMockup } from './mockups/TodayMockup';
 import { CareerMockup } from './mockups/CareerMockup';
 import { InteractiveDemo } from './InteractiveDemo';
@@ -22,6 +22,7 @@ import { MarketingNavbar } from './MarketingNavbar';
 import { HeroProofTeaser } from './HeroProofTeaser';
 import { CinematicLandingStacked } from './CinematicLandingStacked';
 import { landingThemeStyle } from './landingTheme';
+import { SoundContext } from '@/components/providers/SoundProvider';
 
 /**
  * CinematicLanding — PRISMA-style scroll-hijacked landing page.
@@ -33,6 +34,26 @@ import { landingThemeStyle } from './landingTheme';
 const SECTION_COUNT = 6;
 const TRANSITION_DURATION = 0.7;
 const STOP_LABELS = ['Hero', 'Trajectory', 'Today', 'Career', 'Demo', 'Start'];
+
+// Per-stop atmosphere: color + position for the radial glow overlay
+const STOP_ATMOSPHERE = [
+  { color: 'rgba(232,185,48,0.13)',  position: '50% -10%',  size: '72% 52%' }, // Hero — gold top
+  { color: 'rgba(220,56,56,0.11)',   position: '10% 50%',   size: '55% 70%' }, // Trajectory — red left
+  { color: 'rgba(245,158,11,0.10)',  position: '85% 40%',   size: '50% 55%' }, // Today — amber right
+  { color: 'rgba(59,130,246,0.08)',  position: '80% 60%',   size: '55% 50%' }, // Career — blue right
+  { color: 'rgba(220,56,56,0.09)',   position: '50% 60%',   size: '60% 50%' }, // Demo — red center lab
+  { color: 'rgba(232,185,48,0.15)',  position: '50% 30%',   size: '80% 60%' }, // CTA — gold full
+] as const;
+
+// Lucian animation per stop
+const STOP_LUCIAN_ANIMATION: LucianAnimation[] = [
+  'idle',     // 0 Hero
+  'meditate', // 1 Trajectory — deep planning
+  'idle',     // 2 Today
+  'idle',     // 3 Career
+  'panic',    // 4 Demo — at_risk vibes
+  'victory',  // 5 CTA — celebrate
+];
 
 function progress01(value: number, start: number, end: number): number {
   if (value <= start) return 0;
@@ -48,6 +69,109 @@ function isInteractiveTarget(target: EventTarget | null) {
   return target instanceof Element && target.closest('[data-landing-interactive="true"]') !== null;
 }
 
+/* ─── Atmosphere Layer ─── */
+
+function useAtmosphereOpacity(progress: MotionValue<number>, i: number) {
+  return useTransform(progress, (p) => {
+    const inStart  = i === 0 ? 0 : i - 0.5;
+    const inEnd    = i === 0 ? 0.3 : i;
+    const outStart = i === SECTION_COUNT - 1 ? i : i + 0.5;
+    const outEnd   = i === SECTION_COUNT - 1 ? i + 0.5 : i + 1;
+    return Math.min(
+      easeInOutCubic(progress01(p, inStart, inEnd)),
+      1 - easeInOutCubic(progress01(p, outStart, outEnd)),
+    );
+  });
+}
+
+function AtmosphereLayer({ progress }: { progress: MotionValue<number> }) {
+  // Hooks must be called unconditionally — one per stop
+  const op0 = useAtmosphereOpacity(progress, 0);
+  const op1 = useAtmosphereOpacity(progress, 1);
+  const op2 = useAtmosphereOpacity(progress, 2);
+  const op3 = useAtmosphereOpacity(progress, 3);
+  const op4 = useAtmosphereOpacity(progress, 4);
+  const op5 = useAtmosphereOpacity(progress, 5);
+  const opacities = [op0, op1, op2, op3, op4, op5];
+
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {/* Static base grid */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px)
+          `,
+          backgroundSize: '80px 80px',
+        }}
+      />
+      {/* Per-stop glow overlays — only opacity animates (GPU-composited) */}
+      {STOP_ATMOSPHERE.map((atm, i) => (
+        <motion.div
+          key={i}
+          className="absolute inset-0"
+          style={{
+            opacity: opacities[i],
+            background: `radial-gradient(ellipse ${atm.size} at ${atm.position}, ${atm.color} 0%, transparent 70%)`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ─── Lucian Overlay — reacts to stops ─── */
+
+function LucianOverlay({ activeStop }: { activeStop: number }) {
+  const reduced = useReducedMotion();
+  const animation = STOP_LUCIAN_ANIMATION[activeStop] ?? 'idle';
+  const opacity = [0.55, 0.2, 0.2, 0.2, 0.45, 0.6][activeStop] ?? 0.2;
+
+  return (
+    <motion.div
+      className="pointer-events-none fixed bottom-10 right-10 z-20"
+      animate={{ opacity, scale: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      {!reduced && (
+        <motion.div
+          key={animation}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <LucianSpriteAnimator animation={animation} size={64} />
+        </motion.div>
+      )}
+    </motion.div>
+  );
+}
+
+/* ─── Animated Counter ─── */
+
+function AnimatedCounter({ target }: { target: number }) {
+  const countMV = useMotionValue(0);
+  const [display, setDisplay] = useState(0);
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    if (hasAnimated.current) return;
+    hasAnimated.current = true;
+    const controls = animate(countMV, target, {
+      duration: 1.8,
+      ease: [0.22, 1, 0.36, 1],
+      onUpdate: (v) => setDisplay(Math.round(v)),
+    });
+    return () => controls.stop();
+  }, [countMV, target]);
+
+  return <>{display}</>;
+}
+
+/* ─── Main Component ─── */
+
 export function CinematicLanding() {
   const progressMV = useMotionValue(0);
   const shouldReduceMotion = useReducedMotion();
@@ -57,6 +181,8 @@ export function CinematicLanding() {
   const isAnimatingRef = useRef(false);
   const animationRef = useRef<AnimationPlaybackControls | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isFirstStop = useRef(true);
+  const soundCtx = useContext(SoundContext);
 
   const goToStop = useCallback(
     (targetStop: number) => {
@@ -77,12 +203,18 @@ export function CinematicLanding() {
     [progressMV]
   );
 
+  // Sound on stop change
+  useEffect(() => {
+    if (isFirstStop.current) { isFirstStop.current = false; return; }
+    soundCtx?.play('swoosh');
+  }, [activeStop, soundCtx]);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const mediaQuery = window.matchMedia('(max-width: 1023px)');
     const updateExperience = () => {
-      setIsCompactExperience(mediaQuery.matches || shouldReduceMotion);
+      setIsCompactExperience(mediaQuery.matches || (shouldReduceMotion ?? false));
     };
 
     updateExperience();
@@ -104,7 +236,6 @@ export function CinematicLanding() {
     let lastWheelTime = 0;
     const onWheel = (e: WheelEvent) => {
       if (isInteractiveTarget(e.target)) return;
-
       e.preventDefault();
       const now = Date.now();
       if (now - lastWheelTime < 150 || isAnimatingRef.current) return;
@@ -160,20 +291,8 @@ export function CinematicLanding() {
       className="fixed inset-0 z-40 h-screen overflow-hidden"
       style={{ ...landingThemeStyle, background: '#020204' }}
     >
-      {/* Obsidian Grid + Flow background */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px),
-            radial-gradient(ellipse 72% 52% at 50% -10%, rgba(232,185,48,0.13) 0%, transparent 70%),
-            radial-gradient(ellipse 52% 42% at 10% 80%, rgba(220,56,56,0.08) 0%, transparent 60%),
-            radial-gradient(ellipse 42% 36% at 90% 40%, rgba(245,158,11,0.07) 0%, transparent 60%)
-          `,
-          backgroundSize: '80px 80px, 80px 80px, 100% 100%, 100% 100%, 100% 100%',
-        }}
-      />
+      {/* Dynamic atmosphere layer */}
+      <AtmosphereLayer progress={progressMV} />
 
       {/* Navbar */}
       <div className="relative z-50">
@@ -196,6 +315,9 @@ export function CinematicLanding() {
           </button>
         ))}
       </div>
+
+      {/* Lucian — lives through the story */}
+      <LucianOverlay activeStop={activeStop} />
 
       <HeroFrame progress={progressMV} onScrollDown={() => goToStop(1)} />
 
@@ -272,7 +394,8 @@ function HeroFrame({ progress, onScrollDown }: { progress: MotionValue<number>; 
                 <span className="font-mono text-[11px] font-medium text-white/70">{chip.value}</span>
                 {chip.label && <span className="font-mono text-[11px] text-zinc-600">{chip.label}</span>}
               </div>
-            ))}</div>
+            ))}
+          </div>
 
           <div className="mx-auto mt-10 w-full max-w-3xl">
             <HeroProofTeaser />
@@ -284,10 +407,6 @@ function HeroFrame({ progress, onScrollDown }: { progress: MotionValue<number>; 
             <TrajectoryMockup />
           </TerminalFrame>
           <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#020204] to-transparent" />
-          {/* Lucian ambient */}
-          <div className="pointer-events-none absolute bottom-8 right-6 opacity-60">
-            <LucianSpriteAnimator animation="idle" size={56} />
-          </div>
         </div>
       </div>
 
@@ -364,6 +483,18 @@ function DemoFrame({ progress }: { progress: MotionValue<number> }) {
 
   return (
     <motion.div className="fixed inset-0 z-10 flex items-center justify-center" style={{ opacity, pointerEvents }}>
+      {/* Lab atmosphere — tighter grid + dark vignette */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, rgba(220,56,56,0.04) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(220,56,56,0.04) 1px, transparent 1px),
+            radial-gradient(ellipse 60% 60% at 50% 50%, rgba(0,0,0,0.4) 0%, transparent 100%)
+          `,
+          backgroundSize: '40px 40px, 40px 40px, 100% 100%',
+        }}
+      />
       <motion.div className="relative z-10 mx-auto w-full max-w-3xl px-6" style={{ y: contentY }}>
         <p className="mb-4 text-center font-mono text-[11px] font-medium uppercase tracking-[0.4em] text-primary">Live Engine</p>
         <h2 className="premium-heading mb-12 text-center text-[clamp(1.8rem,4vw,3rem)] font-semibold text-white">
@@ -379,13 +510,20 @@ function CTAFrame({ progress }: { progress: MotionValue<number> }) {
   const opacity = useTransform(progress, (p) => easeInOutCubic(progress01(p, 4.5, 5)));
   const pointerEvents = useTransform(opacity, (o) => (o > 0.5 ? 'auto' : 'none'));
   const headlineY = useTransform(progress, (p) => 25 * (1 - easeInOutCubic(progress01(p, 4.5, 5.1))));
+  const [counterVisible, setCounterVisible] = useState(false);
+
+  useEffect(() => {
+    return opacity.on('change', (v) => {
+      if (v > 0.4) setCounterVisible(true);
+    });
+  }, [opacity]);
 
   return (
     <motion.div className="fixed inset-0 z-10 flex items-center justify-center" style={{ opacity, pointerEvents }}>
       <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
         <motion.h2 className="premium-heading text-[clamp(2.4rem,6vw,5rem)] font-semibold text-white" style={{ y: headlineY }}>
           Wann kollidieren<br />
-              <span className="bg-gradient-to-r from-[#FAF0E6] via-[#E8B930] to-[#DC3232] bg-clip-text text-transparent">deine nächsten Ziele?</span>
+          <span className="bg-gradient-to-r from-[#FAF0E6] via-[#E8B930] to-[#DC3232] bg-clip-text text-transparent">deine nächsten Ziele?</span>
         </motion.h2>
         <motion.p className="mx-auto mt-10 max-w-lg text-[17px] leading-[1.7] text-zinc-500" style={{ y: headlineY }}>
           Trajectory, Today und Career Intelligence vereint. Die Antwort bekommst du in unter 2 Minuten.
@@ -398,7 +536,22 @@ function CTAFrame({ progress }: { progress: MotionValue<number> }) {
             Login
           </TrackedCtaLink>
         </div>
-        <p className="mt-12 font-mono text-[10px] uppercase tracking-widest text-zinc-600">Secure · Public Beta · Setup &lt; 2 min</p>
+        {/* Live counter chips */}
+        <div className="mt-10 flex items-center justify-center gap-4">
+          <div className="flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-white/[0.03] px-4 py-1.5">
+            <span className="font-mono text-[13px] font-semibold text-white/80">
+              {counterVisible ? <AnimatedCounter target={847} /> : '0'}
+            </span>
+            <span className="font-mono text-[11px] text-zinc-600">Studenten</span>
+          </div>
+          <div className="flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-white/[0.03] px-4 py-1.5">
+            <span className="font-mono text-[13px] font-semibold text-white/80">
+              Ø {counterVisible ? <AnimatedCounter target={23} /> : '0'} min
+            </span>
+            <span className="font-mono text-[11px] text-zinc-600">täglich</span>
+          </div>
+        </div>
+        <p className="mt-8 font-mono text-[10px] uppercase tracking-widest text-zinc-600">Secure · Public Beta · Setup &lt; 2 min</p>
       </div>
     </motion.div>
   );
