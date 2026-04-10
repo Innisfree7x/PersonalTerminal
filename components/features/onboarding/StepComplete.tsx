@@ -23,7 +23,6 @@ interface CompletedData {
     explanation: string;
     effectiveCapacityHoursPerWeek: number;
   } | null;
-  demoSeeded?: boolean;
 }
 
 interface StepCompleteProps {
@@ -90,7 +89,6 @@ export function StepComplete({ completedData, onComplete }: StepCompleteProps) {
         trajectory_status: trajectory.status,
         trajectory_goal_id: trajectory.goalId,
         destination,
-        demo_seeded: completedData.demoSeeded ?? false,
       });
       onComplete?.();
       toast.success('Willkommen bei INNIS');
@@ -129,14 +127,6 @@ export function StepComplete({ completedData, onComplete }: StepCompleteProps) {
           </div>
         </motion.div>
       )}
-
-      {completedData.demoSeeded ? (
-        <motion.div variants={itemVariants}>
-          <div className="rounded-2xl border border-white/[0.07] bg-[#0F0E13] px-4 py-3 text-sm text-[#A89D8F]">
-            Demo-Daten sind aktiv. Du kannst sie später in den Einstellungen wieder entfernen.
-          </div>
-        </motion.div>
-      ) : null}
 
       {error ? (
         <motion.div variants={itemVariants}>

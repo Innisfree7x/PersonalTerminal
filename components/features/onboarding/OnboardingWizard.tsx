@@ -24,7 +24,6 @@ const LS_KEY = 'innis_onboarding_v2';
 
 interface PersistedState {
   step: number;
-  demoSeeded: boolean;
   trajectory: {
     goal: TrajectoryGoalPersisted | null;
     goalDraft: TrajectoryGoalDraft | null;
@@ -179,7 +178,6 @@ function loadPersistedState(): Partial<PersistedState> {
 
     return {
       step: clampStep(parsed.step),
-      demoSeeded: parsed.demoSeeded === true,
       trajectory: {
         goal: parseTrajectoryGoalPersisted(trajectoryRaw.goal),
         goalDraft: parseTrajectoryGoalDraft(trajectoryRaw.goalDraft),
@@ -250,7 +248,6 @@ export function OnboardingWizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState(1);
 
-  const [demoSeeded, setDemoSeeded] = useState(false);
   const [trajectoryGoal, setTrajectoryGoal] = useState<TrajectoryGoalPersisted | null>(null);
   const [trajectoryGoalDraft, setTrajectoryGoalDraft] = useState<TrajectoryGoalDraft | null>(null);
   const [trajectorySettingsDraft, setTrajectorySettingsDraft] = useState<TrajectorySettingsDraft | null>(null);
@@ -272,7 +269,6 @@ export function OnboardingWizard() {
 
       if (!mounted) return;
 
-      setDemoSeeded(stored.demoSeeded ?? false);
       setTrajectoryGoal(restoredTrajectory.goal ?? null);
       setTrajectoryGoalDraft(restoredTrajectory.goalDraft ?? null);
       setTrajectorySettingsDraft(restoredTrajectory.settingsDraft ?? null);
@@ -334,7 +330,6 @@ export function OnboardingWizard() {
     if (loading) return;
     savePersistedState({
       step: currentStep,
-      demoSeeded,
       trajectory: {
         goal: trajectoryGoal,
         goalDraft: trajectoryGoalDraft,
@@ -345,7 +340,6 @@ export function OnboardingWizard() {
     });
   }, [
     currentStep,
-    demoSeeded,
     loading,
     trajectoryContextDraft,
     trajectoryGoal,
@@ -446,7 +440,6 @@ export function OnboardingWizard() {
             <StepComplete
               completedData={{
                 trajectory: completeTrajectory,
-                demoSeeded,
               }}
               onComplete={handleComplete}
             />

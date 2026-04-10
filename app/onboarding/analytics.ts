@@ -19,7 +19,7 @@ export interface OnboardingEventProperties {
     trajectory_status: 'on_track' | 'tight' | 'at_risk';
     trajectory_goal_id: string;
     destination: '/trajectory' | '/today';
-    demo_seeded: boolean;
+    demo_seeded?: boolean;
   };
   trajectory_goal_created: { category: 'thesis' | 'gmat' | 'master_app' | 'internship' | 'other'; priority: number };
   trajectory_capacity_set: { hours_per_week: number; horizon_months: number };
