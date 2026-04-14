@@ -28,6 +28,7 @@ vi.mock('@/components/features/lucian/LucianBubble', () => ({
   LucianBubble: (props: {
     text: string;
     visible: boolean;
+    anchorSelector?: string;
     actionLabel?: string;
     onAction?: () => void;
     dialogOptions?: Array<{ label: string; action: string }>;
@@ -35,7 +36,7 @@ vi.mock('@/components/features/lucian/LucianBubble', () => ({
   }) => {
     if (!props.visible) return null;
     return (
-      <div data-testid="lucian-bubble">
+      <div data-testid="lucian-bubble" data-anchor-selector={props.anchorSelector}>
         <p>{props.text}</p>
         {props.dialogOptions && props.onDialogAction ? (
           <div>
@@ -143,6 +144,10 @@ describe('LucianBubbleProvider', () => {
 
     expect(screen.getByTestId('lucian-bubble')).toBeInTheDocument();
     expect(screen.getByText('Kurze Pause erkannt. 60 Sekunden Target Drill?')).toBeInTheDocument();
+    expect(screen.getByTestId('lucian-bubble')).toHaveAttribute(
+      'data-anchor-selector',
+      '[data-lucian-room-anchor="true"]',
+    );
   });
 
   test('does not show queued messages while break mode is active', () => {
@@ -269,5 +274,24 @@ describe('LucianBubbleProvider', () => {
 
     expect(queueSpy).toHaveBeenCalledWith('open-new-task');
     expect(routerPushMock).toHaveBeenCalledWith('/today');
+  });
+
+  test('uses champion sprite anchor outside today', () => {
+    mockedPathname = '/career';
+
+    renderWithProviders(
+      <LucianBubbleProvider>
+        <div>child</div>
+      </LucianBubbleProvider>,
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(7 * 60 * 1000);
+    });
+
+    expect(screen.getByTestId('lucian-bubble')).toHaveAttribute(
+      'data-anchor-selector',
+      '[data-champion-sprite="true"]',
+    );
   });
 });

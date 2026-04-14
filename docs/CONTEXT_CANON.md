@@ -1,9 +1,15 @@
 # Context Canon (Single Source of Truth)
 
-Stand: 2026-04-04 (post V2 spaces/room/achievements review, lokaler Review-Snapshot)
+Stand: 2026-04-13 (post Room Style Overhaul / Today room visual pass)
 Status: Active review baseline
 
 ## Neu seit 2026-03-30 (hoch priorisiert)
+- Room Style Overhaul + Today Room Visual Pass (lokaler Integrationsstand 2026-04-13)
+  - `LucianRoom` reagiert jetzt sichtbar auf `roomStyle` statt nur auf zwei fast-schwarze Hintergrundvarianten.
+  - Room-Themes steuern Möbel-, Shelf-, Book-, Monitor-, Ambient- und Dekor-Farben.
+  - `/today` nutzt einen vergrößerten Room-Hero mit style-abhängigem Ambient-Glow und stärkerem Morning-Briefing-Tone.
+  - `LucianBubble` bleibt auf `/today` aktiv, wird aber an den Room-Anchor gebunden statt frei doppelt zu erscheinen.
+  - `RoomSettingsSection` zeigt echte visuelle Style-Previews statt nur Text-/Emoji-Auswahl.
 - `docs/PHASE47_V2_SPACES_ROOM_ACHIEVEMENTS_2026-04-04.md` (reviewter lokaler V2-Kandidat: Spaces-IA, Today als Daily Loop mit Room/Ritual/Achievements, Room/Lucian/Sound-Settings, Review-Findings)
 - `docs/PHASE45_KIT_ILIAS_ACKNOWLEDGE_LOOP_2026-03-30.md` (Unread-ILIAS-Preview im KIT Hub, Acknowledge-Mutation, erster Read-State-Loop fuer Studienmaterial)
 - `docs/PHASE46_KIT_FIXES_AND_LANDING_AUDIT_2026-03-30.md` (KIT-Fixes, Landing-Audit, neue Tests fuer Campus/ILIAS/Marketing-Proof)
@@ -130,6 +136,10 @@ Legacy-Pfade wie `/calendar`, `/trajectory`, `/university`, `/analytics` werden 
 ### V2-Realität, die nicht falsch dokumentiert werden darf
 - `Today` ist kein generisches Widget-Dashboard mehr.
 - `Room`, `Achievements`, `Lucian Outfits`, `Sound Packs` sind live Produktflaechen.
+- `LucianRoom` ist style-aware ueber Möbel, Shelf, Bücher, Monitor und Ambient-Layer; Room-Styles sind nicht mehr nur Wall-/Floor-Tints.
+- `RoomSettingsSection` ist eine echte Preview-Auswahl und nicht nur ein Text-Setting.
+- `/today` nutzt einen Room-Hero mit style-abhängigem Ambient-Glow; der Briefing-Strip darf statuscodiert farbiger sein als das restliche Dashboard.
+- Auf `/today` wird Lucian an den Room geankert; der Room und die Bubble duerfen nicht wieder als zwei unverbundene Figuren auseinanderlaufen.
 - `user_room_items` ist als Tabelle vorhanden, aber noch nicht die kanonische Live-Quelle fuer ein Inventory-/Equip-System.
 - neue Room-/Lucian-/Sound-Persistenz soll zentral ueber `lib/storage/keys.ts` gespiegelt werden; ad-hoc lokale Keys gelten als Drift.
 - `app/api/achievements/route.ts` ist funktional, aber als Mutationspfad noch unter vollem API-Haertungsstandard.

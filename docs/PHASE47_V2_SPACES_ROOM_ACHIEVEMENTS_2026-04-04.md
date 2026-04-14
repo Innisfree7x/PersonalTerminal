@@ -25,6 +25,16 @@ Der Qualitätszustand ist brauchbar, aber nicht folgenlos:
 - die Struktur ist an mehreren Stellen empfindlicher geworden
 - Canon, Agent-Kontext und Storage-Disziplin waren hinter dem Code zurück
 
+## Post-Review Implementierungsupdate (2026-04-13)
+Nach dem ursprünglichen Review-Snapshot wurde der Room-Block sichtbar weiter produktisiert. Das ist kein neuer Scope-Plan, sondern ein realer Integrationsfortschritt, der in Folge-Sessions nicht wieder auf den alten "fast unsichtbaren Dark-Tint"-Stand zurückfallen darf.
+
+Neu im lokalen Stand:
+- `LucianRoom` ist jetzt style-aware über mehrere Layer: Möbel, Shelf, Bücher, Monitor, Ambient-Light, Dekor.
+- Die Room-Styles `cozy`, `minimal`, `neon`, `library` unterscheiden sich sichtbar und nicht nur über zwei Hintergrund-Rechtecke.
+- `/today` nutzt einen größeren Room-Hero mit style-abhängigem Ambient-Glow und klarerer atmosphärischer Gewichtung.
+- `RoomSettingsSection` zeigt echte Mini-Previews der Styles statt nur Name + Emoji.
+- Die Lucian-Bubble auf `/today` bleibt funktional erhalten, wird aber an den Room-Anchor gebunden, damit kein visueller Doppel-Lucian mehr entsteht.
+
 ## Validierungsstand dieses Review-Snapshots
 - `npm run type-check` grün
 - `npm run lint` grün
@@ -108,6 +118,11 @@ Der Room-State wird derzeit aus:
 abgeleitet.
 
 Room-Items werden aktuell praktisch achievement-getrieben freigeschaltet. Ein separates, vollständig ausgenutztes Inventory-System ist noch nicht aktiv.
+
+Zusätzliche Realität ab 2026-04-13:
+- `roomStyle` ist visuell relevant und fließt konkret in den Renderpfad des Rooms ein.
+- Style-spezifische Layer wie Neon-Strips, Candle-Light oder Library-Lamp sind Bestandteil des UI-Zustands.
+- Room-Arbeit darf nicht wieder auf "nur wall/floor CSS vars austauschen" zurückfallen.
 
 ### 5. Settings wurden zu einem echten V2-Control-Center erweitert
 `app/(dashboard)/settings/page.tsx` lädt jetzt dynamisch:

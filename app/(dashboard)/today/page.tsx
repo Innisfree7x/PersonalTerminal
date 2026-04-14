@@ -17,6 +17,7 @@ import { useRoomState } from '@/lib/hooks/useRoomState';
 import { useRoomItems } from '@/lib/hooks/useRoomItems';
 import { useLucianOutfit } from '@/lib/hooks/useLucianOutfit';
 import { useAchievements } from '@/lib/hooks/useAchievements';
+import { ROOM_STYLES, useRoomStyle } from '@/lib/hooks/useRoomStyle';
 import { checkNewAchievements } from '@/lib/achievements/checker';
 import type { AchievementCheckInput } from '@/lib/achievements/registry';
 import { getLinesForMood } from '@/lib/lucian/copy';
@@ -50,6 +51,7 @@ export default function TodayPage() {
   const queryClient = useQueryClient();
   const { play } = useAppSound();
   const { streak } = useStreak();
+  const { style: roomStyle } = useRoomStyle();
   const [ritualDone, setRitualDone] = useState(false);
   const { unlockedKeys, unlock } = useAchievements();
   const roomItems = useRoomItems();
@@ -84,6 +86,8 @@ export default function TodayPage() {
   });
 
   const roomState = useRoomState(nextTasksData);
+  const roomTheme = ROOM_STYLES[roomStyle];
+  const roomStyleGlow = `radial-gradient(ellipse at center, ${roomTheme.ambientColor} 0%, transparent 72%)`;
   const momentumScore = nextTasksData?.trajectoryMorning?.momentum?.score ?? 40;
   const morningMood = momentumScore >= 70 ? 'hype' : momentumScore >= 40 ? 'chill' : 'comfort';
   const morningLines = getLinesForMood(morningMood);
@@ -244,23 +248,104 @@ export default function TodayPage() {
       {/* ── 0. Lucians Raum ── */}
       <ErrorBoundary fallbackTitle="Room Error">
         <div
-          className="relative w-full overflow-hidden rounded-2xl h-[min(30vh,240px)] sm:h-[min(42vh,380px)]"
+          className="relative w-full overflow-hidden rounded-2xl h-[min(36vh,280px)] sm:h-[min(48vh,420px)]"
         >
+          <div
+            className="pointer-events-none absolute inset-0 rounded-2xl border border-white/[0.08]"
+          />
+          <div
+            className="pointer-events-none absolute inset-0 rounded-2xl"
+            style={{
+              background:
+                'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 16%, transparent 42%, rgba(0,0,0,0.18) 100%)',
+            }}
+          />
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 w-28"
+            style={{
+              background: `linear-gradient(90deg, ${roomTheme.accentColor}16, transparent 72%)`,
+            }}
+          />
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 w-28"
+            style={{
+              background: `linear-gradient(270deg, ${roomTheme.accentColor}12, transparent 72%)`,
+            }}
+          />
+          <div
+            className="pointer-events-none absolute inset-0 rounded-2xl"
+            style={{ background: roomStyleGlow, opacity: 0.42 }}
+          />
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 h-px"
+            style={{
+              background: `linear-gradient(90deg, transparent, ${roomTheme.accentColor}88, transparent)`,
+            }}
+          />
+          <div className="pointer-events-none absolute left-4 top-4 flex items-center gap-2 rounded-full border border-white/[0.08] bg-black/32 px-3 py-1.5">
+            <span className="text-xs">{roomTheme.preview}</span>
+            <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/55">
+              {roomTheme.label} Room
+            </span>
+          </div>
           {!ritualDone && (
             <MorningRitual
               onComplete={() => setRitualDone(true)}
               morningMessage={morningMessage}
             />
           )}
-          <LucianRoom state={roomState} roomItems={roomItems} lucianOutfit={outfit} className="w-full h-full" />
+          <LucianRoom
+            state={roomState}
+            roomItems={roomItems}
+            lucianOutfit={outfit}
+            roomStyle={roomStyle}
+            className="w-full h-full"
+          />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#08080c] to-transparent" />
+          <div className="pointer-events-none absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-black/40 px-2.5 py-1">
+            <span
+              className="inline-block h-1.5 w-1.5 rounded-full"
+              style={{ background: roomTheme.accentColor, boxShadow: `0 0 10px ${roomTheme.accentColor}66` }}
+            />
+            <span className="text-[10px] text-white/45">Ambience live</span>
+          </div>
         </div>
       </ErrorBoundary>
 
       {/* ── 1. Morning Briefing — single compact line ── */}
       <ErrorBoundary fallbackTitle="Morning Briefing Error">
         <div className="card-warm-accent relative overflow-hidden rounded-xl px-4 py-2.5">
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-r-full bg-primary/70 shadow-[0_0_10px_rgb(var(--primary)/0.3)]" />
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-r-full"
+            style={{
+              background: trajectoryBriefing
+                ? trajectoryBriefing.status === 'at_risk'
+                  ? 'linear-gradient(to bottom, #dc3232, #991b1b)'
+                  : trajectoryBriefing.status === 'tight'
+                    ? 'linear-gradient(to bottom, #e8b930, #92400e)'
+                    : 'linear-gradient(to bottom, #22c55e, #15803d)'
+                : 'linear-gradient(to bottom, rgba(232,185,48,0.88), rgba(146,64,14,0.88))',
+              boxShadow: trajectoryBriefing
+                ? trajectoryBriefing.status === 'at_risk'
+                  ? '0 0 12px rgba(220,50,50,0.42)'
+                  : trajectoryBriefing.status === 'tight'
+                    ? '0 0 12px rgba(232,185,48,0.32)'
+                    : '0 0 12px rgba(34,197,94,0.28)'
+                : '0 0 10px rgba(232,185,48,0.24)',
+            }}
+          />
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 h-px"
+            style={{
+              background: trajectoryBriefing
+                ? trajectoryBriefing.status === 'at_risk'
+                  ? 'linear-gradient(to right, transparent, rgba(220,50,50,0.42), transparent)'
+                  : trajectoryBriefing.status === 'tight'
+                    ? 'linear-gradient(to right, transparent, rgba(232,185,48,0.42), transparent)'
+                    : 'linear-gradient(to right, transparent, rgba(34,197,94,0.38), transparent)'
+                : 'linear-gradient(to right, transparent, rgba(232,185,48,0.4), transparent)',
+            }}
+          />
 
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between gap-3">

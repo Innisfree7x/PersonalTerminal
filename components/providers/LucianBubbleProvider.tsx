@@ -819,6 +819,10 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
 
   const breakInviteActive = current?.kind === 'break-invite';
   const isDialog = current?.kind === 'dialog' && current.dialogOptions && current.dialogOptions.length > 0;
+  const isOnTodayPage = pathname === '/today';
+  const anchorSelector = isOnTodayPage
+    ? '[data-lucian-room-anchor="true"]'
+    : '[data-champion-sprite="true"]';
 
   return (
     <>
@@ -829,6 +833,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
           mood={current.mood}
           ariaRole={current.ariaRole}
           visible={visible}
+          anchorSelector={anchorSelector}
           dismissOnBodyClick={!breakInviteActive && !isDialog}
           onDismiss={handleDismiss}
           onMuteToday={handleMuteToday}
