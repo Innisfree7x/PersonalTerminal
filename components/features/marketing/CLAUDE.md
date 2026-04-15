@@ -20,7 +20,8 @@ Background effects: static CSS `background-image` only (radial-gradient, linear-
 
 ## Key Components
 - `CinematicLanding.tsx` — scroll-hijacked PRISMA-style landing, 6 stops, MotionValue-driven
-- `HeroSection.tsx` — used on /features, /pricing via marketing layout
+- `CinematicLanding.tsx` — active primary landing experience on `/`
+- `CTASection.tsx` — shared CTA block used on `/features` and `/pricing`
 - `TerminalFrame.tsx` — browser chrome mockup wrapper
 - `mockups/` — TrajectoryMockup, TodayMockup, CareerMockup (framer-motion animated)
 

@@ -12,23 +12,11 @@ import {
 } from '@/lib/schemas/course.schema';
 import { universityRepository } from '@/lib/infrastructure/supabase/repositories/universityRepository';
 import {
-  createUniversityCourse,
   deleteUniversityCourse,
   fetchUniversityCourses,
   toggleUniversityExercise,
   updateUniversityCourse,
 } from '@/lib/application/use-cases/university';
-
-/**
- * Server Action to create a course and seed exercise progress rows.
- */
-export async function createCourseAction(data: CreateCourseInput): Promise<CourseWithExercises> {
-  const user = await requireAuth();
-  const validated = createCourseSchema.parse(data);
-  const course = await createUniversityCourse(universityRepository, user.id, validated);
-  revalidatePath('/university');
-  return course;
-}
 
 export async function updateCourseAction(id: string, data: Partial<CreateCourseInput>): Promise<Course> {
   const user = await requireAuth();

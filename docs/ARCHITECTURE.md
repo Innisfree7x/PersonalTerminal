@@ -43,7 +43,7 @@ components/
   providers/            # QueryProvider, FocusTimerProvider
   shared/               # CommandPalette, CommandPaletteProvider, ErrorBoundary
   features/
-    dashboard/          # FocusTasks, ScheduleColumn, DashboardStats, PomodoroTimer,
+    dashboard/          # FocusTasks, DashboardStats, PomodoroTimer, NBAHeroZone,
                         # StudyProgress, UpcomingDeadlines, WeekOverview, QuickActionsWidget
     analytics/          # DailyFocusChart, HourlyDistributionChart, CategoryBreakdown,
                         # WeekdayChart, RecentSessionsList, AnalyticsStatCard
@@ -52,18 +52,17 @@ components/
                         # ApplicationStats, CvUpload
     university/         # CourseCard, CourseModal
     focus/              # FloatingTimer
-    calendar/           # EventCard
+    calendar/           # calendar UI + weekly planning surfaces
 
 lib/
   api/                  # Frontend fetch wrappers (goals, applications, daily-tasks,
                         # focus-sessions, calendar, errors, auth)
   auth/                 # AuthProvider.tsx, client.ts, server.ts
   supabase/             # Server-side data layer (goals, applications, courses,
-                        # focusSessions, types, client, browserClient)
+                        # focusSessions, types, client)
   schemas/              # Zod schemas (goal, application, course, dailyTask, focusSession)
   google/               # calendar.ts — Google Calendar REST API calls
   hooks/                # useNotifications.ts
-  data/                 # mockEvents.ts (CalendarEvent type)
   design-system/        # Design tokens (not used at runtime — mirrored in tailwind.config.ts)
   utils.ts              # cn() — clsx + tailwind-merge
   utils/                # colors.ts, goalUtils.ts
@@ -275,7 +274,7 @@ Inconsistent across routes:
 - Settings: focus duration, break durations, sessions before long break, auto-start break, sound
 - Persists to localStorage — survives page refresh and navigation
 - Calculates elapsed time from `startedAt` timestamp on restore
-- Saves sessions via Server Action (`app/actions/focus-sessions.ts`) on completion (or stop if >10s elapsed)
+- Saves sessions through the `/api/focus-sessions` route on completion (or stop if >10s elapsed)
 - Sound: Web Audio API oscillator
 - Keyboard: `Alt+F` toggle
 - UI: floating pill (bottom-right), expands to full timer

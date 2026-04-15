@@ -5,10 +5,10 @@ import { motion, type HTMLMotionProps } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type Button3DVariant = 'primary' | 'success' | 'warning' | 'danger';
-export type Button3DSize = 'sm' | 'md' | 'lg';
+type Button3DVariant = 'primary' | 'success' | 'warning' | 'danger';
+type Button3DSize = 'sm' | 'md' | 'lg';
 
-export interface Button3DProps extends Omit<HTMLMotionProps<'button'>, 'className'> {
+interface Button3DProps extends Omit<HTMLMotionProps<'button'>, 'className'> {
   variant?: Button3DVariant;
   size?: Button3DSize;
   loading?: boolean;

@@ -1,6 +1,6 @@
 # 🧩 Dashboard Widgets Documentation
 
-Complete reference for all 8 dashboard widgets in INNIS.
+Complete reference for all active dashboard widgets in INNIS.
 
 ---
 
@@ -12,9 +12,7 @@ Complete reference for all 8 dashboard widgets in INNIS.
 | CircularProgress | Completion visualization | Props | percentage |
 | QuickActionsWidget | Fast shortcuts | Static | none |
 | PomodoroTimer | Focus timer | Local state | durations (optional) |
-| MoodTracker | Energy tracking | Callback | onMoodSelect |
 | ActivityFeed | Recent actions | API (`/api/activity/recent`) | activities (optional) |
-| TimeBlockVisualizer | Focus time blocks | API (`/api/dashboard/focus-time`) | progress values (optional) |
 | WeekOverview | Mini calendar | API (`/api/dashboard/week-events`) | events (optional) |
 
 ---
@@ -170,49 +168,7 @@ import PomodoroTimer from '@/components/features/dashboard/PomodoroTimer';
 
 ---
 
-## 5️⃣ MoodTracker
-
-**Energy level tracker with 5 mood options.**
-
-### Props
-
-```typescript
-interface MoodTrackerProps {
-  onMoodSelect?: (mood: Mood) => void;     // Callback when mood selected
-  isLoading?: boolean;                     // Show skeleton (default: false)
-}
-
-type Mood = 'exhausted' | 'tired' | 'okay' | 'good' | 'energized';
-```
-
-### Usage
-
-```tsx
-import MoodTracker from '@/components/features/dashboard/MoodTracker';
-
-<MoodTracker 
-  onMoodSelect={(mood) => console.log('Selected:', mood)}
-/>
-```
-
-### Moods
-| Emoji | Mood | Feedback |
-|-------|------|----------|
-| 😴 | Exhausted | "Time for a proper rest!" |
-| 💤 | Tired | "Consider a coffee break or walk!" |
-| 😐 | Okay | "Not bad. Maybe take a short break?" |
-| 😊 | Good | "Great! You're doing well today!" |
-| 🚀 | Energized | "Amazing! Keep that momentum going!" |
-
-### Features
-- ✅ Radio group accessibility (role="radiogroup")
-- ✅ Animated selection feedback
-- ✅ Contextual motivational messages
-- ✅ Hover effects
-
----
-
-## 6️⃣ ActivityFeed
+## 5️⃣ ActivityFeed
 
 **Recent user activity timeline.**
 
@@ -271,80 +227,14 @@ import ActivityFeed from '@/components/features/dashboard/ActivityFeed';
 
 ### Features
 - ✅ Auto-fetches from API if no props provided
-- ✅ Fallback to mock data on error
+- ✅ Graceful empty state on error
 - ✅ Color-coded icons by type
 - ✅ Relative timestamps ("2 hours ago")
 - ✅ Stagger animation
 
 ---
 
-## 7️⃣ TimeBlockVisualizer
-
-**Focus time progress by time of day.**
-
-### Props
-
-```typescript
-interface TimeBlockVisualizerProps {
-  morningProgress?: number;                // Morning % (0-100)
-  afternoonProgress?: number;              // Afternoon % (0-100)
-  eveningProgress?: number;                // Evening % (0-100)
-  isLoading?: boolean;                     // Show skeleton (default: false)
-}
-```
-
-### Usage
-
-```tsx
-import TimeBlockVisualizer from '@/components/features/dashboard/TimeBlockVisualizer';
-
-// Auto-fetch from API
-<TimeBlockVisualizer />
-
-// Or provide progress values
-<TimeBlockVisualizer 
-  morningProgress={75}
-  afternoonProgress={30}
-  eveningProgress={0}
-/>
-```
-
-### API Endpoint
-
-**GET** `/api/dashboard/focus-time?date=2024-01-15`
-
-**Response:**
-```json
-{
-  "morning": 75,
-  "afternoon": 30,
-  "evening": 0,
-  "totalMinutes": 180,
-  "tasksCompleted": 5,
-  "breakdown": {
-    "morning": 135,
-    "afternoon": 45,
-    "evening": 0
-  }
-}
-```
-
-### Time Blocks
-| Period | Hours | Icon | Color |
-|--------|-------|------|-------|
-| Morning | 6AM - 12PM | 🌅 Sunrise | Warning (Orange) |
-| Afternoon | 12PM - 6PM | ☀️ Sun | Calendar (Orange) |
-| Evening | 6PM - 12AM | 🌙 Moon | Info (Blue) |
-
-### Features
-- ✅ "NOW" indicator for current period
-- ✅ Progress bars with animations
-- ✅ Total focus time summary
-- ✅ ARIA progressbar roles
-
----
-
-## 8️⃣ WeekOverview
+## 6️⃣ WeekOverview
 
 **Mini calendar with event density visualization.**
 
