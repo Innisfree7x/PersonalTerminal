@@ -676,6 +676,21 @@ function collectAcademicTextLines(rawText: string) {
   return Array.from(new Set([...lineSplit, ...compactSegments, ...codedSegments]));
 }
 
+function collectMergedAcademicLineCandidates(lines: string[], startIndex: number, maxWindow = 6) {
+  const candidates: Array<{ text: string; consumed: number }> = [];
+  let merged = '';
+
+  for (let offset = 0; offset < maxWindow && startIndex + offset < lines.length; offset += 1) {
+    const segment = normalizeText(lines[startIndex + offset] ?? '');
+    if (!segment) continue;
+
+    merged = merged ? `${merged} ${segment}` : segment;
+    candidates.push({ text: merged, consumed: offset + 1 });
+  }
+
+  return candidates;
+}
+
 function extractHtmlTextFallback(value: string | null | undefined) {
   const html = value ?? '';
   if (!html) return '';
@@ -745,14 +760,14 @@ function extractFallbackAcademicRowsFromText(rawText: string) {
     }
 
     let consumed = 1;
-    let cells = splitAcademicTextLine(line);
+    let cells: string[] = [];
 
-    if (!isAcademicSnapshotFallbackRow(cells) && index + 1 < lines.length) {
-      const merged = `${line} ${lines[index + 1]}`;
-      const mergedCells = splitAcademicTextLine(merged);
-      if (isAcademicSnapshotFallbackRow(mergedCells)) {
-        cells = mergedCells;
-        consumed = 2;
+    for (const candidate of collectMergedAcademicLineCandidates(lines, index)) {
+      const candidateCells = splitAcademicTextLine(candidate.text);
+      if (isAcademicSnapshotFallbackRow(candidateCells)) {
+        cells = candidateCells;
+        consumed = candidate.consumed;
+        break;
       }
     }
 

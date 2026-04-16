@@ -907,6 +907,22 @@
     return Array.from(new Set(lineSplit.concat(compactSegments, codedSegments)));
   }
 
+  function collectMergedAcademicLineCandidates(lines, startIndex, maxWindow) {
+    const candidates = [];
+    let merged = '';
+    const windowSize = typeof maxWindow === 'number' ? maxWindow : 6;
+
+    for (let offset = 0; offset < windowSize && startIndex + offset < lines.length; offset += 1) {
+      const segment = normalizeText(lines[startIndex + offset] || '');
+      if (!segment) continue;
+
+      merged = merged ? merged + ' ' + segment : segment;
+      candidates.push({ text: merged, consumed: offset + 1 });
+    }
+
+    return candidates;
+  }
+
   function extractHtmlTextFallback(value) {
     const html = value || '';
     if (!html) return '';
@@ -976,16 +992,18 @@
       }
 
       let consumed = 1;
-      let cells = splitAcademicTextLine(line);
+      let cells = [];
 
-      if (!isAcademicSnapshotFallbackRow(cells) && index + 1 < lines.length) {
-        const merged = line + ' ' + lines[index + 1];
-        const mergedCells = splitAcademicTextLine(merged);
-        if (isAcademicSnapshotFallbackRow(mergedCells)) {
-          cells = mergedCells;
-          consumed = 2;
+      collectMergedAcademicLineCandidates(lines, index).some((candidate) => {
+        const candidateCells = splitAcademicTextLine(candidate.text);
+        if (!isAcademicSnapshotFallbackRow(candidateCells)) {
+          return false;
         }
-      }
+
+        cells = candidateCells;
+        consumed = candidate.consumed;
+        return true;
+      });
 
       if (!isAcademicSnapshotFallbackRow(cells)) {
         continue;

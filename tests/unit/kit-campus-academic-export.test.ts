@@ -402,6 +402,40 @@ Bitte beachten Sie:
 Art: PF Pflicht, PI Pflicht individuell, WP Wahlpflicht, FW Freiwillig
 `;
 
+const campusContractViewFragmentedUserTextFallback = `
+Studiengangsdetails (2464504)
+Studienablaufplan
+Persönlicher Studienablaufplan
+Do, Viet Duc (2464504)
+Titel (mit Kennung)
+Art
+Status
+Note
+Datum
+Ist-LP
+Soll-LP
+T-WIWI-102708 – Volkswirtschaftslehre I: Mikroökonomie
+PF
+4,0
+22.02.2024
+5,0
+5,0
+Berufspraktikum
+PF
+be
+09.04.2025
+10,0
+10,0
+M-MATH-105754 – Mathematik 1
+PF
+3,8
+12.03.2026
+10,0
+10,0
+Bitte beachten Sie:
+Art: PF Pflicht, PI Pflicht individuell, WP Wahlpflicht, FW Freiwillig
+`;
+
 describe('campusAcademicExport helpers', () => {
   it('builds a stable campus academic export from tables', () => {
     const doc = new DOMParser().parseFromString(campusHtml, 'text/html');
@@ -868,6 +902,61 @@ describe('campusAcademicExport helpers', () => {
     expect(
       payload.modules.some((module) => module.title.includes('Informatik Module wählen'))
     ).toBe(false);
+  });
+
+  it('parses fragmented contractview rows when title, art, grade, date, and LP values are split across multiple lines', () => {
+    const doc = new DOMParser().parseFromString('<main><section id="fallback"></section></main>', 'text/html');
+
+    Object.defineProperty(doc.body, 'innerText', {
+      configurable: true,
+      get: () => campusContractViewFragmentedUserTextFallback,
+    });
+
+    const payload = buildCampusAcademicExport(
+      doc,
+      'https://campus.studium.kit.edu/exams/registration.php#!campus/student/contractview.asp'
+    );
+
+    expect(payload.modules).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          externalId: 'module:102708',
+          title: 'Volkswirtschaftslehre I: Mikroökonomie',
+          credits: 5,
+        }),
+        expect.objectContaining({
+          title: 'Berufspraktikum',
+          status: 'completed',
+          credits: 10,
+        }),
+        expect.objectContaining({
+          externalId: 'module:105754',
+          title: 'Mathematik 1',
+          credits: 10,
+        }),
+      ])
+    );
+    expect(payload.grades).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          moduleExternalId: 'module:102708',
+          gradeLabel: '4,0',
+          gradeValue: 4,
+          examDate: '2024-02-22',
+        }),
+        expect.objectContaining({
+          gradeLabel: 'be',
+          gradeValue: null,
+          examDate: '2025-04-09',
+        }),
+        expect.objectContaining({
+          moduleExternalId: 'module:105754',
+          gradeLabel: '3,8',
+          gradeValue: 3.8,
+          examDate: '2026-03-12',
+        }),
+      ])
+    );
   });
 
   it('parses academic snapshot text rendered inside an open shadow root', () => {
