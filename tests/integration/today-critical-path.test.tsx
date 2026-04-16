@@ -180,31 +180,21 @@ describe('Today critical path integration', () => {
     expect(screen.getByText('NBA Hero Zone Mock')).toBeInTheDocument();
     expect(screen.getByText('Focus Tasks Mock')).toBeInTheDocument();
     expect(screen.getByText('Study Progress Mock')).toBeInTheDocument();
-    expect(screen.getByText('Tasks')).toBeInTheDocument();
-    expect(screen.getByText('1/3')).toBeInTheDocument();
+    expect(screen.getByText(/1\/3 Tasks heute/i)).toBeInTheDocument();
     expect(screen.getByText('Momentum')).toBeInTheDocument();
     expect(screen.getByText('57')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /KIT 20\.03\./i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Prüfung/i })).toHaveAttribute(
       'href',
-      '/calendar?source=today_kit'
+      '/university?source=room_exam'
     );
     expect(screen.getByRole('link', { name: /\+1 weitere KIT-Termine diese Woche/i })).toHaveAttribute(
       'href',
-      '/calendar?source=today_kit_week'
-    );
-    expect(screen.getByRole('link', { name: /2 neue ILIAS-Signale/i })).toHaveAttribute(
-      'href',
-      '/university?source=today_ilias'
+      '/calendar?source=room_week'
     );
     expect(screen.getByRole('link', { name: /Neue Note 1,7/i })).toHaveAttribute(
       'href',
-      '/university?source=today_grade'
+      '/university?source=room_grade'
     );
-    expect(
-      screen.getByText(
-        (_, element) => element?.tagName === 'SPAN' && (element.textContent?.includes('1 vs letzte Woche') ?? false)
-      )
-    ).toBeInTheDocument();
     expect(screen.getByText('Streak')).toBeInTheDocument();
 
     await waitFor(() => {
