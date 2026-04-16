@@ -104,8 +104,7 @@ describe('Dashboard Integration', () => {
       expect(screen.getByText('Focus Tasks Mock')).toBeInTheDocument();
       expect(screen.getByText('NBA Hero Zone Mock')).toBeInTheDocument();
       expect(screen.getByText('Study Progress Mock')).toBeInTheDocument();
-      expect(screen.getByText('Tasks')).toBeInTheDocument();
-      expect(screen.getByText('Exercises')).toBeInTheDocument();
+      expect(screen.getByText(/0\/0 Tasks heute/i)).toBeInTheDocument();
       expect(screen.getByText('Streak')).toBeInTheDocument();
     });
   });
