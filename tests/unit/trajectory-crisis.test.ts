@@ -153,4 +153,148 @@ describe('detectCrises', () => {
     );
     expect(new Set(tuples).size).toBe(tuples.length);
   });
+
+  describe('edge cases', () => {
+    const base = <T extends Record<string, unknown>>(overrides: T) => ({
+      id: 'x',
+      title: 'X',
+      status: 'active' as const,
+      effortHours: 40,
+      bufferWeeks: 0,
+      ...overrides,
+    });
+
+    it('filters out done goals', () => {
+      const report = detectCrises({
+        today: '2026-04-19',
+        goals: [
+          base({ id: 'a', status: 'done' as const, commitmentMode: 'fixed' as const,
+                 fixedStartDate: '2026-09-01', fixedEndDate: '2026-09-30' }),
+          base({ id: 'b', commitmentMode: 'fixed' as const,
+                 fixedStartDate: '2026-09-15', fixedEndDate: '2026-10-15' }),
+        ],
+      });
+      expect(report.collisions).toEqual([]);
+    });
+
+    it('filters out archived goals', () => {
+      const report = detectCrises({
+        today: '2026-04-19',
+        goals: [
+          base({ id: 'a', status: 'archived' as const, commitmentMode: 'fixed' as const,
+                 fixedStartDate: '2026-09-01', fixedEndDate: '2026-09-30' }),
+          base({ id: 'b', commitmentMode: 'fixed' as const,
+                 fixedStartDate: '2026-09-15', fixedEndDate: '2026-10-15' }),
+        ],
+      });
+      expect(report.collisions).toEqual([]);
+    });
+
+    it('filters out fixed goals ending before today', () => {
+      const report = detectCrises({
+        today: '2026-04-19',
+        goals: [
+          base({ id: 'a', commitmentMode: 'fixed' as const,
+                 fixedStartDate: '2025-01-01', fixedEndDate: '2025-12-31' }),
+          base({ id: 'b', commitmentMode: 'fixed' as const,
+                 fixedStartDate: '2025-06-01', fixedEndDate: '2025-11-30' }),
+        ],
+      });
+      expect(report.collisions).toEqual([]);
+    });
+
+    it('filters out lead-time goals with eventDate in past', () => {
+      const report = detectCrises({
+        today: '2026-04-19',
+        goals: [
+          base({ id: 'a', commitmentMode: 'lead-time' as const,
+                 dueDate: '2025-12-31', leadTimeWeeks: 12 }),
+        ],
+      });
+      expect(report.collisions).toEqual([]);
+    });
+
+    it('treats single-day fixed window as inclusive', () => {
+      const report = detectCrises({
+        today: '2026-04-19',
+        goals: [
+          base({ id: 'a', commitmentMode: 'fixed' as const,
+                 fixedStartDate: '2026-09-15', fixedEndDate: '2026-09-15' }),
+          base({ id: 'b', commitmentMode: 'fixed' as const,
+                 fixedStartDate: '2026-09-15', fixedEndDate: '2026-09-15' }),
+        ],
+      });
+      expect(report.collisions).toHaveLength(1);
+      expect(report.collisions[0]?.code).toBe('FIXED_WINDOW_COLLISION');
+    });
+
+    it('does not flag adjacent disjoint fixed windows (end N, start N+1)', () => {
+      const report = detectCrises({
+        today: '2026-04-19',
+        goals: [
+          base({ id: 'a', commitmentMode: 'fixed' as const,
+                 fixedStartDate: '2026-09-01', fixedEndDate: '2026-09-30' }),
+          base({ id: 'b', commitmentMode: 'fixed' as const,
+                 fixedStartDate: '2026-10-01', fixedEndDate: '2026-10-31' }),
+        ],
+      });
+      expect(report.collisions).toEqual([]);
+    });
+
+    it('flags shared-day fixed windows (end N, start N)', () => {
+      const report = detectCrises({
+        today: '2026-04-19',
+        goals: [
+          base({ id: 'a', commitmentMode: 'fixed' as const,
+                 fixedStartDate: '2026-09-01', fixedEndDate: '2026-09-30' }),
+          base({ id: 'b', commitmentMode: 'fixed' as const,
+                 fixedStartDate: '2026-09-30', fixedEndDate: '2026-10-31' }),
+        ],
+      });
+      expect(report.collisions).toHaveLength(1);
+    });
+
+    it('returns empty for single flexible goal with plenty of time', () => {
+      const report = detectCrises({
+        today: '2026-04-19',
+        goals: [
+          base({ id: 'a', commitmentMode: 'flexible' as const, dueDate: '2027-12-31', effortHours: 40 }),
+        ],
+      });
+      expect(report.collisions).toEqual([]);
+    });
+
+    it('handles effortHours=0 flexible without crashing', () => {
+      const report = detectCrises({
+        today: '2026-04-19',
+        goals: [
+          base({ id: 'a', commitmentMode: 'flexible' as const, dueDate: '2027-12-31', effortHours: 0 }),
+        ],
+      });
+      expect(report.collisions).toEqual([]);
+    });
+
+    it('skips NO_FLEXIBLE_SLOT for flexible with past dueDate (LATE_START priority)', () => {
+      const report = detectCrises({
+        today: '2026-04-19',
+        goals: [
+          base({ id: 'a', commitmentMode: 'flexible' as const, dueDate: '2026-03-01' }),
+        ],
+      });
+      expect(report.collisions.some((c) => c.code === 'NO_FLEXIBLE_SLOT')).toBe(false);
+    });
+
+    it('dedupes duplicate goal IDs', () => {
+      const report = detectCrises({
+        today: '2026-04-19',
+        goals: [
+          base({ id: 'a', commitmentMode: 'fixed' as const,
+                 fixedStartDate: '2026-09-01', fixedEndDate: '2026-09-30' }),
+          base({ id: 'a', commitmentMode: 'fixed' as const,
+                 fixedStartDate: '2027-01-01', fixedEndDate: '2027-01-31' }),
+        ],
+      });
+      expect(report.collisions).toEqual([]);
+    });
+  });
 });
