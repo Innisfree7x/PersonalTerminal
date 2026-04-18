@@ -11,6 +11,7 @@ import {
 import { fetchFocusAnalytics } from '@/lib/supabase/focusSessions';
 import { computeTrajectoryPlan } from '@/lib/trajectory/planner';
 import { computeMomentumScore } from '@/lib/trajectory/momentum';
+import { toTrajectoryGoalPlanInput } from '@/lib/trajectory/types';
 import { recordFlowMetric } from '@/lib/ops/flowMetrics';
 
 export async function GET(request: NextRequest) {
@@ -27,15 +28,12 @@ export async function GET(request: NextRequest) {
       fetchFocusAnalytics(user.id, 14),
     ]);
 
+    const planGoals = goals
+      .map((goal) => toTrajectoryGoalPlanInput(goal))
+      .filter((g): g is NonNullable<typeof g> => g !== null);
+
     const computed = computeTrajectoryPlan({
-      goals: goals.map((goal) => ({
-        id: goal.id,
-        title: goal.title,
-        dueDate: goal.dueDate,
-        effortHours: goal.effortHours,
-        bufferWeeks: goal.bufferWeeks,
-        status: goal.status,
-      })),
+      goals: planGoals,
       existingBlocks: blocks.map((block) => ({
         goalId: block.goalId,
         startDate: block.startDate,

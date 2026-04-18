@@ -3,17 +3,10 @@ import {
   evaluateTrajectoryRisk,
   type TrajectoryRiskStatus,
 } from '@/lib/trajectory/risk-model';
+import type { TrajectoryGoalPlanInput } from '@/lib/trajectory/types';
 
 export type { TrajectoryRiskStatus } from '@/lib/trajectory/risk-model';
-
-export interface TrajectoryGoalPlanInput {
-  id: string;
-  title: string;
-  dueDate: string; // YYYY-MM-DD
-  effortHours: number;
-  bufferWeeks: number;
-  status: 'active' | 'done' | 'archived';
-}
+export type { TrajectoryGoalPlanInput };
 
 export interface TrajectoryExistingBlockInput {
   goalId: string;
@@ -149,6 +142,27 @@ export function computeTrajectoryPlan(input: {
   const generatedBase = input.goals
     .filter((goal) => goal.status === 'active')
     .map((goal) => {
+      if (goal.commitmentMode === 'fixed') {
+        const requiredDays = Math.max(
+          1,
+          Math.floor(
+            (parseIsoDate(goal.fixedEndDate).getTime() -
+              parseIsoDate(goal.fixedStartDate).getTime()) /
+              DAY_MS
+          ) + 1
+        );
+        const requiredWeeks = Math.max(1, Math.ceil(requiredDays / 7));
+        return {
+          goalId: goal.id,
+          title: goal.title,
+          startDate: goal.fixedStartDate,
+          endDate: goal.fixedEndDate,
+          weeklyHours: Math.max(1, Math.ceil(goal.effortHours / requiredWeeks)),
+          requiredWeeks,
+          plannedBlockHours: goal.effortHours,
+        };
+      }
+
       const prepWindow = computeTrajectoryPrepWindow({
         dueDate: goal.dueDate,
         effortHours: goal.effortHours,

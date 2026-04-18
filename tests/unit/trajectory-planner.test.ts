@@ -12,6 +12,7 @@ describe('trajectory planner', () => {
           effortHours: 40,
           bufferWeeks: 0,
           status: 'active',
+          commitmentMode: 'flexible',
         },
       ],
       capacityHoursPerWeek: 8,
@@ -32,6 +33,7 @@ describe('trajectory planner', () => {
           effortHours: 28,
           bufferWeeks: 0,
           status: 'active',
+          commitmentMode: 'flexible',
         },
       ],
       existingBlocks: [
@@ -61,6 +63,7 @@ describe('trajectory planner', () => {
           effortHours: 20,
           bufferWeeks: 0,
           status: 'active',
+          commitmentMode: 'flexible',
         },
       ],
       existingBlocks: [

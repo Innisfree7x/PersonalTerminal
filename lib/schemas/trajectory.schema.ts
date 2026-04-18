@@ -27,17 +27,59 @@ export const trajectorySettingsSchema = z.object({
   horizonMonths: z.number().int().min(6).max(36).default(24),
 });
 
-export const createTrajectoryGoalSchema = z.object({
+export const commitmentModeValues = ['fixed', 'flexible', 'lead-time'] as const;
+
+const trajectoryGoalBaseFields = {
   title: z.string().min(1).max(200),
   category: z.enum(trajectoryGoalCategoryValues),
-  dueDate: trajectoryDateSchema,
   effortHours: z.number().int().min(1).max(2000),
   bufferWeeks: z.number().int().min(0).max(16).default(2),
   priority: z.number().int().min(1).max(5).default(3),
   status: z.enum(trajectoryGoalStatusValues).default('active'),
-});
+};
 
-export const updateTrajectoryGoalSchema = createTrajectoryGoalSchema.partial();
+export const createTrajectoryGoalSchema = z
+  .discriminatedUnion('commitmentMode', [
+    z.object({
+      ...trajectoryGoalBaseFields,
+      commitmentMode: z.literal('fixed'),
+      fixedStartDate: trajectoryDateSchema,
+      fixedEndDate: trajectoryDateSchema,
+      dueDate: trajectoryDateSchema.optional(),
+    }),
+    z.object({
+      ...trajectoryGoalBaseFields,
+      commitmentMode: z.literal('flexible'),
+      dueDate: trajectoryDateSchema,
+    }),
+    z.object({
+      ...trajectoryGoalBaseFields,
+      commitmentMode: z.literal('lead-time'),
+      dueDate: trajectoryDateSchema,
+      leadTimeWeeks: z.number().int().min(1).max(104),
+    }),
+  ])
+  .superRefine((value, ctx) => {
+    if (
+      value.commitmentMode === 'fixed' &&
+      value.fixedEndDate < value.fixedStartDate
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'fixedEndDate must be >= fixedStartDate',
+        path: ['fixedEndDate'],
+      });
+    }
+  });
+
+export const updateTrajectoryGoalSchema = z.object({
+  ...trajectoryGoalBaseFields,
+  commitmentMode: z.enum(commitmentModeValues).optional(),
+  dueDate: trajectoryDateSchema.optional(),
+  fixedStartDate: trajectoryDateSchema.optional(),
+  fixedEndDate: trajectoryDateSchema.optional(),
+  leadTimeWeeks: z.number().int().min(1).max(104).optional(),
+}).partial();
 
 const trajectoryWindowBaseSchema = z.object({
   title: z.string().min(1).max(200),
