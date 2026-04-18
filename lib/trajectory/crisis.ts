@@ -38,6 +38,22 @@ interface FixedBlock {
   type: 'fixed';
 }
 
+interface PrepBlock {
+  goalId: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  type: 'leadtime' | 'flexible';
+}
+
+const CAPACITY_FOR_FLEXIBLE_PREP = 20;
+
+function addUtcDays(date: Date, days: number): Date {
+  const next = new Date(date);
+  next.setUTCDate(next.getUTCDate() + days);
+  return next;
+}
+
 function isActive(g: TrajectoryGoalPlanInput): boolean {
   return g.status === 'active';
 }
@@ -59,6 +75,60 @@ function buildFixedBlocks(goals: TrajectoryGoalPlanInput[], today: string): Fixe
     }));
 }
 
+function buildLeadTimeBlocks(
+  goals: TrajectoryGoalPlanInput[],
+  today: string
+): PrepBlock[] {
+  const todayMs = parseIsoDate(today).getTime();
+  return goals
+    .filter(isActive)
+    .filter((g): g is Extract<TrajectoryGoalPlanInput, { commitmentMode: 'lead-time' }> =>
+      g.commitmentMode === 'lead-time'
+    )
+    .filter((g) => parseIsoDate(g.dueDate).getTime() >= todayMs)
+    .map((g) => {
+      const due = parseIsoDate(g.dueDate);
+      const prepEnd = addUtcDays(due, -(g.bufferWeeks * 7));
+      const prepStart = addUtcDays(prepEnd, -(g.leadTimeWeeks * 7));
+      return {
+        goalId: g.id,
+        title: g.title,
+        startDate: toIsoDate(prepStart),
+        endDate: toIsoDate(prepEnd),
+        type: 'leadtime' as const,
+      };
+    });
+}
+
+function buildFlexiblePrepBlocks(
+  goals: TrajectoryGoalPlanInput[],
+  today: string
+): PrepBlock[] {
+  const todayMs = parseIsoDate(today).getTime();
+  return goals
+    .filter(isActive)
+    .filter((g): g is Extract<TrajectoryGoalPlanInput, { commitmentMode: 'flexible' }> =>
+      g.commitmentMode === 'flexible'
+    )
+    .filter((g) => parseIsoDate(g.dueDate).getTime() >= todayMs)
+    .map((g) => {
+      const due = parseIsoDate(g.dueDate);
+      const requiredWeeks = Math.max(
+        1,
+        Math.ceil(g.effortHours / CAPACITY_FOR_FLEXIBLE_PREP)
+      );
+      const prepEnd = addUtcDays(due, -(g.bufferWeeks * 7));
+      const prepStart = addUtcDays(prepEnd, -(requiredWeeks * 7));
+      return {
+        goalId: g.id,
+        title: g.title,
+        startDate: toIsoDate(prepStart),
+        endDate: toIsoDate(prepEnd),
+        type: 'flexible' as const,
+      };
+    });
+}
+
 function overlapsInclusive(
   a: { startDate: string; endDate: string },
   b: { startDate: string; endDate: string }
@@ -75,6 +145,8 @@ export function detectCrises(input: DetectCrisesInput): CrisisReport {
   const uniqueGoals = Array.from(new Map(input.goals.map((g) => [g.id, g])).values());
 
   const fixed = buildFixedBlocks(uniqueGoals, today);
+  const leadTimePrep = buildLeadTimeBlocks(uniqueGoals, today);
+  const flexiblePrep = buildFlexiblePrepBlocks(uniqueGoals, today);
   const collisions: CrisisCollision[] = [];
 
   for (let i = 0; i < fixed.length; i += 1) {
@@ -92,6 +164,24 @@ export function detectCrises(input: DetectCrisesInput): CrisisReport {
           conflictingGoalIds: ids,
           window: { startDate, endDate },
           message: `„${a.title}" und „${b.title}" haben ein überlappendes festes Zeitfenster.`,
+        });
+      }
+    }
+  }
+
+  for (const prep of [...leadTimePrep, ...flexiblePrep]) {
+    for (const f of fixed) {
+      if (overlapsInclusive(f, prep)) {
+        const ids = [prep.goalId, f.goalId].sort();
+        const startDate =
+          f.startDate < prep.startDate ? f.startDate : prep.startDate;
+        const endDate = f.endDate > prep.endDate ? f.endDate : prep.endDate;
+        collisions.push({
+          code: 'FIXED_BLOCKS_PREP',
+          severity: 'critical',
+          conflictingGoalIds: ids,
+          window: { startDate, endDate },
+          message: `„${f.title}" blockiert das Vorbereitungsfenster von „${prep.title}".`,
         });
       }
     }
