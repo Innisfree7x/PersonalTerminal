@@ -142,6 +142,31 @@ function overlapsInclusive(
   return Math.max(aStart, bStart) <= Math.min(aEnd, bEnd);
 }
 
+interface DateInterval {
+  start: number;
+  end: number;
+}
+
+function subtractIntervals(
+  free: DateInterval,
+  blockers: DateInterval[]
+): DateInterval[] {
+  let slots: DateInterval[] = [free];
+  for (const b of blockers.slice().sort((x, y) => x.start - y.start)) {
+    const next: DateInterval[] = [];
+    for (const s of slots) {
+      if (b.end < s.start || b.start > s.end) {
+        next.push(s);
+        continue;
+      }
+      if (b.start > s.start) next.push({ start: s.start, end: b.start - DAY_MS });
+      if (b.end < s.end) next.push({ start: b.end + DAY_MS, end: s.end });
+    }
+    slots = next.filter((s) => s.end >= s.start);
+  }
+  return slots;
+}
+
 export function detectCrises(input: DetectCrisesInput): CrisisReport {
   const today = input.today ?? toIsoDate(new Date());
   const uniqueGoals = Array.from(new Map(input.goals.map((g) => [g.id, g])).values());
@@ -202,6 +227,47 @@ export function detectCrises(input: DetectCrisesInput): CrisisReport {
         conflictingGoalIds: [g.id],
         window: { startDate: today, endDate: g.dueDate },
         message: `„${g.title}": verbleibende Zeit (${remainingDays} Tage) unterschreitet benötigten Vorlauf (${requiredDays} Tage).`,
+      });
+    }
+  }
+
+  const fixedIntervals: DateInterval[] = fixed.map((f) => ({
+    start: parseIsoDate(f.startDate).getTime(),
+    end: parseIsoDate(f.endDate).getTime(),
+  }));
+  for (const g of uniqueGoals) {
+    if (!isActive(g) || g.commitmentMode !== 'flexible') continue;
+    const dueMs = parseIsoDate(g.dueDate).getTime();
+    const todayMs = parseIsoDate(today).getTime();
+    if (dueMs < todayMs) continue;
+    const prepEnd = dueMs - (g.bufferWeeks * 7) * DAY_MS;
+    if (prepEnd < todayMs) {
+      collisions.push({
+        code: 'NO_FLEXIBLE_SLOT',
+        severity: 'critical',
+        conflictingGoalIds: [g.id],
+        window: { startDate: today, endDate: g.dueDate },
+        message: `„${g.title}": kein freier Zeitraum zwischen heute und Fälligkeit.`,
+      });
+      continue;
+    }
+    const requiredDays = Math.max(
+      1,
+      Math.ceil(g.effortHours / CAPACITY_FOR_FLEXIBLE_PREP)
+    ) * 7;
+    const free = { start: todayMs, end: prepEnd };
+    const slots = subtractIntervals(free, fixedIntervals);
+    const largest = slots.reduce(
+      (max, s) => Math.max(max, (s.end - s.start) / DAY_MS + 1),
+      0
+    );
+    if (largest < requiredDays) {
+      collisions.push({
+        code: 'NO_FLEXIBLE_SLOT',
+        severity: 'critical',
+        conflictingGoalIds: [g.id],
+        window: { startDate: today, endDate: g.dueDate },
+        message: `„${g.title}": keine zusammenhängende Lücke von ${requiredDays} Tagen zwischen heute und Fälligkeit.`,
       });
     }
   }

@@ -90,4 +90,32 @@ describe('detectCrises', () => {
     expect(report.collisions.some((c) => c.code === 'LEAD_TIME_TOO_SHORT')).toBe(true);
     expect(report.collisions[0]?.conflictingGoalIds).toEqual(['gmat']);
   });
+
+  it('flags flexible goal with no free contiguous slot', () => {
+    const report = detectCrises({
+      today: '2026-04-19',
+      goals: [
+        { id: 'thesis', title: 'Thesis', status: 'active', effortHours: 160, bufferWeeks: 0,
+          commitmentMode: 'flexible', dueDate: '2026-07-31' },
+        { id: 'f1', title: 'Block 1', status: 'active', effortHours: 40, bufferWeeks: 0,
+          commitmentMode: 'fixed', fixedStartDate: '2026-04-20', fixedEndDate: '2026-05-15' },
+        { id: 'f2', title: 'Block 2', status: 'active', effortHours: 40, bufferWeeks: 0,
+          commitmentMode: 'fixed', fixedStartDate: '2026-05-20', fixedEndDate: '2026-06-15' },
+        { id: 'f3', title: 'Block 3', status: 'active', effortHours: 40, bufferWeeks: 0,
+          commitmentMode: 'fixed', fixedStartDate: '2026-06-18', fixedEndDate: '2026-07-15' },
+      ],
+    });
+    expect(report.collisions.some((c) => c.code === 'NO_FLEXIBLE_SLOT' && c.conflictingGoalIds[0] === 'thesis')).toBe(true);
+  });
+
+  it('does not flag flexible goal when an adequate slot exists', () => {
+    const report = detectCrises({
+      today: '2026-04-19',
+      goals: [
+        { id: 'thesis', title: 'Thesis', status: 'active', effortHours: 160, bufferWeeks: 0,
+          commitmentMode: 'flexible', dueDate: '2026-12-31' },
+      ],
+    });
+    expect(report.collisions.some((c) => c.code === 'NO_FLEXIBLE_SLOT')).toBe(false);
+  });
 });
