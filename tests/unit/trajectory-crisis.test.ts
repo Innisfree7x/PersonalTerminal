@@ -118,4 +118,39 @@ describe('detectCrises', () => {
     });
     expect(report.collisions.some((c) => c.code === 'NO_FLEXIBLE_SLOT')).toBe(false);
   });
+
+  it('sorts collisions by window.startDate ascending', () => {
+    const report = detectCrises({
+      today: '2026-04-19',
+      goals: [
+        { id: 'a', title: 'A', status: 'active', effortHours: 40, bufferWeeks: 0,
+          commitmentMode: 'fixed', fixedStartDate: '2026-11-01', fixedEndDate: '2026-11-30' },
+        { id: 'b', title: 'B', status: 'active', effortHours: 40, bufferWeeks: 0,
+          commitmentMode: 'fixed', fixedStartDate: '2026-11-15', fixedEndDate: '2026-12-15' },
+        { id: 'c', title: 'C', status: 'active', effortHours: 40, bufferWeeks: 0,
+          commitmentMode: 'fixed', fixedStartDate: '2026-08-01', fixedEndDate: '2026-08-31' },
+        { id: 'd', title: 'D', status: 'active', effortHours: 40, bufferWeeks: 0,
+          commitmentMode: 'fixed', fixedStartDate: '2026-08-15', fixedEndDate: '2026-09-15' },
+      ],
+    });
+    const starts = report.collisions.map((c) => c.window.startDate);
+    const sorted = [...starts].sort();
+    expect(starts).toEqual(sorted);
+  });
+
+  it('dedups identical (code, ids, startDate) tuples', () => {
+    const report = detectCrises({
+      today: '2026-04-19',
+      goals: [
+        { id: 'a', title: 'A', status: 'active', effortHours: 40, bufferWeeks: 0,
+          commitmentMode: 'fixed', fixedStartDate: '2026-09-01', fixedEndDate: '2026-09-30' },
+        { id: 'b', title: 'B', status: 'active', effortHours: 40, bufferWeeks: 0,
+          commitmentMode: 'fixed', fixedStartDate: '2026-09-01', fixedEndDate: '2026-09-30' },
+      ],
+    });
+    const tuples = report.collisions.map(
+      (c) => `${c.code}|${c.conflictingGoalIds.join(',')}|${c.window.startDate}`
+    );
+    expect(new Set(tuples).size).toBe(tuples.length);
+  });
 });

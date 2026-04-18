@@ -272,5 +272,20 @@ export function detectCrises(input: DetectCrisesInput): CrisisReport {
     }
   }
 
-  return { collisions, hasCrisis: collisions.length > 0 };
+  const seen = new Set<string>();
+  const deduped: CrisisCollision[] = [];
+  for (const c of collisions) {
+    const key = `${c.code}|${c.conflictingGoalIds.join(',')}|${c.window.startDate}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(c);
+  }
+  deduped.sort((a, b) => {
+    if (a.window.startDate !== b.window.startDate) {
+      return a.window.startDate.localeCompare(b.window.startDate);
+    }
+    return (a.conflictingGoalIds[0] ?? '').localeCompare(b.conflictingGoalIds[0] ?? '');
+  });
+
+  return { collisions: deduped, hasCrisis: deduped.length > 0 };
 }
