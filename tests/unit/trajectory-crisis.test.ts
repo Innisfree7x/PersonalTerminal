@@ -297,4 +297,19 @@ describe('detectCrises', () => {
       expect(report.collisions).toEqual([]);
     });
   });
+
+  it('is deterministic — same input produces equal reports across 50 runs', () => {
+    const goals = [
+      { id: 'praktikum', title: 'Praktikum', status: 'active' as const, effortHours: 640, bufferWeeks: 0,
+        commitmentMode: 'fixed' as const, fixedStartDate: '2026-09-01', fixedEndDate: '2026-09-30' },
+      { id: 'gmat', title: 'GMAT', status: 'active' as const, effortHours: 200, bufferWeeks: 2,
+        commitmentMode: 'lead-time' as const, dueDate: '2027-04-15', leadTimeWeeks: 26 },
+      { id: 'thesis', title: 'Thesis', status: 'active' as const, effortHours: 400, bufferWeeks: 2,
+        commitmentMode: 'flexible' as const, dueDate: '2026-11-30' },
+    ];
+    const first = detectCrises({ goals, today: '2026-04-19' });
+    for (let i = 0; i < 49; i += 1) {
+      expect(detectCrises({ goals, today: '2026-04-19' })).toEqual(first);
+    }
+  });
 });
