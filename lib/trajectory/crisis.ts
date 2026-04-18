@@ -22,6 +22,8 @@ export interface DetectCrisesInput {
   today?: string;
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 function parseIsoDate(s: string): Date {
   return new Date(`${s}T00:00:00.000Z`);
 }
@@ -184,6 +186,23 @@ export function detectCrises(input: DetectCrisesInput): CrisisReport {
           message: `„${f.title}" blockiert das Vorbereitungsfenster von „${prep.title}".`,
         });
       }
+    }
+  }
+
+  for (const g of uniqueGoals) {
+    if (!isActive(g) || g.commitmentMode !== 'lead-time') continue;
+    const remainingDays = Math.floor(
+      (parseIsoDate(g.dueDate).getTime() - parseIsoDate(today).getTime()) / DAY_MS
+    );
+    const requiredDays = g.leadTimeWeeks * 7;
+    if (remainingDays >= 0 && remainingDays < requiredDays) {
+      collisions.push({
+        code: 'LEAD_TIME_TOO_SHORT',
+        severity: 'critical',
+        conflictingGoalIds: [g.id],
+        window: { startDate: today, endDate: g.dueDate },
+        message: `„${g.title}": verbleibende Zeit (${remainingDays} Tage) unterschreitet benötigten Vorlauf (${requiredDays} Tage).`,
+      });
     }
   }
 

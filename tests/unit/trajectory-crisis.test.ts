@@ -78,4 +78,16 @@ describe('detectCrises', () => {
     });
     expect(report.collisions.some((c) => c.code === 'FIXED_BLOCKS_PREP')).toBe(true);
   });
+
+  it('flags lead-time goal with insufficient remaining time', () => {
+    const report = detectCrises({
+      today: '2027-03-01',
+      goals: [
+        { id: 'gmat', title: 'GMAT', status: 'active', effortHours: 150, bufferWeeks: 1,
+          commitmentMode: 'lead-time', dueDate: '2027-04-15', leadTimeWeeks: 26 },
+      ],
+    });
+    expect(report.collisions.some((c) => c.code === 'LEAD_TIME_TOO_SHORT')).toBe(true);
+    expect(report.collisions[0]?.conflictingGoalIds).toEqual(['gmat']);
+  });
 });
