@@ -9,6 +9,8 @@ import {
   listTrajectoryGoals,
 } from '@/lib/supabase/trajectory';
 import { computeTrajectoryPlan } from '@/lib/trajectory/planner';
+import { detectCrises } from '@/lib/trajectory/crisis';
+import { toTrajectoryGoalPlanInput } from '@/lib/trajectory/types';
 
 export async function POST(request: NextRequest) {
   const originViolation = enforceTrustedMutationOrigin(request);
@@ -28,16 +30,12 @@ export async function POST(request: NextRequest) {
     ]);
 
     const effectiveCapacity = parsed.simulationHoursPerWeek ?? settings.hoursPerWeek;
+    const planGoals = goals
+      .map((goal) => toTrajectoryGoalPlanInput(goal))
+      .filter((g): g is NonNullable<typeof g> => g !== null);
 
     const computed = computeTrajectoryPlan({
-      goals: goals.map((goal) => ({
-        id: goal.id,
-        title: goal.title,
-        dueDate: goal.dueDate,
-        effortHours: goal.effortHours,
-        bufferWeeks: goal.bufferWeeks,
-        status: goal.status,
-      })),
+      goals: planGoals,
       existingBlocks: blocks.map((block) => ({
         goalId: block.goalId,
         startDate: block.startDate,
@@ -48,6 +46,8 @@ export async function POST(request: NextRequest) {
       capacityHoursPerWeek: effectiveCapacity,
     });
 
+    const crisis = detectCrises({ goals: planGoals });
+
     return NextResponse.json({
       settings,
       simulation: {
@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
         effectiveCapacityHoursPerWeek: computed.effectiveCapacityHoursPerWeek,
       },
       computed,
+      crisis,
     });
   } catch (error) {
     return handleRouteError(error, 'Failed to generate trajectory plan', 'Error generating trajectory plan');
