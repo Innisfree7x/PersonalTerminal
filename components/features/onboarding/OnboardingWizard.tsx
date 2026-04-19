@@ -110,6 +110,7 @@ function parseTrajectoryGoalPersisted(value: unknown): TrajectoryGoalPersisted |
       bufferWeeks: typeof goalDraft.bufferWeeks === 'number' ? Math.max(0, Math.round(goalDraft.bufferWeeks)) : 2,
       priority: typeof goalDraft.priority === 'number' ? Math.max(1, Math.min(5, Math.round(goalDraft.priority))) : 3,
       status,
+      commitmentMode: 'flexible' as const,
     },
   };
 }

@@ -151,6 +151,10 @@ interface GoalFormState {
   bufferMonths: number;
   priority: number;
   status: GoalStatus;
+  commitmentMode: 'fixed' | 'flexible' | 'lead-time';
+  fixedStartDate: string;
+  fixedEndDate: string;
+  leadTimeWeeks: number;
 }
 
 interface WindowFormState {
@@ -294,6 +298,10 @@ export default function TrajectoryPage() {
     bufferMonths: 0.5,
     priority: 3,
     status: 'active',
+    commitmentMode: 'flexible',
+    fixedStartDate: toDateInputValue(addMonths(new Date(), 3)),
+    fixedEndDate: toDateInputValue(addMonths(new Date(), 5)),
+    leadTimeWeeks: 8,
   });
 
   const [windowForm, setWindowForm] = useState<WindowFormState>({

@@ -30,6 +30,7 @@ export interface NormalizedTrajectoryGoal {
   bufferWeeks: number;
   priority: number;
   status: 'active';
+  commitmentMode: 'flexible';
 }
 
 export interface TrajectoryGoalPersisted {
@@ -162,6 +163,7 @@ export function StepTrajectoryGoal({
         bufferWeeks: normalizedBufferWeeks,
         priority: Math.min(5, Math.max(1, Math.round(priority))),
         status: 'active',
+        commitmentMode: 'flexible',
       };
 
       const response = await fetch('/api/trajectory/goals', {
