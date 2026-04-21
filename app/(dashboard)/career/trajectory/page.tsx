@@ -658,7 +658,7 @@ export default function TrajectoryPage() {
   }, [committedBlocks]);
 
   const upsertGoalMutation = useMutation({
-    mutationFn: (payload: GoalFormState) =>
+    mutationFn: (payload: Record<string, unknown>) =>
       apiRequest<TrajectoryGoal>('/api/trajectory/goals', {
         method: 'POST',
         body: JSON.stringify(payload),
@@ -821,6 +821,52 @@ export default function TrajectoryPage() {
     }
     return Math.max(0, Math.round(goalForm.bufferWeeks));
   }, [goalForm.bufferMonths, goalForm.bufferUnit, goalForm.bufferWeeks]);
+
+  const goalSubmitDisabled = useMemo(() => {
+    if (goalForm.title.trim().length === 0) return true;
+    if (goalForm.commitmentMode === 'fixed') {
+      if (!goalForm.fixedStartDate || !goalForm.fixedEndDate) return true;
+      if (goalForm.fixedEndDate < goalForm.fixedStartDate) return true;
+    }
+    if (goalForm.commitmentMode === 'flexible' && !goalForm.dueDate) return true;
+    if (goalForm.commitmentMode === 'lead-time') {
+      if (!goalForm.dueDate) return true;
+      if (goalForm.leadTimeWeeks < 1) return true;
+    }
+    return false;
+  }, [goalForm]);
+
+  const buildGoalPayload = (): Record<string, unknown> => {
+    const base = {
+      title: goalForm.title,
+      category: goalForm.category,
+      effortHours: milestoneEffortHours,
+      bufferWeeks: milestoneBufferWeeks,
+      priority: goalForm.priority,
+      status: goalForm.status,
+    };
+    if (goalForm.commitmentMode === 'fixed') {
+      return {
+        ...base,
+        commitmentMode: 'fixed' as const,
+        fixedStartDate: goalForm.fixedStartDate,
+        fixedEndDate: goalForm.fixedEndDate,
+      };
+    }
+    if (goalForm.commitmentMode === 'lead-time') {
+      return {
+        ...base,
+        commitmentMode: 'lead-time' as const,
+        dueDate: goalForm.dueDate,
+        leadTimeWeeks: goalForm.leadTimeWeeks,
+      };
+    }
+    return {
+      ...base,
+      commitmentMode: 'flexible' as const,
+      dueDate: goalForm.dueDate,
+    };
+  };
 
   if (isOverviewLoading && !overview) {
     return (
@@ -1260,6 +1306,33 @@ export default function TrajectoryPage() {
                   fullWidth
                 />
 
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.12em] text-text-tertiary mb-1.5">Commitment mode</p>
+                  <div className="inline-flex rounded-lg border border-border bg-background/40 p-1 text-xs">
+                    {(['flexible', 'fixed', 'lead-time'] as const).map((mode) => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => setGoalForm((current) => ({ ...current, commitmentMode: mode }))}
+                        className={`rounded-md px-3 py-1.5 transition ${
+                          goalForm.commitmentMode === mode
+                            ? 'bg-primary text-primary-contrast font-semibold'
+                            : 'text-text-secondary hover:text-text-primary'
+                        }`}
+                      >
+                        {mode === 'flexible' ? 'Flexible' : mode === 'fixed' ? 'Fixed window' : 'Lead-time'}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-1.5 text-[11px] text-text-tertiary">
+                    {goalForm.commitmentMode === 'flexible'
+                      ? 'Deadline only — the planner finds a slot before it.'
+                      : goalForm.commitmentMode === 'fixed'
+                        ? 'Hard window (e.g. internship). Planner treats start/end as immovable.'
+                        : 'Needs N weeks of prep before the deadline (e.g. GMAT, thesis).'}
+                  </p>
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <label className="text-xs text-text-secondary">
                     Category
@@ -1276,15 +1349,55 @@ export default function TrajectoryPage() {
                     </select>
                   </label>
 
+                  {goalForm.commitmentMode !== 'fixed' ? (
+                    <Input
+                      label={goalForm.commitmentMode === 'lead-time' ? 'Deadline' : 'Due date'}
+                      type="date"
+                      value={goalForm.dueDate}
+                      onChange={(event) => setGoalForm((current) => ({ ...current, dueDate: event.target.value }))}
+                      inputSize="sm"
+                      fullWidth
+                    />
+                  ) : (
+                    <div className="text-[11px] text-text-tertiary self-end pb-2">
+                      Window dates below set the hard block.
+                    </div>
+                  )}
+                </div>
+
+                {goalForm.commitmentMode === 'fixed' ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input
+                      label="Fixed start"
+                      type="date"
+                      value={goalForm.fixedStartDate}
+                      onChange={(event) => setGoalForm((current) => ({ ...current, fixedStartDate: event.target.value }))}
+                      inputSize="sm"
+                      fullWidth
+                    />
+                    <Input
+                      label="Fixed end"
+                      type="date"
+                      value={goalForm.fixedEndDate}
+                      onChange={(event) => setGoalForm((current) => ({ ...current, fixedEndDate: event.target.value }))}
+                      inputSize="sm"
+                      fullWidth
+                    />
+                  </div>
+                ) : null}
+
+                {goalForm.commitmentMode === 'lead-time' ? (
                   <Input
-                    label="Due date"
-                    type="date"
-                    value={goalForm.dueDate}
-                    onChange={(event) => setGoalForm((current) => ({ ...current, dueDate: event.target.value }))}
+                    label="Lead time (weeks of prep before deadline)"
+                    type="number"
+                    min={1}
+                    max={104}
+                    value={goalForm.leadTimeWeeks}
+                    onChange={(event) => setGoalForm((current) => ({ ...current, leadTimeWeeks: Number(event.target.value || 1) }))}
                     inputSize="sm"
                     fullWidth
                   />
-                </div>
+                ) : null}
 
                 <div className="rounded-lg border border-border/70 bg-background/40 px-3 py-2">
                   <p className="text-[11px] uppercase tracking-[0.12em] text-text-tertiary">
@@ -1397,15 +1510,9 @@ export default function TrajectoryPage() {
                   variant="primary"
                   fullWidth
                   loading={upsertGoalMutation.isPending}
-                  disabled={goalForm.title.trim().length === 0}
+                  disabled={goalSubmitDisabled}
                   leftIcon={<Sparkles className="h-4 w-4" />}
-                  onClick={() =>
-                    upsertGoalMutation.mutate({
-                      ...goalForm,
-                      effortHours: milestoneEffortHours,
-                      bufferWeeks: milestoneBufferWeeks,
-                    })
-                  }
+                  onClick={() => upsertGoalMutation.mutate(buildGoalPayload())}
                 >
                   Create milestone
                 </Button>
