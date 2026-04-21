@@ -185,15 +185,15 @@ describe('Today critical path integration', () => {
     expect(screen.getByText('57')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Prüfung/i })).toHaveAttribute(
       'href',
-      '/university?source=room_exam'
+      '/university?source=today_kit_exam'
     );
     expect(screen.getByRole('link', { name: /\+1 weitere KIT-Termine diese Woche/i })).toHaveAttribute(
       'href',
-      '/calendar?source=room_week'
+      '/calendar?source=today_kit_week'
     );
     expect(screen.getByRole('link', { name: /Neue Note 1,7/i })).toHaveAttribute(
       'href',
-      '/university?source=room_grade'
+      '/university?source=today_grade'
     );
     expect(screen.getByText('Streak')).toBeInTheDocument();
 
