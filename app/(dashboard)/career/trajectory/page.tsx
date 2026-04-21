@@ -24,6 +24,8 @@ import {
   Wand2,
 } from 'lucide-react';
 import TrajectoryShareCard from '@/components/features/trajectory/TrajectoryShareCard';
+import CrisisBanner from '@/components/features/trajectory/CrisisBanner';
+import type { CrisisReport } from '@/lib/trajectory/crisis';
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
@@ -137,6 +139,7 @@ interface TrajectoryPlanResponse {
     effectiveCapacityHoursPerWeek: number;
   };
   computed: TrajectoryComputed;
+  crisis?: CrisisReport;
 }
 
 interface GoalFormState {
@@ -400,6 +403,12 @@ export default function TrajectoryPage() {
     [computed?.generatedBlocks]
   );
   const alerts = useMemo(() => computed?.alerts ?? EMPTY_ALERTS, [computed?.alerts]);
+  const crisisCollisions = useMemo(() => planData?.crisis?.collisions ?? [], [planData?.crisis?.collisions]);
+  const goalsById = useMemo(() => {
+    const map: Record<string, { title: string }> = {};
+    for (const g of goals) map[g.id] = { title: g.title };
+    return map;
+  }, [goals]);
 
   const overallStatus = useMemo<RiskStatus>(() => {
     if (!computed?.summary) return 'on_track';
@@ -891,6 +900,8 @@ export default function TrajectoryPage() {
 
   return (
     <div className="space-y-6">
+      <CrisisBanner collisions={crisisCollisions} goalsById={goalsById} />
+
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
