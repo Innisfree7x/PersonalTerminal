@@ -9,11 +9,13 @@ import { fetchFocusAnalytics } from '@/lib/supabase/focusSessions';
 import { computeTrajectoryPlan } from '@/lib/trajectory/planner';
 import { computeMomentumScore } from '@/lib/trajectory/momentum';
 import { toTrajectoryGoalPlanInput } from '@/lib/trajectory/types';
+import { detectCrises, type CrisisReport } from '@/lib/trajectory/crisis';
 
 export interface TrajectoryMorningSnapshotPayload {
   generatedAt: string;
   overview: TrajectoryBriefOverview;
   momentum: MomentumScoreResult;
+  crisis: CrisisReport;
 }
 
 export interface TrajectoryMorningSnapshotResult {
@@ -69,6 +71,8 @@ export async function buildTrajectoryMorningSnapshot(
     })),
   });
 
+  const crisis = detectCrises({ goals: planGoals });
+
   return {
     payload: {
       generatedAt: new Date().toISOString(),
@@ -90,6 +94,7 @@ export async function buildTrajectoryMorningSnapshot(
         },
       },
       momentum,
+      crisis,
     },
     meta: {
       queryDurationMs: Date.now() - startedAt,

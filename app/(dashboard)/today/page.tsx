@@ -98,6 +98,7 @@ export default function TodayPage() {
   const trajectorySnapshot = nextTasksData?.trajectoryMorning;
   const trajectoryBriefing = buildTrajectoryMorningBriefing(trajectorySnapshot?.overview);
   const momentum = trajectorySnapshot?.momentum ?? null;
+  const trajectoryCrisis = trajectorySnapshot?.crisis ?? null;
   const trajectoryTone = trajectoryBriefing ? getRiskStatusTone(trajectoryBriefing.status) : null;
   const kitSignals = nextTasksData?.kitSignals ?? null;
   const weeklyKitEventsCount = kitSignals?.upcomingEventsCount ?? 0;
@@ -378,6 +379,16 @@ export default function TodayPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              {trajectoryCrisis?.hasCrisis ? (
+                <Link
+                  href="/trajectory?source=today_crisis"
+                  className="inline-flex items-center gap-1 rounded-full border border-red-500/45 bg-red-500/[0.12] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-red-200 transition-colors hover:bg-red-500/[0.2]"
+                >
+                  <AlertTriangle className="h-3 w-3" />
+                  Crisis · {trajectoryCrisis.collisions.length} Kollision
+                  {trajectoryCrisis.collisions.length === 1 ? '' : 'en'}
+                </Link>
+              ) : null}
               {momentum ? (
                 <>
                   <span className="inline-flex items-center gap-1 rounded-full border border-primary/25 bg-primary/[0.08] px-2.5 py-1 text-[11px] font-medium text-text-primary">
