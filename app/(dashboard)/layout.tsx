@@ -19,6 +19,7 @@ function DashboardLayoutInner({
   const { isCollapsed } = useSidebar();
   const { copy } = useAppLanguage();
   const isFocusRoute = pathname === '/focus';
+  const isWorkspaceRoute = pathname.startsWith('/workspace');
 
   if (isFocusRoute) {
     return (
@@ -49,7 +50,7 @@ function DashboardLayoutInner({
           {/* Main content with max-width and centered */}
           <main className="relative">
             {/* Content container */}
-            <div className="max-w-[1600px] mx-auto px-6 pt-5 pb-8">
+            <div className={`max-w-[1600px] mx-auto px-6 pb-8 ${isWorkspaceRoute ? 'pt-0' : 'pt-5'}`}>
               <div key={pathname} className="animate-dashboard-page-in">
                 {children}
               </div>
