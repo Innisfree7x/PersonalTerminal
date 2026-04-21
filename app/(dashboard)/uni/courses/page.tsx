@@ -13,6 +13,7 @@ import {
 } from '@/app/actions/university';
 import CourseCard from '@/components/features/university/CourseCard';
 import CourseModal from '@/components/features/university/CourseModal';
+import KitCoursesSection from '@/components/features/university/KitCoursesSection';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { DecisionSurfaceCard } from '@/components/ui/DecisionSurfaceCard';
@@ -398,6 +399,14 @@ export default function UniversityPage() {
           <Plus className="w-4 h-4 mr-2" />
           Kurs anlegen
         </Button>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.12, delay: 0.01 }}
+      >
+        <KitCoursesSection />
       </motion.div>
 
       <motion.div
