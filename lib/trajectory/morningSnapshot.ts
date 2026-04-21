@@ -8,11 +8,14 @@ import {
 import { fetchFocusAnalytics } from '@/lib/supabase/focusSessions';
 import { computeTrajectoryPlan } from '@/lib/trajectory/planner';
 import { computeMomentumScore } from '@/lib/trajectory/momentum';
+import { toTrajectoryGoalPlanInput } from '@/lib/trajectory/types';
+import { detectCrises, type CrisisReport } from '@/lib/trajectory/crisis';
 
 export interface TrajectoryMorningSnapshotPayload {
   generatedAt: string;
   overview: TrajectoryBriefOverview;
   momentum: MomentumScoreResult;
+  crisis: CrisisReport;
 }
 
 export interface TrajectoryMorningSnapshotResult {
@@ -35,15 +38,12 @@ export async function buildTrajectoryMorningSnapshot(
     fetchFocusAnalytics(userId, 14),
   ]);
 
+  const planGoals = goals
+    .map((goal) => toTrajectoryGoalPlanInput(goal))
+    .filter((g): g is NonNullable<typeof g> => g !== null);
+
   const computed = computeTrajectoryPlan({
-    goals: goals.map((goal) => ({
-      id: goal.id,
-      title: goal.title,
-      dueDate: goal.dueDate,
-      effortHours: goal.effortHours,
-      bufferWeeks: goal.bufferWeeks,
-      status: goal.status,
-    })),
+    goals: planGoals,
     existingBlocks: blocks.map((block) => ({
       goalId: block.goalId,
       startDate: block.startDate,
@@ -71,16 +71,20 @@ export async function buildTrajectoryMorningSnapshot(
     })),
   });
 
+  const crisis = detectCrises({ goals: planGoals });
+
   return {
     payload: {
       generatedAt: new Date().toISOString(),
       overview: {
-        goals: goals.map((goal) => ({
-          id: goal.id,
-          title: goal.title,
-          dueDate: goal.dueDate,
-          status: goal.status,
-        })),
+        goals: goals
+          .filter((goal): goal is typeof goal & { dueDate: string } => goal.dueDate !== null)
+          .map((goal) => ({
+            id: goal.id,
+            title: goal.title,
+            dueDate: goal.dueDate,
+            status: goal.status,
+          })),
         computed: {
           generatedBlocks: computed.generatedBlocks.map((block) => ({
             goalId: block.goalId,
@@ -90,6 +94,7 @@ export async function buildTrajectoryMorningSnapshot(
         },
       },
       momentum,
+      crisis,
     },
     meta: {
       queryDurationMs: Date.now() - startedAt,

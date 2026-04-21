@@ -106,10 +106,63 @@ describe('buildTrajectoryMorningSnapshot', () => {
     expect(snapshot.payload.overview.goals).toHaveLength(1);
     expect(snapshot.payload.overview.computed.generatedBlocks).toHaveLength(1);
     expect(snapshot.payload.momentum.score).toBe(61);
+    expect(snapshot.payload.crisis).toEqual({ collisions: [], hasCrisis: false });
     expect(snapshot.meta.goalCount).toBe(1);
     expect(snapshot.meta.generatedBlocks).toBe(1);
     expect(snapshot.meta.queryDurationMs).toBeGreaterThanOrEqual(0);
     expect(mockedComputeTrajectoryPlan).toHaveBeenCalledTimes(1);
     expect(mockedComputeMomentumScore).toHaveBeenCalledTimes(1);
+  });
+
+  it('emits crisis report when two fixed-window goals collide', async () => {
+    mockedGetOrCreateTrajectorySettings.mockResolvedValue({
+      id: 'settings-1',
+      hoursPerWeek: 12,
+      horizonMonths: 24,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    } as any);
+    mockedListTrajectoryGoals.mockResolvedValue([
+      {
+        id: 'goal-a',
+        title: 'GMAT',
+        commitmentMode: 'fixed',
+        fixedStartDate: '2026-09-01',
+        fixedEndDate: '2026-10-15',
+        effortHours: 120,
+        bufferWeeks: 1,
+        priority: 5,
+        status: 'active',
+      },
+      {
+        id: 'goal-b',
+        title: 'Thesis sprint',
+        commitmentMode: 'fixed',
+        fixedStartDate: '2026-09-20',
+        fixedEndDate: '2026-11-10',
+        effortHours: 160,
+        bufferWeeks: 1,
+        priority: 5,
+        status: 'active',
+      },
+    ] as any);
+    mockedListTrajectoryBlocks.mockResolvedValue([] as any);
+    mockedFetchFocusAnalytics.mockResolvedValue([] as any);
+    mockedComputeTrajectoryPlan.mockReturnValue({ generatedBlocks: [] } as any);
+    mockedComputeMomentumScore.mockReturnValue({
+      score: 40,
+      delta: 0,
+      trend: 'flat',
+      breakdown: { statusPoints: 40, capacityPoints: 0, bufferPoints: 0, trendPoints: 0 },
+      stats: {
+        onTrack: 0, tight: 0, atRisk: 0, activeGoals: 2,
+        plannedHoursPerWeek: 12, last7DaysHours: 0, previous7DaysHours: 0, capacityRatio: 0,
+      },
+    } as any);
+
+    const snapshot = await buildTrajectoryMorningSnapshot('user-1');
+    expect(snapshot.payload.crisis.hasCrisis).toBe(true);
+    expect(snapshot.payload.crisis.collisions.length).toBeGreaterThan(0);
+    expect(snapshot.payload.crisis.collisions[0]?.code).toBe('FIXED_WINDOW_COLLISION');
   });
 });

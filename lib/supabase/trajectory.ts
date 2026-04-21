@@ -40,11 +40,15 @@ export interface TrajectoryGoalRecord {
   id: string;
   title: string;
   category: 'thesis' | 'gmat' | 'master_app' | 'internship' | 'other';
-  dueDate: string;
+  dueDate: string | null;
   effortHours: number;
   bufferWeeks: number;
   priority: number;
   status: 'active' | 'done' | 'archived';
+  commitmentMode: 'fixed' | 'flexible' | 'lead-time';
+  fixedStartDate: string | null;
+  fixedEndDate: string | null;
+  leadTimeWeeks: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -84,7 +88,10 @@ function toSettingsRecord(row: TrajectorySettingsRow): TrajectorySettingsRecord 
   };
 }
 
+// TODO: regenerate Database types after migration 2026-04-19_crisis_mode applies,
+// then drop `(row as any)` casts below.
 function toGoalRecord(row: TrajectoryGoalRow): TrajectoryGoalRecord {
+  const raw = row as unknown as Record<string, unknown>;
   return {
     id: row.id,
     title: row.title,
@@ -94,6 +101,12 @@ function toGoalRecord(row: TrajectoryGoalRow): TrajectoryGoalRecord {
     bufferWeeks: row.buffer_weeks,
     priority: row.priority,
     status: row.status,
+    commitmentMode:
+      (raw.commitment_mode as 'fixed' | 'flexible' | 'lead-time' | undefined) ??
+      'flexible',
+    fixedStartDate: (raw.fixed_start_date as string | null | undefined) ?? null,
+    fixedEndDate: (raw.fixed_end_date as string | null | undefined) ?? null,
+    leadTimeWeeks: (raw.lead_time_weeks as number | null | undefined) ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -227,20 +240,31 @@ export async function createTrajectoryGoal(
 ): Promise<TrajectoryGoalRecord> {
   const supabase = createClient();
 
-  const insertData: TrajectoryGoalInsert = {
+  const insertData: Record<string, unknown> = {
     user_id: userId,
     title: input.title,
     category: input.category,
-    due_date: input.dueDate,
     effort_hours: input.effortHours,
     buffer_weeks: input.bufferWeeks,
     priority: input.priority,
     status: input.status,
+    commitment_mode: input.commitmentMode,
   };
+
+  if (input.commitmentMode === 'fixed') {
+    insertData.fixed_start_date = input.fixedStartDate;
+    insertData.fixed_end_date = input.fixedEndDate;
+    insertData.due_date = input.dueDate ?? input.fixedEndDate;
+  } else if (input.commitmentMode === 'flexible') {
+    insertData.due_date = input.dueDate;
+  } else {
+    insertData.due_date = input.dueDate;
+    insertData.lead_time_weeks = input.leadTimeWeeks;
+  }
 
   const { data, error } = await supabase
     .from('trajectory_goals')
-    .insert(insertData)
+    .insert(insertData as TrajectoryGoalInsert)
     .select('*')
     .single();
 
@@ -258,7 +282,7 @@ export async function updateTrajectoryGoal(
 ): Promise<TrajectoryGoalRecord> {
   const supabase = createClient();
 
-  const updateData: TrajectoryGoalUpdate = {
+  const updateData: Record<string, unknown> = {
     updated_at: new Date().toISOString(),
   };
 
@@ -270,9 +294,26 @@ export async function updateTrajectoryGoal(
   if (input.priority !== undefined) updateData.priority = input.priority;
   if (input.status !== undefined) updateData.status = input.status;
 
+  if (input.commitmentMode !== undefined) {
+    updateData.commitment_mode = input.commitmentMode;
+    if (input.commitmentMode === 'fixed') {
+      updateData.lead_time_weeks = null;
+    } else if (input.commitmentMode === 'flexible') {
+      updateData.fixed_start_date = null;
+      updateData.fixed_end_date = null;
+      updateData.lead_time_weeks = null;
+    } else {
+      updateData.fixed_start_date = null;
+      updateData.fixed_end_date = null;
+    }
+  }
+  if (input.fixedStartDate !== undefined) updateData.fixed_start_date = input.fixedStartDate;
+  if (input.fixedEndDate !== undefined) updateData.fixed_end_date = input.fixedEndDate;
+  if (input.leadTimeWeeks !== undefined) updateData.lead_time_weeks = input.leadTimeWeeks;
+
   const { data, error } = await supabase
     .from('trajectory_goals')
-    .update(updateData)
+    .update(updateData as TrajectoryGoalUpdate)
     .eq('id', goalId)
     .eq('user_id', userId)
     .select('*')
