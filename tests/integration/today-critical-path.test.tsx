@@ -20,22 +20,12 @@ vi.mock('@/components/features/dashboard/FocusTasks', () => ({
   default: () => <div>Focus Tasks Mock</div>,
 }));
 
-vi.mock('@/components/features/dashboard/NBAHeroZone', () => ({
-  default: () => <div>NBA Hero Zone Mock</div>,
-}));
-
 vi.mock('@/components/features/dashboard/StudyProgress', () => ({
   default: () => <div>Study Progress Mock</div>,
 }));
 
-vi.mock('@/app/actions/calendar', () => ({
-  checkGoogleCalendarConnectionAction: vi.fn().mockResolvedValue(false),
-  fetchTodayCalendarEventsAction: vi.fn().mockResolvedValue([]),
-  disconnectGoogleCalendarAction: vi.fn().mockResolvedValue(undefined),
-}));
-
-vi.mock('@/lib/api/calendar', () => ({
-  connectGoogleCalendar: vi.fn(),
+vi.mock('@/components/features/today/AmbientRoomPanel', () => ({
+  default: () => <div>Ambient Room Mock</div>,
 }));
 
 vi.mock('@/lib/hooks/useNotifications', () => ({
@@ -166,39 +156,33 @@ describe('Today critical path integration', () => {
     } as Response);
   });
 
-  test('renders the morning briefing, momentum chips, and weekly check-in CTA from the dashboard payload', async () => {
+  test('renders trajectory hero, momentum pulse, next moves, and secondary widgets', async () => {
     renderWithProviders(<TodayPage />);
 
-    await screen.findByRole('link', { name: /Trajectory/i });
+    await screen.findByTestId('trajectory-hero');
 
     expect(screen.getByText('GMAT')).toBeInTheDocument();
-    expect(screen.getByText(/on track/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Trajectory/i })).toHaveAttribute(
-      'href',
-      '/trajectory?goalId=goal_gmat&source=morning_briefing'
-    );
-    expect(screen.getByText('NBA Hero Zone Mock')).toBeInTheDocument();
+    expect(screen.getByTestId('momentum-pulse')).toBeInTheDocument();
+    expect(screen.getByText('57')).toBeInTheDocument();
+    expect(screen.getByText('Momentum')).toBeInTheDocument();
+    expect(screen.getByTestId('next-moves-stack')).toBeInTheDocument();
+    expect(screen.getByText('Financial Data Science (V)')).toBeInTheDocument();
     expect(screen.getByText('Focus Tasks Mock')).toBeInTheDocument();
     expect(screen.getByText('Study Progress Mock')).toBeInTheDocument();
-    expect(screen.getByText(/1\/3 Tasks heute/i)).toBeInTheDocument();
-    expect(screen.getByText('Momentum')).toBeInTheDocument();
-    expect(screen.getByText('57')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Prüfung/i })).toHaveAttribute(
-      'href',
-      '/university?source=today_kit_exam'
-    );
-    expect(screen.getByRole('link', { name: /\+1 weitere KIT-Termine diese Woche/i })).toHaveAttribute(
-      'href',
-      '/calendar?source=today_kit_week'
-    );
-    expect(screen.getByRole('link', { name: /Neue Note 1,7/i })).toHaveAttribute(
-      'href',
-      '/university?source=today_grade'
-    );
+    expect(screen.getByText('Ambient Room Mock')).toBeInTheDocument();
+    expect(screen.getByText(/1\/3/)).toBeInTheDocument();
     expect(screen.getByText('Streak')).toBeInTheDocument();
 
+    const trajectoryLink = screen.getByRole('link', { name: /Öffne Trajectory/i });
+    expect(trajectoryLink).toHaveAttribute(
+      'href',
+      '/trajectory?goalId=goal_gmat&source=today_hero'
+    );
+
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/api/dashboard/next-tasks?include=trajectory_morning,week_events');
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/dashboard/next-tasks?include=trajectory_morning,week_events'
+      );
     });
   });
 });

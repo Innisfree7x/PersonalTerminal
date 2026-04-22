@@ -7,6 +7,10 @@ import { subscribeChampionEvent, type ChampionEvent } from '@/lib/champion/champ
 import { queuePrismCommandAction } from '@/lib/hooks/useCommandActions';
 import { getLucianHint } from '@/lib/lucian/hints';
 import {
+  DASHBOARD_NEXT_TASKS_QUERY_KEY,
+  fetchDashboardNextTasksSafe,
+} from '@/lib/dashboard/nextTasksClient';
+import {
   getLinesForMood,
   interpolate,
   hasUnfilledTokens,
@@ -314,12 +318,8 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
   const yesterdayIso             = getDateKeyDaysAgo(1);
 
   const { data: nextTasksData } = useQuery<DashboardNextTasksPayload | null>({
-    queryKey: ['dashboard', 'next-tasks'],
-    queryFn: async () => {
-      const response = await fetch('/api/dashboard/next-tasks');
-      if (!response.ok) return null;
-      return (await response.json()) as DashboardNextTasksPayload;
-    },
+    queryKey: DASHBOARD_NEXT_TASKS_QUERY_KEY,
+    queryFn: fetchDashboardNextTasksSafe,
     enabled: contextHintsActive,
     staleTime: 20 * 1000,
     refetchOnWindowFocus: false,

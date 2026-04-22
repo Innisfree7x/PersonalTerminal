@@ -1,140 +1,326 @@
 import { createClient } from '@/lib/auth/server';
 import type { Database, SupabaseCourse, SupabaseExerciseProgress } from './types';
 import type { Course, CreateCourseInput, ExerciseProgress, CourseWithExercises } from '../schemas/course.schema';
+import {
+  buildIliasImportedCourseInput,
+  matchIliasImportedCourseCatalog,
+  normalizeIliasImportedCourseText,
+} from '@/lib/university/iliasCourseCatalog';
 
 type CourseInsert = Database['public']['Tables']['courses']['Insert'];
 type CourseUpdate = Database['public']['Tables']['courses']['Update'];
 type ExerciseProgressInsert = Database['public']['Tables']['exercise_progress']['Insert'];
 type IliasFavoriteRow = Database['public']['Tables']['kit_ilias_favorites']['Row'];
-type CampusModuleRow = Database['public']['Tables']['kit_campus_modules']['Row'];
+type ExistingCourseImportRow = Pick<
+  SupabaseCourse,
+  'id' | 'name' | 'semester' | 'ects' | 'num_exercises' | 'exam_date' | 'created_at'
+> & {
+  expected_grade?: number | null;
+  exercise_progress: Pick<
+    SupabaseExerciseProgress,
+    'id' | 'exercise_number' | 'completed' | 'completed_at' | 'created_at'
+  >[];
+};
 
-const DEFAULT_ILIAS_FAVORITE_ECTS = 5;
-const DEFAULT_ILIAS_FAVORITE_EXERCISES = 12;
-const DEFAULT_ILIAS_FAVORITE_SEMESTER = 'ILIAS';
-
-function normalizeWhitespace(value: string): string {
-  return value.replace(/\s+/g, ' ').trim();
+function getCatalogSlug(title: string): string | null {
+  return matchIliasImportedCourseCatalog(title)?.slug ?? null;
 }
 
-function normalizeCourseKey(title: string, semester: string | null | undefined): string {
-  const normalizedTitle = normalizeWhitespace(title).toLocaleLowerCase('de');
-  const normalizedSemester = normalizeWhitespace(semester ?? DEFAULT_ILIAS_FAVORITE_SEMESTER).toLocaleLowerCase('de');
-  return `${normalizedTitle}::${normalizedSemester}`;
-}
-
-function normalizeMatchText(value: string): string {
-  return value
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9\s]/g, ' ')
-    .toLocaleLowerCase('de')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function tokenizeMatchText(value: string): string[] {
-  const stopwords = new Set(['und', 'der', 'die', 'das', 'dem', 'den', 'des', 'für', 'mit', 'ab', 'modul', 'module']);
-  return normalizeMatchText(value)
-    .split(' ')
-    .filter((token) => token.length > 2 && !stopwords.has(token));
-}
-
-function resolveFavoriteSemester(semesterLabel: string | null | undefined): string {
-  const normalized = normalizeWhitespace(semesterLabel ?? '');
-  return normalized.length > 0 ? normalized : DEFAULT_ILIAS_FAVORITE_SEMESTER;
-}
-
-function resolveFavoriteEcts(
-  favorite: Pick<IliasFavoriteRow, 'title' | 'semester_label'>,
-  campusModules: Pick<CampusModuleRow, 'title' | 'semester_label' | 'credits'>[]
-): number {
-  const favoriteTitle = normalizeMatchText(favorite.title);
-  const favoriteSemester = normalizeCourseKey(favorite.title, favorite.semester_label).split('::')[1];
-  const favoriteTokens = new Set(tokenizeMatchText(favorite.title));
-
-  let bestMatch: Pick<CampusModuleRow, 'credits'> | null = null;
-  let bestScore = 0;
-
-  for (const campusModule of campusModules) {
-    const moduleTitle = normalizeMatchText(campusModule.title);
-    const moduleSemester = normalizeCourseKey(campusModule.title, campusModule.semester_label).split('::')[1];
-    const moduleTokens = tokenizeMatchText(campusModule.title);
-
-    let score = 0;
-    if (moduleTitle === favoriteTitle) score += 100;
-    if (moduleTitle.includes(favoriteTitle) || favoriteTitle.includes(moduleTitle)) score += 35;
-    if (moduleSemester === favoriteSemester) score += 20;
-
-    for (const token of moduleTokens) {
-      if (favoriteTokens.has(token)) score += 10;
-    }
-
-    if (score > bestScore) {
-      bestScore = score;
-      bestMatch = campusModule;
-    }
-  }
-
-  const credits = bestMatch?.credits;
-  if (typeof credits === 'number' && credits >= 1 && credits <= 15) {
-    return Number(credits.toFixed(1));
-  }
-
-  return DEFAULT_ILIAS_FAVORITE_ECTS;
+function getCompletedExerciseCount(course: ExistingCourseImportRow): number {
+  return course.exercise_progress.filter((exercise) => exercise.completed).length;
 }
 
 export function buildIliasFavoriteCourseImports(
   favorites: Pick<IliasFavoriteRow, 'title' | 'semester_label'>[],
   existingCourses: Pick<SupabaseCourse, 'name' | 'semester'>[],
-  campusModules: Pick<CampusModuleRow, 'title' | 'semester_label' | 'credits'>[]
+  _unusedCampusModules: unknown[] = []
 ): CreateCourseInput[] {
-  const seenKeys = new Set(existingCourses.map((course) => normalizeCourseKey(course.name, course.semester)));
+  const seenCatalogSlugs = new Set(existingCourses.map((course) => getCatalogSlug(course.name)).filter(Boolean));
   const imports: CreateCourseInput[] = [];
 
   for (const favorite of favorites) {
-    const key = normalizeCourseKey(favorite.title, favorite.semester_label);
-    if (seenKeys.has(key)) continue;
-
-    imports.push({
-      name: normalizeWhitespace(favorite.title),
-      ects: resolveFavoriteEcts(favorite, campusModules),
-      numExercises: DEFAULT_ILIAS_FAVORITE_EXERCISES,
-      semester: resolveFavoriteSemester(favorite.semester_label),
-    });
-    seenKeys.add(key);
+    const matchedCatalogCourse = matchIliasImportedCourseCatalog(favorite.title);
+    if (!matchedCatalogCourse || seenCatalogSlugs.has(matchedCatalogCourse.slug)) continue;
+    imports.push(buildIliasImportedCourseInput(matchedCatalogCourse));
+    seenCatalogSlugs.add(matchedCatalogCourse.slug);
   }
 
   return imports;
 }
 
+export function collectIliasFavoriteIdsForCourseDeletion(
+  courseName: string,
+  favorites: Pick<IliasFavoriteRow, 'id' | 'title'>[]
+): string[] {
+  const slug = getCatalogSlug(courseName);
+  if (!slug) return [];
+
+  return favorites.filter((favorite) => getCatalogSlug(favorite.title) === slug).map((favorite) => favorite.id);
+}
+
+function chooseCourseKeeper(courses: ExistingCourseImportRow[]): ExistingCourseImportRow {
+  const [keeper] = [...courses].sort((left, right) => {
+    const completedDelta = getCompletedExerciseCount(right) - getCompletedExerciseCount(left);
+    if (completedDelta !== 0) return completedDelta;
+
+    const leftCreatedAt = new Date(left.created_at).getTime();
+    const rightCreatedAt = new Date(right.created_at).getTime();
+    if (leftCreatedAt !== rightCreatedAt) return leftCreatedAt - rightCreatedAt;
+
+    return left.id.localeCompare(right.id);
+  });
+
+  if (!keeper) {
+    throw new Error('Cannot choose a course keeper from an empty course set.');
+  }
+
+  return keeper;
+}
+
+function buildMergedExerciseCompletionMap(courses: ExistingCourseImportRow[]): Map<number, string | null> {
+  const completedExercises = new Map<number, string | null>();
+
+  for (const course of courses) {
+    for (const exercise of course.exercise_progress) {
+      if (!exercise.completed) continue;
+      if (exercise.exercise_number < 1 || exercise.exercise_number > 12) continue;
+
+      const completedAt = exercise.completed_at ?? exercise.created_at ?? null;
+      const previousCompletedAt = completedExercises.get(exercise.exercise_number);
+      if (!previousCompletedAt || (completedAt && completedAt < previousCompletedAt)) {
+        completedExercises.set(exercise.exercise_number, completedAt);
+      }
+    }
+  }
+
+  return completedExercises;
+}
+
+function isUntouchedAutoImportedCourse(course: ExistingCourseImportRow): boolean {
+  const hasExamDate = Boolean(course.exam_date);
+  const hasExpectedGrade = course.expected_grade !== null && course.expected_grade !== undefined;
+  return (
+    course.num_exercises === 12 &&
+    getCompletedExerciseCount(course) === 0 &&
+    !hasExamDate &&
+    !hasExpectedGrade
+  );
+}
+
+function looksLikeObviousImportedJunk(title: string): boolean {
+  return /@/i.test(title) || /^\s*\d{5,}/.test(title) || /\b(?:wise|ws|ss)\b/i.test(title);
+}
+
+async function syncCourseExerciseShape(
+  userId: string,
+  courseId: string,
+  currentExercises: ExistingCourseImportRow['exercise_progress'],
+  desiredCount: number
+) {
+  const supabase = createClient();
+  const existingNumbers = new Set(currentExercises.map((exercise) => exercise.exercise_number));
+  const missingExercises: ExerciseProgressInsert[] = [];
+
+  for (let exerciseNumber = 1; exerciseNumber <= desiredCount; exerciseNumber += 1) {
+    if (existingNumbers.has(exerciseNumber)) continue;
+    missingExercises.push({
+      user_id: userId,
+      course_id: courseId,
+      exercise_number: exerciseNumber,
+      completed: false,
+    });
+  }
+
+  if (missingExercises.length > 0) {
+    const { error } = await supabase.from('exercise_progress').insert(missingExercises);
+    if (error) {
+      throw new Error(`Failed to create missing exercises: ${error.message}`);
+    }
+  }
+
+  if (currentExercises.some((exercise) => exercise.exercise_number > desiredCount)) {
+    const { error } = await supabase
+      .from('exercise_progress')
+      .delete()
+      .eq('user_id', userId)
+      .eq('course_id', courseId)
+      .gt('exercise_number', desiredCount);
+
+    if (error) {
+      throw new Error(`Failed to trim excess exercises: ${error.message}`);
+    }
+  }
+}
+
+async function mergeCompletedExercisesIntoCourse(
+  userId: string,
+  courseId: string,
+  completedExercises: Map<number, string | null>
+) {
+  const supabase = createClient();
+
+  for (const [exerciseNumber, completedAt] of Array.from(completedExercises.entries())) {
+    const { error } = await supabase
+      .from('exercise_progress')
+      .update({
+        completed: true,
+        completed_at: completedAt ?? new Date().toISOString(),
+      })
+      .eq('user_id', userId)
+      .eq('course_id', courseId)
+      .eq('exercise_number', exerciseNumber);
+
+    if (error) {
+      throw new Error(`Failed to merge exercise progress: ${error.message}`);
+    }
+  }
+}
+
+async function deleteCoursesAndExercises(userId: string, courseIds: string[]) {
+  if (courseIds.length === 0) return;
+  const supabase = createClient();
+
+  const { error: exercisesError } = await supabase
+    .from('exercise_progress')
+    .delete()
+    .eq('user_id', userId)
+    .in('course_id', courseIds);
+
+  if (exercisesError) {
+    throw new Error(`Failed to delete duplicate exercise progress: ${exercisesError.message}`);
+  }
+
+  const { error: coursesError } = await supabase
+    .from('courses')
+    .delete()
+    .eq('user_id', userId)
+    .in('id', courseIds);
+
+  if (coursesError) {
+    throw new Error(`Failed to delete duplicate courses: ${coursesError.message}`);
+  }
+}
+
+async function loadExistingCoursesForIliasImport(
+  userId: string
+): Promise<ExistingCourseImportRow[]> {
+  const supabase = createClient();
+
+  // Primary query: includes expected_grade when the column exists.
+  const primary = await supabase
+    .from('courses')
+    .select('id, name, semester, ects, num_exercises, exam_date, expected_grade, created_at, exercise_progress(id, exercise_number, completed, completed_at, created_at)')
+    .eq('user_id', userId);
+
+  if (!primary.error) {
+    return (primary.data ?? []) as ExistingCourseImportRow[];
+  }
+
+  // Backward-compatible fallback for environments where expected_grade is not yet present.
+  if (!primary.error.message.toLowerCase().includes('expected_grade')) {
+    throw new Error(`Failed to inspect existing courses: ${primary.error.message}`);
+  }
+
+  const fallback = await supabase
+    .from('courses')
+    .select('id, name, semester, ects, num_exercises, exam_date, created_at, exercise_progress(id, exercise_number, completed, completed_at, created_at)')
+    .eq('user_id', userId);
+
+  if (fallback.error) {
+    throw new Error(`Failed to inspect existing courses: ${fallback.error.message}`);
+  }
+
+  return (fallback.data ?? []).map((course) => ({
+    ...course,
+    expected_grade: null,
+  })) as ExistingCourseImportRow[];
+}
+
 async function ensureCoursesFromIliasFavorites(userId: string): Promise<void> {
   const supabase = createClient();
 
-  const [existingCoursesResult, favoritesResult, campusModulesResult] = await Promise.all([
-    supabase.from('courses').select('id, name, semester').eq('user_id', userId),
+  const [existingCourses, favoritesResult] = await Promise.all([
+    loadExistingCoursesForIliasImport(userId),
     supabase
       .from('kit_ilias_favorites')
-      .select('title, semester_label')
+      .select('id, title, semester_label')
       .eq('user_id', userId)
       .order('updated_at', { ascending: false }),
-    supabase.from('kit_campus_modules').select('title, semester_label, credits').eq('user_id', userId),
   ]);
 
-  if (existingCoursesResult.error) {
-    throw new Error(`Failed to inspect existing courses: ${existingCoursesResult.error.message}`);
-  }
   if (favoritesResult.error) {
     throw new Error(`Failed to inspect ILIAS favorites: ${favoritesResult.error.message}`);
   }
-  if (campusModulesResult.error) {
-    throw new Error(`Failed to inspect KIT modules: ${campusModulesResult.error.message}`);
+
+  const favorites = favoritesResult.data ?? [];
+  const unmatchedFavoriteTitles = new Set<string>();
+  const matchedCoursesBySlug = new Map<string, ExistingCourseImportRow[]>();
+
+  for (const favorite of favorites) {
+    if (!getCatalogSlug(favorite.title)) {
+      unmatchedFavoriteTitles.add(normalizeIliasImportedCourseText(favorite.title));
+    }
   }
 
-  const imports = buildIliasFavoriteCourseImports(
-    favoritesResult.data ?? [],
-    existingCoursesResult.data ?? [],
-    campusModulesResult.data ?? []
-  );
+  for (const course of existingCourses) {
+    const slug = getCatalogSlug(course.name);
+    if (!slug) continue;
+    const bucket = matchedCoursesBySlug.get(slug) ?? [];
+    bucket.push(course);
+    matchedCoursesBySlug.set(slug, bucket);
+  }
+
+  for (const [slug, courses] of Array.from(matchedCoursesBySlug.entries())) {
+    const matchedCatalogCourse = matchIliasImportedCourseCatalog(courses[0]?.name ?? '');
+    if (!matchedCatalogCourse) continue;
+
+    const keeper = chooseCourseKeeper(courses);
+    const duplicateIds = courses.filter((course) => course.id !== keeper.id).map((course) => course.id);
+    const canonicalCourseInput = buildIliasImportedCourseInput(matchedCatalogCourse);
+    const canonicalInsert = courseToSupabaseInsert(canonicalCourseInput);
+    const shouldUpdateKeeper =
+      keeper.name !== canonicalCourseInput.name ||
+      keeper.ects !== canonicalCourseInput.ects ||
+      keeper.semester !== canonicalCourseInput.semester ||
+      keeper.num_exercises !== canonicalCourseInput.numExercises ||
+      (keeper.exam_date ?? null) !== canonicalInsert.exam_date;
+
+    if (shouldUpdateKeeper) {
+      const { error } = await supabase
+        .from('courses')
+        .update({
+          name: canonicalCourseInput.name,
+          ects: canonicalCourseInput.ects,
+          semester: canonicalCourseInput.semester,
+          num_exercises: canonicalCourseInput.numExercises,
+          exam_date: canonicalInsert.exam_date ?? null,
+        })
+        .eq('user_id', userId)
+        .eq('id', keeper.id);
+
+      if (error) {
+        throw new Error(`Failed to normalize imported course ${slug}: ${error.message}`);
+      }
+    }
+
+    await syncCourseExerciseShape(userId, keeper.id, keeper.exercise_progress, canonicalCourseInput.numExercises);
+    await mergeCompletedExercisesIntoCourse(userId, keeper.id, buildMergedExerciseCompletionMap(courses));
+    await deleteCoursesAndExercises(userId, duplicateIds);
+  }
+
+  const staleCourseIds = existingCourses
+    .filter((course) => {
+      if (getCatalogSlug(course.name)) return false;
+      if (!isUntouchedAutoImportedCourse(course)) return false;
+
+      const normalizedName = normalizeIliasImportedCourseText(course.name);
+      return unmatchedFavoriteTitles.has(normalizedName) || looksLikeObviousImportedJunk(course.name);
+    })
+    .map((course) => course.id);
+
+  await deleteCoursesAndExercises(userId, staleCourseIds);
+
+  const imports = buildIliasFavoriteCourseImports(favorites, existingCourses);
 
   if (imports.length === 0) return;
 
@@ -376,6 +562,42 @@ export async function updateCourse(userId: string, id: string, updates: Partial<
  */
 export async function deleteCourse(userId: string, id: string): Promise<void> {
   const supabase = createClient();
+
+  const { data: courseData, error: courseLookupError } = await supabase
+    .from('courses')
+    .select('id, name')
+    .eq('id', id)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (courseLookupError) {
+    throw new Error(`Failed to load course for deletion: ${courseLookupError.message}`);
+  }
+
+  if (courseData) {
+    const { data: favorites, error: favoritesError } = await supabase
+      .from('kit_ilias_favorites')
+      .select('id, title')
+      .eq('user_id', userId);
+
+    if (favoritesError) {
+      throw new Error(`Failed to inspect ILIAS favorites: ${favoritesError.message}`);
+    }
+
+    const favoriteIds = collectIliasFavoriteIdsForCourseDeletion(courseData.name, favorites ?? []);
+    if (favoriteIds.length > 0) {
+      const { error: favoriteDeleteError } = await supabase
+        .from('kit_ilias_favorites')
+        .delete()
+        .eq('user_id', userId)
+        .in('id', favoriteIds);
+
+      if (favoriteDeleteError) {
+        throw new Error(`Failed to delete linked ILIAS favorites: ${favoriteDeleteError.message}`);
+      }
+    }
+  }
+
   const { error } = await supabase
     .from('courses')
     .delete()

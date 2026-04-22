@@ -8,6 +8,7 @@ import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { usePathname } from 'next/navigation';
 import PowerHotkeysProvider from '@/components/providers/PowerHotkeysProvider';
 import { ChampionProvider } from '@/components/providers/ChampionProvider';
+import { LucianBubbleProvider } from '@/components/providers/LucianBubbleProvider';
 import { useAppLanguage } from '@/components/providers/LanguageProvider';
 
 function DashboardLayoutInner({
@@ -51,9 +52,7 @@ function DashboardLayoutInner({
           <main className="relative">
             {/* Content container */}
             <div className={`max-w-[1600px] mx-auto px-6 pb-8 ${isWorkspaceRoute ? 'pt-0' : 'pt-5'}`}>
-              <div key={pathname} className="animate-dashboard-page-in">
-                {children}
-              </div>
+              <div className="animate-dashboard-page-in">{children}</div>
             </div>
           </main>
         </div>
@@ -67,6 +66,17 @@ function DashboardLayoutInner({
   );
 }
 
+function DashboardRuntimeProviders({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const disableLucianBubble = pathname === '/focus';
+
+  return (
+    <ChampionProvider>
+      {disableLucianBubble ? children : <LucianBubbleProvider>{children}</LucianBubbleProvider>}
+    </ChampionProvider>
+  );
+}
+
 export default function DashboardLayout({
   children,
 }: {
@@ -75,9 +85,9 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <PowerHotkeysProvider>
-        <ChampionProvider>
+        <DashboardRuntimeProviders>
           <DashboardLayoutInner>{children}</DashboardLayoutInner>
-        </ChampionProvider>
+        </DashboardRuntimeProviders>
       </PowerHotkeysProvider>
     </SidebarProvider>
   );

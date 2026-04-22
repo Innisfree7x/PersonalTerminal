@@ -89,6 +89,8 @@ export const config = {
     '/focus/:path*',
     '/settings/:path*',
     '/analytics/:path*',
+    '/strategy/:path*',
+    '/trajectory/:path*',
     '/onboarding/:path*',
     '/auth/:path*',
     // Legacy routes (still hit middleware before redirect)

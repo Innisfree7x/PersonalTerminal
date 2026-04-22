@@ -26,7 +26,10 @@ import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 import { useChampion } from '@/components/providers/ChampionProvider';
 import { trackAppEvent } from '@/lib/analytics/client';
 import { fetchDailyTasks } from '@/lib/api/daily-tasks';
-import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
+import {
+  DASHBOARD_NEXT_TASKS_QUERY_KEY,
+  fetchDashboardNextTasks,
+} from '@/lib/dashboard/nextTasksClient';
 import { LEGACY_STORAGE_KEYS, STORAGE_KEYS } from '@/lib/storage/keys';
 
 type Quote = {
@@ -499,12 +502,8 @@ export default function FocusScreen() {
   });
 
   const { data: nextTasksData } = useQuery({
-    queryKey: ['dashboard', 'next-tasks'],
-    queryFn: async () => {
-      const res = await fetch('/api/dashboard/next-tasks');
-      if (!res.ok) throw new Error('Failed to fetch next tasks');
-      return res.json() as Promise<DashboardNextTasksResponse>;
-    },
+    queryKey: DASHBOARD_NEXT_TASKS_QUERY_KEY,
+    queryFn: fetchDashboardNextTasks,
     staleTime: 30_000,
   });
 

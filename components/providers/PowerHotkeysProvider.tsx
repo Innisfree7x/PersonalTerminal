@@ -15,6 +15,10 @@ import { dispatchPrismCommandAction, queuePrismCommandAction, type PrismCommandA
 import { dispatchListNavigationAction } from '@/lib/hooks/useListNavigation';
 import { dispatchPingAction, type PingAction } from '@/lib/hotkeys/ping';
 import { LEGACY_STORAGE_KEYS, readStorageValueWithLegacy, STORAGE_KEYS } from '@/lib/storage/keys';
+import {
+  DASHBOARD_NEXT_TASKS_QUERY_KEY,
+  fetchDashboardNextTasksSafe,
+} from '@/lib/dashboard/nextTasksClient';
 
 interface PowerHotkeysContextValue {
   overlayOpen: boolean;
@@ -272,16 +276,8 @@ export default function PowerHotkeysProvider({ children }: { children: React.Rea
   });
 
   const { data: nextTasksData } = useQuery<NextTasksResponse | null>({
-    queryKey: ['dashboard', 'next-tasks'],
-    queryFn: async () => {
-      try {
-        const response = await fetch('/api/dashboard/next-tasks');
-        if (!response.ok) return null;
-        return (await response.json()) as NextTasksResponse;
-      } catch {
-        return null;
-      }
-    },
+    queryKey: DASHBOARD_NEXT_TASKS_QUERY_KEY,
+    queryFn: fetchDashboardNextTasksSafe,
     enabled: hotkeyDataEnabled,
     staleTime: 30 * 1000,
     refetchOnWindowFocus: false,

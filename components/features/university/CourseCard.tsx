@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { CourseWithExercises } from '@/lib/schemas/course.schema';
 import { toggleExerciseCompletionAction } from '@/app/actions/university';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
+import { DASHBOARD_NEXT_TASKS_QUERY_PREFIX } from '@/lib/dashboard/nextTasksClient';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Badge } from '@/components/ui/Badge';
 import { ChevronDown, ChevronUp, Edit2, Trash2, Calendar, BookOpen, CheckCircle2, Star } from 'lucide-react';
@@ -103,7 +104,7 @@ export default function CourseCard({
         dispatchChampionEvent({ type: 'EXERCISE_COMPLETED' });
       }
       queryClient.invalidateQueries({ queryKey: ['courses'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_NEXT_TASKS_QUERY_PREFIX });
     },
   });
 
