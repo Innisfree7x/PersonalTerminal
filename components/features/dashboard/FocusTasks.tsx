@@ -16,9 +16,12 @@ import toast from 'react-hot-toast';
 import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 import {
   DASHBOARD_NEXT_TASKS_QUERY_KEY,
-  DASHBOARD_NEXT_TASKS_QUERY_PREFIX,
   fetchDashboardNextTasks,
 } from '@/lib/dashboard/nextTasksClient';
+import {
+  invalidateCoursesAndNextTasks,
+  invalidateDailyTasksAndNextTasks,
+} from '@/lib/dashboard/invalidation';
 
 interface DailyTask {
   id: string;
@@ -149,8 +152,7 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
       setNewTaskTitle('');
       setNewTaskTime('');
       setShowAddInput(false);
-      queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
-      queryClient.invalidateQueries({ queryKey: DASHBOARD_NEXT_TASKS_QUERY_PREFIX });
+      invalidateDailyTasksAndNextTasks(queryClient);
     },
     onError: (_error, _variables, context) => {
       if (context?.previousDailyTasks) {
@@ -171,8 +173,7 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
       } else {
         play('click');
       }
-      queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
-      queryClient.invalidateQueries({ queryKey: DASHBOARD_NEXT_TASKS_QUERY_PREFIX });
+      invalidateDailyTasksAndNextTasks(queryClient);
     },
     onError: (_error, variables) => {
       setHiddenIds((prev) => {
@@ -191,8 +192,7 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
     onSuccess: () => {
       play('task-completed');
       dispatchChampionEvent({ type: 'EXERCISE_COMPLETED' });
-      queryClient.invalidateQueries({ queryKey: DASHBOARD_NEXT_TASKS_QUERY_PREFIX });
-      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      invalidateCoursesAndNextTasks(queryClient);
     },
     onError: (_error, variables) => {
       const taskId = `hw-${variables.courseId}-${variables.exerciseNumber}`;
@@ -389,8 +389,7 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
             });
             await deleteDailyTaskAction(focusedTask.id);
             setHiddenIds((prev) => new Set(prev).add(focusedTask.id));
-            queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
-            queryClient.invalidateQueries({ queryKey: DASHBOARD_NEXT_TASKS_QUERY_PREFIX });
+            invalidateDailyTasksAndNextTasks(queryClient);
             toast.success('Ping: snoozed to tomorrow');
           } catch {
             play('error');

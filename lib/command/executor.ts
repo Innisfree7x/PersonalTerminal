@@ -8,7 +8,10 @@ import { createGoalAction } from '@/app/actions/goals';
 import { commandIntentSchema } from '@/lib/ai/contracts';
 import type { ParsedIntent } from '@/lib/command/parser';
 import { PRISM_INTENT_EXECUTE_EVENT } from '@/lib/hooks/useCommandActions';
-import { DASHBOARD_NEXT_TASKS_QUERY_PREFIX } from '@/lib/dashboard/nextTasksClient';
+import {
+  invalidateDailyTasksAndNextTasks,
+  invalidateGoalsAndNextTasks,
+} from '@/lib/dashboard/invalidation';
 
 const DEFAULT_GOAL_CATEGORY = 'learning' as const;
 const DEFAULT_GOAL_TARGET_DAYS = 14;
@@ -50,8 +53,7 @@ export function useIntentExecutor(): void {
             date: targetDate,
             source: 'manual',
           });
-          await queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
-          await queryClient.invalidateQueries({ queryKey: DASHBOARD_NEXT_TASKS_QUERY_PREFIX });
+          invalidateDailyTasksAndNextTasks(queryClient);
           toast.success(intent.deadline ? 'Task mit Deadline erstellt.' : 'Task erstellt.');
           return;
         }
@@ -62,8 +64,7 @@ export function useIntentExecutor(): void {
             category: DEFAULT_GOAL_CATEGORY,
             targetDate: defaultGoalTargetDate(),
           });
-          await queryClient.invalidateQueries({ queryKey: ['goals'] });
-          await queryClient.invalidateQueries({ queryKey: DASHBOARD_NEXT_TASKS_QUERY_PREFIX });
+          invalidateGoalsAndNextTasks(queryClient);
           toast.success('Goal erstellt.');
           return;
         }
