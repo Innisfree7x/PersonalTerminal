@@ -4,73 +4,70 @@ vi.mock('@/lib/auth/server', () => ({
   createClient: vi.fn(),
 }));
 
-import { buildIliasFavoriteCourseImports } from '@/lib/supabase/courses';
+import {
+  buildIliasFavoriteCourseImports,
+  collectIliasFavoriteIdsForCourseDeletion,
+} from '@/lib/supabase/courses';
 
 describe('buildIliasFavoriteCourseImports', () => {
-  it('builds missing local courses from ILIAS favorites with 12 exercise sheets', () => {
+  it('imports only curated study courses with authoritative ects and exam dates', () => {
     const imports = buildIliasFavoriteCourseImports(
       [
-        { title: 'Financial Data Science', semester_label: 'SS 2026' },
-        { title: 'Einführung in die Volkswirtschaftslehre', semester_label: 'SS 2026' },
+        { title: '10. Financial Data Science', semester_label: 'SS 2026' },
+        { title: 'Einführung in das Operations Research', semester_label: 'SS 2026' },
+        { title: 'Grundlagen der Unternehmensbesteuerung - WiSe 25/26', semester_label: 'WiSe 25/26' },
       ],
       [],
-      [
-        { title: 'Financial Data Science', semester_label: 'SS 2026', credits: 4.5 },
-        { title: 'Einführung in die Volkswirtschaftslehre', semester_label: 'SS 2026', credits: 5 },
-      ]
     );
 
     expect(imports).toEqual([
       {
         name: 'Financial Data Science',
-        ects: 4.5,
+        ects: 9,
         numExercises: 12,
+        examDate: undefined,
         semester: 'SS 2026',
       },
       {
-        name: 'Einführung in die Volkswirtschaftslehre',
-        ects: 5,
+        name: 'Einführung in das OR',
+        ects: 9,
         numExercises: 12,
+        examDate: new Date('2026-08-11T00:00:00.000Z'),
         semester: 'SS 2026',
       },
     ]);
   });
 
-  it('skips courses that already exist locally and deduplicates repeated favorites', () => {
+  it('deduplicates alias variants and skips catalog courses that already exist locally', () => {
     const imports = buildIliasFavoriteCourseImports(
       [
-        { title: 'Operations Research', semester_label: 'SS 2026' },
-        { title: 'Operations   Research', semester_label: 'SS 2026' },
+        { title: 'VWL 2', semester_label: 'SS 2026' },
+        { title: '2600014 - Volkswirtschaftslehre II: Makroökonomie', semester_label: 'SS 2026' },
         { title: 'Investments', semester_label: 'SS 2026' },
       ],
-      [{ name: 'Operations Research', semester: 'SS 2026' }],
-      [{ title: 'Investments', semester_label: 'SS 2026', credits: 6 }],
+      [{ name: 'Volkswirtschaftslehre II: Makroökonomie', semester: 'SS 2026' }],
     );
 
     expect(imports).toEqual([
       {
         name: 'Investments',
-        ects: 6,
+        ects: 4.5,
         numExercises: 12,
+        examDate: new Date('2026-08-13T00:00:00.000Z'),
         semester: 'SS 2026',
       },
     ]);
   });
+});
 
-  it('falls back to default ects and semester when no clean module match exists', () => {
-    const imports = buildIliasFavoriteCourseImports(
-      [{ title: 'Mein Sonderkurs', semester_label: null }],
-      [],
-      [{ title: 'Ganz anderes Modul', semester_label: 'WS 2025/26', credits: 19.5 }],
-    );
-
-    expect(imports).toEqual([
-      {
-        name: 'Mein Sonderkurs',
-        ects: 5,
-        numExercises: 12,
-        semester: 'ILIAS',
-      },
+describe('collectIliasFavoriteIdsForCourseDeletion', () => {
+  it('removes all matching favorite sources for a deleted auto-import course', () => {
+    const favoriteIds = collectIliasFavoriteIdsForCourseDeletion('Financial Data Science', [
+      { id: 'favorite-fds-1', title: '2530371 Financial Data Science' },
+      { id: 'favorite-fds-2', title: '10. Financial Data Science' },
+      { id: 'favorite-other', title: 'Grundlagen der Unternehmensbesteuerung - WiSe 25/26' },
     ]);
+
+    expect(favoriteIds).toEqual(['favorite-fds-1', 'favorite-fds-2']);
   });
 });
