@@ -1,7 +1,8 @@
 # Phase 48 — Performance Masterplan Handoff (Claude)
 
-Stand: 2026-04-22  
-Status: In Progress (Phase 0 abgeschlossen, Phase 1 teilweise)
+Stand: 2026-04-22 (Late-Night-Update)
+Status: A1, A2, B, C abgeschlossen und auf `main` gemerged.
+Nur **Phase D (Server-first Kernpfad)** offen, siehe Abschnitt D.
 
 ## Ziel
 
@@ -55,12 +56,53 @@ Fokus:
      - `/strategy/:path*`
      - `/trajectory/:path*`
 
-## Phase 1 (teilweise erledigt)
+## Phase 1 (fertig)
 
 5. Lucian-Bubble aus globalem Root entfernt (route scope verbessert)
    - `app/layout.tsx`: `LucianBubbleProvider` entfernt
    - `app/(dashboard)/layout.tsx`: nur noch im Dashboard gemountet
    - auf `/focus` zusätzlich deaktiviert
+
+## A1 (fertig, Commit 8b08b74)
+
+Champion-Runtime route-gated + safe fallback.
+
+- `app/(dashboard)/layout.tsx`: `ChampionProvider` nur noch aktiv
+  außerhalb von `/focus`, `/settings`, `/reflect/*`, `/analytics/*`
+- `components/providers/ChampionProvider.tsx`: `useChampion` hat safe
+  localStorage-Fallback, damit Komponenten außerhalb des Providers
+  nicht crashen
+- Champion-Sprite/VFX/Hotkeys laufen nur noch auf relevanten Flows
+
+## A2 (fertig, Commit e9829b0)
+
+LucianBubble route-scope.
+
+- `app/(dashboard)/layout.tsx`: `LucianBubbleProvider` nur noch aktiv
+  auf `/today` und `/today/*` (statt dashboardweit mit Disable auf
+  `/focus`)
+- Queries innerhalb (`daily-tasks`, `focus-sessions`, `applications`)
+  waren bereits `enabled: contextHintsActive`-gated — das A2-Change
+  schaltet zusätzlich den Provider-Mount selbst aus
+
+## B (fertig, Commit 988f19b)
+
+Baseline-Metriken dokumentiert in `docs/PHASE48_BASELINE_2026-04-22.md`:
+
+- Bundle-Sizes je Route aus `next build`
+- Statische Query-Observer-Counts pro Route
+- Provider-Mount-Matrix vorher/nachher
+- Methodik + Platzhalter für Runtime-Messungen (React Profiler,
+  Chrome Memory) — vom User in einer Browser-Session nachzutragen
+
+## C (fertig, Commit 0003c68)
+
+Invalidation-Helper zentralisiert: neu `lib/dashboard/invalidation.ts`
+mit `invalidateDailyTasksAndNextTasks`,
+`invalidateCoursesAndNextTasks`, `invalidateGoalsAndNextTasks`.
+Ersetzt 9 duplizierte Invalidation-Paare in FocusTasks, CourseCard,
+Command Executor und Career Strategy. Verhalten unverändert, nur DRY
+und als Single Source of Truth für spätere Scope-Präzisierung.
 
 ---
 
@@ -149,7 +191,7 @@ Ziel:
 
 ---
 
-## D) Phase 3 — Server-First Kernpfad
+## D) Phase 3 — Server-First Kernpfad (OFFEN)
 
 Kernseiten auf server-first umstellen (gestuft):
 
@@ -163,10 +205,42 @@ Mindestziel je Seite:
 - Hydration mit `HydrationBoundary`
 - weniger clientseitige Erst-Requests direkt nach Mount
 
+### Wichtige Stolpersteine aus der Vorab-Analyse
+
+- **Date-Serialisierung:** `/uni/courses` verwendet `Date`-Objekte in
+  den Query-Daten (`examDate`, `createdAt`). `HydrationBoundary`
+  serialisiert via JSON, wodurch Dates zu Strings werden. Lösung:
+  entweder die Daten un-normalized (als Strings) in den Cache und
+  clientseitig normalisieren — oder `initialData`-Prop statt
+  Hydration-Boundary. Letzterer ist einfacher.
+
+- **Datums-Navigation:** `/workspace/tasks` erlaubt Blättern durch
+  vergangene/zukünftige Tage. Prefetch lohnt nur für `today`; für
+  andere Tage bleibt client-side fetch. D.h. `initialData` ist die
+  richtige Pattern, keine fully-server-driven Page.
+
+- **/today** ist am komplexesten — viele hooks, Dynamic imports,
+  AchievementUnlockOverlay, Room-State-Hook etc. Umstellung in zwei
+  Schritten:
+  1. `app/(dashboard)/today/page.tsx` → wird Server Component +
+     prefetcht `DASHBOARD_NEXT_TASKS_QUERY_KEY`
+  2. Bestehender Client-Code zieht nach `app/(dashboard)/today/TodayClient.tsx`
+
+### Empfohlene Reihenfolge für D (Safety-first)
+
+1. **`/workspace/tasks`** — kleinste Oberfläche, 1 useQuery + 3
+   useMutation, keine Date-Objekte in Query-Daten. Guter Testfall
+   für das Pattern.
+2. **`/uni/courses`** — Date-Serialisierung klären (Empfehlung:
+   initialData-Pattern statt HydrationBoundary).
+3. **`/today`** — zuletzt, weil am komplexesten und am
+   risikoreichsten.
+
 Akzeptanzkriterium:
 
 - weniger Wasserfall im Network-Tab
 - Time-to-interactive stabiler bei schwächerer Hardware
+- Keine Regression in Today/Dashboard critical-path tests
 
 ---
 
