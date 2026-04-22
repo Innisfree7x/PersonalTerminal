@@ -3,21 +3,20 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
-import { format } from 'date-fns';
-import Link from 'next/link';
-import { Sparkles, CheckCircle2, GraduationCap, Flame } from 'lucide-react';
+import { CheckCircle2, GraduationCap, Flame, AlertTriangle, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import FocusTasks from '@/components/features/dashboard/FocusTasks';
-import NBAHeroZone from '@/components/features/dashboard/NBAHeroZone';
-import LucianRoom from '@/components/features/room/LucianRoom';
-import MorningRitual from '@/components/features/room/MorningRitual';
 import AchievementUnlockOverlay from '@/components/features/room/AchievementUnlockOverlay';
+import TrajectoryCollisionHero from '@/components/features/today/TrajectoryCollisionHero';
+import MomentumPulse from '@/components/features/today/MomentumPulse';
+import NextMovesStack from '@/components/features/today/NextMovesStack';
+import AmbientRoomPanel from '@/components/features/today/AmbientRoomPanel';
 import { useRoomState } from '@/lib/hooks/useRoomState';
 import { useRoomItems } from '@/lib/hooks/useRoomItems';
 import { useLucianOutfit } from '@/lib/hooks/useLucianOutfit';
 import { useAchievements } from '@/lib/hooks/useAchievements';
-import { ROOM_STYLES, useRoomStyle } from '@/lib/hooks/useRoomStyle';
+import { useRoomStyle } from '@/lib/hooks/useRoomStyle';
 import { checkNewAchievements } from '@/lib/achievements/checker';
 import type { AchievementCheckInput } from '@/lib/achievements/registry';
 import { getLinesForMood } from '@/lib/lucian/copy';
@@ -26,10 +25,8 @@ import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 import { buildTrajectoryMorningBriefing } from '@/lib/dashboard/trajectoryBriefing';
 import { useAppSound } from '@/lib/hooks/useAppSound';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { STORAGE_KEYS } from '@/lib/storage/keys';
 import { getTodayKey } from '@/lib/dashboard/nbaDismissals';
-import { getRiskStatusTone } from '@/lib/design-system/statusTone';
 import { useStreak } from '@/lib/hooks/useStreak';
 
 const LAST_MOMENTUM_SCORE_KEY = 'innis:last-momentum-score:v1';
@@ -52,14 +49,12 @@ export default function TodayPage() {
   const { play } = useAppSound();
   const { streak } = useStreak();
   const { style: roomStyle } = useRoomStyle();
-  const [ritualDone, setRitualDone] = useState(false);
   const { unlockedKeys, unlock } = useAchievements();
   const roomItems = useRoomItems();
   const { outfit } = useLucianOutfit();
   const [pendingAchievementKey, setPendingAchievementKey] = useState<string | null>(null);
   const achievementCheckedRef = useRef(false);
 
-  // Check URL params for OAuth callback messages
   useEffect(() => {
     const messages = parseOAuthCallbackParams();
     if (messages.error) {
@@ -72,7 +67,6 @@ export default function TodayPage() {
     }
   }, [play]);
 
-  // Fetch next-tasks data (powers stats, study progress, NBA)
   const { data: nextTasksData, isFetched: isNextTasksFetched, isLoading, isError, error } = useQuery<DashboardNextTasksResponse>({
     queryKey: ['dashboard', 'next-tasks', 'today-bundle'],
     queryFn: async () => {
@@ -86,8 +80,6 @@ export default function TodayPage() {
   });
 
   const roomState = useRoomState(nextTasksData);
-  const roomTheme = ROOM_STYLES[roomStyle];
-  const roomStyleGlow = `radial-gradient(ellipse at center, ${roomTheme.ambientColor} 0%, transparent 72%)`;
   const momentumScore = nextTasksData?.trajectoryMorning?.momentum?.score ?? 40;
   const morningMood = momentumScore >= 70 ? 'hype' : momentumScore >= 40 ? 'chill' : 'comfort';
   const morningLines = getLinesForMood(morningMood);
@@ -98,22 +90,11 @@ export default function TodayPage() {
   const trajectorySnapshot = nextTasksData?.trajectoryMorning;
   const trajectoryBriefing = buildTrajectoryMorningBriefing(trajectorySnapshot?.overview);
   const momentum = trajectorySnapshot?.momentum ?? null;
-  const trajectoryCrisis = trajectorySnapshot?.crisis ?? null;
-  const trajectoryTone = trajectoryBriefing ? getRiskStatusTone(trajectoryBriefing.status) : null;
   const kitSignals = nextTasksData?.kitSignals ?? null;
-  const weeklyKitEventsCount = kitSignals?.upcomingEventsCount ?? 0;
-  const showWeeklyKitLoadChip = weeklyKitEventsCount > 0 && (!kitSignals?.nextCampusEvent || weeklyKitEventsCount > 1);
-  const weeklyKitLoadLabel =
-    weeklyKitEventsCount <= 1
-      ? '1 KIT-Termin diese Woche'
-      : kitSignals?.nextCampusEvent
-        ? `+${weeklyKitEventsCount - 1} weitere KIT-Termine diese Woche`
-        : `${weeklyKitEventsCount} KIT-Termine diese Woche`;
 
   const tasksTodayCount = stats?.tasksToday ?? 0;
   const tasksCompletedCount = stats?.tasksCompleted ?? 0;
 
-  // Champion events
   useEffect(() => {
     const days = stats?.nextExam?.daysUntilExam;
     if (typeof days === 'number' && days <= 1) {
@@ -137,7 +118,6 @@ export default function TodayPage() {
     window.localStorage.setItem(STORAGE_KEYS.todayMorningCheckinDate, today);
   }, [isNextTasksFetched, trajectoryBriefing, trajectorySnapshot]);
 
-  // Momentum sound
   useEffect(() => {
     if (!momentum || momentum.trend !== 'up') return;
     if (typeof window === 'undefined') return;
@@ -156,7 +136,6 @@ export default function TodayPage() {
     window.localStorage.setItem(LAST_MOMENTUM_SCORE_KEY, String(momentum.score));
   }, [momentum, play]);
 
-  // Achievement check — runs once after initial data load
   useEffect(() => {
     if (achievementCheckedRef.current || !isNextTasksFetched || !nextTasksData) return;
     achievementCheckedRef.current = true;
@@ -179,33 +158,24 @@ export default function TodayPage() {
     }
   }, [isNextTasksFetched, nextTasksData, streak, unlockedKeys, unlock]);
 
-  const handleChanged = () => {
-    queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
-    queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
-    queryClient.invalidateQueries({ queryKey: ['courses'] });
-  };
-
-  const trajectoryBriefingHref = trajectoryBriefing
-    ? `/trajectory?goalId=${encodeURIComponent(trajectoryBriefing.goalId)}&source=morning_briefing`
-    : '/trajectory?source=morning_briefing';
-
   if (isLoading) {
     return (
       <div className="space-y-4 md:space-y-5" data-testid="today-page-loading">
-        <div className="card-warm-accent rounded-xl px-4 py-3 animate-pulse">
-          <div className="h-4 w-48 rounded bg-white/10" />
-          <div className="mt-2 h-3 w-80 rounded bg-white/10" />
-        </div>
-        <div className="card-warm-accent rounded-xl p-6 animate-pulse">
+        <div className="card-warm-accent rounded-2xl p-6 animate-pulse">
           <div className="h-3 w-24 rounded bg-white/10" />
           <div className="mt-3 h-6 w-64 rounded bg-white/10" />
-          <div className="mt-4 flex gap-2">
-            <div className="h-9 w-32 rounded-lg bg-white/10" />
-            <div className="h-9 w-20 rounded-lg bg-white/10" />
+          <div className="mt-4 h-16 rounded-lg bg-white/[0.06]" />
+        </div>
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[200px,1fr]">
+          <div className="card-warm h-[220px] animate-pulse rounded-2xl" />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="card-warm h-[140px] animate-pulse rounded-2xl" />
+            ))}
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
-          <div className="card-warm p-6 animate-pulse">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <div className="card-warm p-6 animate-pulse rounded-2xl">
             <div className="h-5 w-20 rounded bg-white/10" />
             <div className="mt-4 space-y-3">
               {[1, 2, 3].map((i) => (
@@ -245,291 +215,66 @@ export default function TodayPage() {
   }
 
   return (
-    <div className="space-y-4 md:space-y-5" data-testid="today-page-root">
-      {/* ── 0. Lucians Raum ── */}
+    <div className="space-y-5" data-testid="today-page-root">
+      <ErrorBoundary fallbackTitle="Trajectory Hero Error">
+        <TrajectoryCollisionHero snapshot={trajectorySnapshot ?? null} />
+      </ErrorBoundary>
+
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[220px,1fr]">
+        <div className="flex justify-center lg:justify-start">
+          <MomentumPulse
+            score={momentum?.score ?? 40}
+            trend={momentum?.trend ?? 'flat'}
+          />
+        </div>
+        <NextMovesStack
+          nextKitEvent={
+            kitSignals?.nextCampusEvent
+              ? {
+                  title: kitSignals.nextCampusEvent.title,
+                  startsAt: kitSignals.nextCampusEvent.startsAt,
+                  location: kitSignals.nextCampusEvent.location,
+                }
+              : null
+          }
+          nextDeadline={
+            stats?.nextExam?.examDate
+              ? {
+                  courseName: stats.nextExam.name,
+                  examDate: stats.nextExam.examDate,
+                  courseCode: null,
+                }
+              : null
+          }
+          nextTask={nextTasksData?.nextBestAction ?? null}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <ErrorBoundary fallbackTitle="Focus Tasks Error">
+          <FocusTasks
+            nextTasksData={{
+              homeworks: nextTasksData?.homeworks ?? [],
+              goals: nextTasksData?.goals ?? [],
+              interviews: nextTasksData?.interviews ?? [],
+            }}
+          />
+        </ErrorBoundary>
+        <ErrorBoundary fallbackTitle="Study Progress Error">
+          <LazyStudyProgress courses={studyProgress} />
+        </ErrorBoundary>
+      </div>
+
       <ErrorBoundary fallbackTitle="Room Error">
-        <div
-          className="relative w-full overflow-hidden rounded-2xl h-[min(36vh,280px)] sm:h-[min(48vh,420px)]"
-        >
-          <div
-            className="pointer-events-none absolute inset-0 rounded-2xl border border-white/[0.08]"
-          />
-          <div
-            className="pointer-events-none absolute inset-0 rounded-2xl"
-            style={{
-              background:
-                'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 16%, transparent 42%, rgba(0,0,0,0.18) 100%)',
-            }}
-          />
-          <div
-            className="pointer-events-none absolute inset-y-0 left-0 w-28"
-            style={{
-              background: `linear-gradient(90deg, ${roomTheme.accentColor}16, transparent 72%)`,
-            }}
-          />
-          <div
-            className="pointer-events-none absolute inset-y-0 right-0 w-28"
-            style={{
-              background: `linear-gradient(270deg, ${roomTheme.accentColor}12, transparent 72%)`,
-            }}
-          />
-          <div
-            className="pointer-events-none absolute inset-0 rounded-2xl"
-            style={{ background: roomStyleGlow, opacity: 0.42 }}
-          />
-          <div
-            className="pointer-events-none absolute inset-x-0 top-0 h-px"
-            style={{
-              background: `linear-gradient(90deg, transparent, ${roomTheme.accentColor}88, transparent)`,
-            }}
-          />
-          <div className="pointer-events-none absolute left-4 top-4 flex items-center gap-2 rounded-full border border-white/[0.08] bg-black/32 px-3 py-1.5">
-            <span className="text-xs">{roomTheme.preview}</span>
-            <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/55">
-              {roomTheme.label} Room
-            </span>
-          </div>
-          {!ritualDone && (
-            <MorningRitual
-              onComplete={() => setRitualDone(true)}
-              morningMessage={morningMessage}
-            />
-          )}
-          <LucianRoom
-            state={roomState}
-            roomItems={roomItems}
-            lucianOutfit={outfit}
-            roomStyle={roomStyle}
-            className="w-full h-full"
-          />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#08080c] to-transparent" />
-          <div className="pointer-events-none absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-black/40 px-2.5 py-1">
-            <span
-              className="inline-block h-1.5 w-1.5 rounded-full"
-              style={{ background: roomTheme.accentColor, boxShadow: `0 0 10px ${roomTheme.accentColor}66` }}
-            />
-            <span className="text-[10px] text-white/45">Ambience live</span>
-          </div>
-        </div>
-      </ErrorBoundary>
-
-      {/* ── 1. Morning Briefing — single compact line ── */}
-      <ErrorBoundary fallbackTitle="Morning Briefing Error">
-        <div className="card-warm-accent relative overflow-hidden rounded-xl px-4 py-2.5">
-          <div
-            className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-r-full"
-            style={{
-              background: trajectoryBriefing
-                ? trajectoryBriefing.status === 'at_risk'
-                  ? 'linear-gradient(to bottom, #dc3232, #991b1b)'
-                  : trajectoryBriefing.status === 'tight'
-                    ? 'linear-gradient(to bottom, #e8b930, #92400e)'
-                    : 'linear-gradient(to bottom, #22c55e, #15803d)'
-                : 'linear-gradient(to bottom, rgba(232,185,48,0.88), rgba(146,64,14,0.88))',
-              boxShadow: trajectoryBriefing
-                ? trajectoryBriefing.status === 'at_risk'
-                  ? '0 0 12px rgba(220,50,50,0.42)'
-                  : trajectoryBriefing.status === 'tight'
-                    ? '0 0 12px rgba(232,185,48,0.32)'
-                    : '0 0 12px rgba(34,197,94,0.28)'
-                : '0 0 10px rgba(232,185,48,0.24)',
-            }}
-          />
-          <div
-            className="pointer-events-none absolute inset-x-0 top-0 h-px"
-            style={{
-              background: trajectoryBriefing
-                ? trajectoryBriefing.status === 'at_risk'
-                  ? 'linear-gradient(to right, transparent, rgba(220,50,50,0.42), transparent)'
-                  : trajectoryBriefing.status === 'tight'
-                    ? 'linear-gradient(to right, transparent, rgba(232,185,48,0.42), transparent)'
-                    : 'linear-gradient(to right, transparent, rgba(34,197,94,0.38), transparent)'
-                : 'linear-gradient(to right, transparent, rgba(232,185,48,0.4), transparent)',
-            }}
-          />
-
-          <div className="flex flex-col gap-2.5">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-2.5">
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-primary/30 bg-primary/[0.14] text-primary">
-                  <Sparkles className="h-3 w-3" />
-                </span>
-                <p className="truncate text-[13px] text-text-secondary">
-                  {trajectoryBriefing ? (
-                    <>
-                      <span className="font-semibold text-text-primary">{trajectoryBriefing.title}</span>
-                      <span className="mx-1.5 text-border">·</span>
-                      <span className={trajectoryTone ? trajectoryTone.text : ''}>
-                        {trajectoryBriefing.statusLabel}
-                      </span>
-                      <span className="mx-1.5 text-border">·</span>
-                      <span className="tabular-nums">{trajectoryBriefing.daysUntil}d bis Deadline</span>
-                    </>
-                  ) : (
-                    <span>Kein aktives Trajectory-Ziel.</span>
-                  )}
-                </p>
-              </div>
-              <Link
-                href={trajectoryBriefingHref}
-                className="shrink-0 rounded-full border border-primary/20 bg-primary/[0.06] px-2.5 py-1 text-[11px] font-medium text-primary transition-colors hover:bg-primary/[0.12]"
-              >
-                {trajectoryBriefing ? 'Trajectory →' : 'Einrichten →'}
-              </Link>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              {trajectoryCrisis?.hasCrisis ? (
-                <Link
-                  href="/trajectory?source=today_crisis"
-                  className="inline-flex items-center gap-1 rounded-full border border-red-500/45 bg-red-500/[0.12] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-red-200 transition-colors hover:bg-red-500/[0.2]"
-                >
-                  <AlertTriangle className="h-3 w-3" />
-                  Crisis · {trajectoryCrisis.collisions.length} Kollision
-                  {trajectoryCrisis.collisions.length === 1 ? '' : 'en'}
-                </Link>
-              ) : null}
-              {momentum ? (
-                <>
-                  <span className="inline-flex items-center gap-1 rounded-full border border-primary/25 bg-primary/[0.08] px-2.5 py-1 text-[11px] font-medium text-text-primary">
-                    <Sparkles className="h-3 w-3 text-primary" />
-                    Momentum
-                    <span className="tabular-nums text-primary">{momentum.score}</span>
-                  </span>
-                  {typeof momentum.delta === 'number' && momentum.delta !== 0 ? (
-                    <span
-                      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium tabular-nums ${
-                        momentum.delta > 0
-                          ? 'border-emerald-500/30 bg-emerald-500/12 text-emerald-300'
-                          : 'border-red-500/30 bg-red-500/12 text-red-300'
-                      }`}
-                    >
-                      {momentum.delta > 0 ? '▲' : '▼'}
-                      {Math.abs(momentum.delta)} vs letzte Woche
-                    </span>
-                  ) : null}
-                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-text-secondary">
-                    Fokus-Load {momentum.stats.last7DaysHours.toFixed(1)}h / {momentum.stats.plannedHoursPerWeek}h
-                  </span>
-                </>
-              ) : null}
-              {trajectoryBriefing?.startDateLabel ? (
-                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-text-secondary">
-                  Prep startet {trajectoryBriefing.startDateLabel}
-                </span>
-              ) : null}
-              {tasksTodayCount > 0 ? (
-                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-text-secondary">
-                  {tasksCompletedCount}/{tasksTodayCount} Tasks heute
-                </span>
-              ) : null}
-              {kitSignals?.nextCampusEvent ? (
-                <Link
-                  href="/calendar?source=today_kit"
-                  className="inline-flex items-center rounded-full border border-sky-500/25 bg-sky-500/[0.08] px-2.5 py-1 text-[11px] font-medium text-sky-100 transition-colors hover:bg-sky-500/[0.14]"
-                >
-                  KIT {format(new Date(kitSignals.nextCampusEvent.startsAt), 'dd.MM. HH:mm')}
-                  <span className="mx-1.5 text-sky-200/40">·</span>
-                  {kitSignals.nextCampusEvent.title}
-                  {kitSignals.nextCampusEvent.location ? (
-                    <>
-                      <span className="mx-1.5 text-sky-200/40">·</span>
-                      {kitSignals.nextCampusEvent.location}
-                    </>
-                  ) : null}
-                </Link>
-              ) : null}
-              {showWeeklyKitLoadChip ? (
-                <Link
-                  href="/calendar?source=today_kit_week"
-                  className="inline-flex items-center rounded-full border border-sky-500/20 bg-sky-500/[0.05] px-2.5 py-1 text-[11px] font-medium text-sky-100/90 transition-colors hover:bg-sky-500/[0.11]"
-                >
-                  {weeklyKitLoadLabel}
-                </Link>
-              ) : null}
-              {kitSignals?.nextCampusExam ? (
-                <Link
-                  href="/university?source=today_kit_exam"
-                  className="inline-flex items-center rounded-full border border-amber-500/25 bg-amber-500/[0.09] px-2.5 py-1 text-[11px] font-medium text-amber-100 transition-colors hover:bg-amber-500/[0.15]"
-                >
-                  Prüfung {format(new Date(kitSignals.nextCampusExam.startsAt), 'dd.MM. HH:mm')}
-                  <span className="mx-1.5 text-amber-200/40">·</span>
-                  {kitSignals.nextCampusExam.title}
-                </Link>
-              ) : null}
-              {kitSignals?.freshIliasItems ? (
-                <Link
-                  href="/university?source=today_ilias"
-                  className="inline-flex items-center rounded-full border border-emerald-500/25 bg-emerald-500/[0.08] px-2.5 py-1 text-[11px] font-medium text-emerald-100 transition-colors hover:bg-emerald-500/[0.14]"
-                >
-                  {kitSignals.freshIliasItems} neue ILIAS-Signale
-                  {kitSignals.latestIliasItem ? (
-                    <>
-                      <span className="mx-1.5 text-emerald-200/40">·</span>
-                      {kitSignals.latestIliasItem.favoriteTitle}
-                    </>
-                  ) : null}
-                </Link>
-              ) : kitSignals?.latestIliasItem ? (
-                <Link
-                  href="/university?source=today_ilias"
-                  className="inline-flex items-center rounded-full border border-emerald-500/25 bg-emerald-500/[0.08] px-2.5 py-1 text-[11px] font-medium text-emerald-100 transition-colors hover:bg-emerald-500/[0.14]"
-                >
-                  {kitSignals.latestIliasItem.favoriteTitle}
-                  <span className="mx-1.5 text-emerald-200/40">·</span>
-                  {kitSignals.latestIliasItem.title}
-                </Link>
-              ) : null}
-              {kitSignals?.latestCampusGrade ? (
-                <Link
-                  href="/university?source=today_grade"
-                  className="inline-flex items-center rounded-full border border-violet-500/25 bg-violet-500/[0.1] px-2.5 py-1 text-[11px] font-medium text-violet-100 transition-colors hover:bg-violet-500/[0.16]"
-                >
-                  Neue Note {kitSignals.latestCampusGrade.gradeLabel}
-                  <span className="mx-1.5 text-violet-200/40">·</span>
-                  {kitSignals.latestCampusGrade.moduleTitle}
-                </Link>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      </ErrorBoundary>
-
-      {/* ── 2. NBA Hero Zone — next best action + focus start ── */}
-      <ErrorBoundary fallbackTitle="NBA Error">
-        <NBAHeroZone
-          nextBestAction={nextTasksData?.nextBestAction ?? null}
-          alternatives={nextTasksData?.nextBestAlternatives ?? []}
-          riskSignals={nextTasksData?.riskSignals ?? []}
-          onChanged={handleChanged}
-          isLoading={isLoading}
+        <AmbientRoomPanel
+          roomState={roomState}
+          roomStyle={roomStyle}
+          roomItems={roomItems}
+          outfit={outfit}
+          morningMessage={morningMessage}
         />
       </ErrorBoundary>
 
-      {/* ── 3. Two-column grid: Tasks + Semester ── */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
-        {/* LEFT: Tasks */}
-        <div>
-          <ErrorBoundary fallbackTitle="Tasks Error">
-            <FocusTasks
-              nextTasksData={{
-                homeworks: nextTasksData?.homeworks ?? [],
-                goals: nextTasksData?.goals ?? [],
-                interviews: nextTasksData?.interviews ?? [],
-              }}
-            />
-          </ErrorBoundary>
-        </div>
-
-        {/* RIGHT: Semester Overview */}
-        <div>
-          <ErrorBoundary fallbackTitle="Study Progress Error">
-            <LazyStudyProgress courses={studyProgress} />
-          </ErrorBoundary>
-        </div>
-      </div>
-
-      {/* ── 4. Bottom Stats Line ── */}
       <div className="card-warm relative overflow-hidden rounded-xl">
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1 px-4 py-2.5">
           <StatItem
@@ -548,8 +293,6 @@ export default function TodayPage() {
             value={`${streak}d`}
           />
         </div>
-
-        {/* 4-color identity gradient */}
         <div
           className="absolute inset-x-0 bottom-0 h-px"
           style={{
