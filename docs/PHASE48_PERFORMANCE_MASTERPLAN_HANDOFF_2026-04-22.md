@@ -1,9 +1,9 @@
 # Phase 48 — Performance Masterplan Handoff (Claude)
 
 Stand: 2026-04-23
-Status: A1, A2, B, C sowie D1 (`/workspace/tasks`) und D2 (`/uni/courses`)
-abgeschlossen und auf `main` gemerged.
-Offen: **D3 (`/today` server-first)** — siehe Abschnitt D.
+Status: A1, A2, B, C sowie D1 (`/workspace/tasks`), D2 (`/uni/courses`) und
+D3 (`/today`) abgeschlossen und auf `main` gemerged.
+**Phase 48 komplett.**
 
 ## Ziel
 

@@ -13,7 +13,7 @@ function installStorageMock() {
   });
 }
 import { renderWithProviders, screen, waitFor } from '@/tests/utils/test-utils';
-import TodayPage from '@/app/(dashboard)/today/page';
+import TodayPage from '@/app/(dashboard)/today/TodayClient';
 import { STORAGE_KEYS } from '@/lib/storage/keys';
 
 vi.mock('@/components/features/dashboard/FocusTasks', () => ({
@@ -157,7 +157,7 @@ describe('Today critical path integration', () => {
   });
 
   test('renders trajectory hero, momentum pulse, next moves, and secondary widgets', async () => {
-    renderWithProviders(<TodayPage />);
+    renderWithProviders(<TodayPage initialNextTasksData={null} />);
 
     await screen.findByTestId('trajectory-hero');
 
