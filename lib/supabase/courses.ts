@@ -5,6 +5,174 @@ import type { Course, CreateCourseInput, ExerciseProgress, CourseWithExercises }
 type CourseInsert = Database['public']['Tables']['courses']['Insert'];
 type CourseUpdate = Database['public']['Tables']['courses']['Update'];
 type ExerciseProgressInsert = Database['public']['Tables']['exercise_progress']['Insert'];
+type IliasFavoriteRow = Database['public']['Tables']['kit_ilias_favorites']['Row'];
+type CampusModuleRow = Database['public']['Tables']['kit_campus_modules']['Row'];
+
+const DEFAULT_ILIAS_FAVORITE_ECTS = 5;
+const DEFAULT_ILIAS_FAVORITE_EXERCISES = 12;
+const DEFAULT_ILIAS_FAVORITE_SEMESTER = 'ILIAS';
+
+function normalizeWhitespace(value: string): string {
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+function normalizeCourseKey(title: string, semester: string | null | undefined): string {
+  const normalizedTitle = normalizeWhitespace(title).toLocaleLowerCase('de');
+  const normalizedSemester = normalizeWhitespace(semester ?? DEFAULT_ILIAS_FAVORITE_SEMESTER).toLocaleLowerCase('de');
+  return `${normalizedTitle}::${normalizedSemester}`;
+}
+
+function normalizeMatchText(value: string): string {
+  return value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9\s]/g, ' ')
+    .toLocaleLowerCase('de')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function tokenizeMatchText(value: string): string[] {
+  const stopwords = new Set(['und', 'der', 'die', 'das', 'dem', 'den', 'des', 'für', 'mit', 'ab', 'modul', 'module']);
+  return normalizeMatchText(value)
+    .split(' ')
+    .filter((token) => token.length > 2 && !stopwords.has(token));
+}
+
+function resolveFavoriteSemester(semesterLabel: string | null | undefined): string {
+  const normalized = normalizeWhitespace(semesterLabel ?? '');
+  return normalized.length > 0 ? normalized : DEFAULT_ILIAS_FAVORITE_SEMESTER;
+}
+
+function resolveFavoriteEcts(
+  favorite: Pick<IliasFavoriteRow, 'title' | 'semester_label'>,
+  campusModules: Pick<CampusModuleRow, 'title' | 'semester_label' | 'credits'>[]
+): number {
+  const favoriteTitle = normalizeMatchText(favorite.title);
+  const favoriteSemester = normalizeCourseKey(favorite.title, favorite.semester_label).split('::')[1];
+  const favoriteTokens = new Set(tokenizeMatchText(favorite.title));
+
+  let bestMatch: Pick<CampusModuleRow, 'credits'> | null = null;
+  let bestScore = 0;
+
+  for (const campusModule of campusModules) {
+    const moduleTitle = normalizeMatchText(campusModule.title);
+    const moduleSemester = normalizeCourseKey(campusModule.title, campusModule.semester_label).split('::')[1];
+    const moduleTokens = tokenizeMatchText(campusModule.title);
+
+    let score = 0;
+    if (moduleTitle === favoriteTitle) score += 100;
+    if (moduleTitle.includes(favoriteTitle) || favoriteTitle.includes(moduleTitle)) score += 35;
+    if (moduleSemester === favoriteSemester) score += 20;
+
+    for (const token of moduleTokens) {
+      if (favoriteTokens.has(token)) score += 10;
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestMatch = campusModule;
+    }
+  }
+
+  const credits = bestMatch?.credits;
+  if (typeof credits === 'number' && credits >= 1 && credits <= 15) {
+    return Number(credits.toFixed(1));
+  }
+
+  return DEFAULT_ILIAS_FAVORITE_ECTS;
+}
+
+export function buildIliasFavoriteCourseImports(
+  favorites: Pick<IliasFavoriteRow, 'title' | 'semester_label'>[],
+  existingCourses: Pick<SupabaseCourse, 'name' | 'semester'>[],
+  campusModules: Pick<CampusModuleRow, 'title' | 'semester_label' | 'credits'>[]
+): CreateCourseInput[] {
+  const seenKeys = new Set(existingCourses.map((course) => normalizeCourseKey(course.name, course.semester)));
+  const imports: CreateCourseInput[] = [];
+
+  for (const favorite of favorites) {
+    const key = normalizeCourseKey(favorite.title, favorite.semester_label);
+    if (seenKeys.has(key)) continue;
+
+    imports.push({
+      name: normalizeWhitespace(favorite.title),
+      ects: resolveFavoriteEcts(favorite, campusModules),
+      numExercises: DEFAULT_ILIAS_FAVORITE_EXERCISES,
+      semester: resolveFavoriteSemester(favorite.semester_label),
+    });
+    seenKeys.add(key);
+  }
+
+  return imports;
+}
+
+async function ensureCoursesFromIliasFavorites(userId: string): Promise<void> {
+  const supabase = createClient();
+
+  const [existingCoursesResult, favoritesResult, campusModulesResult] = await Promise.all([
+    supabase.from('courses').select('id, name, semester').eq('user_id', userId),
+    supabase
+      .from('kit_ilias_favorites')
+      .select('title, semester_label')
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false }),
+    supabase.from('kit_campus_modules').select('title, semester_label, credits').eq('user_id', userId),
+  ]);
+
+  if (existingCoursesResult.error) {
+    throw new Error(`Failed to inspect existing courses: ${existingCoursesResult.error.message}`);
+  }
+  if (favoritesResult.error) {
+    throw new Error(`Failed to inspect ILIAS favorites: ${favoritesResult.error.message}`);
+  }
+  if (campusModulesResult.error) {
+    throw new Error(`Failed to inspect KIT modules: ${campusModulesResult.error.message}`);
+  }
+
+  const imports = buildIliasFavoriteCourseImports(
+    favoritesResult.data ?? [],
+    existingCoursesResult.data ?? [],
+    campusModulesResult.data ?? []
+  );
+
+  if (imports.length === 0) return;
+
+  const courseRows = imports.map((course) => ({
+    ...courseToSupabaseInsert(course),
+    user_id: userId,
+  }));
+
+  const { data: insertedCourses, error: insertCoursesError } = await supabase
+    .from('courses')
+    .insert(courseRows)
+    .select('id, num_exercises');
+
+  if (insertCoursesError) {
+    throw new Error(`Failed to import ILIAS favorite courses: ${insertCoursesError.message}`);
+  }
+
+  const exerciseRows = (insertedCourses ?? []).flatMap((course) =>
+    Array.from({ length: course.num_exercises }, (_, index) => ({
+      user_id: userId,
+      course_id: course.id,
+      exercise_number: index + 1,
+      completed: false,
+    }))
+  );
+
+  if (exerciseRows.length === 0) return;
+
+  const { error: exerciseError } = await supabase.from('exercise_progress').insert(exerciseRows);
+
+  if (exerciseError) {
+    await supabase.from('courses').delete().eq('user_id', userId).in(
+      'id',
+      (insertedCourses ?? []).map((course) => course.id)
+    );
+    throw new Error(`Failed to create exercise progress: ${exerciseError.message}`);
+  }
+}
 
 /**
  * Converts Supabase Course Row to our Course type
@@ -53,6 +221,7 @@ export function courseToSupabaseInsert(course: CreateCourseInput): Omit<CourseIn
  * Fetch all courses with their exercise progress in a single query
  */
 export async function fetchCoursesWithExercises(userId: string): Promise<CourseWithExercises[]> {
+  await ensureCoursesFromIliasFavorites(userId);
   const supabase = createClient();
 
   const { data, error } = await supabase

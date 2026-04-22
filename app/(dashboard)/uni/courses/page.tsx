@@ -13,7 +13,6 @@ import {
 } from '@/app/actions/university';
 import CourseCard from '@/components/features/university/CourseCard';
 import CourseModal from '@/components/features/university/CourseModal';
-import KitCoursesSection from '@/components/features/university/KitCoursesSection';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { DecisionSurfaceCard } from '@/components/ui/DecisionSurfaceCard';
@@ -384,7 +383,7 @@ export default function UniversityPage() {
             Dein KIT-Hub
           </h1>
           <p className="text-text-secondary">
-            KIT, ILIAS und dein Lernfortschritt in einer Oberfläche.
+            Favorisierte ILIAS-Kurse landen hier automatisch, manuelle Kurse bleiben weiter moeglich.
           </p>
         </div>
         <Button
@@ -404,20 +403,12 @@ export default function UniversityPage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.12, delay: 0.01 }}
-      >
-        <KitCoursesSection />
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.12, delay: 0.02 }}
       >
         <DecisionSurfaceCard
           eyebrow="KIT Hub"
           title="Sync und Noten sind jetzt in eigenen Bereichen"
-          summary="Kurse bleiben hier fokussiert auf Lernfortschritt. CAMPUS/ILIAS-Signale und Noten liegen getrennt unter Sync bzw. Noten."
+          summary="Hier landen deine lokalen Lernkurse. ILIAS-Favoriten werden automatisch uebernommen; CAMPUS/ILIAS-Signale und Noten bleiben getrennt unter Sync bzw. Noten."
           bullets={[
             'KIT Sync: CAMPUS-Kalender, Academic Snapshot und ILIAS-Imports verwalten.',
             'Noten: importierte CAMPUS-Module und benotete Prüfungen in einer eigenen Fläche.',
@@ -594,7 +585,7 @@ export default function UniversityPage() {
               Noch keine Kurse angelegt
             </h3>
             <p className="text-text-tertiary mb-6 max-w-sm mx-auto">
-              Trag deine Vorlesungen ein — INNIS zeigt dir dann deinen Lernfortschritt, offene Übungsblätter und Prüfungstermine.
+              Importiere zuerst deine ILIAS-Favoriten im KIT Sync oder leg einen Kurs manuell an. Danach zeigt INNIS dir Lernfortschritt, offene Uebungsblaetter und Prüfungstermine.
             </p>
             <Button
               onClick={() => {
