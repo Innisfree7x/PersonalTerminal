@@ -407,7 +407,11 @@ export function courseToSupabaseInsert(course: CreateCourseInput): Omit<CourseIn
  * Fetch all courses with their exercise progress in a single query
  */
 export async function fetchCoursesWithExercises(userId: string): Promise<CourseWithExercises[]> {
-  await ensureCoursesFromIliasFavorites(userId);
+  try {
+    await ensureCoursesFromIliasFavorites(userId);
+  } catch (error) {
+    console.error('[courses] ensureCoursesFromIliasFavorites failed, continuing without auto-import:', error);
+  }
   const supabase = createClient();
 
   const { data, error } = await supabase
