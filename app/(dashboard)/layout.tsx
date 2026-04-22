@@ -66,15 +66,28 @@ function DashboardLayoutInner({
   );
 }
 
+const CHAMPION_DISABLED_PREFIXES = ['/focus', '/settings', '/reflect', '/analytics'] as const;
+
+function isChampionDisabled(pathname: string): boolean {
+  return CHAMPION_DISABLED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
 function DashboardRuntimeProviders({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const disableLucianBubble = pathname === '/focus';
+  const disableChampion = isChampionDisabled(pathname);
 
-  return (
-    <ChampionProvider>
-      {disableLucianBubble ? children : <LucianBubbleProvider>{children}</LucianBubbleProvider>}
-    </ChampionProvider>
+  const bubbleWrapped = disableLucianBubble ? children : (
+    <LucianBubbleProvider>{children}</LucianBubbleProvider>
   );
+
+  if (disableChampion) {
+    return <>{bubbleWrapped}</>;
+  }
+
+  return <ChampionProvider>{bubbleWrapped}</ChampionProvider>;
 }
 
 export default function DashboardLayout({

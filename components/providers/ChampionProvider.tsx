@@ -216,12 +216,57 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-export function useChampion() {
+export function useChampion(): ChampionContextValue {
   const context = useContext(ChampionContext);
-  if (!context) {
-    throw new Error('useChampion must be used within ChampionProvider');
-  }
-  return context;
+  const [fallbackSettings, setFallbackSettings] = useState<ChampionSettings>(DEFAULT_SETTINGS);
+  const [fallbackStats, setFallbackStats] = useState<ChampionStats>(() => levelFromXp(0));
+
+  useEffect(() => {
+    if (context) return;
+    try {
+      const rawSettings = localStorage.getItem(SETTINGS_KEY);
+      if (rawSettings) setFallbackSettings(sanitizeChampionSettings(JSON.parse(rawSettings)));
+      const rawStats = localStorage.getItem(STATS_KEY);
+      if (rawStats) {
+        const parsed = JSON.parse(rawStats) as { xp?: number };
+        if (typeof parsed.xp === 'number') setFallbackStats(levelFromXp(parsed.xp));
+      }
+    } catch {
+      // ignore
+    }
+  }, [context]);
+
+  const fallbackUpdate = useCallback((next: Partial<ChampionSettings>) => {
+    setFallbackSettings((prev) => {
+      const merged = sanitizeChampionSettings({ ...prev, ...next });
+      try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(merged));
+      } catch {
+        // ignore
+      }
+      return merged;
+    });
+  }, []);
+
+  const fallbackRestore = useCallback(() => {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(DEFAULT_SETTINGS));
+    } catch {
+      // ignore
+    }
+    setFallbackSettings(DEFAULT_SETTINGS);
+  }, []);
+
+  if (context) return context;
+
+  return {
+    settings: fallbackSettings,
+    updateSettings: fallbackUpdate,
+    resetPosition: () => {},
+    restoreDefaults: fallbackRestore,
+    stats: fallbackStats,
+    mode: 'passive',
+  };
 }
 
 function ChampionOverlay({
