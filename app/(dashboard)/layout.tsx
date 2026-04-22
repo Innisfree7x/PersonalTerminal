@@ -76,12 +76,12 @@ function isChampionDisabled(pathname: string): boolean {
 
 function DashboardRuntimeProviders({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const disableLucianBubble = pathname === '/focus';
+  const enableLucianBubble = pathname === '/today' || pathname.startsWith('/today/');
   const disableChampion = isChampionDisabled(pathname);
 
-  const bubbleWrapped = disableLucianBubble ? children : (
+  const bubbleWrapped = enableLucianBubble ? (
     <LucianBubbleProvider>{children}</LucianBubbleProvider>
-  );
+  ) : children;
 
   if (disableChampion) {
     return <>{bubbleWrapped}</>;
