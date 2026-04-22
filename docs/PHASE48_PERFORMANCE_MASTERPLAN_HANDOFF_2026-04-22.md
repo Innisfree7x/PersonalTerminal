@@ -1,8 +1,9 @@
 # Phase 48 — Performance Masterplan Handoff (Claude)
 
-Stand: 2026-04-22 (Late-Night-Update)
-Status: A1, A2, B, C abgeschlossen und auf `main` gemerged.
-Nur **Phase D (Server-first Kernpfad)** offen, siehe Abschnitt D.
+Stand: 2026-04-23
+Status: A1, A2, B, C sowie D1 (`/workspace/tasks`) und D2 (`/uni/courses`)
+abgeschlossen und auf `main` gemerged.
+Offen: **D3 (`/today` server-first)** — siehe Abschnitt D.
 
 ## Ziel
 
