@@ -7,36 +7,12 @@ vi.mock('@/components/features/dashboard/FocusTasks', () => ({
   default: () => <div>Focus Tasks Mock</div>,
 }));
 
-vi.mock('@/components/features/dashboard/NBAHeroZone', () => ({
-  default: () => <div>NBA Hero Zone Mock</div>,
-}));
-
-vi.mock('@/components/features/dashboard/DashboardStats', () => ({
-  default: () => <div>Stats Mock</div>,
-}));
-
-vi.mock('@/components/features/dashboard/NextBestActionWidget', () => ({
-  default: () => <div>Next Best Action Mock</div>,
-}));
-
-vi.mock('@/components/features/dashboard/QuickActionsWidget', () => ({
-  default: () => <div>Quick Actions Mock</div>,
-}));
-
 vi.mock('@/components/features/dashboard/StudyProgress', () => ({
   default: () => <div>Study Progress Mock</div>,
 }));
 
-vi.mock('@/components/features/dashboard/UpcomingDeadlines', () => ({
-  default: () => <div>Deadlines Mock</div>,
-}));
-
-vi.mock('@/components/features/dashboard/WeekOverview', () => ({
-  default: () => <div>Week Overview Mock</div>,
-}));
-
-vi.mock('@/components/features/dashboard/PomodoroTimer', () => ({
-  default: () => <div>Pomodoro Mock</div>,
+vi.mock('@/components/features/today/AmbientRoomPanel', () => ({
+  default: () => <div>Ambient Room Mock</div>,
 }));
 
 vi.mock('@/app/actions/calendar', () => ({
@@ -96,14 +72,15 @@ describe('Dashboard Integration', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Kein aktives Trajectory-Ziel.')).toBeInTheDocument();
+      expect(screen.getByTestId('trajectory-hero-empty')).toBeInTheDocument();
+      expect(screen.getByText('Kein aktives Trajectory-Ziel')).toBeInTheDocument();
       expect(screen.getByRole('link', { name: /Einrichten/i })).toHaveAttribute(
         'href',
-        '/trajectory?source=morning_briefing'
+        '/trajectory'
       );
       expect(screen.getByText('Focus Tasks Mock')).toBeInTheDocument();
-      expect(screen.getByText('NBA Hero Zone Mock')).toBeInTheDocument();
       expect(screen.getByText('Study Progress Mock')).toBeInTheDocument();
+      expect(screen.getByText('Ambient Room Mock')).toBeInTheDocument();
       expect(screen.getByText('Streak')).toBeInTheDocument();
     });
   });
