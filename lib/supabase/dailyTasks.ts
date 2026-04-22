@@ -34,6 +34,27 @@ function toDailyTaskRecord(task: DailyTaskRow): DailyTaskRecord {
   };
 }
 
+export async function getDailyTasksByDate(
+  userId: string,
+  date: string
+): Promise<DailyTaskRecord[]> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from('daily_tasks')
+    .select('id, date, title, completed, source, source_id, time_estimate, created_at')
+    .eq('user_id', userId)
+    .eq('date', date)
+    .order('completed', { ascending: true })
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to fetch daily tasks: ${error.message}`);
+  }
+
+  return (data ?? []).map((row) => toDailyTaskRecord(row as DailyTaskRow));
+}
+
 export async function createDailyTask(
   userId: string,
   data: CreateDailyTaskInput
