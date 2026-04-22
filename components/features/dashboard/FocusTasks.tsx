@@ -14,6 +14,11 @@ import { subscribePingAction, type PingAction } from '@/lib/hotkeys/ping';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 import toast from 'react-hot-toast';
 import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
+import {
+  DASHBOARD_NEXT_TASKS_QUERY_KEY,
+  DASHBOARD_NEXT_TASKS_QUERY_PREFIX,
+  fetchDashboardNextTasks,
+} from '@/lib/dashboard/nextTasksClient';
 
 interface DailyTask {
   id: string;
@@ -103,12 +108,8 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
   });
 
   const { data: fetchedNextTasksData } = useQuery({
-    queryKey: ['dashboard', 'next-tasks'],
-    queryFn: async () => {
-      const response = await fetch('/api/dashboard/next-tasks');
-      if (!response.ok) throw new Error('Failed to fetch next tasks');
-      return response.json();
-    },
+    queryKey: DASHBOARD_NEXT_TASKS_QUERY_KEY,
+    queryFn: fetchDashboardNextTasks,
     enabled: !prefetchedNextTasksData,
     staleTime: 2 * 60 * 1000,
   });
@@ -149,7 +150,7 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
       setNewTaskTime('');
       setShowAddInput(false);
       queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_NEXT_TASKS_QUERY_PREFIX });
     },
     onError: (_error, _variables, context) => {
       if (context?.previousDailyTasks) {
@@ -171,7 +172,7 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
         play('click');
       }
       queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_NEXT_TASKS_QUERY_PREFIX });
     },
     onError: (_error, variables) => {
       setHiddenIds((prev) => {
@@ -190,7 +191,7 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
     onSuccess: () => {
       play('task-completed');
       dispatchChampionEvent({ type: 'EXERCISE_COMPLETED' });
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_NEXT_TASKS_QUERY_PREFIX });
       queryClient.invalidateQueries({ queryKey: ['courses'] });
     },
     onError: (_error, variables) => {
@@ -389,7 +390,7 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
             await deleteDailyTaskAction(focusedTask.id);
             setHiddenIds((prev) => new Set(prev).add(focusedTask.id));
             queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
-            queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
+            queryClient.invalidateQueries({ queryKey: DASHBOARD_NEXT_TASKS_QUERY_PREFIX });
             toast.success('Ping: snoozed to tomorrow');
           } catch {
             play('error');

@@ -45,15 +45,42 @@ function HeaderClock({ language }: { language: 'de' | 'en' }) {
   );
 }
 
+function FocusTimerButton() {
+  const { status: timerStatus, sessionType } = useFocusTimerSession();
+  const { timeLeft: timerTimeLeft } = useFocusTimerClock();
+  const { setIsExpanded: setTimerExpanded } = useFocusTimerActions();
+
+  if (timerStatus === 'idle') return null;
+
+  return (
+    <motion.button
+      className={`flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-mono font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+        sessionType === 'break'
+          ? 'bg-success/10 border-success/30 text-success'
+          : 'bg-primary/10 border-primary/30 text-primary'
+      }`}
+      onClick={() => setTimerExpanded(true)}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+    >
+      <motion.div
+        className={`w-1.5 h-1.5 rounded-full ${sessionType === 'break' ? 'bg-success' : 'bg-primary'}`}
+        animate={timerStatus === 'running' || timerStatus === 'break' ? { opacity: [1, 0.3, 1] } : {}}
+        transition={{ duration: 1.5, repeat: Infinity }}
+      />
+      {`${Math.floor(timerTimeLeft / 60).toString().padStart(2, '0')}:${(timerTimeLeft % 60).toString().padStart(2, '0')}`}
+    </motion.button>
+  );
+}
+
 export default function Header() {
   const pathname = usePathname();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const notificationsRef = useRef<HTMLDivElement | null>(null);
   const { open: openCommandPalette } = useCommandPalette();
   const { copy, language } = useAppLanguage();
-  const { status: timerStatus, sessionType } = useFocusTimerSession();
-  const { timeLeft: timerTimeLeft } = useFocusTimerClock();
-  const { setIsExpanded: setTimerExpanded } = useFocusTimerActions();
   
   const { data: stats } = useQuery({
     queryKey: ['dashboard', 'stats'],
@@ -152,27 +179,7 @@ export default function Header() {
           </motion.button>
 
           {/* Timer Indicator */}
-          {timerStatus !== 'idle' && (
-            <motion.button
-              className={`flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-mono font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-                sessionType === 'break'
-                  ? 'bg-success/10 border-success/30 text-success'
-                  : 'bg-primary/10 border-primary/30 text-primary'
-              }`}
-              onClick={() => setTimerExpanded(true)}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <motion.div
-                className={`w-1.5 h-1.5 rounded-full ${sessionType === 'break' ? 'bg-success' : 'bg-primary'}`}
-                animate={timerStatus === 'running' || timerStatus === 'break' ? { opacity: [1, 0.3, 1] } : {}}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              />
-              {`${Math.floor(timerTimeLeft / 60).toString().padStart(2, '0')}:${(timerTimeLeft % 60).toString().padStart(2, '0')}`}
-            </motion.button>
-          )}
+          <FocusTimerButton />
 
           {/* Quick Add Button */}
           <motion.button

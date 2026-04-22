@@ -20,7 +20,10 @@ import { useSidebar } from './SidebarProvider';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { isAdminUser } from '@/lib/auth/authorization';
 import { fetchCoursesAction } from '@/app/actions/university';
-import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
+import {
+  DASHBOARD_NEXT_TASKS_QUERY_KEY,
+  fetchDashboardNextTasks,
+} from '@/lib/dashboard/nextTasksClient';
 import { BrandLockup, BrandMark } from '@/components/shared/BrandLogo';
 import { useAppLanguage } from '@/components/providers/LanguageProvider';
 
@@ -100,11 +103,7 @@ export default function Sidebar() {
       if (href === '/today') {
         const today = new Date().toISOString().split('T')[0] ?? '';
 
-        prefetchIfStale(['dashboard', 'next-tasks', 'today-bundle'], 2 * 60 * 1000, async () => {
-          const response = await fetch('/api/dashboard/next-tasks?include=trajectory_morning,week_events');
-          if (!response.ok) throw new Error('Failed to fetch next tasks');
-          return (await response.json()) as DashboardNextTasksResponse;
-        });
+        prefetchIfStale(DASHBOARD_NEXT_TASKS_QUERY_KEY, 2 * 60 * 1000, fetchDashboardNextTasks);
 
         prefetchIfStale(['daily-tasks', today], 2 * 60 * 1000, async () => {
           const response = await fetch(`/api/daily-tasks?date=${today}`);

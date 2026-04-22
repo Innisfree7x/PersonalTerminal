@@ -12,6 +12,7 @@ import { DecisionSurfaceCard } from '@/components/ui/DecisionSurfaceCard';
 import { cn } from '@/lib/utils';
 import { buildStrategyCommitReadiness } from '@/lib/strategy/readiness';
 import { computeStrategyOptionScoreWithMode, scoreStrategyOptions, type StrategyScoreMode } from '@/lib/strategy/scoring';
+import { DASHBOARD_NEXT_TASKS_QUERY_PREFIX } from '@/lib/dashboard/nextTasksClient';
 
 type StrategyDecisionStatus = 'draft' | 'committed' | 'archived';
 
@@ -678,7 +679,7 @@ export default function StrategyPage() {
       setCommitNote('');
       void queryClient.invalidateQueries({ queryKey: ['strategy', 'decisions'] });
       void queryClient.invalidateQueries({ queryKey: ['daily-tasks'] });
-      void queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks'] });
+      void queryClient.invalidateQueries({ queryKey: DASHBOARD_NEXT_TASKS_QUERY_PREFIX });
     },
     onError: (error: Error) => soundToast.error(error.message),
   });

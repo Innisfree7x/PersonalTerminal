@@ -13,8 +13,9 @@ type ExerciseProgressInsert = Database['public']['Tables']['exercise_progress'][
 type IliasFavoriteRow = Database['public']['Tables']['kit_ilias_favorites']['Row'];
 type ExistingCourseImportRow = Pick<
   SupabaseCourse,
-  'id' | 'name' | 'semester' | 'ects' | 'num_exercises' | 'exam_date' | 'expected_grade' | 'created_at'
+  'id' | 'name' | 'semester' | 'ects' | 'num_exercises' | 'exam_date' | 'created_at'
 > & {
+  expected_grade?: number | null;
   exercise_progress: Pick<
     SupabaseExerciseProgress,
     'id' | 'exercise_number' | 'completed' | 'completed_at' | 'created_at'
@@ -200,14 +201,46 @@ async function deleteCoursesAndExercises(userId: string, courseIds: string[]) {
   }
 }
 
+async function loadExistingCoursesForIliasImport(
+  userId: string
+): Promise<ExistingCourseImportRow[]> {
+  const supabase = createClient();
+
+  // Primary query: includes expected_grade when the column exists.
+  const primary = await supabase
+    .from('courses')
+    .select('id, name, semester, ects, num_exercises, exam_date, expected_grade, created_at, exercise_progress(id, exercise_number, completed, completed_at, created_at)')
+    .eq('user_id', userId);
+
+  if (!primary.error) {
+    return (primary.data ?? []) as ExistingCourseImportRow[];
+  }
+
+  // Backward-compatible fallback for environments where expected_grade is not yet present.
+  if (!primary.error.message.toLowerCase().includes('expected_grade')) {
+    throw new Error(`Failed to inspect existing courses: ${primary.error.message}`);
+  }
+
+  const fallback = await supabase
+    .from('courses')
+    .select('id, name, semester, ects, num_exercises, exam_date, created_at, exercise_progress(id, exercise_number, completed, completed_at, created_at)')
+    .eq('user_id', userId);
+
+  if (fallback.error) {
+    throw new Error(`Failed to inspect existing courses: ${fallback.error.message}`);
+  }
+
+  return (fallback.data ?? []).map((course) => ({
+    ...course,
+    expected_grade: null,
+  })) as ExistingCourseImportRow[];
+}
+
 async function ensureCoursesFromIliasFavorites(userId: string): Promise<void> {
   const supabase = createClient();
 
-  const [existingCoursesResult, favoritesResult] = await Promise.all([
-    supabase
-      .from('courses')
-      .select('id, name, semester, ects, num_exercises, exam_date, expected_grade, created_at, exercise_progress(id, exercise_number, completed, completed_at, created_at)')
-      .eq('user_id', userId),
+  const [existingCourses, favoritesResult] = await Promise.all([
+    loadExistingCoursesForIliasImport(userId),
     supabase
       .from('kit_ilias_favorites')
       .select('id, title, semester_label')
@@ -215,14 +248,10 @@ async function ensureCoursesFromIliasFavorites(userId: string): Promise<void> {
       .order('updated_at', { ascending: false }),
   ]);
 
-  if (existingCoursesResult.error) {
-    throw new Error(`Failed to inspect existing courses: ${existingCoursesResult.error.message}`);
-  }
   if (favoritesResult.error) {
     throw new Error(`Failed to inspect ILIAS favorites: ${favoritesResult.error.message}`);
   }
 
-  const existingCourses = (existingCoursesResult.data ?? []) as ExistingCourseImportRow[];
   const favorites = favoritesResult.data ?? [];
   const unmatchedFavoriteTitles = new Set<string>();
   const matchedCoursesBySlug = new Map<string, ExistingCourseImportRow[]>();

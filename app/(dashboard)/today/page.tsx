@@ -17,6 +17,10 @@ import { useRoomItems } from '@/lib/hooks/useRoomItems';
 import { useLucianOutfit } from '@/lib/hooks/useLucianOutfit';
 import { useAchievements } from '@/lib/hooks/useAchievements';
 import { useRoomStyle } from '@/lib/hooks/useRoomStyle';
+import {
+  DASHBOARD_NEXT_TASKS_QUERY_KEY,
+  fetchDashboardNextTasks,
+} from '@/lib/dashboard/nextTasksClient';
 import { checkNewAchievements } from '@/lib/achievements/checker';
 import type { AchievementCheckInput } from '@/lib/achievements/registry';
 import { getLinesForMood } from '@/lib/lucian/copy';
@@ -68,12 +72,8 @@ export default function TodayPage() {
   }, [play]);
 
   const { data: nextTasksData, isFetched: isNextTasksFetched, isLoading, isError, error } = useQuery<DashboardNextTasksResponse>({
-    queryKey: ['dashboard', 'next-tasks', 'today-bundle'],
-    queryFn: async () => {
-      const response = await fetch('/api/dashboard/next-tasks?include=trajectory_morning,week_events');
-      if (!response.ok) throw new Error('Failed to fetch next tasks');
-      return response.json();
-    },
+    queryKey: DASHBOARD_NEXT_TASKS_QUERY_KEY,
+    queryFn: fetchDashboardNextTasks,
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -202,7 +202,7 @@ export default function TodayPage() {
               </p>
             </div>
             <button
-              onClick={() => queryClient.invalidateQueries({ queryKey: ['dashboard', 'next-tasks', 'today-bundle'] })}
+              onClick={() => queryClient.invalidateQueries({ queryKey: DASHBOARD_NEXT_TASKS_QUERY_KEY })}
               className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-secondary hover:bg-surface-hover transition-colors"
             >
               <RefreshCw className="h-3.5 w-3.5" />
