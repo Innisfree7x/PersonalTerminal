@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { renderWithProviders, screen, waitFor } from '@/tests/utils/test-utils';
-import TodayPage from '@/app/(dashboard)/today/TodayClient';
+import TodayPage from '@/app/(dashboard)/today/page';
 import { SoundProvider } from '@/components/providers/SoundProvider';
 
 vi.mock('@/components/features/dashboard/FocusTasks', () => ({
@@ -67,7 +67,7 @@ describe('Dashboard Integration', () => {
   test('renders dashboard widgets', async () => {
     renderWithProviders(
       <SoundProvider>
-        <TodayPage initialNextTasksData={null} />
+        <TodayPage />
       </SoundProvider>
     );
 
@@ -88,7 +88,7 @@ describe('Dashboard Integration', () => {
   test('loads next-tasks data from API', async () => {
     renderWithProviders(
       <SoundProvider>
-        <TodayPage initialNextTasksData={null} />
+        <TodayPage />
       </SoundProvider>
     );
 
