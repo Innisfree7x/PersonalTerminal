@@ -3,7 +3,12 @@
 Stand: 2026-04-23
 Status: A1, A2, B, C sowie D1 (`/workspace/tasks`) und D2 (`/uni/courses`)
 abgeschlossen und auf `main` gemerged.
-Offen: **D3 (`/today` server-first)** — siehe Abschnitt D.
+D3 (`/today` server-first) wurde umgesetzt und anschließend reverted:
+blockierender `getDashboardNextTasks` im Server Component sprengte das
+E2E Blocker SLO `user can open /today within p95 budget`
+(`domContentLoadedEventEnd` > 2000 ms in CI). `/today` bleibt
+Client-fetched. Neuer Versuch nur mit Plan, der TTFB nicht regressen
+lässt — siehe Abschnitt D.
 
 ## Ziel
 
