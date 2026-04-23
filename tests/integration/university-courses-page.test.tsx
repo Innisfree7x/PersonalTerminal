@@ -84,7 +84,7 @@ vi.mock('@/components/ui/AnimatedCounter', () => ({
   default: ({ to, suffix = '' }: { to: number; suffix?: string }) => <span>{`${to}${suffix}`}</span>,
 }));
 
-import UniversityPage from '@/app/(dashboard)/uni/courses/page';
+import UniversityPage from '@/app/(dashboard)/uni/courses/CoursesClient';
 
 describe('/uni/courses integration', () => {
   beforeEach(() => {
@@ -93,7 +93,7 @@ describe('/uni/courses integration', () => {
   });
 
   test('stays focused on the local course hub instead of rendering KIT semester modules', async () => {
-    renderWithProviders(<UniversityPage />);
+    renderWithProviders(<UniversityPage initialCourses={[]} />);
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Dein KIT-Hub' })).toBeInTheDocument();
