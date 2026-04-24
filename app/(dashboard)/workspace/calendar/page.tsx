@@ -8,6 +8,10 @@ import MonthlyGrid from '@/components/features/calendar/MonthlyGrid';
 import DayTimeline from '@/components/features/calendar/DayTimeline';
 import AddEventModal from '@/components/features/calendar/AddEventModal';
 import { Button } from '@/components/ui/Button';
+import {
+  applyCalendarEntryToCachedQueries,
+  removeManualCalendarEntryFromCachedQueries,
+} from '@/lib/calendar/calendarQueryCache';
 import type { CalendarEntry, CalendarEntryKind } from '@/lib/supabase/calendarEntries';
 
 type CalendarView = 'week' | 'month' | 'day';
@@ -167,11 +171,6 @@ export default function CalendarPage() {
     staleTime: 30_000,
   });
 
-  const invalidate = useCallback(
-    () => queryClient.invalidateQueries({ queryKey: ['calendar-entries'] }),
-    [queryClient]
-  );
-
   const createMutation = useMutation({
     mutationFn: async (body: CreateEntryBody) => {
       const res = await fetch('/api/calendar/entries', {
@@ -185,7 +184,7 @@ export default function CalendarPage() {
       }
       return (await res.json()) as CalendarEntry;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: (entry) => applyCalendarEntryToCachedQueries(queryClient, entry),
   });
 
   const updateMutation = useMutation({
@@ -201,7 +200,7 @@ export default function CalendarPage() {
       }
       return (await res.json()) as CalendarEntry;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: (entry) => applyCalendarEntryToCachedQueries(queryClient, entry),
   });
 
   const deleteMutation = useMutation({
@@ -212,7 +211,7 @@ export default function CalendarPage() {
         throw new Error(err?.error?.message ?? 'Löschen fehlgeschlagen');
       }
     },
-    onSuccess: () => invalidate(),
+    onSuccess: (_, id) => removeManualCalendarEntryFromCachedQueries(queryClient, id),
   });
 
   const entries = entriesQuery.data ?? [];
