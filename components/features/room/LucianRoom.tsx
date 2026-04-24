@@ -1,6 +1,7 @@
 'use client';
 
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { useAnimationSuspended } from '@/lib/hooks/usePageVisibility';
 import type { RoomState, ActiveRoomItems } from '@/lib/room/roomState';
 import type { LucianOutfit } from '@/lib/lucian/outfits';
 import { ROOM_STYLES, type RoomStyle, type RoomStyleDef } from '@/lib/hooks/useRoomStyle';
@@ -36,7 +37,7 @@ function WindowLayer({
   glow: RoomState['windowGlow'];
   theme: RoomStyleDef;
 }) {
-  const reduced = useReducedMotion();
+  const reduced = useAnimationSuspended();
   const [c1, c2] = WINDOW_GRADIENTS[glow];
   const showStars = glow === 'night' || glow === 'dawn';
 
@@ -111,7 +112,7 @@ function ShelfLayer({ bookCount, theme }: { bookCount: number; theme: RoomStyleD
 }
 
 function DeskLayer({ theme }: { theme: RoomStyleDef }) {
-  const reduced = useReducedMotion();
+  const reduced = useAnimationSuspended();
 
   return (
     <g>
@@ -184,7 +185,7 @@ function DeskLayer({ theme }: { theme: RoomStyleDef }) {
 }
 
 function PlantLayer({ stage, theme }: { stage: RoomState['plantStage']; theme: RoomStyleDef }) {
-  const reduced = useReducedMotion();
+  const reduced = useAnimationSuspended();
   const shouldAnimate = !reduced && stage > 0;
 
   const inner = (
@@ -231,7 +232,7 @@ function PlantLayer({ stage, theme }: { stage: RoomState['plantStage']; theme: R
 }
 
 function StyleAccentLayer({ roomStyle, theme }: { roomStyle: RoomStyle; theme: RoomStyleDef }) {
-  const reduced = useReducedMotion();
+  const reduced = useAnimationSuspended();
 
   return (
     <>
@@ -363,7 +364,7 @@ export default function LucianRoom({
   lucianOutfit,
   roomItems,
 }: LucianRoomProps) {
-  const reduced = useReducedMotion();
+  const reduced = useAnimationSuspended();
   const theme = ROOM_STYLES[roomStyle];
   const effectiveBookCount = roomItems?.hasFullBookshelf ? 5 : state.bookCount;
   const effectivePlantStage = roomItems?.hasDeskPlantLarge ? 3 : state.plantStage;

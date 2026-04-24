@@ -10,7 +10,8 @@ import {
   useState,
 } from 'react';
 import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { usePageVisibility } from '@/lib/hooks/usePageVisibility';
 import { isTypingTarget } from '@/lib/hotkeys/guards';
 import { dispatchChampionEvent, subscribeChampionEvent, type ChampionEvent } from '@/lib/champion/championEvents';
 import { CHAMPION_CONFIG } from '@/lib/champion/config';
@@ -296,6 +297,10 @@ function ChampionOverlay({
   rangeActive: boolean;
   onChampionClick: () => void;
 }) {
+  const reducedMotion = useReducedMotion();
+  const isVisible = usePageVisibility();
+  const shouldAnimate = !reducedMotion && isVisible;
+
   if (!enabled) return null;
 
   const championSize = SCALE_TO_SIZE[settings.renderScale];
@@ -454,19 +459,26 @@ function ChampionOverlay({
         {/* Ambient aura — pulses and shifts colour with animation state */}
         <motion.div
           className="pointer-events-none absolute inset-0 rounded-full"
-          animate={{
-            opacity: [
-              0.48 * presetProfile.auraOpacityMultiplier,
-              0.78 * presetProfile.auraOpacityMultiplier,
-              0.48 * presetProfile.auraOpacityMultiplier,
-            ],
-            scale: [
-              1.28 * presetProfile.auraScaleMultiplier,
-              1.46 * presetProfile.auraScaleMultiplier,
-              1.28 * presetProfile.auraScaleMultiplier,
-            ],
-          }}
-          transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+          animate={
+            shouldAnimate
+              ? {
+                  opacity: [
+                    0.48 * presetProfile.auraOpacityMultiplier,
+                    0.78 * presetProfile.auraOpacityMultiplier,
+                    0.48 * presetProfile.auraOpacityMultiplier,
+                  ],
+                  scale: [
+                    1.28 * presetProfile.auraScaleMultiplier,
+                    1.46 * presetProfile.auraScaleMultiplier,
+                    1.28 * presetProfile.auraScaleMultiplier,
+                  ],
+                }
+              : {
+                  opacity: 0.48 * presetProfile.auraOpacityMultiplier,
+                  scale: 1.28 * presetProfile.auraScaleMultiplier,
+                }
+          }
+          transition={{ duration: 2.8, repeat: shouldAnimate ? Infinity : 0, ease: 'easeInOut' }}
           style={{ backgroundColor: auraColor, filter: 'blur(24px)' }}
         />
 
@@ -474,19 +486,26 @@ function ChampionOverlay({
         {presetProfile.showSecondaryHalo && (
           <motion.div
             className="pointer-events-none absolute inset-0 rounded-full"
-            animate={{
-              opacity: [
-                0.18 * presetProfile.auraOpacityMultiplier,
-                0.32 * presetProfile.auraOpacityMultiplier,
-                0.18 * presetProfile.auraOpacityMultiplier,
-              ],
-              scale: [
-                1.55 * presetProfile.auraScaleMultiplier,
-                1.7 * presetProfile.auraScaleMultiplier,
-                1.55 * presetProfile.auraScaleMultiplier,
-              ],
-            }}
-            transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }}
+            animate={
+              shouldAnimate
+                ? {
+                    opacity: [
+                      0.18 * presetProfile.auraOpacityMultiplier,
+                      0.32 * presetProfile.auraOpacityMultiplier,
+                      0.18 * presetProfile.auraOpacityMultiplier,
+                    ],
+                    scale: [
+                      1.55 * presetProfile.auraScaleMultiplier,
+                      1.7 * presetProfile.auraScaleMultiplier,
+                      1.55 * presetProfile.auraScaleMultiplier,
+                    ],
+                  }
+                : {
+                    opacity: 0.18 * presetProfile.auraOpacityMultiplier,
+                    scale: 1.55 * presetProfile.auraScaleMultiplier,
+                  }
+            }
+            transition={{ duration: 3.4, repeat: shouldAnimate ? Infinity : 0, ease: 'easeInOut', delay: 0.6 }}
             style={{ backgroundColor: auraColor, filter: 'blur(38px)' }}
           />
         )}
@@ -525,14 +544,18 @@ function ChampionOverlay({
         <motion.div
           className="relative rounded-full border border-white/[0.07] bg-[#060912]/85"
           style={spriteStyle}
-          animate={{
-            y: isWalking ? [0, -3, 0, -1.5, 0] : [0, -3.5, 0],
-            scale: isCasting ? [1, 1.05, 1] : 1,
-            rotate: isWalking ? 0 : [0, 0.5, 0, -0.5, 0],
-          }}
+          animate={
+            shouldAnimate
+              ? {
+                  y: isWalking ? [0, -3, 0, -1.5, 0] : [0, -3.5, 0],
+                  scale: isCasting ? [1, 1.05, 1] : 1,
+                  rotate: isWalking ? 0 : [0, 0.5, 0, -0.5, 0],
+                }
+              : { y: 0, scale: 1, rotate: 0 }
+          }
           transition={{
             duration: isWalking ? 0.42 : 2.6,
-            repeat: Infinity,
+            repeat: shouldAnimate ? Infinity : 0,
             ease: 'easeInOut',
           }}
         >
@@ -548,8 +571,12 @@ function ChampionOverlay({
           {mode === 'active' && !rangeActive && (
             <motion.div
               className="absolute rounded-full border"
-              animate={{ opacity: [0.18, 0.32, 0.18], scale: [0.96, 1.01, 0.96] }}
-              transition={{ duration: 1.4, repeat: Infinity }}
+              animate={
+                shouldAnimate
+                  ? { opacity: [0.18, 0.32, 0.18], scale: [0.96, 1.01, 0.96] }
+                  : { opacity: 0.18, scale: 0.96 }
+              }
+              transition={{ duration: 1.4, repeat: shouldAnimate ? Infinity : 0 }}
               style={{
                 borderColor: hexToRgba(abilityColors.q, 0.38),
                 backgroundColor: hexToRgba(abilityColors.q, 0.05),

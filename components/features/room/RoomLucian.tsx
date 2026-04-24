@@ -1,6 +1,7 @@
 'use client';
 
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { useAnimationSuspended } from '@/lib/hooks/usePageVisibility';
 import { LucianSpriteAnimator, type LucianAnimation } from
   '@/components/features/lucian/LucianSpriteAnimator';
 import type { RoomState } from '@/lib/room/roomState';
@@ -20,9 +21,9 @@ const POSE_TO_ANIMATION: Record<RoomState['lucianPose'], LucianAnimation> = {
 };
 
 export default function RoomLucian({ pose, size = 80, outfit }: RoomLucianProps) {
-  const prefersReduced = useReducedMotion();
+  const animationsSuspended = useAnimationSuspended();
   const animation = POSE_TO_ANIMATION[pose];
-  const shouldBob = !prefersReduced && (pose === 'idle' || pose === 'working');
+  const shouldBob = !animationsSuspended && (pose === 'idle' || pose === 'working');
 
   const sprite = <LucianSpriteAnimator animation={animation} size={size} outfit={outfit} />;
 

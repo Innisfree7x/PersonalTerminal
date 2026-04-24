@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useReducedMotion } from 'framer-motion';
+import { useAnimationSuspended } from '@/lib/hooks/usePageVisibility';
 import { OUTFITS, type LucianOutfit } from '@/lib/lucian/outfits';
 
 export type LucianAnimation = 'idle' | 'walk' | 'victory' | 'panic' | 'meditate';
@@ -48,7 +48,7 @@ function frameDuration(animation: LucianAnimation): number {
 
 export function LucianSpriteAnimator({ animation, size = DEFAULT_SIZE, outfit }: LucianSpriteAnimatorProps) {
   const [frame, setFrame] = useState(0);
-  const prefersReducedMotion = useReducedMotion();
+  const animationsSuspended = useAnimationSuspended();
   const [sheetPath, setSheetPath] = useState(SPRITE_SHEET_PATH);
 
   useEffect(() => {
@@ -79,7 +79,7 @@ export function LucianSpriteAnimator({ animation, size = DEFAULT_SIZE, outfit }:
   useEffect(() => {
     const count = frameCount(animation);
     setFrame(0);
-    if (prefersReducedMotion) return;
+    if (animationsSuspended) return;
 
     const duration = frameDuration(animation);
     const interval = setInterval(() => {
@@ -87,7 +87,7 @@ export function LucianSpriteAnimator({ animation, size = DEFAULT_SIZE, outfit }:
     }, duration);
 
     return () => clearInterval(interval);
-  }, [animation, prefersReducedMotion]);
+  }, [animation, animationsSuspended]);
 
   const row = animationRow(animation);
 
