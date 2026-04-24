@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Check, Trash2, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -50,6 +49,14 @@ function isToday(dateStr: string): boolean {
   return dateStr === toDateString(new Date());
 }
 
+function getTasksQueryKey(date: string) {
+  return ['daily-tasks', date] as const;
+}
+
+function compareTasksByCreatedAt(a: DailyTask, b: DailyTask): number {
+  return a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id);
+}
+
 const sourceConfig: Record<string, { label: string; color: string }> = {
   manual: { label: 'Manuell', color: 'default' },
   goal: { label: 'Ziel', color: 'primary' },
@@ -66,7 +73,7 @@ export default function TasksClient({ initialDate, initialTasks }: TasksClientPr
   const [newTaskEstimate, setNewTaskEstimate] = useState('');
 
   const { data: tasks = [], isLoading } = useQuery<DailyTask[]>({
-    queryKey: ['daily-tasks', selectedDate],
+    queryKey: getTasksQueryKey(selectedDate),
     queryFn: async () => {
       const res = await fetch(`/api/daily-tasks?date=${selectedDate}`);
       if (!res.ok) throw new Error('Failed to fetch tasks');
@@ -83,8 +90,10 @@ export default function TasksClient({ initialDate, initialTasks }: TasksClientPr
         source: 'manual',
         ...(data.timeEstimate ? { timeEstimate: data.timeEstimate } : {}),
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['daily-tasks', selectedDate] });
+    onSuccess: (createdTask) => {
+      queryClient.setQueryData<DailyTask[]>(getTasksQueryKey(createdTask.date), (old) =>
+        old ? [...old, createdTask] : [createdTask]
+      );
       setNewTaskTitle('');
       setNewTaskEstimate('');
       playSound?.('click');
@@ -96,45 +105,53 @@ export default function TasksClient({ initialDate, initialTasks }: TasksClientPr
     mutationFn: ({ id, completed }: { id: string; completed: boolean }) =>
       updateDailyTaskAction(id, { completed }),
     onMutate: async ({ id, completed }) => {
-      await queryClient.cancelQueries({ queryKey: ['daily-tasks', selectedDate] });
-      const prev = queryClient.getQueryData<DailyTask[]>(['daily-tasks', selectedDate]);
-      queryClient.setQueryData<DailyTask[]>(['daily-tasks', selectedDate], (old) =>
+      const queryKey = getTasksQueryKey(selectedDate);
+      await queryClient.cancelQueries({ queryKey });
+      const prev = queryClient.getQueryData<DailyTask[]>(queryKey);
+      queryClient.setQueryData<DailyTask[]>(queryKey, (old) =>
         old?.map((t) => (t.id === id ? { ...t, completed } : t))
       );
       if (completed) playSound?.('task-completed');
-      return { prev };
+      return { prev, queryKey };
+    },
+    onSuccess: (updatedTask, _vars, ctx) => {
+      queryClient.setQueryData<DailyTask[]>(
+        ctx?.queryKey ?? getTasksQueryKey(updatedTask.date),
+        (old) => old?.map((task) => (task.id === updatedTask.id ? updatedTask : task)) ?? old
+      );
     },
     onError: (_err, _vars, ctx) => {
-      if (ctx?.prev) queryClient.setQueryData(['daily-tasks', selectedDate], ctx.prev);
+      if (ctx?.prev) queryClient.setQueryData(ctx.queryKey, ctx.prev);
       toast.error('Update fehlgeschlagen');
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ['daily-tasks', selectedDate] }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteDailyTaskAction(id),
     onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: ['daily-tasks', selectedDate] });
-      const prev = queryClient.getQueryData<DailyTask[]>(['daily-tasks', selectedDate]);
-      queryClient.setQueryData<DailyTask[]>(['daily-tasks', selectedDate], (old) =>
+      const queryKey = getTasksQueryKey(selectedDate);
+      await queryClient.cancelQueries({ queryKey });
+      const prev = queryClient.getQueryData<DailyTask[]>(queryKey);
+      queryClient.setQueryData<DailyTask[]>(queryKey, (old) =>
         old?.filter((t) => t.id !== id)
       );
-      return { prev };
+      return { prev, queryKey };
     },
     onError: (_err, _id, ctx) => {
-      if (ctx?.prev) queryClient.setQueryData(['daily-tasks', selectedDate], ctx.prev);
+      if (ctx?.prev) queryClient.setQueryData(ctx.queryKey, ctx.prev);
       toast.error('Löschen fehlgeschlagen');
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ['daily-tasks', selectedDate] }),
   });
 
-  const shiftDate = (days: number) => {
-    const d = new Date(selectedDate + 'T12:00:00');
-    d.setDate(d.getDate() + days);
-    setSelectedDate(toDateString(d));
-  };
+  const shiftDate = useCallback((days: number) => {
+    setSelectedDate((currentDate) => {
+      const d = new Date(currentDate + 'T12:00:00');
+      d.setDate(d.getDate() + days);
+      return toDateString(d);
+    });
+  }, []);
 
-  const handleAddTask = () => {
+  const handleAddTask = useCallback(() => {
     const title = newTaskTitle.trim();
     if (!title) return;
     createMutation.mutate({
@@ -142,7 +159,19 @@ export default function TasksClient({ initialDate, initialTasks }: TasksClientPr
       date: selectedDate,
       ...(newTaskEstimate.trim() ? { timeEstimate: newTaskEstimate.trim() } : {}),
     });
-  };
+  }, [createMutation, newTaskEstimate, newTaskTitle, selectedDate]);
+
+  const handleToggleTask = useCallback((task: DailyTask) => {
+    toggleMutation.mutate({ id: task.id, completed: !task.completed });
+  }, [toggleMutation]);
+
+  const handleDeleteTask = useCallback((taskId: string) => {
+    deleteMutation.mutate(taskId);
+  }, [deleteMutation]);
+
+  const handleJumpToToday = useCallback(() => {
+    setSelectedDate(toDateString(new Date()));
+  }, []);
 
   const { pending, completed } = useMemo(() => {
     const p: DailyTask[] = [];
@@ -150,6 +179,8 @@ export default function TasksClient({ initialDate, initialTasks }: TasksClientPr
     for (const t of tasks) {
       (t.completed ? c : p).push(t);
     }
+    p.sort(compareTasksByCreatedAt);
+    c.sort(compareTasksByCreatedAt);
     return { pending: p, completed: c };
   }, [tasks]);
 
@@ -183,7 +214,7 @@ export default function TasksClient({ initialDate, initialTasks }: TasksClientPr
         </div>
 
         {!isToday(selectedDate) && (
-          <Button variant="secondary" size="sm" onClick={() => setSelectedDate(toDateString(new Date()))}>
+          <Button variant="secondary" size="sm" onClick={handleJumpToToday}>
             <Calendar className="mr-1.5 h-3.5 w-3.5" />
             Heute
           </Button>
@@ -274,17 +305,15 @@ export default function TasksClient({ initialDate, initialTasks }: TasksClientPr
       ) : (
         <div className="space-y-2">
           {/* Pending tasks */}
-          <AnimatePresence mode="popLayout">
-            {pending.map((task) => (
-              <TaskRow
-                key={task.id}
-                task={task}
-                onToggle={() => toggleMutation.mutate({ id: task.id, completed: true })}
-                onDelete={() => deleteMutation.mutate(task.id)}
-                language={language}
-              />
-            ))}
-          </AnimatePresence>
+          {pending.map((task) => (
+            <TaskRow
+              key={task.id}
+              task={task}
+              onToggleTask={handleToggleTask}
+              onDeleteTask={handleDeleteTask}
+              language={language}
+            />
+          ))}
 
           {/* Completed tasks */}
           {completed.length > 0 && (
@@ -296,17 +325,15 @@ export default function TasksClient({ initialDate, initialTasks }: TasksClientPr
                 </span>
                 <div className="h-px flex-1 bg-border/50" />
               </div>
-              <AnimatePresence mode="popLayout">
-                {completed.map((task) => (
-                  <TaskRow
-                    key={task.id}
-                    task={task}
-                    onToggle={() => toggleMutation.mutate({ id: task.id, completed: false })}
-                    onDelete={() => deleteMutation.mutate(task.id)}
-                    language={language}
-                  />
-                ))}
-              </AnimatePresence>
+              {completed.map((task) => (
+                <TaskRow
+                  key={task.id}
+                  task={task}
+                  onToggleTask={handleToggleTask}
+                  onDeleteTask={handleDeleteTask}
+                  language={language}
+                />
+              ))}
             </>
           )}
         </div>
@@ -315,30 +342,26 @@ export default function TasksClient({ initialDate, initialTasks }: TasksClientPr
   );
 }
 
-function TaskRow({
+const TaskRow = memo(function TaskRow({
   task,
-  onToggle,
-  onDelete,
+  onToggleTask,
+  onDeleteTask,
   language,
 }: {
   task: DailyTask;
-  onToggle: () => void;
-  onDelete: () => void;
+  onToggleTask: (task: DailyTask) => void;
+  onDeleteTask: (taskId: string) => void;
   language: string;
 }) {
   const src = task.source ? sourceConfig[task.source] : null;
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -20, transition: { duration: 0.15 } }}
-      className={`card-warm group flex items-center gap-3 rounded-xl p-5 transition-opacity ${
+    <div
+      className={`card-warm group flex items-center gap-3 rounded-xl p-5 transition-[opacity,transform] duration-150 hover:-translate-y-px ${
         task.completed ? 'opacity-60' : ''
       }`}
     >
-      <Checkbox checked={task.completed} onCheckedChange={onToggle} />
+      <Checkbox checked={task.completed} onCheckedChange={() => onToggleTask(task)} />
 
       <div className="min-w-0 flex-1">
         <p
@@ -367,12 +390,12 @@ function TaskRow({
       </div>
 
       <button
-        onClick={onDelete}
+        onClick={() => onDeleteTask(task.id)}
         className="rounded-md p-1.5 text-text-tertiary opacity-0 transition-all hover:bg-error/10 hover:text-error group-hover:opacity-100"
         aria-label={language === 'de' ? 'Aufgabe löschen' : 'Delete task'}
       >
         <Trash2 className="h-4 w-4" />
       </button>
-    </motion.div>
+    </div>
   );
-}
+});
