@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfDay, differenceInDays } from 'date-fns';
-import { LayoutGroup, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { usePathname, useRouter } from 'next/navigation';
 import type { CourseWithExercises, CreateCourseInput } from '@/lib/schemas/course.schema';
 import {
@@ -309,6 +309,11 @@ export default function UniversityPage({ initialCourses }: CoursesClientProps) {
     };
   }, [sortedCourses, today, todayTs]);
 
+  const openNewCourseModal = useCallback(() => {
+    setEditingCourse(null);
+    setIsModalOpen(true);
+  }, []);
+
   const handleSubmitCourse = (data: CreateCourseInput) => {
     if (editingCourse) {
       updateMutation.mutate({ id: editingCourse.id, data });
@@ -317,21 +322,25 @@ export default function UniversityPage({ initialCourses }: CoursesClientProps) {
     }
   };
 
-  const handleEditCourse = (course: CourseWithExercises) => {
+  const handleEditCourse = useCallback((course: CourseWithExercises) => {
     setEditingCourse(course);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleDeleteCourse = (courseId: string) => {
+  const handleOpenCourse = useCallback((course: CourseWithExercises) => {
+    handleEditCourse(course);
+  }, [handleEditCourse]);
+
+  const handleDeleteCourse = useCallback((courseId: string) => {
     if (confirm('Willst du diesen Kurs wirklich löschen? Der gesamte Übungsfortschritt geht dabei verloren.')) {
       deleteMutation.mutate(courseId);
     }
-  };
+  }, [deleteMutation]);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     setEditingCourse(null);
-  };
+  }, []);
 
   const { focusedId: focusedCourseId, setFocusedId: setFocusedCourseId } = useListNavigation<CourseWithExercises>({
     items: sortedCourses,
@@ -339,6 +348,10 @@ export default function UniversityPage({ initialCourses }: CoursesClientProps) {
     enabled: sortedCourses.length > 0 && !isModalOpen,
     onEnter: handleEditCourse,
   });
+
+  const handleCourseHover = useCallback((courseId: string) => {
+    setFocusedCourseId(courseId);
+  }, [setFocusedCourseId]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -350,8 +363,7 @@ export default function UniversityPage({ initialCourses }: CoursesClientProps) {
   }, [pathname, router]);
 
   usePrismCommandAction('open-new-course', () => {
-    setEditingCourse(null);
-    setIsModalOpen(true);
+    openNewCourseModal();
   });
 
   const renderContent = () => {
@@ -398,10 +410,7 @@ export default function UniversityPage({ initialCourses }: CoursesClientProps) {
         </div>
         <Button
           data-testid="add-course-button"
-          onClick={() => {
-            setEditingCourse(null);
-            setIsModalOpen(true);
-          }}
+          onClick={openNewCourseModal}
           variant="primary"
           className="shadow-glow"
         >
@@ -579,7 +588,6 @@ export default function UniversityPage({ initialCourses }: CoursesClientProps) {
         </motion.div>
       ) : null}
 
-      <LayoutGroup id="university-cards">
         {/* Course Cards */}
         {sortedCourses.length === 0 ? (
           <motion.div
@@ -598,10 +606,7 @@ export default function UniversityPage({ initialCourses }: CoursesClientProps) {
               Importiere zuerst deine ILIAS-Favoriten im KIT Sync oder leg einen Kurs manuell an. Danach zeigt INNIS dir Lernfortschritt, offene Uebungsblaetter und Prüfungstermine.
             </p>
             <Button
-              onClick={() => {
-                setEditingCourse(null);
-                setIsModalOpen(true);
-              }}
+              onClick={openNewCourseModal}
               variant="primary"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -611,27 +616,20 @@ export default function UniversityPage({ initialCourses }: CoursesClientProps) {
         ) : (
           <div className="space-y-4">
             {sortedCourses.map((course) => (
-              <motion.div
-                key={course.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.12 }}
-              >
+              <div key={course.id}>
                 <CourseCard
                   course={course}
-                  onOpen={() => handleEditCourse(course)}
-                  onEdit={() => handleEditCourse(course)}
-                  onDelete={() => handleDeleteCourse(course.id)}
+                  onOpen={handleOpenCourse}
+                  onEdit={handleEditCourse}
+                  onDelete={handleDeleteCourse}
                   focused={focusedCourseId === course.id}
                   listNavId={course.id}
-                  onFocusHover={() => setFocusedCourseId(course.id)}
+                  onFocusHover={handleCourseHover}
                 />
-              </motion.div>
+              </div>
             ))}
           </div>
         )}
-
-      </LayoutGroup>
     </div>
     );
   };
@@ -643,7 +641,6 @@ export default function UniversityPage({ initialCourses }: CoursesClientProps) {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onSubmit={handleSubmitCourse}
-        {...(editingCourse ? { layoutId: `course-card-${editingCourse.id}` } : {})}
         layoutCourse={editingCourse}
         initialData={
           editingCourse

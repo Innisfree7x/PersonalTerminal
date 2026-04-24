@@ -20,7 +20,6 @@ interface CourseModalProps {
   isEdit?: boolean;
   isSaving?: boolean;
   error?: string | null;
-  layoutId?: string;
   layoutCourse?: CourseWithExercises | null;
 }
 
@@ -40,7 +39,6 @@ export default function CourseModal({
   isEdit = false,
   isSaving = false,
   error = null,
-  layoutId,
   layoutCourse = null,
 }: CourseModalProps) {
   const { language } = useAppLanguage();
@@ -99,7 +97,6 @@ export default function CourseModal({
           onClick={handleClose}
         >
           <motion.div
-            {...(layoutId ? { layoutId } : {})}
             role="dialog"
             aria-modal="true"
             aria-label={isEdit ? (isGerman ? 'Kurs bearbeiten' : 'Edit Course') : (isGerman ? 'Neuen Kurs hinzufügen' : 'Add New Course')}
@@ -114,28 +111,24 @@ export default function CourseModal({
               <div className="mb-5 rounded-lg border border-gray-700 bg-gray-800/60 p-4">
                 <div className="flex items-center gap-3 mb-3">
                   <BookOpen className="w-5 h-5 text-university-accent" />
-                  <motion.h3 layoutId={`course-title-${layoutCourse.id}`} className="text-lg font-semibold text-gray-100">
+                  <h3 className="text-lg font-semibold text-gray-100">
                     {layoutCourse.name}
-                  </motion.h3>
-                  <motion.div layoutId={`course-ects-${layoutCourse.id}`}>
+                  </h3>
+                  <div>
                     <Badge variant="info" size="sm">
                       {layoutCourse.ects} ECTS
                     </Badge>
-                  </motion.div>
+                  </div>
                 </div>
                 <div className="text-xs text-gray-400 mb-2">
                   {completedCount}/{totalCount} {isGerman ? 'Übungen abgeschlossen' : 'exercises completed'}
                 </div>
-                <motion.div
-                  layoutId={`course-progress-shell-${layoutCourse.id}`}
-                  className="relative w-full h-3 bg-gray-800 rounded-full overflow-hidden border border-gray-700"
-                >
+                <div className="relative w-full h-3 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
                   <motion.div
-                    layoutId={`course-progress-fill-${layoutCourse.id}`}
                     className="absolute top-0 left-0 h-full bg-gradient-to-r from-emerald-500 via-green-400 to-lime-400 rounded-full"
                     style={{ width: `${progressPercent}%` }}
                   />
-                </motion.div>
+                </div>
               </div>
             )}
 
