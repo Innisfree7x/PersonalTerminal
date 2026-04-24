@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { useAnimationSuspended } from '@/lib/hooks/usePageVisibility';
 import type { RoomState, ActiveRoomItems } from '@/lib/room/roomState';
@@ -255,7 +256,7 @@ function StyleAccentLayer({ roomStyle, theme }: { roomStyle: RoomStyle; theme: R
   );
 }
 
-export default function LucianRoom({
+function LucianRoom({
   state,
   roomStyle = 'minimal',
   className,
@@ -376,3 +377,5 @@ export default function LucianRoom({
     </motion.svg>
   );
 }
+
+export default memo(LucianRoom);

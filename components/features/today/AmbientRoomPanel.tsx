@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import LucianRoom from '@/components/features/room/LucianRoom';
 import type { RoomState, ActiveRoomItems } from '@/lib/room/roomState';
 import type { LucianOutfit } from '@/lib/lucian/outfits';
@@ -15,7 +16,7 @@ export interface AmbientRoomPanelProps {
   onExpand?: (() => void) | undefined;
 }
 
-export default function AmbientRoomPanel({
+function AmbientRoomPanel({
   roomState,
   roomStyle,
   roomItems,
@@ -86,3 +87,5 @@ export default function AmbientRoomPanel({
     </div>
   );
 }
+
+export default memo(AmbientRoomPanel);

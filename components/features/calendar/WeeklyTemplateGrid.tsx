@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { Lock, Plus } from 'lucide-react';
 import {
   KIT_TIME_SLOTS,
@@ -44,7 +44,7 @@ function formatHm(date: Date): string {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
-export default function WeeklyTemplateGrid({
+function WeeklyTemplateGrid({
   weekStart,
   entries,
   onAddAt,
@@ -248,3 +248,5 @@ export default function WeeklyTemplateGrid({
     </div>
   );
 }
+
+export default memo(WeeklyTemplateGrid);

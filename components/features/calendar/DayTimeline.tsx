@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { Lock, Plus } from 'lucide-react';
 import type { CalendarEntry, CalendarEntryKind } from '@/lib/supabase/calendarEntries';
 import { KIT_TIME_SLOTS, slotIndexForDate } from '@/lib/calendar/kitTimeSlots';
@@ -28,7 +28,7 @@ function formatHm(date: Date): string {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
-export default function DayTimeline({ day, entries, onAddAt, onOpenEntry }: DayTimelineProps) {
+function DayTimeline({ day, entries, onAddAt, onOpenEntry }: DayTimelineProps) {
   const { allDay, bySlot } = useMemo(() => {
     const allDay: CalendarEntry[] = [];
     const bySlot = new Map<number, CalendarEntry[]>();
@@ -126,3 +126,5 @@ export default function DayTimeline({ day, entries, onAddAt, onOpenEntry }: DayT
     </div>
   );
 }
+
+export default memo(DayTimeline);

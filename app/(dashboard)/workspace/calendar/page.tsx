@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import WeeklyTemplateGrid from '@/components/features/calendar/WeeklyTemplateGrid';
@@ -146,18 +146,20 @@ export default function CalendarPage() {
     window.localStorage.setItem(VIEW_STORAGE_KEY, view);
   }, [view]);
 
-  const { from, to } = useMemo(() => {
+  const { from, to, weekStart, monthStart, dayStart } = useMemo(() => {
     if (view === 'week') {
       const ws = startOfWeek(cursor);
-      return { from: ws, to: endOfWeek(ws) };
+      return { from: ws, to: endOfWeek(ws), weekStart: ws, monthStart: null, dayStart: null };
     }
     if (view === 'month') {
       const ms = startOfMonth(cursor);
-      return { from: gridStartForMonth(ms), to: gridEndForMonth(ms) };
+      return { from: gridStartForMonth(ms), to: gridEndForMonth(ms), weekStart: null, monthStart: ms, dayStart: null };
     }
     const ds = startOfDay(cursor);
-    return { from: ds, to: endOfDay(cursor) };
+    return { from: ds, to: endOfDay(cursor), weekStart: null, monthStart: null, dayStart: ds };
   }, [view, cursor]);
+
+  const activeRangeLabel = useMemo(() => formatRange(view, cursor), [view, cursor]);
 
   const entriesQuery = useQuery<CalendarEntry[]>({
     queryKey: ['calendar-entries', view, from.toISOString(), to.toISOString()],
@@ -165,8 +167,10 @@ export default function CalendarPage() {
     staleTime: 30_000,
   });
 
-  const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: ['calendar-entries'] });
+  const invalidate = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: ['calendar-entries'] }),
+    [queryClient]
+  );
 
   const createMutation = useMutation({
     mutationFn: async (body: CreateEntryBody) => {
@@ -213,25 +217,31 @@ export default function CalendarPage() {
 
   const entries = entriesQuery.data ?? [];
 
-  function handlePrev() {
-    const d = new Date(cursor);
-    if (view === 'week') d.setDate(d.getDate() - 7);
-    else if (view === 'month') d.setMonth(d.getMonth() - 1);
-    else d.setDate(d.getDate() - 1);
-    setCursor(d);
-  }
-  function handleNext() {
-    const d = new Date(cursor);
-    if (view === 'week') d.setDate(d.getDate() + 7);
-    else if (view === 'month') d.setMonth(d.getMonth() + 1);
-    else d.setDate(d.getDate() + 1);
-    setCursor(d);
-  }
-  function handleToday() {
-    setCursor(new Date());
-  }
+  const handlePrev = useCallback(() => {
+    setCursor((current) => {
+      const d = new Date(current);
+      if (view === 'week') d.setDate(d.getDate() - 7);
+      else if (view === 'month') d.setMonth(d.getMonth() - 1);
+      else d.setDate(d.getDate() - 1);
+      return d;
+    });
+  }, [view]);
 
-  function openAddAt(startsAt: Date, endsAt: Date) {
+  const handleNext = useCallback(() => {
+    setCursor((current) => {
+      const d = new Date(current);
+      if (view === 'week') d.setDate(d.getDate() + 7);
+      else if (view === 'month') d.setMonth(d.getMonth() + 1);
+      else d.setDate(d.getDate() + 1);
+      return d;
+    });
+  }, [view]);
+
+  const handleToday = useCallback(() => {
+    setCursor(new Date());
+  }, []);
+
+  const openAddAt = useCallback((startsAt: Date, endsAt: Date) => {
     setModal({
       mode: 'create',
       initial: {
@@ -240,9 +250,9 @@ export default function CalendarPage() {
         kind: 'custom',
       },
     });
-  }
+  }, []);
 
-  function openEntry(entry: CalendarEntry) {
+  const openEntry = useCallback((entry: CalendarEntry) => {
     const readonly = entry.source === 'kit_webcal';
     setModal({
       mode: readonly ? 'view' : 'edit',
@@ -258,9 +268,9 @@ export default function CalendarPage() {
         source: entry.source,
       },
     });
-  }
+  }, []);
 
-  function openQuickAdd() {
+  const openQuickAdd = useCallback(() => {
     const now = new Date();
     const start = new Date(now);
     start.setMinutes(0, 0, 0);
@@ -271,7 +281,46 @@ export default function CalendarPage() {
       mode: 'create',
       initial: { startsAt: start.toISOString(), endsAt: end.toISOString(), kind: 'custom' },
     });
-  }
+  }, []);
+
+  const handleSelectDay = useCallback((day: Date) => {
+    setCursor(day);
+    setView('day');
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setModal(null);
+  }, []);
+
+  const handleCreate = useCallback(async (input: CreateEntryBody) => {
+    try {
+      await createMutation.mutateAsync(input);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erstellen fehlgeschlagen');
+      throw e;
+    }
+  }, [createMutation]);
+
+  const handleUpdate = useCallback(async (id: string, input: UpdateEntryBody) => {
+    try {
+      await updateMutation.mutateAsync({ id, body: input });
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Aktualisieren fehlgeschlagen');
+      throw e;
+    }
+  }, [updateMutation]);
+
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      await deleteMutation.mutateAsync(id);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Löschen fehlgeschlagen');
+      throw e;
+    }
+  }, [deleteMutation]);
 
   return (
     <div className="space-y-6">
@@ -320,7 +369,7 @@ export default function CalendarPage() {
             Heute
           </button>
           <div className="text-lg font-semibold text-text-primary text-center min-w-[220px]">
-            {formatRange(view, cursor)}
+            {activeRangeLabel}
           </div>
         </div>
         <button
@@ -352,24 +401,21 @@ export default function CalendarPage() {
         </div>
       ) : view === 'week' ? (
         <WeeklyTemplateGrid
-          weekStart={startOfWeek(cursor)}
+          weekStart={weekStart ?? startOfWeek(cursor)}
           entries={entries}
           onAddAt={openAddAt}
           onOpenEntry={openEntry}
         />
       ) : view === 'month' ? (
         <MonthlyGrid
-          monthStart={startOfMonth(cursor)}
+          monthStart={monthStart ?? startOfMonth(cursor)}
           entries={entries}
-          onSelectDay={(day) => {
-            setCursor(day);
-            setView('day');
-          }}
+          onSelectDay={handleSelectDay}
           onOpenEntry={openEntry}
         />
       ) : (
         <DayTimeline
-          day={startOfDay(cursor)}
+          day={dayStart ?? startOfDay(cursor)}
           entries={entries}
           onAddAt={openAddAt}
           onOpenEntry={openEntry}
@@ -381,34 +427,10 @@ export default function CalendarPage() {
           isOpen={true}
           mode={modal.mode}
           {...(modal.initial ? { initial: modal.initial } : {})}
-          onClose={() => setModal(null)}
-          onCreate={async (input) => {
-            try {
-              await createMutation.mutateAsync(input);
-              setError(null);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : 'Erstellen fehlgeschlagen');
-              throw e;
-            }
-          }}
-          onUpdate={async (id, input) => {
-            try {
-              await updateMutation.mutateAsync({ id, body: input });
-              setError(null);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : 'Aktualisieren fehlgeschlagen');
-              throw e;
-            }
-          }}
-          onDelete={async (id) => {
-            try {
-              await deleteMutation.mutateAsync(id);
-              setError(null);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : 'Löschen fehlgeschlagen');
-              throw e;
-            }
-          }}
+          onClose={handleCloseModal}
+          onCreate={handleCreate}
+          onUpdate={handleUpdate}
+          onDelete={handleDelete}
         />
       )}
     </div>

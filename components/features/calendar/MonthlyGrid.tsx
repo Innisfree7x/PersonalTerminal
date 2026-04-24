@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { Lock } from 'lucide-react';
 import type { CalendarEntry, CalendarEntryKind } from '@/lib/supabase/calendarEntries';
 import { WEEKDAY_LABELS_DE } from '@/lib/calendar/kitTimeSlots';
@@ -47,7 +47,7 @@ function sameDay(a: Date, b: Date): boolean {
   );
 }
 
-export default function MonthlyGrid({
+function MonthlyGrid({
   monthStart,
   entries,
   onSelectDay,
@@ -169,3 +169,5 @@ export default function MonthlyGrid({
     </div>
   );
 }
+
+export default memo(MonthlyGrid);
