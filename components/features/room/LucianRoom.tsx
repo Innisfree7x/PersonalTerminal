@@ -138,15 +138,7 @@ function DeskLayer({ theme }: { theme: RoomStyleDef }) {
           style={{ transformOrigin: '530px 227px' }}
         />
       )}
-      {reduced ? (
-        <rect x={476} y={196} width={108} height={63} rx={2} fill={theme.monitorScreenColor} />
-      ) : (
-        <motion.rect
-          x={476} y={196} width={108} height={63} rx={2} fill="#080810"
-          animate={{ opacity: [0.6, 0.8, 0.6] }}
-          transition={{ duration: 3, repeat: Infinity, delay: 1, ease: 'easeInOut' }}
-        />
-      )}
+      <rect x={476} y={196} width={108} height={63} rx={2} fill={theme.monitorScreenColor} />
       {/* Code lines */}
       <rect x={482} y={206} width={48} height={3} rx={1} fill={theme.monitorCodeLine1} />
       <rect x={482} y={215} width={72} height={3} rx={1} fill={theme.monitorCodeLine2} />
@@ -156,24 +148,6 @@ function DeskLayer({ theme }: { theme: RoomStyleDef }) {
       {/* Coffee mug */}
       <ellipse cx={430} cy={258} rx={14} ry={8} fill={theme.mugColor} stroke={theme.shelfBracketColor} strokeWidth={0.5} />
       <path d="M444 254 C450 254, 450 262, 444 262" fill="none" stroke={theme.shelfBracketColor} strokeWidth={1} />
-
-      {/* Steam */}
-      {!reduced && (
-        <>
-          <motion.path
-            d="M426 248 C426 244, 430 244, 430 248"
-            fill="none" stroke={theme.monitorCodeLine2} strokeWidth={0.8}
-            animate={{ opacity: [0.2, 0.5, 0.2], y: [0, -4, 0] }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-          />
-          <motion.path
-            d="M432 248 C432 244, 436 244, 436 248"
-            fill="none" stroke={theme.monitorCodeLine2} strokeWidth={0.8}
-            animate={{ opacity: [0.15, 0.4, 0.15], y: [0, -3, 0] }}
-            transition={{ duration: 2.8, repeat: Infinity, delay: 0.4, ease: 'easeInOut' }}
-          />
-        </>
-      )}
 
       {/* Notebook */}
       <rect x={385} y={249} width={30} height={22} rx={2} fill={theme.notebookColor} stroke={theme.monitorCodeLine2} strokeWidth={0.5} />
@@ -185,11 +159,8 @@ function DeskLayer({ theme }: { theme: RoomStyleDef }) {
 }
 
 function PlantLayer({ stage, theme }: { stage: RoomState['plantStage']; theme: RoomStyleDef }) {
-  const reduced = useAnimationSuspended();
-  const shouldAnimate = !reduced && stage > 0;
-
-  const inner = (
-    <>
+  return (
+    <g>
       {/* Pot */}
       <rect x={620} y={245} width={28} height={18} rx={3} fill={theme.mugColor} stroke={theme.deskLegColor} strokeWidth={0.5} />
       <rect x={622} y={244} width={24} height={4} rx={1} fill={theme.deskLegColor} />
@@ -213,22 +184,8 @@ function PlantLayer({ stage, theme }: { stage: RoomState['plantStage']; theme: R
           <ellipse cx={646} cy={224} rx={5} ry={11} fill="#15803d" transform="rotate(35,646,224)" />
         </>
       )}
-    </>
+    </g>
   );
-
-  if (shouldAnimate) {
-    return (
-      <motion.g
-        animate={{ rotate: [-1, 1, -1] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-        style={{ transformOrigin: '634px 245px' }}
-      >
-        {inner}
-      </motion.g>
-    );
-  }
-
-  return <g>{inner}</g>;
 }
 
 function StyleAccentLayer({ roomStyle, theme }: { roomStyle: RoomStyle; theme: RoomStyleDef }) {
@@ -237,19 +194,7 @@ function StyleAccentLayer({ roomStyle, theme }: { roomStyle: RoomStyle; theme: R
   return (
     <>
       {theme.ambientGlowOnWall ? (
-        reduced ? (
-          <rect x={0} y={0} width={900} height={300} fill={theme.ambientGlowOnWall} opacity={0.9} />
-        ) : (
-          <motion.rect
-            x={0}
-            y={0}
-            width={900}
-            height={300}
-            fill={theme.ambientGlowOnWall}
-            animate={{ opacity: [0.68, 0.96, 0.68] }}
-            transition={{ duration: 6.5, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        )
+        <rect x={0} y={0} width={900} height={300} fill={theme.ambientGlowOnWall} opacity={0.82} />
       ) : null}
 
       {roomStyle === 'neon' ? (
@@ -274,31 +219,12 @@ function StyleAccentLayer({ roomStyle, theme }: { roomStyle: RoomStyle; theme: R
       ) : null}
 
       {roomStyle === 'cozy' ? (
-        reduced ? (
-          <g>
-            <circle cx={660} cy={255} r={40} fill="rgba(180,83,9,0.08)" />
-            <circle cx={660} cy={255} r={8} fill="rgba(251,146,60,0.4)" />
+        <g>
+          <circle cx={660} cy={255} r={40} fill="rgba(180,83,9,0.08)" opacity={0.72} />
+          <circle cx={660} cy={255} r={8} fill="rgba(251,146,60,0.4)" opacity={0.62} />
+          {reduced ? (
             <circle cx={660} cy={252} r={3} fill="rgba(253,224,71,0.8)" />
-          </g>
-        ) : (
-          <g>
-            <motion.circle
-              cx={660}
-              cy={255}
-              r={40}
-              fill="rgba(180,83,9,0.08)"
-              animate={{ opacity: [0.55, 0.9, 0.62] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-            />
-            <motion.circle
-              cx={660}
-              cy={255}
-              r={8}
-              fill="rgba(251,146,60,0.4)"
-              animate={{ opacity: [0.45, 0.8, 0.5], scale: [0.94, 1.06, 0.96] }}
-              transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
-              style={{ transformOrigin: '660px 255px' }}
-            />
+          ) : (
             <motion.circle
               cx={660}
               cy={252}
@@ -307,50 +233,23 @@ function StyleAccentLayer({ roomStyle, theme }: { roomStyle: RoomStyle; theme: R
               animate={{ opacity: [0.72, 1, 0.68], cy: [252, 250.5, 252] }}
               transition={{ duration: 1.05, repeat: Infinity, ease: 'easeInOut' }}
             />
-          </g>
-        )
+          )}
+        </g>
       ) : null}
 
       {roomStyle === 'library' ? (
-        reduced ? (
-          <g>
-            <rect x={455} y={230} width={3} height={32} fill="#2d2010" />
-            <path d="M442 230 L470 230 L465 248 L447 248 Z" fill="#14532d" opacity={0.9} />
-            <ellipse cx={456} cy={258} rx={30} ry={8} fill="rgba(4,120,87,0.12)" />
-          </g>
-        ) : (
-          <g>
-            <rect x={455} y={230} width={3} height={32} fill="#2d2010" />
-            <path d="M442 230 L470 230 L465 248 L447 248 Z" fill="#14532d" opacity={0.9} />
-            <motion.ellipse
-              cx={456}
-              cy={258}
-              rx={30}
-              ry={8}
-              fill="rgba(4,120,87,0.12)"
-              animate={{ opacity: [0.48, 0.8, 0.48], scaleX: [0.96, 1.04, 0.96] }}
-              transition={{ duration: 4.6, repeat: Infinity, ease: 'easeInOut' }}
-              style={{ transformOrigin: '456px 258px' }}
-            />
-          </g>
-        )
+        <g>
+          <rect x={455} y={230} width={3} height={32} fill="#2d2010" />
+          <path d="M442 230 L470 230 L465 248 L447 248 Z" fill="#14532d" opacity={0.9} />
+          <ellipse cx={456} cy={258} rx={30} ry={8} fill="rgba(4,120,87,0.12)" opacity={0.64} />
+        </g>
       ) : null}
 
       {roomStyle === 'minimal' ? (
-        reduced ? (
-          <g opacity={0.45}>
-            <rect x={280} y={128} width={180} height={1} fill="rgba(99,102,241,0.08)" />
-            <rect x={308} y={150} width={124} height={1} fill="rgba(67,56,202,0.08)" />
-          </g>
-        ) : (
-          <motion.g
-            animate={{ opacity: [0.24, 0.48, 0.24] }}
-            transition={{ duration: 5.2, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            <rect x={280} y={128} width={180} height={1} fill="rgba(99,102,241,0.08)" />
-            <rect x={308} y={150} width={124} height={1} fill="rgba(67,56,202,0.08)" />
-          </motion.g>
-        )
+        <g opacity={0.36}>
+          <rect x={280} y={128} width={180} height={1} fill="rgba(99,102,241,0.08)" />
+          <rect x={308} y={150} width={124} height={1} fill="rgba(67,56,202,0.08)" />
+        </g>
       ) : null}
     </>
   );
