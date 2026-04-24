@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react';
 import { useMemo } from 'react';
+import { useAnimationSuspended } from '@/lib/hooks/usePageVisibility';
 
 export interface MomentumPulseProps {
   score: number;
@@ -58,6 +59,7 @@ export default function MomentumPulse({
   const px = SIZE_PX[size];
   const clamped = Math.max(0, Math.min(100, Math.round(score)));
   const tone = useMemo(() => bucketFor(clamped), [clamped]);
+  const animationsSuspended = useAnimationSuspended();
 
   const strokeWidth = size === 'sm' ? 10 : size === 'lg' ? 16 : 12;
   const radius = (px - strokeWidth) / 2;
@@ -78,8 +80,8 @@ export default function MomentumPulse({
   return (
     <motion.div
       className="card-surface relative flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.04),rgba(255,255,255,0.01))] px-5 py-6 shadow-[0_20px_60px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.05)]"
-      animate={{ scale: [1, 1.015, 1] }}
-      transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+      animate={animationsSuspended ? { scale: 1 } : { scale: [1, 1.015, 1] }}
+      transition={animationsSuspended ? { duration: 0 } : { duration: 3, repeat: Infinity, ease: 'easeInOut' }}
       data-testid="momentum-pulse"
       role="img"
       aria-label={`${label}: ${clamped} von 100, Trend ${trendLabel}`}

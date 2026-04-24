@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Crosshair, Target, Timer, Trophy, X } from 'lucide-react';
 import { useAppSound } from '@/lib/hooks/useAppSound';
+import { usePageVisibility } from '@/lib/hooks/usePageVisibility';
 import {
   createTarget,
   nextComboOnHit,
@@ -40,6 +41,7 @@ export function LucianBreakOverlay({
   onComplete,
 }: LucianBreakOverlayProps) {
   const prefersReducedMotion = useReducedMotion();
+  const isPageVisible = usePageVisibility();
   const { play } = useAppSound();
   const [targets, setTargets] = useState<DrillTarget[]>([]);
   const [score, setScore] = useState(0);
@@ -79,7 +81,7 @@ export function LucianBreakOverlay({
   }, [durationSeconds, open]);
 
   useEffect(() => {
-    if (!open || finished) return;
+    if (!open || finished || !isPageVisible) return;
 
     const ticker = window.setInterval(() => {
       const now = Date.now();
@@ -103,10 +105,10 @@ export function LucianBreakOverlay({
     }, TICK_INTERVAL_MS);
 
     return () => window.clearInterval(ticker);
-  }, [durationSeconds, finished, open]);
+  }, [durationSeconds, finished, open, isPageVisible]);
 
   useEffect(() => {
-    if (!open || finished) return;
+    if (!open || finished || !isPageVisible) return;
 
     const spawner = window.setInterval(() => {
       setTargets((prev) => {
@@ -129,7 +131,7 @@ export function LucianBreakOverlay({
     }, SPAWN_INTERVAL_MS);
 
     return () => window.clearInterval(spawner);
-  }, [finished, open]);
+  }, [finished, open, isPageVisible]);
 
   useEffect(() => {
     if (!finished || !open || !completedRef.current) return;

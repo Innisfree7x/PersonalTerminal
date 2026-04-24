@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Zap, X } from 'lucide-react';
 import { normalizeLucianMood, type LucianMood, type LucianMoodCore, type LucianDialogOption } from '@/lib/lucian/copy';
 import { LucianSpriteAnimator, type LucianAnimation } from '@/components/features/lucian/LucianSpriteAnimator';
+import { usePageVisibility } from '@/lib/hooks/usePageVisibility';
 
 const moodAccentText: Record<LucianMoodCore, string> = {
   hype: 'text-amber-300',
@@ -132,6 +133,7 @@ export function LucianBubble({
   onDialogAction,
 }: LucianBubbleProps) {
   const prefersReducedMotion = useReducedMotion();
+  const isPageVisible = usePageVisibility();
   const bubbleRef = useRef<HTMLDivElement | null>(null);
   const phaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const normalizedMood = normalizeLucianMood(mood);
@@ -229,16 +231,19 @@ export function LucianBubble({
     };
 
     updatePosition();
-    const interval = window.setInterval(updatePosition, 150);
     window.addEventListener('resize', updatePosition);
     window.addEventListener('scroll', updatePosition, { passive: true });
 
+    const interval = isPageVisible
+      ? window.setInterval(updatePosition, 500)
+      : null;
+
     return () => {
-      window.clearInterval(interval);
+      if (interval !== null) window.clearInterval(interval);
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition);
     };
-  }, [anchorSelector, text, visible]);
+  }, [anchorSelector, text, visible, isPageVisible]);
 
   const variants = prefersReducedMotion
     ? {

@@ -7,6 +7,7 @@ import { useMemo } from 'react';
 import type { TrajectoryMorningSnapshotPayload } from '@/lib/trajectory/morningSnapshot';
 import { buildTrajectoryMorningBriefing } from '@/lib/dashboard/trajectoryBriefing';
 import { getRiskStatusTone } from '@/lib/design-system/statusTone';
+import { useAnimationSuspended } from '@/lib/hooks/usePageVisibility';
 
 export interface TrajectoryCollisionHeroProps {
   snapshot: TrajectoryMorningSnapshotPayload | null | undefined;
@@ -26,6 +27,7 @@ function parseUtcDate(value: string): Date {
 }
 
 export default function TrajectoryCollisionHero({ snapshot }: TrajectoryCollisionHeroProps) {
+  const animationsSuspended = useAnimationSuspended();
   const briefing = useMemo(
     () => buildTrajectoryMorningBriefing(snapshot?.overview),
     [snapshot?.overview]
@@ -166,8 +168,8 @@ export default function TrajectoryCollisionHero({ snapshot }: TrajectoryCollisio
             r={9}
             fill="#fff"
             initial={{ opacity: 0 }}
-            animate={{ opacity: [0.8, 0.35, 0.8] }}
-            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+            animate={animationsSuspended ? { opacity: 0.8 } : { opacity: [0.8, 0.35, 0.8] }}
+            transition={animationsSuspended ? { duration: 0 } : { duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
           />
           <circle cx={0} cy={30} r={4} fill="#0a0c12" />
           <circle cx={0} cy={30} r={2.5} fill="#f5f7fb" />

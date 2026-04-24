@@ -11,6 +11,7 @@ import {
   useFocusTimerClock,
   useFocusTimerSession,
 } from '@/components/providers/FocusTimerProvider';
+import { usePageVisibility } from '@/lib/hooks/usePageVisibility';
 import { format } from 'date-fns';
 import { de as deLocale, enUS } from 'date-fns/locale';
 import { fetchDashboardStatsAction } from '@/app/actions/dashboard';
@@ -81,11 +82,12 @@ export default function Header() {
   const notificationsRef = useRef<HTMLDivElement | null>(null);
   const { open: openCommandPalette } = useCommandPalette();
   const { copy, language } = useAppLanguage();
-  
+  const isPageVisible = usePageVisibility();
+
   const { data: stats } = useQuery({
     queryKey: ['dashboard', 'stats'],
     queryFn: fetchDashboardStatsAction,
-    refetchInterval: 5 * 60 * 1000,
+    refetchInterval: isPageVisible ? 5 * 60 * 1000 : false,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
