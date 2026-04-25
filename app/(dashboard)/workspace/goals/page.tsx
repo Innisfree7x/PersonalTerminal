@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -51,6 +51,11 @@ export default function GoalsPage() {
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
   const { play } = useAppSound();
   const soundToast = useSoundToast();
+
+  const openCreateGoalModal = useCallback(() => {
+    setEditingGoal(null);
+    setIsModalOpen(true);
+  }, []);
 
   // Fetch goals with React Query
   const {
@@ -103,6 +108,7 @@ export default function GoalsPage() {
       soundToast.error(err.message || 'Ziel konnte nicht erstellt werden. Bitte erneut versuchen.');
     },
   });
+  const { mutate: mutateCreateGoal, reset: resetCreateGoal } = createMutation;
 
   // Update mutation
   const updateMutation = useMutation({
@@ -136,6 +142,7 @@ export default function GoalsPage() {
       soundToast.error(err.message || 'Ziel konnte nicht aktualisiert werden. Bitte erneut versuchen.');
     },
   });
+  const { mutate: mutateUpdateGoal, reset: resetUpdateGoal } = updateMutation;
 
   // Delete mutation
   const deleteMutation = useMutation({
@@ -159,33 +166,34 @@ export default function GoalsPage() {
       soundToast.error(err.message || 'Ziel konnte nicht gelöscht werden. Bitte erneut versuchen.');
     },
   });
+  const { mutate: mutateDeleteGoal } = deleteMutation;
 
-  const handleAddGoal = (data: CreateGoalInput) => {
-    createMutation.mutate(data);
-  };
+  const handleAddGoal = useCallback((data: CreateGoalInput) => {
+    mutateCreateGoal(data);
+  }, [mutateCreateGoal]);
 
-  const handleEditGoal = (data: CreateGoalInput) => {
+  const handleEditGoal = useCallback((data: CreateGoalInput) => {
     if (!editingGoal) return;
-    updateMutation.mutate({ goalId: editingGoal.id, data });
-  };
+    mutateUpdateGoal({ goalId: editingGoal.id, data });
+  }, [editingGoal, mutateUpdateGoal]);
 
-  const handleDeleteGoal = (goalId: string) => {
+  const handleDeleteGoal = useCallback((goalId: string) => {
     if (confirm('Are you sure you want to delete this goal?')) {
-      deleteMutation.mutate(goalId);
+      mutateDeleteGoal(goalId);
     }
-  };
+  }, [mutateDeleteGoal]);
 
-  const handleGoalClick = (goal: Goal) => {
+  const handleGoalClick = useCallback((goal: Goal) => {
     setEditingGoal(goal);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleModalClose = () => {
+  const handleModalClose = useCallback(() => {
     setIsModalOpen(false);
     setEditingGoal(null);
-    createMutation.reset();
-    updateMutation.reset();
-  };
+    resetCreateGoal();
+    resetUpdateGoal();
+  }, [resetCreateGoal, resetUpdateGoal]);
 
   // Filter and sort goals
   const filteredAndSortedGoals = useMemo(() => {
@@ -251,14 +259,12 @@ export default function GoalsPage() {
     if (typeof window === 'undefined') return;
     const action = new URLSearchParams(window.location.search).get('action');
     if (action !== 'new-goal') return;
-    setEditingGoal(null);
-    setIsModalOpen(true);
+    openCreateGoalModal();
     router.replace(pathname);
-  }, [pathname, router]);
+  }, [openCreateGoalModal, pathname, router]);
 
   usePrismCommandAction('open-new-goal', () => {
-    setEditingGoal(null);
-    setIsModalOpen(true);
+    openCreateGoalModal();
   });
 
   // Loading state
@@ -315,10 +321,7 @@ export default function GoalsPage() {
           </p>
         </div>
         <Button
-          onClick={() => {
-            setEditingGoal(null);
-            setIsModalOpen(true);
-          }}
+          onClick={openCreateGoalModal}
           variant="primary"
           className="shadow-glow"
         >
@@ -428,7 +431,7 @@ export default function GoalsPage() {
               onDelete={handleDeleteGoal}
               focusedGoalId={focusedGoalId}
               onGoalFocus={setFocusedGoalId}
-              onAddGoal={() => { setEditingGoal(null); setIsModalOpen(true); }}
+              onAddGoal={openCreateGoalModal}
             />
           </motion.div>
         ) : (
@@ -451,10 +454,7 @@ export default function GoalsPage() {
                 : `Leg dein erstes ${categoryConfig[filterBy].label}-Ziel an und behalte deinen Fortschritt im Blick.`}
             </p>
             <Button
-              onClick={() => {
-                setEditingGoal(null);
-                setIsModalOpen(true);
-              }}
+              onClick={openCreateGoalModal}
               variant="primary"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -469,7 +469,6 @@ export default function GoalsPage() {
         isOpen={isModalOpen}
         onClose={handleModalClose}
         onSubmit={isEditMode ? handleEditGoal : handleAddGoal}
-        {...(editingGoal ? { layoutId: `goal-card-${editingGoal.id}` } : {})}
         initialData={initialData}
         isEdit={isEditMode}
         errorMessage={saveErrorMessage}

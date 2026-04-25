@@ -1,7 +1,7 @@
 'use client';
 
+import { memo } from 'react';
 import { Goal } from '@/lib/schemas/goal.schema';
-import { motion } from 'framer-motion';
 import { Target, Plus } from 'lucide-react';
 import GoalCard from './GoalCard';
 
@@ -14,22 +14,7 @@ interface GoalsListProps {
   onAddGoal?: () => void;
 }
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 },
-};
-
-export default function GoalsList({
+function GoalsList({
   goals,
   onGoalClick,
   onDelete,
@@ -45,12 +30,7 @@ export default function GoalsList({
 
   if (goals.length === 0) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.15 }}
-        className="flex flex-col items-center text-center py-20 bg-surface/50 backdrop-blur-sm border border-border rounded-xl"
-      >
+      <div className="flex flex-col items-center rounded-xl border border-border bg-surface/50 py-20 text-center backdrop-blur-sm">
         <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4">
           <Target className="w-6 h-6 text-primary" />
         </div>
@@ -69,30 +49,25 @@ export default function GoalsList({
             Erstes Ziel erstellen
           </button>
         )}
-      </motion.div>
+      </div>
     );
   }
 
   return (
-    <motion.div
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-      variants={containerVariants}
-      initial="hidden"
-      animate="show"
-    >
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       {goals.map((goal) => (
-        <motion.div key={goal.id} variants={itemVariants}>
-          <GoalCard
-            goal={goal}
-            layoutId={`goal-card-${goal.id}`}
-            onClick={() => handleGoalClick(goal)}
-            onDelete={onDelete}
-            focused={focusedGoalId === goal.id}
-            listNavId={goal.id}
-            {...(onGoalFocus ? { onFocusHover: () => onGoalFocus(goal.id) } : {})}
-          />
-        </motion.div>
+        <GoalCard
+          key={goal.id}
+          goal={goal}
+          onClick={handleGoalClick}
+          onDelete={onDelete}
+          focused={focusedGoalId === goal.id}
+          listNavId={goal.id}
+          onFocusHover={onGoalFocus}
+        />
       ))}
-    </motion.div>
+    </div>
   );
 }
+
+export default memo(GoalsList);

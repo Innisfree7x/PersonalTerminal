@@ -16,7 +16,6 @@ interface GoalModalProps {
   isEdit?: boolean;
   errorMessage?: string | null | undefined;
   isSaving?: boolean;
-  layoutId?: string;
 }
 
 export default function GoalModal({
@@ -27,7 +26,6 @@ export default function GoalModal({
   isEdit = false,
   errorMessage,
   isSaving = false,
-  layoutId,
 }: GoalModalProps) {
   const { play } = useAppSound();
   const { language } = useAppLanguage();
@@ -56,7 +54,6 @@ export default function GoalModal({
           {/* Modal */}
           <div className="flex min-h-full items-center justify-center p-4">
             <motion.div
-              {...(layoutId ? { layoutId } : {})}
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -75,15 +72,13 @@ export default function GoalModal({
                       ? 'Neues Ziel erstellen'
                       : 'Create New Goal'}
                 </h2>
-                <motion.button
+                <button
                   onClick={onClose}
                   className="p-2 text-text-tertiary hover:text-text-primary hover:bg-surface-hover rounded-lg transition-colors"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
                   aria-label={language === 'de' ? 'Schließen' : 'Close'}
                 >
                   <X className="w-5 h-5" />
-                </motion.button>
+                </button>
               </div>
 
               {/* Error Message */}

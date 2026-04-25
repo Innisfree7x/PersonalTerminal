@@ -1,19 +1,18 @@
 'use client';
 
+import { memo } from 'react';
 import { Goal } from '@/lib/schemas/goal.schema';
 import { format } from 'date-fns';
-import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/Badge';
 import { Trash2, Calendar, TrendingUp } from 'lucide-react';
 
 interface GoalCardProps {
   goal: Goal;
-  onClick?: (() => void) | undefined;
+  onClick?: ((goal: Goal) => void) | undefined;
   onDelete?: ((goalId: string) => void) | undefined;
-  layoutId?: string;
   focused?: boolean;
   listNavId?: string;
-  onFocusHover?: () => void;
+  onFocusHover?: ((goalId: string) => void) | undefined;
 }
 
 const categoryConfig: Record<Goal['category'], { icon: string; color: string; bgGradient: string; borderColor: string }> = {
@@ -50,11 +49,10 @@ const progressGradients: Record<Goal['category'], string> = {
   finance: 'from-success to-success/70',
 };
 
-export default function GoalCard({
+function GoalCard({
   goal,
   onClick,
   onDelete,
-  layoutId,
   focused = false,
   listNavId,
   onFocusHover,
@@ -77,27 +75,30 @@ export default function GoalCard({
     }
   };
 
+  const handleClick = () => {
+    onClick?.(goal);
+  };
+
+  const handleFocusHover = () => {
+    onFocusHover?.(goal.id);
+  };
+
   const config = categoryConfig[goal.category];
   const isOverdue = daysUntilTarget < 0;
   const isCompleted = progress !== null && progress >= 100;
 
   return (
-    <motion.div
+    <div
       data-interactive="goal"
       data-item-id={goal.id}
       data-item-title={goal.title}
       {...(listNavId ? { 'data-list-nav-id': listNavId } : {})}
       data-focused={focused ? 'true' : 'false'}
-      {...(layoutId ? { layoutId } : {})}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      onClick={onClick}
-      onMouseEnter={onFocusHover}
+      onClick={handleClick}
+      onMouseEnter={handleFocusHover}
       className={`group relative bg-gradient-to-br ${config.bgGradient} backdrop-blur-sm border rounded-xl p-6 cursor-pointer overflow-hidden card-hover-glow ${
         focused ? 'border-primary/70 ring-1 ring-primary/40' : config.borderColor
-      }`}
+      } transition-transform duration-150 hover:-translate-y-1`}
     >
       {/* Animated glow on hover */}
       <div className={`absolute inset-0 bg-gradient-to-br ${config.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
@@ -137,15 +138,13 @@ export default function GoalCard({
 
           {/* Delete Button */}
           {onDelete && (
-            <motion.button
+            <button
               onClick={handleDelete}
               className="p-2 text-text-tertiary hover:text-error hover:bg-error/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
               aria-label="Delete goal"
             >
               <Trash2 className="w-4 h-4" />
-            </motion.button>
+            </button>
           )}
         </div>
 
@@ -175,11 +174,9 @@ export default function GoalCard({
 
             {/* Gradient Progress Bar */}
             <div className="relative w-full h-2 bg-surface rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${progress ?? 0}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
+              <div
                 className={`absolute top-0 left-0 h-full bg-gradient-to-r ${progressGradients[goal.category]} rounded-full`}
+                style={{ width: `${progress ?? 0}%` }}
               />
             </div>
           </div>
@@ -222,6 +219,8 @@ export default function GoalCard({
           />
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
+
+export default memo(GoalCard);
