@@ -11,7 +11,7 @@ import {
   useFocusTimerClock,
   useFocusTimerSession,
 } from '@/components/providers/FocusTimerProvider';
-import { usePageVisibility } from '@/lib/hooks/usePageVisibility';
+import { useAnimationSuspended, usePageVisibility } from '@/lib/hooks/usePageVisibility';
 import { format } from 'date-fns';
 import { de as deLocale, enUS } from 'date-fns/locale';
 import { fetchDashboardStatsAction } from '@/app/actions/dashboard';
@@ -50,8 +50,10 @@ function FocusTimerButton() {
   const { status: timerStatus, sessionType } = useFocusTimerSession();
   const { timeLeft: timerTimeLeft } = useFocusTimerClock();
   const { setIsExpanded: setTimerExpanded } = useFocusTimerActions();
+  const animationsSuspended = useAnimationSuspended();
 
   if (timerStatus === 'idle') return null;
+  const dotPulsing = !animationsSuspended && (timerStatus === 'running' || timerStatus === 'break');
 
   return (
     <motion.button
@@ -68,8 +70,8 @@ function FocusTimerButton() {
     >
       <motion.div
         className={`w-1.5 h-1.5 rounded-full ${sessionType === 'break' ? 'bg-success' : 'bg-primary'}`}
-        animate={timerStatus === 'running' || timerStatus === 'break' ? { opacity: [1, 0.3, 1] } : {}}
-        transition={{ duration: 1.5, repeat: Infinity }}
+        animate={dotPulsing ? { opacity: [1, 0.3, 1] } : { opacity: 1 }}
+        transition={dotPulsing ? { duration: 1.5, repeat: Infinity } : { duration: 0 }}
       />
       {`${Math.floor(timerTimeLeft / 60).toString().padStart(2, '0')}:${(timerTimeLeft % 60).toString().padStart(2, '0')}`}
     </motion.button>
@@ -83,6 +85,7 @@ export default function Header() {
   const { open: openCommandPalette } = useCommandPalette();
   const { copy, language } = useAppLanguage();
   const isPageVisible = usePageVisibility();
+  const animationsSuspended = useAnimationSuspended();
 
   const { data: stats } = useQuery({
     queryKey: ['dashboard', 'stats'],
@@ -148,8 +151,8 @@ export default function Header() {
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/[0.1] border border-primary/[0.18]">
                 <motion.div
                   className="w-1.5 h-1.5 rounded-full bg-primary"
-                  animate={{ opacity: [1, 0.35, 1] }}
-                  transition={{ duration: 1.6, repeat: Infinity }}
+                  animate={animationsSuspended ? { opacity: 1 } : { opacity: [1, 0.35, 1] }}
+                  transition={animationsSuspended ? { duration: 0 } : { duration: 1.6, repeat: Infinity }}
                   style={{ boxShadow: '0 0 5px currentColor' }}
                 />
                 <span className="text-[11px] font-semibold text-primary tabular-nums">

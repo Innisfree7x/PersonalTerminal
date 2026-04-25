@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Calendar, TrendingUp, Clock, Flame, Target, BookOpen } from 'lucide-react';
 import { Skeleton } from '@/components/ui';
 import { memo } from 'react';
+import { useAnimationSuspended } from '@/lib/hooks/usePageVisibility';
 
 /**
  * Horizontal stats bar displaying key metrics
@@ -47,6 +48,7 @@ const QuickStatsBar = memo(function QuickStatsBar({
   exercisesThisWeek,
   isLoading = false,
 }: QuickStatsBarProps) {
+  const animationsSuspended = useAnimationSuspended();
   // Loading state
   if (isLoading) {
     return (
@@ -173,8 +175,8 @@ const QuickStatsBar = memo(function QuickStatsBar({
             {stat.highlight && (
               <motion.div
                 className="absolute top-0 right-0 p-1"
-                animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                animate={animationsSuspended ? { scale: 1, rotate: 0 } : { scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
+                transition={animationsSuspended ? { duration: 0 } : { duration: 2, repeat: Infinity, repeatDelay: 3 }}
               >
                 <Flame className="w-4 h-4 text-warning" />
               </motion.div>
