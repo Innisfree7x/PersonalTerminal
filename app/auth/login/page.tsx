@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { signIn } from '@/lib/auth/client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { motion } from 'framer-motion';
 import { isOnboardingComplete } from '@/lib/auth/profile';
 import { BrandMark } from '@/components/shared/BrandLogo';
 import { trackMarketingEvent } from '@/lib/analytics/marketing';
@@ -108,12 +107,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center premium-grid-bg p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="relative z-10 w-full max-w-md"
-      >
+      <div className="relative z-10 w-full max-w-md animate-slideUp">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
           <BrandMark sizeClassName="h-16 w-16" className="mb-4" />
@@ -215,7 +209,7 @@ export default function LoginPage() {
         <p className="text-center text-xs text-text-tertiary mt-8">
           Mit der Anmeldung stimmst du den <a href="/terms" className="underline hover:text-text-secondary">Nutzungsbedingungen</a> und der <a href="/privacy" className="underline hover:text-text-secondary">Datenschutzerklärung</a> von INNIS zu.
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 }

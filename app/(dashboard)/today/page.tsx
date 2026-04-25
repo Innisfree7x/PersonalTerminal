@@ -7,11 +7,9 @@ import { CheckCircle2, GraduationCap, Flame, AlertTriangle, RefreshCw } from 'lu
 import toast from 'react-hot-toast';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import FocusTasks from '@/components/features/dashboard/FocusTasks';
-import AchievementUnlockOverlay from '@/components/features/room/AchievementUnlockOverlay';
 import TrajectoryCollisionHero from '@/components/features/today/TrajectoryCollisionHero';
 import MomentumPulse from '@/components/features/today/MomentumPulse';
 import NextMovesStack from '@/components/features/today/NextMovesStack';
-import AmbientRoomPanel from '@/components/features/today/AmbientRoomPanel';
 import { useRoomState } from '@/lib/hooks/useRoomState';
 import { useRoomItems } from '@/lib/hooks/useRoomItems';
 import { useLucianOutfit } from '@/lib/hooks/useLucianOutfit';
@@ -45,6 +43,16 @@ const widgetSkeleton = (
 
 const LazyStudyProgress = dynamic(
   () => import('@/components/features/dashboard/StudyProgress'),
+  { ssr: false, loading: () => widgetSkeleton }
+);
+
+const AchievementUnlockOverlay = dynamic(
+  () => import('@/components/features/room/AchievementUnlockOverlay'),
+  { ssr: false }
+);
+
+const AmbientRoomPanel = dynamic(
+  () => import('@/components/features/today/AmbientRoomPanel'),
   { ssr: false, loading: () => widgetSkeleton }
 );
 

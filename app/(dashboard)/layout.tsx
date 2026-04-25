@@ -7,6 +7,7 @@ import { SidebarProvider, useSidebar } from '@/components/layout/SidebarProvider
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { MotionConfig } from 'framer-motion';
 import PowerHotkeysProvider from '@/components/providers/PowerHotkeysProvider';
 import { ChampionProvider } from '@/components/providers/ChampionProvider';
 import { LucianBubbleProvider } from '@/components/providers/LucianBubbleProvider';
@@ -116,12 +117,14 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider>
-      <PowerHotkeysProvider>
-        <DashboardRuntimeProviders>
-          <DashboardLayoutInner>{children}</DashboardLayoutInner>
-        </DashboardRuntimeProviders>
-      </PowerHotkeysProvider>
-    </SidebarProvider>
+    <MotionConfig reducedMotion="user">
+      <SidebarProvider>
+        <PowerHotkeysProvider>
+          <DashboardRuntimeProviders>
+            <DashboardLayoutInner>{children}</DashboardLayoutInner>
+          </DashboardRuntimeProviders>
+        </PowerHotkeysProvider>
+      </SidebarProvider>
+    </MotionConfig>
   );
 }

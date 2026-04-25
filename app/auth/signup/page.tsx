@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { signUp } from '@/lib/auth/client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { motion } from 'framer-motion';
 import { BrandMark } from '@/components/shared/BrandLogo';
 import { trackMarketingEvent } from '@/lib/analytics/marketing';
 
@@ -76,11 +75,7 @@ export default function SignUpPage() {
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center premium-grid-bg p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="relative z-10 text-center"
-        >
+        <div className="relative z-10 text-center animate-fadeIn">
           <div className="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-10 h-10 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -92,19 +87,14 @@ export default function SignUpPage() {
           <p className="text-text-secondary">
             Prüfe deine E-Mails zur Verifizierung und melde dich danach an.
           </p>
-        </motion.div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center premium-grid-bg p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="relative z-10 w-full max-w-md"
-      >
+      <div className="relative z-10 w-full max-w-md animate-slideUp">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
           <BrandMark sizeClassName="h-16 w-16" className="mb-4" />
@@ -262,7 +252,7 @@ export default function SignUpPage() {
         <p className="text-center text-xs text-text-tertiary mt-8">
           Mit der Registrierung stimmst du den <a href="/terms" className="underline hover:text-text-secondary">Nutzungsbedingungen</a> und der <a href="/privacy" className="underline hover:text-text-secondary">Datenschutzerklärung</a> von INNIS zu.
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 }
