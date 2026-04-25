@@ -181,7 +181,7 @@ describe('Today critical path integration', () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
-        '/api/dashboard/next-tasks?include=trajectory_morning,week_events'
+        '/api/dashboard/next-tasks?include=trajectory_morning'
       );
     });
   });

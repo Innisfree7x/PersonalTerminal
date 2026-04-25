@@ -8,7 +8,7 @@ export const DASHBOARD_NEXT_TASKS_QUERY_KEY = [
   'today-bundle',
 ] as const;
 
-const NEXT_TASKS_INCLUDE = 'trajectory_morning,week_events';
+const NEXT_TASKS_INCLUDE = 'trajectory_morning';
 export const DASHBOARD_NEXT_TASKS_URL = `/api/dashboard/next-tasks?include=${NEXT_TASKS_INCLUDE}`;
 
 export async function fetchDashboardNextTasks(): Promise<DashboardNextTasksResponse> {
