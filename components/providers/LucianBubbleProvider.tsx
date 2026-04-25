@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { subscribeChampionEvent, type ChampionEvent } from '@/lib/champion/championEvents';
 import { queuePrismCommandAction } from '@/lib/hooks/useCommandActions';
 import { getLucianHint } from '@/lib/lucian/hints';
+import { usePageVisibility } from '@/lib/hooks/usePageVisibility';
 import {
   DASHBOARD_NEXT_TASKS_QUERY_KEY,
   fetchDashboardNextTasksSafe,
@@ -313,7 +314,8 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
   const lastActivityRef           = useRef(Date.now());
   const lastBreakInviteAtRef      = useRef(0);
   const breakActiveRef            = useRef(false);
-  const contextHintsActive        = pathname?.startsWith('/today') ?? false;
+  const isPageVisible             = usePageVisibility();
+  const contextHintsActive        = (pathname?.startsWith('/today') ?? false) && isPageVisible;
   const todayIso                  = formatLocalDateKey(new Date());
   const yesterdayIso             = getDateKeyDaysAgo(1);
 
@@ -321,8 +323,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
     queryKey: DASHBOARD_NEXT_TASKS_QUERY_KEY,
     queryFn: fetchDashboardNextTasksSafe,
     enabled: contextHintsActive,
-    staleTime: 20 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: todayTasksData } = useQuery<DailyTaskPayload[] | null>({
@@ -333,8 +334,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
       return (await response.json()) as DailyTaskPayload[];
     },
     enabled: contextHintsActive,
-    staleTime: 20 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: yesterdayTasksData } = useQuery<DailyTaskPayload[] | null>({
@@ -345,8 +345,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
       return (await response.json()) as DailyTaskPayload[];
     },
     enabled: contextHintsActive,
-    staleTime: 20 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 10 * 60 * 1000,
   });
 
   const { data: recentSessionsData } = useQuery<FocusSessionPayload[] | null>({
@@ -359,8 +358,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
       return (await response.json()) as FocusSessionPayload[];
     },
     enabled: contextHintsActive,
-    staleTime: 30 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: applicationsData } = useQuery<ApplicationPayload[] | null>({
@@ -371,8 +369,7 @@ export function LucianBubbleProvider({ children }: { children: React.ReactNode }
       return (await response.json()) as ApplicationPayload[];
     },
     enabled: contextHintsActive,
-    staleTime: 30 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
   });
 
   // ── Timer helpers ──────────────────────────────────────────────────────────

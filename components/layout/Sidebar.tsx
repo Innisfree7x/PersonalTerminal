@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useTransition } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   LayoutDashboard,
@@ -31,6 +31,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [, startNavTransition] = useTransition();
   const [isOpen, setIsOpen] = useState(false);
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const { user, signOut } = useAuth();
@@ -81,54 +82,56 @@ export default function Sidebar() {
 
   const handleNavIntent = useCallback(
     (href: string) => {
-      router.prefetch(href);
+      startNavTransition(() => {
+        router.prefetch(href);
 
-      if (href === '/uni/courses') {
-        prefetchIfStale(['courses'], 5 * 60 * 1000, async () => {
-          const courses = await fetchCoursesAction();
-          return courses.map((course) => ({
-            ...course,
-            examDate: course.examDate ? new Date(course.examDate) : undefined,
-            createdAt: new Date(course.createdAt),
-            exercises: (course.exercises || []).map((ex) => ({
-              ...ex,
-              completedAt: ex.completedAt ? new Date(ex.completedAt) : undefined,
-              createdAt: new Date(ex.createdAt),
-            })),
-          }));
-        });
-        return;
-      }
+        if (href === '/uni/courses') {
+          prefetchIfStale(['courses'], 5 * 60 * 1000, async () => {
+            const courses = await fetchCoursesAction();
+            return courses.map((course) => ({
+              ...course,
+              examDate: course.examDate ? new Date(course.examDate) : undefined,
+              createdAt: new Date(course.createdAt),
+              exercises: (course.exercises || []).map((ex) => ({
+                ...ex,
+                completedAt: ex.completedAt ? new Date(ex.completedAt) : undefined,
+                createdAt: new Date(ex.createdAt),
+              })),
+            }));
+          });
+          return;
+        }
 
-      if (href === '/today') {
-        const today = new Date().toISOString().split('T')[0] ?? '';
+        if (href === '/today') {
+          const today = new Date().toISOString().split('T')[0] ?? '';
 
-        prefetchIfStale(DASHBOARD_NEXT_TASKS_QUERY_KEY, 2 * 60 * 1000, fetchDashboardNextTasks);
+          prefetchIfStale(DASHBOARD_NEXT_TASKS_QUERY_KEY, 2 * 60 * 1000, fetchDashboardNextTasks);
 
-        prefetchIfStale(['daily-tasks', today], 2 * 60 * 1000, async () => {
-          const response = await fetch(`/api/daily-tasks?date=${today}`);
-          if (!response.ok) throw new Error('Failed to fetch tasks');
-          return response.json();
-        });
-        return;
-      }
+          prefetchIfStale(['daily-tasks', today], 2 * 60 * 1000, async () => {
+            const response = await fetch(`/api/daily-tasks?date=${today}`);
+            if (!response.ok) throw new Error('Failed to fetch tasks');
+            return response.json();
+          });
+          return;
+        }
 
-      if (href === '/career/trajectory') {
-        prefetchIfStale(['trajectory', 'overview'], 20 * 1000, async () => {
-          const response = await fetch('/api/trajectory/overview');
-          if (!response.ok) throw new Error('Failed to fetch trajectory overview');
-          return response.json();
-        });
-        return;
-      }
+        if (href === '/career/trajectory') {
+          prefetchIfStale(['trajectory', 'overview'], 20 * 1000, async () => {
+            const response = await fetch('/api/trajectory/overview');
+            if (!response.ok) throw new Error('Failed to fetch trajectory overview');
+            return response.json();
+          });
+          return;
+        }
 
-      if (href === '/career/strategy') {
-        prefetchIfStale(['strategy', 'decisions'], 20 * 1000, async () => {
-          const response = await fetch('/api/strategy/decisions');
-          if (!response.ok) throw new Error('Failed to fetch strategy decisions');
-          return response.json();
-        });
-      }
+        if (href === '/career/strategy') {
+          prefetchIfStale(['strategy', 'decisions'], 20 * 1000, async () => {
+            const response = await fetch('/api/strategy/decisions');
+            if (!response.ok) throw new Error('Failed to fetch strategy decisions');
+            return response.json();
+          });
+        }
+      });
     },
     [prefetchIfStale, router]
   );

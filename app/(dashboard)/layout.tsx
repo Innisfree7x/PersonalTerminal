@@ -6,10 +6,29 @@ import FloatingTimer from '@/components/features/focus/FloatingTimer';
 import { SidebarProvider, useSidebar } from '@/components/layout/SidebarProvider';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import PowerHotkeysProvider from '@/components/providers/PowerHotkeysProvider';
 import { ChampionProvider } from '@/components/providers/ChampionProvider';
 import { LucianBubbleProvider } from '@/components/providers/LucianBubbleProvider';
 import { useAppLanguage } from '@/components/providers/LanguageProvider';
+
+function useDeferredMount(delay = 0): boolean {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const idle = (cb: () => void) => {
+      const ric = (window as unknown as {
+        requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      }).requestIdleCallback;
+      if (ric) {
+        ric(cb, { timeout: 1500 });
+      } else {
+        window.setTimeout(cb, delay);
+      }
+    };
+    idle(() => setReady(true));
+  }, [delay]);
+  return ready;
+}
 
 function DashboardLayoutInner({
   children,
@@ -76,14 +95,15 @@ function isChampionDisabled(pathname: string): boolean {
 
 function DashboardRuntimeProviders({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const ready = useDeferredMount();
   const enableLucianBubble = pathname === '/today' || pathname.startsWith('/today/');
   const disableChampion = isChampionDisabled(pathname);
 
-  const bubbleWrapped = enableLucianBubble ? (
+  const bubbleWrapped = enableLucianBubble && ready ? (
     <LucianBubbleProvider>{children}</LucianBubbleProvider>
   ) : children;
 
-  if (disableChampion) {
+  if (disableChampion || !ready) {
     return <>{bubbleWrapped}</>;
   }
 
