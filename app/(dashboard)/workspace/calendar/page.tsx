@@ -252,7 +252,7 @@ export default function CalendarPage() {
   }, []);
 
   const openEntry = useCallback((entry: CalendarEntry) => {
-    const readonly = entry.source === 'kit_webcal';
+    const readonly = entry.source === 'kit_webcal' || entry.source === 'google';
     setModal({
       mode: readonly ? 'view' : 'edit',
       initial: {

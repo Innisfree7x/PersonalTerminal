@@ -181,6 +181,49 @@ export async function fetchTodayEvents(
 }
 
 /**
+ * Fetch Google Calendar events in an arbitrary range.
+ * Returns [] when no token is present.
+ * Throws Error('UNAUTHORIZED') when token is rejected by Google.
+ */
+export async function fetchGoogleEventsInRange(
+  fromIso: string,
+  toIso: string,
+  accessToken: string | undefined,
+  refreshToken?: string | undefined,
+  expiresAt?: string | undefined
+): Promise<CalendarEvent[]> {
+  if (!accessToken) return [];
+
+  const validToken = await getValidAccessToken(accessToken, refreshToken, expiresAt);
+  if (!validToken) return [];
+
+  const url = new URL('https://www.googleapis.com/calendar/v3/calendars/primary/events');
+  url.searchParams.set('timeMin', fromIso);
+  url.searchParams.set('timeMax', toIso);
+  url.searchParams.set('singleEvents', 'true');
+  url.searchParams.set('orderBy', 'startTime');
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      Authorization: `Bearer ${validToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('UNAUTHORIZED');
+    }
+    const errorData = await response.text();
+    throw new Error(`Google Calendar API error: ${errorData}`);
+  }
+
+  const data = await response.json();
+  const events: GoogleCalendarEvent[] = data.items || [];
+
+  return events.map(mapGoogleEventToCalendarEvent);
+}
+
+/**
  * Fetch week's events from Google Calendar (Monday to Sunday)
  */
 export async function fetchWeekEvents(

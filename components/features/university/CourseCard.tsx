@@ -3,7 +3,6 @@
 import { memo, useState } from 'react';
 import { format, differenceInDays, startOfDay } from 'date-fns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
 import type { CourseWithExercises } from '@/lib/schemas/course.schema';
 import { toggleExerciseCompletionAction } from '@/app/actions/university';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
@@ -247,19 +246,17 @@ function CourseCard({
             <span className="text-text-secondary">{completedCount} of {totalCount}</span>
           </div>
           <div className="relative w-full h-4 bg-gray-800/80 rounded-full overflow-hidden border-2 border-gray-700/50">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${progressPercent}%` }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-emerald-500 via-green-400 to-lime-400 rounded-full"
+            <div
+              className="absolute top-0 left-0 h-full bg-gradient-to-r from-emerald-500 via-green-400 to-lime-400 rounded-full transition-[width] duration-300"
               style={{
-                boxShadow: progressPercent > 0 ? '0 0 20px rgba(16, 185, 129, 0.8), inset 0 1px 0 rgba(255,255,255,0.3)' : 'none'
+                width: `${progressPercent}%`,
+                boxShadow: progressPercent > 0 ? '0 0 20px rgba(16, 185, 129, 0.8), inset 0 1px 0 rgba(255,255,255,0.3)' : 'none',
               }}
             />
             {/* Shine effect */}
             {progressPercent > 0 && (
               <div
-                className="absolute top-0 left-0 h-full w-full bg-gradient-to-b from-white/30 via-transparent to-transparent rounded-full pointer-events-none"
+                className="absolute top-0 left-0 h-full bg-gradient-to-b from-white/30 via-transparent to-transparent rounded-full pointer-events-none transition-[width] duration-300"
                 style={{ width: `${progressPercent}%` }}
               />
             )}
@@ -267,56 +264,47 @@ function CourseCard({
         </div>
 
         {/* Expandable Exercise Grid */}
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="pt-4 border-t border-border/50 overflow-hidden"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-                {course.exercises.map((exercise, index) => (
-                  <motion.div
-                    key={exercise.id}
-                    data-testid={`course-exercise-${exercise.exerciseNumber}`}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.02 }}
-                    className={`relative p-3 rounded-lg border transition-all cursor-pointer group/ex ${exercise.completed
-                        ? 'bg-success/10 border-success/30'
-                        : 'bg-surface border-border hover:border-primary/50'
-                      }`}
-                    onClick={() =>
-                      toggleMutation.mutate({
-                        exerciseNumber: exercise.exerciseNumber,
-                        completed: !exercise.completed,
-                      })
-                    }
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <Checkbox
-                        checked={exercise.completed}
-                        className="pointer-events-none"
-                      />
+        {isExpanded && (
+          <div
+            className="pt-4 border-t border-border/50 animate-fadeIn"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+              {course.exercises.map((exercise) => (
+                <div
+                  key={exercise.id}
+                  data-testid={`course-exercise-${exercise.exerciseNumber}`}
+                  className={`relative p-3 rounded-lg border transition-colors cursor-pointer group/ex ${exercise.completed
+                      ? 'bg-success/10 border-success/30'
+                      : 'bg-surface border-border hover:border-primary/50'
+                    }`}
+                  onClick={() =>
+                    toggleMutation.mutate({
+                      exerciseNumber: exercise.exerciseNumber,
+                      completed: !exercise.completed,
+                    })
+                  }
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <Checkbox
+                      checked={exercise.completed}
+                      className="pointer-events-none"
+                    />
+                  </div>
+                  <span className={`text-sm font-medium ${exercise.completed ? 'text-success' : 'text-text-primary'
+                    }`}>
+                    Blatt {exercise.exerciseNumber}
+                  </span>
+                  {exercise.completedAt && (
+                    <div className="text-xs text-text-tertiary mt-1">
+                      {format(exercise.completedAt, 'dd.MM')}
                     </div>
-                    <span className={`text-sm font-medium ${exercise.completed ? 'text-success' : 'text-text-primary'
-                      }`}>
-                      Blatt {exercise.exerciseNumber}
-                    </span>
-                    {exercise.completedAt && (
-                      <div className="text-xs text-text-tertiary mt-1">
-                        {format(exercise.completedAt, 'dd.MM')}
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

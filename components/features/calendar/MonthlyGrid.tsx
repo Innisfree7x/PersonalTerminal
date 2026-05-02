@@ -131,7 +131,7 @@ function MonthlyGrid({
               </div>
               <div className="space-y-0.5">
                 {visible.map((entry) => {
-                  const readonly = entry.source === 'kit_webcal';
+                  const readonly = entry.source === 'kit_webcal' || entry.source === 'google';
                   return (
                     <div
                       key={entry.id}

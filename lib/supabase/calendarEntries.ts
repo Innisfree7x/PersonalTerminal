@@ -11,7 +11,7 @@ export type CalendarEntryKind =
   | 'personal'
   | 'custom';
 
-export type CalendarEntrySource = 'manual' | 'kit_webcal';
+export type CalendarEntrySource = 'manual' | 'kit_webcal' | 'google';
 
 export interface CalendarEntry {
   id: string;

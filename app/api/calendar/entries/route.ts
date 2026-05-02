@@ -8,6 +8,49 @@ import {
   listCalendarEntriesInRange,
   createCalendarEntry,
 } from '@/lib/supabase/calendarEntries';
+import type { CalendarEntry } from '@/lib/supabase/calendarEntries';
+import { fetchGoogleEventsInRange } from '@/lib/google/calendar';
+import type { CalendarEvent } from '@/lib/types/calendar';
+
+function googleEventToCalendarEntry(event: CalendarEvent): CalendarEntry {
+  return {
+    id: `google-${event.id}`,
+    source: 'google',
+    title: event.title,
+    description: event.description ?? null,
+    location: event.location ?? null,
+    startsAt: event.startTime.toISOString(),
+    endsAt: event.endTime.toISOString(),
+    allDay: false,
+    kind: 'meeting',
+  };
+}
+
+async function loadGoogleEntries(
+  request: NextRequest,
+  fromIso: string,
+  toIso: string
+): Promise<CalendarEntry[]> {
+  const accessToken = request.cookies.get('google_access_token')?.value;
+  if (!accessToken) return [];
+
+  const refreshToken = request.cookies.get('google_refresh_token')?.value;
+  const expiresAt = request.cookies.get('google_token_expires_at')?.value;
+
+  try {
+    const events = await fetchGoogleEventsInRange(
+      fromIso,
+      toIso,
+      accessToken,
+      refreshToken,
+      expiresAt
+    );
+    return events.map(googleEventToCalendarEntry);
+  } catch (error) {
+    console.error('Google calendar fetch failed:', error);
+    return [];
+  }
+}
 
 const kindEnum = z.enum([
   'lecture',
@@ -63,11 +106,15 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = createClient();
-    const entries = await listCalendarEntriesInRange(
-      supabase,
-      user.id,
-      fromDate.toISOString(),
-      toDate.toISOString()
+    const fromIso = fromDate.toISOString();
+    const toIso = toDate.toISOString();
+    const [localEntries, googleEntries] = await Promise.all([
+      listCalendarEntriesInRange(supabase, user.id, fromIso, toIso),
+      loadGoogleEntries(request, fromIso, toIso),
+    ]);
+
+    const entries = [...localEntries, ...googleEntries].sort((a, b) =>
+      a.startsAt.localeCompare(b.startsAt)
     );
 
     return NextResponse.json({ entries });

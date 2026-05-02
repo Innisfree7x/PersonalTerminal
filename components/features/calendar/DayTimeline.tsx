@@ -52,7 +52,7 @@ function DayTimeline({ day, entries, onAddAt, onOpenEntry }: DayTimelineProps) {
           <div className="text-[11px] uppercase tracking-wider text-text-tertiary">Ganztags</div>
           {allDay.map((entry) => {
             const style = KIND_STYLES[entry.kind];
-            const readonly = entry.source === 'kit_webcal';
+            const readonly = entry.source === 'kit_webcal' || entry.source === 'google';
             return (
               <button
                 key={entry.id}
@@ -96,7 +96,7 @@ function DayTimeline({ day, entries, onAddAt, onOpenEntry }: DayTimelineProps) {
                   <div className="space-y-1.5">
                     {items.map((entry) => {
                       const style = KIND_STYLES[entry.kind];
-                      const readonly = entry.source === 'kit_webcal';
+                      const readonly = entry.source === 'kit_webcal' || entry.source === 'google';
                       const start = new Date(entry.startsAt);
                       const end = new Date(entry.endsAt);
                       return (

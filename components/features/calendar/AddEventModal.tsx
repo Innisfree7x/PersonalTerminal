@@ -78,7 +78,7 @@ export default function AddEventModal({
   onDelete,
 }: AddEventModalProps) {
   const prevOpenRef = useRef(false);
-  const readonly = mode === 'view' || initial?.source === 'kit_webcal';
+  const readonly = mode === 'view' || initial?.source === 'kit_webcal' || initial?.source === 'google';
   const [title, setTitle] = useState(initial?.title ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [location, setLocation] = useState(initial?.location ?? '');

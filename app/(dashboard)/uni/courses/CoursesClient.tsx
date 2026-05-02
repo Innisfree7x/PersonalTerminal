@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfDay, differenceInDays } from 'date-fns';
-import { motion } from 'framer-motion';
 import { usePathname, useRouter } from 'next/navigation';
 import type { CourseWithExercises, CreateCourseInput } from '@/lib/schemas/course.schema';
 import {
@@ -394,11 +393,7 @@ export default function UniversityPage({ initialCourses }: CoursesClientProps) {
     return (
       <div className="space-y-6">
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
-      >
+      <div className="flex items-center justify-between animate-fadeIn">
         <div>
           <h1 className="text-3xl font-bold text-text-primary flex items-center gap-3 mb-2">
             <GraduationCap className="w-8 h-8 text-university-accent" />
@@ -417,13 +412,9 @@ export default function UniversityPage({ initialCourses }: CoursesClientProps) {
           <Plus className="w-4 h-4 mr-2" />
           Kurs anlegen
         </Button>
-      </motion.div>
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.12, delay: 0.02 }}
-      >
+      <div className="animate-fadeIn">
         <DecisionSurfaceCard
           eyebrow="KIT Hub"
           title="Sync und Noten sind jetzt in eigenen Bereichen"
@@ -450,15 +441,10 @@ export default function UniversityPage({ initialCourses }: CoursesClientProps) {
             </div>
           }
         />
-      </motion.div>
+      </div>
 
       {/* Stats Dashboard */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.12 }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-      >
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fadeIn">
         {/* Total ECTS */}
         <div className="relative overflow-hidden bg-gradient-to-br from-university-accent/20 to-university-accent/10 backdrop-blur-sm border border-university-accent/30 rounded-lg p-6 group">
           <div className="absolute inset-0 bg-gradient-to-br from-university-accent/20 to-university-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -495,11 +481,9 @@ export default function UniversityPage({ initialCourses }: CoursesClientProps) {
               </div>
               {/* Mini Progress Bar */}
               <div className="relative w-full h-2 bg-surface-hover rounded-full overflow-hidden border border-border">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${completionPercent}%` }}
-                  transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-primary-light rounded-full"
+                <div
+                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-primary-light rounded-full transition-[width] duration-300"
+                  style={{ width: `${completionPercent}%` }}
                 />
               </div>
             </div>
@@ -556,14 +540,10 @@ export default function UniversityPage({ initialCourses }: CoursesClientProps) {
             )}
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {criticalCourseDecision ? (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.12, delay: 0.04 }}
-        >
+        <div className="animate-fadeIn">
           <DecisionSurfaceCard
             eyebrow="Kritischer Kurs"
             title={criticalCourseDecision.title}
@@ -585,17 +565,12 @@ export default function UniversityPage({ initialCourses }: CoursesClientProps) {
               </div>
             }
           />
-        </motion.div>
+        </div>
       ) : null}
 
         {/* Course Cards */}
         {sortedCourses.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.12 }}
-            className="text-center py-20 bg-surface/50 backdrop-blur-sm border border-border rounded-lg"
-          >
+          <div className="text-center py-20 bg-surface/50 backdrop-blur-sm border border-border rounded-lg animate-fadeIn">
             <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 mx-auto text-2xl">
               🎓
             </div>
@@ -612,7 +587,7 @@ export default function UniversityPage({ initialCourses }: CoursesClientProps) {
               <Plus className="w-4 h-4 mr-2" />
               Ersten Kurs anlegen
             </Button>
-          </motion.div>
+          </div>
         ) : (
           <div className="space-y-4">
             {sortedCourses.map((course) => (
