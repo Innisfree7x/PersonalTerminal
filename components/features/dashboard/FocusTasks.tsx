@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Badge } from '@/components/ui/Badge';
@@ -89,7 +89,7 @@ async function createDailyTaskViaApi(
   return response.json() as Promise<DailyTask>;
 }
 
-export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: FocusTasksProps) {
+function FocusTasks({ nextTasksData: prefetchedNextTasksData }: FocusTasksProps) {
   const queryClient = useQueryClient();
   const { play } = useAppSound();
   const today = new Date().toISOString().split('T')[0] ?? '';
@@ -587,3 +587,5 @@ export default function FocusTasks({ nextTasksData: prefetchedNextTasksData }: F
     </div>
   );
 }
+
+export default memo(FocusTasks);

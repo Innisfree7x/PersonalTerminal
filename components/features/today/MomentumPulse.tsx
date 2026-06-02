@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react';
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { useAnimationSuspended } from '@/lib/hooks/usePageVisibility';
 
 export interface MomentumPulseProps {
@@ -50,7 +50,7 @@ const SIZE_PX: Record<NonNullable<MomentumPulseProps['size']>, number> = {
   lg: 220,
 };
 
-export default function MomentumPulse({
+function MomentumPulse({
   score,
   trend,
   label = 'Momentum',
@@ -142,3 +142,5 @@ export default function MomentumPulse({
     </motion.div>
   );
 }
+
+export default memo(MomentumPulse);

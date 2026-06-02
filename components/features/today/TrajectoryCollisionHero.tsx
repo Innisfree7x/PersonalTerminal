@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { AlertTriangle, ArrowRight, CalendarClock, Target } from 'lucide-react';
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import type { TrajectoryMorningSnapshotPayload } from '@/lib/trajectory/morningSnapshot';
 import { buildTrajectoryMorningBriefing } from '@/lib/dashboard/trajectoryBriefing';
 import { getRiskStatusTone } from '@/lib/design-system/statusTone';
@@ -26,7 +26,7 @@ function parseUtcDate(value: string): Date {
   return Number.isNaN(parsed.getTime()) ? new Date(value) : parsed;
 }
 
-export default function TrajectoryCollisionHero({ snapshot }: TrajectoryCollisionHeroProps) {
+function TrajectoryCollisionHero({ snapshot }: TrajectoryCollisionHeroProps) {
   const animationsSuspended = useAnimationSuspended();
   const briefing = useMemo(
     () => buildTrajectoryMorningBriefing(snapshot?.overview),
@@ -205,3 +205,5 @@ export default function TrajectoryCollisionHero({ snapshot }: TrajectoryCollisio
     </motion.div>
   );
 }
+
+export default memo(TrajectoryCollisionHero);
