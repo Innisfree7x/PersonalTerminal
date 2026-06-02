@@ -60,6 +60,39 @@ describe('calendarQueryCache', () => {
     expect(next?.map((entry) => entry.id)).toEqual(['keep']);
   });
 
+  it('keeps an entry that starts before the range but overlaps it', () => {
+    const queryKey = ['calendar-entries', 'day', '2026-04-21T00:00:00.000Z', '2026-04-22T00:00:00.000Z'];
+
+    const next = applyCalendarEntryToQueryData(
+      [],
+      queryKey,
+      makeEntry({
+        id: 'overnight',
+        title: 'Overnight',
+        startsAt: '2026-04-20T22:00:00.000Z',
+        endsAt: '2026-04-21T02:00:00.000Z',
+      })
+    );
+
+    expect(next?.map((entry) => entry.id)).toEqual(['overnight']);
+  });
+
+  it('does not keep an entry that ends exactly at the cached range start', () => {
+    const queryKey = ['calendar-entries', 'day', '2026-04-21T00:00:00.000Z', '2026-04-22T00:00:00.000Z'];
+
+    const next = applyCalendarEntryToQueryData(
+      [],
+      queryKey,
+      makeEntry({
+        id: 'previous-day',
+        startsAt: '2026-04-20T22:00:00.000Z',
+        endsAt: '2026-04-21T00:00:00.000Z',
+      })
+    );
+
+    expect(next?.map((entry) => entry.id)).toEqual([]);
+  });
+
   it('removes only manual entries with the target id', () => {
     const current = [
       makeEntry({ id: 'same-id', source: 'manual' }),

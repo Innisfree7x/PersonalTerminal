@@ -49,4 +49,29 @@ describe('WeeklyTemplateGrid', () => {
     expect(screen.getByText('2530371 - Financial Data Science')).toBeInTheDocument();
     expect(screen.getByText('10.50 Raum 701.3')).toBeInTheDocument();
   });
+
+  it('renders a multi-day all-day entry on every covered day', () => {
+    render(
+      <WeeklyTemplateGrid
+        weekStart={weekStart}
+        entries={[
+          {
+            id: 'all-day-1',
+            source: 'google',
+            title: 'GMAT Block',
+            description: null,
+            location: null,
+            startsAt: '2026-04-20T00:00:00',
+            endsAt: '2026-04-22T00:00:00',
+            allDay: true,
+            kind: 'personal',
+          },
+        ]}
+        onAddAt={noop}
+        onOpenEntry={noop}
+      />
+    );
+
+    expect(screen.getAllByText('GMAT Block')).toHaveLength(2);
+  });
 });

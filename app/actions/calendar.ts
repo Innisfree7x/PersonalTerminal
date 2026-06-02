@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers';
 import { fetchTodayEvents } from '@/lib/google/calendar';
 import { fetchMergedWeekCalendarEvents } from '@/lib/calendar/weekEvents';
+import { getCurrentUser } from '@/lib/auth/server';
 import type { CalendarEvent, EventType, CalendarEventKind, CalendarEventSource } from '@/lib/types/calendar';
 
 export interface CalendarEventActionDTO {
@@ -10,6 +11,7 @@ export interface CalendarEventActionDTO {
   title: string;
   startTime: string;
   endTime: string;
+  allDay?: boolean;
   type: EventType;
   description?: string;
   location?: string;
@@ -26,12 +28,21 @@ function getCalendarAuthCookies() {
   };
 }
 
+async function requireCalendarActionAuth() {
+  const user = await getCurrentUser();
+  if (!user) {
+    throw new Error('UNAUTHORIZED');
+  }
+  return user;
+}
+
 function serializeEvents(events: CalendarEvent[]): CalendarEventActionDTO[] {
   return events.map((event) => ({
     id: event.id,
     title: event.title,
     startTime: event.startTime.toISOString(),
     endTime: event.endTime.toISOString(),
+    ...(event.allDay !== undefined ? { allDay: event.allDay } : {}),
     type: event.type,
     ...(event.description ? { description: event.description } : {}),
     ...(event.location ? { location: event.location } : {}),
@@ -41,6 +52,9 @@ function serializeEvents(events: CalendarEvent[]): CalendarEventActionDTO[] {
 }
 
 export async function checkGoogleCalendarConnectionAction(): Promise<boolean> {
+  const user = await getCurrentUser();
+  if (!user) return false;
+
   const { accessToken, refreshToken, expiresAt } = getCalendarAuthCookies();
   if (!accessToken) return false;
 
@@ -53,6 +67,7 @@ export async function checkGoogleCalendarConnectionAction(): Promise<boolean> {
 }
 
 export async function fetchTodayCalendarEventsAction(): Promise<CalendarEventActionDTO[]> {
+  await requireCalendarActionAuth();
   const { accessToken, refreshToken, expiresAt } = getCalendarAuthCookies();
   if (!accessToken) {
     throw new Error('UNAUTHORIZED');
@@ -65,6 +80,7 @@ export async function fetchTodayCalendarEventsAction(): Promise<CalendarEventAct
 export async function fetchWeekCalendarEventsAction(
   weekStartIso: string
 ): Promise<CalendarEventActionDTO[]> {
+  await requireCalendarActionAuth();
   const { accessToken, refreshToken, expiresAt } = getCalendarAuthCookies();
 
   const weekStart = new Date(weekStartIso);
@@ -81,6 +97,7 @@ export async function fetchWeekCalendarEventsAction(
 }
 
 export async function disconnectGoogleCalendarAction(): Promise<void> {
+  await requireCalendarActionAuth();
   const cookieStore = cookies();
   cookieStore.delete('google_access_token');
   cookieStore.delete('google_refresh_token');

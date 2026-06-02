@@ -1,4 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/supabase/types';
+
+type AppSupabaseClient = SupabaseClient<Database>;
 
 export type CalendarEntryKind =
   | 'lecture'
@@ -61,7 +64,7 @@ function mapKitKindToCalendarKind(kitKind: string | null): CalendarEntryKind {
 }
 
 export async function listCalendarEntriesInRange(
-  supabase: SupabaseClient,
+  supabase: AppSupabaseClient,
   userId: string,
   fromIso: string,
   toIso: string
@@ -71,15 +74,15 @@ export async function listCalendarEntriesInRange(
       .from('calendar_entries')
       .select('id, title, description, location, starts_at, ends_at, all_day, kind')
       .eq('user_id', userId)
-      .gte('starts_at', fromIso)
-      .lte('starts_at', toIso)
+      .lt('starts_at', toIso)
+      .gt('ends_at', fromIso)
       .order('starts_at', { ascending: true }),
     supabase
       .from('kit_campus_events')
       .select('id, title, description, location, starts_at, ends_at, all_day, kind')
       .eq('user_id', userId)
-      .gte('starts_at', fromIso)
-      .lte('starts_at', toIso)
+      .lt('starts_at', toIso)
+      .or(`ends_at.gt.${fromIso},starts_at.gte.${fromIso}`)
       .order('starts_at', { ascending: true }),
   ]);
 
@@ -118,7 +121,7 @@ export async function listCalendarEntriesInRange(
 }
 
 export async function createCalendarEntry(
-  supabase: SupabaseClient,
+  supabase: AppSupabaseClient,
   userId: string,
   input: CreateCalendarEntryInput
 ): Promise<CalendarEntry> {
@@ -155,7 +158,7 @@ export async function createCalendarEntry(
 }
 
 export async function updateCalendarEntry(
-  supabase: SupabaseClient,
+  supabase: AppSupabaseClient,
   userId: string,
   id: string,
   input: UpdateCalendarEntryInput
@@ -195,7 +198,7 @@ export async function updateCalendarEntry(
 }
 
 export async function deleteCalendarEntry(
-  supabase: SupabaseClient,
+  supabase: AppSupabaseClient,
   userId: string,
   id: string
 ): Promise<void> {

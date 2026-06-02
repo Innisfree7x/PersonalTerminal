@@ -4,6 +4,11 @@ import { memo, useMemo } from 'react';
 import { Lock } from 'lucide-react';
 import type { CalendarEntry, CalendarEntryKind } from '@/lib/supabase/calendarEntries';
 import { WEEKDAY_LABELS_DE } from '@/lib/calendar/kitTimeSlots';
+import {
+  addLocalDays,
+  getCalendarDayKey,
+  getEntryDisplayDayRange,
+} from '@/lib/calendar/calendarEntryRange';
 
 export interface MonthlyGridProps {
   monthStart: Date;
@@ -69,11 +74,13 @@ function MonthlyGrid({
   const entriesByDay = useMemo(() => {
     const map = new Map<string, CalendarEntry[]>();
     for (const entry of entries) {
-      const start = new Date(entry.startsAt);
-      const key = `${start.getFullYear()}-${start.getMonth()}-${start.getDate()}`;
-      const existing = map.get(key);
-      if (existing) existing.push(entry);
-      else map.set(key, [entry]);
+      const { start, end } = getEntryDisplayDayRange(entry);
+      for (let day = start; day <= end; day = addLocalDays(day, 1)) {
+        const key = getCalendarDayKey(day);
+        const existing = map.get(key);
+        if (existing) existing.push(entry);
+        else map.set(key, [entry]);
+      }
     }
     map.forEach((items: CalendarEntry[]) => {
       items.sort((a: CalendarEntry, b: CalendarEntry) => a.startsAt.localeCompare(b.startsAt));
@@ -102,7 +109,7 @@ function MonthlyGrid({
         {cells.map((day, i) => {
           const isCurrentMonth = day.getMonth() === month;
           const isToday = sameDay(day, today);
-          const key = `${day.getFullYear()}-${day.getMonth()}-${day.getDate()}`;
+          const key = getCalendarDayKey(day);
           const dayEntries = entriesByDay.get(key) ?? [];
           const visible = dayEntries.slice(0, 3);
           const overflow = dayEntries.length - visible.length;

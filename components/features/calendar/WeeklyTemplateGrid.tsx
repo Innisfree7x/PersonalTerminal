@@ -8,6 +8,11 @@ import {
   slotIndexForDate,
 } from '@/lib/calendar/kitTimeSlots';
 import type { CalendarEntry, CalendarEntryKind } from '@/lib/supabase/calendarEntries';
+import {
+  addLocalDays,
+  getEntryDisplayDayRange,
+  startOfLocalDay,
+} from '@/lib/calendar/calendarEntryRange';
 
 export interface WeeklyTemplateGridProps {
   weekStart: Date;
@@ -51,8 +56,9 @@ function WeeklyTemplateGrid({
   onOpenEntry,
 }: WeeklyTemplateGridProps) {
   const { buckets, allDayBuckets, days } = useMemo(() => {
+    const normalizedWeekStart = startOfLocalDay(weekStart);
     const nextDays: Date[] = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date(weekStart);
+      const date = new Date(normalizedWeekStart);
       date.setDate(date.getDate() + i);
       date.setHours(0, 0, 0, 0);
       return date;
@@ -60,20 +66,29 @@ function WeeklyTemplateGrid({
 
     const bucketMap = new Map<string, Bucket>();
     const allDayMap = new Map<number, AllDayBucket>();
+    const weekEnd = addLocalDays(normalizedWeekStart, 7);
 
     for (const entry of entries) {
       const start = new Date(entry.startsAt);
-      const dayIndex = dayIndexFromDate(weekStart, start);
-      if (dayIndex < 0 || dayIndex > 6) continue;
+      const end = new Date(entry.endsAt);
+      if (end <= normalizedWeekStart || start >= weekEnd) continue;
 
       if (entry.allDay) {
-        const existing = allDayMap.get(dayIndex);
-        if (existing) existing.items.push(entry);
-        else allDayMap.set(dayIndex, { dayIndex, items: [entry] });
+        const { start: firstDay, end: lastDay } = getEntryDisplayDayRange(entry);
+        for (let day = firstDay; day <= lastDay; day = addLocalDays(day, 1)) {
+          const dayIndex = dayIndexFromDate(normalizedWeekStart, day);
+          if (dayIndex < 0 || dayIndex > 6) continue;
+          const existing = allDayMap.get(dayIndex);
+          if (existing) existing.items.push(entry);
+          else allDayMap.set(dayIndex, { dayIndex, items: [entry] });
+        }
         continue;
       }
 
-      const slotIndex = slotIndexForDate(start);
+      const effectiveStart = start < normalizedWeekStart ? normalizedWeekStart : start;
+      const dayIndex = dayIndexFromDate(normalizedWeekStart, effectiveStart);
+      if (dayIndex < 0 || dayIndex > 6) continue;
+      const slotIndex = slotIndexForDate(effectiveStart);
       const key = `${dayIndex}:${slotIndex}`;
       const existing = bucketMap.get(key);
       if (existing) existing.items.push(entry);

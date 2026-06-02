@@ -52,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase]);
 
   const signOut = async () => {
+    await fetch('/api/auth/google/disconnect', { method: 'POST' }).catch(() => undefined);
     await supabase.auth.signOut();
     setUser(null);
   };

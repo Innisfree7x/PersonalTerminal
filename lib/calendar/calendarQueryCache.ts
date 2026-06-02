@@ -24,8 +24,8 @@ function isManualEntryMatch(entry: CalendarEntry, entryId: string): boolean {
   return entry.source === 'manual' && entry.id === entryId;
 }
 
-function startsInRange(entry: CalendarEntry, fromIso: string, toIso: string): boolean {
-  return entry.startsAt >= fromIso && entry.startsAt <= toIso;
+function overlapsRange(entry: CalendarEntry, fromIso: string, toIso: string): boolean {
+  return entry.startsAt < toIso && entry.endsAt > fromIso;
 }
 
 export function applyCalendarEntryToQueryData(
@@ -42,7 +42,7 @@ export function applyCalendarEntryToQueryData(
     return removedExistingEntry ? filtered : currentEntries;
   }
 
-  if (!startsInRange(entry, queryKey[2], queryKey[3])) {
+  if (!overlapsRange(entry, queryKey[2], queryKey[3])) {
     return removedExistingEntry ? filtered : currentEntries;
   }
 

@@ -22,6 +22,7 @@
     "test:tenant-isolation": "tsx scripts/qa-tenant-isolation-check.ts",
     "seed:e2e:blocker": "tsx scripts/seedE2EBlockerUser.ts",
     "seed": "tsx scripts/seedGoals.ts",
+    "seed:suse2026": "tsx scripts/seedSoSe2026Courses.ts",
     "fix-courses": "tsx scripts/fixCourseExercises.ts",
     "type-check": "tsc --noEmit",
     "lint": "next lint",

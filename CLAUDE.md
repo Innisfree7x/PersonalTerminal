@@ -15,6 +15,9 @@
 ## Canonical Context
 - Active planning:
   - `docs/CONTEXT_CANON.md`
+  - `docs/PHASE51_CALENDAR_AUTH_AND_SOSE2026_MODULES_2026-06-02.md`
+  - `docs/PHASE48_PERFORMANCE_MASTERPLAN_HANDOFF_2026-04-22.md`
+  - `docs/PHASE47_V2_SPACES_ROOM_ACHIEVEMENTS_2026-04-04.md`
   - `docs/PHASE44_KIT_CONNECTORS_AND_TODAY_FUSION_2026-03-29.md`
   - `docs/PHASE42_KIT_SYNC_CONNECTOR_EXECUTION_CONTRACT_2026-03-29.md`
   - `docs/PHASE43_KIT_ILIAS_DASHBOARD_CONNECTOR_2026-03-29.md`
@@ -50,14 +53,14 @@ Auth redirects · onboarding gate (`user_metadata.onboarding_completed`) · redi
 - Hybrid rendering: most dashboard = client-heavy (`useQuery`), some server components pass initial data
 
 ## Provider Trees
-**Root**: AuthProvider → ThemeProvider → SoundProvider → QueryProvider → FocusTimerProvider → LucianBubbleProvider → CommandPaletteProvider + ToastProvider + PerformanceMonitor
-**Dashboard**: SidebarProvider → PowerHotkeysProvider → ChampionProvider
+**Root**: AuthProvider → LanguageProvider → ThemeProvider → SoundProvider → QueryProvider → FocusTimerProvider → CommandPaletteProvider + PerformanceMonitor + ToastProvider
+**Dashboard**: MotionConfig → SidebarProvider → PowerHotkeysProvider → route-gated DashboardRuntimeProviders (`LucianBubbleProvider` only on `/today`, `ChampionProvider` disabled on `/focus`, `/settings`, `/reflect/*`, `/analytics/*`)
 
 ## Key Routes
-`/` landing · `/onboarding` setup · `/today` command center · `/calendar` weekly · `/goals` tracking · `/university` courses · `/career` applications · `/analytics` focus · `/analytics/ops` admin health · `/settings` preferences
+`/` landing · `/onboarding` setup · `/today` daily operating surface · `/workspace/tasks` · `/workspace/goals` · `/workspace/calendar` · `/uni/courses` · `/uni/grades` · `/uni/sync` · `/career/applications` · `/career/strategy` · `/career/trajectory` · `/reflect/analytics` · `/reflect/momentum` · `/focus` · `/analytics/ops` admin health · `/settings` preferences
 
 ## Database Tables
-`goals` · `job_applications` · `courses` · `exercise_progress` · `daily_tasks` · `focus_sessions` · `admin_audit_logs` · `ops_flow_metrics` · `kit_sync_profiles` · `kit_sync_runs` · `kit_campus_events` · `kit_campus_modules` · `kit_campus_grades` · `kit_ilias_favorites` · `kit_ilias_items` · `events` (legacy, unused)
+`goals` · `job_applications` · `courses` · `exercise_progress` · `daily_tasks` · `focus_sessions` · `calendar_entries` · `admin_audit_logs` · `ops_flow_metrics` · `kit_sync_profiles` · `kit_sync_runs` · `kit_campus_events` · `kit_campus_modules` · `kit_campus_grades` · `kit_ilias_favorites` · `kit_ilias_items` · `events` (legacy, unused)
 RLS: owner-based isolation via `user_id` columns + owner-only policies.
 
 ## KIT Sync

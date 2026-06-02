@@ -85,6 +85,7 @@ async function getValidAccessToken(
  * Map Google Calendar event to our CalendarEvent format
  */
 function mapGoogleEventToCalendarEvent(event: GoogleCalendarEvent): CalendarEvent {
+  const allDay = Boolean(event.start?.date && !event.start.dateTime);
   const startTime = event.start?.dateTime
     ? new Date(event.start.dateTime)
     : event.start?.date
@@ -94,7 +95,7 @@ function mapGoogleEventToCalendarEvent(event: GoogleCalendarEvent): CalendarEven
   const endTime = event.end?.dateTime
     ? new Date(event.end.dateTime)
     : event.end?.date
-    ? new Date(event.end.date + 'T23:59:59')
+    ? new Date(event.end.date + 'T00:00:00')
     : new Date(startTime.getTime() + 60 * 60 * 1000); // Default 1 hour
 
   // Infer event type from title/description
@@ -117,6 +118,7 @@ function mapGoogleEventToCalendarEvent(event: GoogleCalendarEvent): CalendarEven
     title,
     startTime,
     endTime,
+    allDay,
     type,
     source: 'google',
   };

@@ -1,7 +1,19 @@
 # Context Canon (Single Source of Truth)
 
-Stand: 2026-04-13 (post Room Style Overhaul / Today room visual pass)
+Stand: 2026-06-02 (post Calendar/Auth hardening + SoSe-2026 module seed)
 Status: Active review baseline
+
+## Neu seit 2026-06-02 (hoch priorisiert)
+- `docs/PHASE51_CALENDAR_AUTH_AND_SOSE2026_MODULES_2026-06-02.md`
+  - Calendar-Range-Queries nutzen echte Zeitüberlappung statt nur `starts_at`.
+  - Google-Ganztagstermine behalten ihr exklusives Enddatum und werden als `allDay` transportiert.
+  - Calendar-Server-Actions prüfen die INNIS-Session.
+  - Logout löscht Google-OAuth-Cookies defensiv über den Disconnect-Endpunkt.
+  - `calendar_entries` ist im Supabase-Type-Contract ergänzt.
+  - SoSe-2026-Module des Users sind über `npm run seed:suse2026` idempotent seedbar.
+- Git-Historie nach Phase 48 ist produktrelevant:
+  - Phase 49/50 Performance-Wellen: Today-Animationen, Room-/Calendar-Rerenders, Lazy Provider, Idle Prefetch.
+  - `2026-05-02`: Google Calendar in `/workspace/calendar` integriert.
 
 ## Neu seit 2026-03-30 (hoch priorisiert)
 - Room Style Overhaul + Today Room Visual Pass (lokaler Integrationsstand 2026-04-13)
@@ -24,6 +36,7 @@ Dieses Dokument definiert verbindlich, welche Quellen fuer aktuelle Entscheidung
 Wenn zwei Dokumente widerspruechlich sind, gilt immer diese Prioritaetsliste.
 
 ## Prioritaetsreihenfolge (verbindlich)
+0. `docs/PHASE51_CALENDAR_AUTH_AND_SOSE2026_MODULES_2026-06-02.md` (Calendar/Auth-Härtung, Google-All-Day-Fix, `calendar_entries` Typen, SoSe-2026-Modul-Seed)
 1. `docs/PHASE20_ARCH_UX_RETENTION_HARDENING_2026-03-07.md` (Storage-Migration, Done-for-Today, Weekly-Rhythm, Typ-Cleanup)
 2. `docs/PHASE21_WAVE1_PERF_RELIABILITY_SECURITY_2026-03-07.md` (API-Hotpath-Optimierung, CSRF-Guard, private SWR, Premium-Polish)
 3. `docs/ERROR_MONITORING_AND_TENANT_ISOLATION_2026-03-07.md` (persistentes Error-Monitoring, reale Tenant-Isolation)
@@ -68,6 +81,9 @@ Wenn zwei Dokumente widerspruechlich sind, gilt immer diese Prioritaetsliste.
 42. Historische Phase-Dokumente (nur Referenz, nicht normativ)
 
 ## Aktive Dokumente
+- `docs/PHASE51_CALENDAR_AUTH_AND_SOSE2026_MODULES_2026-06-02.md`
+- `docs/PHASE48_PERFORMANCE_MASTERPLAN_HANDOFF_2026-04-22.md`
+- `docs/PHASE48_BASELINE_2026-04-22.md`
 - `docs/PHASE47_V2_SPACES_ROOM_ACHIEVEMENTS_2026-04-04.md`
 - `docs/PHASE45_KIT_ILIAS_ACKNOWLEDGE_LOOP_2026-03-30.md`
 - `docs/PHASE46_KIT_FIXES_AND_LANDING_AUDIT_2026-03-30.md`

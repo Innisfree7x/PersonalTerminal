@@ -4,6 +4,11 @@ import { memo, useMemo } from 'react';
 import { Lock, Plus } from 'lucide-react';
 import type { CalendarEntry, CalendarEntryKind } from '@/lib/supabase/calendarEntries';
 import { KIT_TIME_SLOTS, slotIndexForDate } from '@/lib/calendar/kitTimeSlots';
+import {
+  addLocalDays,
+  entryOverlapsDay,
+  startOfLocalDay,
+} from '@/lib/calendar/calendarEntryRange';
 
 export interface DayTimelineProps {
   day: Date;
@@ -29,21 +34,28 @@ function formatHm(date: Date): string {
 }
 
 function DayTimeline({ day, entries, onAddAt, onOpenEntry }: DayTimelineProps) {
+  const dayStart = startOfLocalDay(day);
+  const nextDayStart = addLocalDays(dayStart, 1);
   const { allDay, bySlot } = useMemo(() => {
     const allDay: CalendarEntry[] = [];
     const bySlot = new Map<number, CalendarEntry[]>();
     for (const entry of entries) {
+      if (!entryOverlapsDay(entry, dayStart)) continue;
       if (entry.allDay) {
         allDay.push(entry);
         continue;
       }
-      const slotIdx = slotIndexForDate(new Date(entry.startsAt));
+      const start = new Date(entry.startsAt);
+      const end = new Date(entry.endsAt);
+      if (end <= dayStart || start >= nextDayStart) continue;
+      const effectiveStart = start < dayStart ? dayStart : start;
+      const slotIdx = slotIndexForDate(effectiveStart);
       const existing = bySlot.get(slotIdx);
       if (existing) existing.push(entry);
       else bySlot.set(slotIdx, [entry]);
     }
     return { allDay, bySlot };
-  }, [entries]);
+  }, [dayStart, entries, nextDayStart]);
 
   return (
     <div className="card-surface rounded-xl overflow-hidden">

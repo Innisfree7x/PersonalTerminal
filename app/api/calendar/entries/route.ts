@@ -8,9 +8,15 @@ import {
   listCalendarEntriesInRange,
   createCalendarEntry,
 } from '@/lib/supabase/calendarEntries';
-import type { CalendarEntry } from '@/lib/supabase/calendarEntries';
+import type { CalendarEntry, CalendarEntryKind } from '@/lib/supabase/calendarEntries';
 import { fetchGoogleEventsInRange } from '@/lib/google/calendar';
 import type { CalendarEvent } from '@/lib/types/calendar';
+
+function googleEventKindToCalendarEntryKind(event: CalendarEvent): CalendarEntryKind {
+  if (event.type === 'task') return 'deadline';
+  if (event.type === 'break') return 'personal';
+  return 'meeting';
+}
 
 function googleEventToCalendarEntry(event: CalendarEvent): CalendarEntry {
   return {
@@ -21,8 +27,8 @@ function googleEventToCalendarEntry(event: CalendarEvent): CalendarEntry {
     location: event.location ?? null,
     startsAt: event.startTime.toISOString(),
     endsAt: event.endTime.toISOString(),
-    allDay: false,
-    kind: 'meeting',
+    allDay: event.allDay ?? false,
+    kind: googleEventKindToCalendarEntryKind(event),
   };
 }
 

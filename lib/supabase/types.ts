@@ -143,6 +143,75 @@ export interface Database {
         };
         Relationships: [];
       };
+      calendar_entries: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          description: string | null;
+          location: string | null;
+          starts_at: string;
+          ends_at: string;
+          all_day: boolean;
+          kind:
+            | 'lecture'
+            | 'exercise'
+            | 'tutorial'
+            | 'exam'
+            | 'interview'
+            | 'meeting'
+            | 'deadline'
+            | 'personal'
+            | 'custom';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          description?: string | null;
+          location?: string | null;
+          starts_at: string;
+          ends_at: string;
+          all_day?: boolean;
+          kind?:
+            | 'lecture'
+            | 'exercise'
+            | 'tutorial'
+            | 'exam'
+            | 'interview'
+            | 'meeting'
+            | 'deadline'
+            | 'personal'
+            | 'custom';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          description?: string | null;
+          location?: string | null;
+          starts_at?: string;
+          ends_at?: string;
+          all_day?: boolean;
+          kind?:
+            | 'lecture'
+            | 'exercise'
+            | 'tutorial'
+            | 'exam'
+            | 'interview'
+            | 'meeting'
+            | 'deadline'
+            | 'personal'
+            | 'custom';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       kit_sync_profiles: {
         Row: {
           id: string;
