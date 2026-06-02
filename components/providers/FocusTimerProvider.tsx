@@ -23,6 +23,7 @@ import { dispatchChampionEvent } from '@/lib/champion/championEvents';
 import { useAppSound } from '@/lib/hooks/useAppSound';
 import { usePageVisibility } from '@/lib/hooks/usePageVisibility';
 import { LEGACY_STORAGE_KEYS, readStorageValueWithLegacy, STORAGE_KEYS } from '@/lib/storage/keys';
+import { useAuth } from '@/lib/auth/AuthProvider';
 
 type TimerStatus = 'idle' | 'running' | 'paused' | 'break' | 'break_paused';
 
@@ -161,6 +162,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const { settings: appSoundSettings, setEnabled: setAppSoundEnabled, play: playAppSound } = useAppSound();
   const isPageVisible = usePageVisibility();
+  const { user, loading: authLoading } = useAuth();
 
   const [status, setStatus] = useState<TimerStatus>('idle');
   const [timeLeft, setTimeLeft] = useState(0);
@@ -191,6 +193,7 @@ export function FocusTimerProvider({ children }: { children: ReactNode }) {
   const { data: todaySummary } = useQuery({
     queryKey: ['focus', 'today'],
     queryFn: fetchTodayFocusSummary,
+    enabled: !authLoading && Boolean(user),
     refetchInterval: isPageVisible ? 5 * 60 * 1000 : false,
     staleTime: 5 * 60 * 1000,
     retry: false,

@@ -212,6 +212,75 @@ export interface Database {
         };
         Relationships: [];
       };
+      commitments: {
+        Row: {
+          id: string;
+          user_id: string;
+          date: string;
+          title: string;
+          status: 'pending' | 'done' | 'missed';
+          missed_reason: string | null;
+          sort_order: number;
+          created_at: string;
+          resolved_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          date: string;
+          title: string;
+          status?: 'pending' | 'done' | 'missed';
+          missed_reason?: string | null;
+          sort_order?: number;
+          created_at?: string;
+          resolved_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          date?: string;
+          title?: string;
+          status?: 'pending' | 'done' | 'missed';
+          missed_reason?: string | null;
+          sort_order?: number;
+          created_at?: string;
+          resolved_at?: string | null;
+        };
+        Relationships: [];
+      };
+      daily_checkins: {
+        Row: {
+          id: string;
+          user_id: string;
+          date: string;
+          type: 'morning' | 'evening';
+          energy: number | null;
+          journal_text: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          date: string;
+          type: 'morning' | 'evening';
+          energy?: number | null;
+          journal_text?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          date?: string;
+          type?: 'morning' | 'evening';
+          energy?: number | null;
+          journal_text?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       kit_sync_profiles: {
         Row: {
           id: string;
