@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
 import { CheckCircle2, GraduationCap, Flame, AlertTriangle, RefreshCw } from 'lucide-react';
@@ -99,6 +99,34 @@ export default function TodayPage() {
   const trajectoryBriefing = buildTrajectoryMorningBriefing(trajectorySnapshot?.overview);
   const momentum = trajectorySnapshot?.momentum ?? null;
   const kitSignals = nextTasksData?.kitSignals ?? null;
+
+  // Stable prop objects so memoized children don't re-render on every parent render.
+  const nextMovesKitEvent = useMemo(
+    () =>
+      kitSignals?.nextCampusEvent
+        ? {
+            title: kitSignals.nextCampusEvent.title,
+            startsAt: kitSignals.nextCampusEvent.startsAt,
+            location: kitSignals.nextCampusEvent.location,
+          }
+        : null,
+    [kitSignals?.nextCampusEvent]
+  );
+  const nextMovesDeadline = useMemo(
+    () =>
+      stats?.nextExam?.examDate
+        ? { courseName: stats.nextExam.name, examDate: stats.nextExam.examDate, courseCode: null }
+        : null,
+    [stats?.nextExam?.examDate, stats?.nextExam?.name]
+  );
+  const focusTasksInput = useMemo(
+    () => ({
+      homeworks: nextTasksData?.homeworks ?? [],
+      goals: nextTasksData?.goals ?? [],
+      interviews: nextTasksData?.interviews ?? [],
+    }),
+    [nextTasksData?.homeworks, nextTasksData?.goals, nextTasksData?.interviews]
+  );
 
   const tasksTodayCount = stats?.tasksToday ?? 0;
   const tasksCompletedCount = stats?.tasksCompleted ?? 0;
@@ -236,37 +264,15 @@ export default function TodayPage() {
           />
         </div>
         <NextMovesStack
-          nextKitEvent={
-            kitSignals?.nextCampusEvent
-              ? {
-                  title: kitSignals.nextCampusEvent.title,
-                  startsAt: kitSignals.nextCampusEvent.startsAt,
-                  location: kitSignals.nextCampusEvent.location,
-                }
-              : null
-          }
-          nextDeadline={
-            stats?.nextExam?.examDate
-              ? {
-                  courseName: stats.nextExam.name,
-                  examDate: stats.nextExam.examDate,
-                  courseCode: null,
-                }
-              : null
-          }
+          nextKitEvent={nextMovesKitEvent}
+          nextDeadline={nextMovesDeadline}
           nextTask={nextTasksData?.nextBestAction ?? null}
         />
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <ErrorBoundary fallbackTitle="Focus Tasks Error">
-          <FocusTasks
-            nextTasksData={{
-              homeworks: nextTasksData?.homeworks ?? [],
-              goals: nextTasksData?.goals ?? [],
-              interviews: nextTasksData?.interviews ?? [],
-            }}
-          />
+          <FocusTasks nextTasksData={focusTasksInput} />
         </ErrorBoundary>
         <ErrorBoundary fallbackTitle="Study Progress Error">
           <LazyStudyProgress courses={studyProgress} />

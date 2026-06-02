@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowRight, CalendarDays, GraduationCap, ListChecks } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { memo, type ReactNode } from 'react';
 import type { RankedExecutionCandidate } from '@/lib/application/use-cases/execution-engine';
 
 export interface NextKitEvent {
@@ -172,7 +172,7 @@ function EmptyCard({
   );
 }
 
-export default function NextMovesStack({
+function NextMovesStack({
   nextKitEvent,
   nextDeadline,
   nextTask,
@@ -251,3 +251,5 @@ export default function NextMovesStack({
     </div>
   );
 }
+
+export default memo(NextMovesStack);
