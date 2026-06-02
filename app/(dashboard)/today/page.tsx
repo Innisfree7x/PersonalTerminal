@@ -10,7 +10,6 @@ import FocusTasks from '@/components/features/dashboard/FocusTasks';
 import TrajectoryCollisionHero from '@/components/features/today/TrajectoryCollisionHero';
 import MomentumPulse from '@/components/features/today/MomentumPulse';
 import NextMovesStack from '@/components/features/today/NextMovesStack';
-import BriefingCard from '@/components/features/today/BriefingCard';
 import { useRoomState } from '@/lib/hooks/useRoomState';
 import { useRoomItems } from '@/lib/hooks/useRoomItems';
 import { useLucianOutfit } from '@/lib/hooks/useLucianOutfit';
@@ -225,11 +224,6 @@ export default function TodayPage() {
 
   return (
     <div className="space-y-5" data-testid="today-page-root">
-      {/* Phase A: Daily Briefing — provisorisch oben; finale Platzierung nach visueller Pruefung */}
-      <ErrorBoundary fallbackTitle="Briefing Error">
-        <BriefingCard />
-      </ErrorBoundary>
-
       <ErrorBoundary fallbackTitle="Trajectory Hero Error">
         <TrajectoryCollisionHero snapshot={trajectorySnapshot ?? null} />
       </ErrorBoundary>
