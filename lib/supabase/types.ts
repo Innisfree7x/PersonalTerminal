@@ -256,6 +256,7 @@ export interface Database {
           type: 'morning' | 'evening';
           energy: number | null;
           journal_text: string | null;
+          responses: Json;
           created_at: string;
           updated_at: string;
         };
@@ -266,6 +267,7 @@ export interface Database {
           type: 'morning' | 'evening';
           energy?: number | null;
           journal_text?: string | null;
+          responses?: Json;
           created_at?: string;
           updated_at?: string;
         };
@@ -276,6 +278,7 @@ export interface Database {
           type?: 'morning' | 'evening';
           energy?: number | null;
           journal_text?: string | null;
+          responses?: Json;
           created_at?: string;
           updated_at?: string;
         };

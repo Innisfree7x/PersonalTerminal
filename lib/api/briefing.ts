@@ -6,6 +6,7 @@ import type {
   CommitmentStatus,
   DailyCheckin,
   CheckinType,
+  CheckinResponses,
 } from '@/lib/supabase/dailyBriefing';
 import type { Fulfillment } from '@/lib/dashboard/briefing';
 
@@ -73,6 +74,7 @@ export interface UpsertCheckinRequest {
   type: CheckinType;
   energy?: number | null;
   journalText?: string | null;
+  responses?: CheckinResponses;
 }
 
 export async function upsertCheckinRequest(input: UpsertCheckinRequest): Promise<DailyCheckin> {

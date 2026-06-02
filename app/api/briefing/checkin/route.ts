@@ -8,11 +8,25 @@ import { getCheckin, upsertCheckin } from '@/lib/supabase/dailyBriefing';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+const responsesSchema = z
+  .object({
+    studied: z.boolean().optional(),
+    clean: z.boolean().optional(),
+    gamblingRisk: z.number().int().min(1).max(5).optional(),
+    gym: z.boolean().optional(),
+    sleep: z.number().int().min(1).max(3).optional(),
+    focus: z.number().int().min(1).max(3).optional(),
+    morningIntent: z.string().max(500).optional(),
+  })
+  .strict()
+  .optional();
+
 const putSchema = z.object({
   date: z.string().regex(DATE_RE, 'date must be YYYY-MM-DD'),
   type: z.enum(['morning', 'evening']),
   energy: z.number().int().min(1).max(3).nullable().optional(),
   journalText: z.string().max(4000).nullable().optional(),
+  responses: responsesSchema,
 });
 
 export async function GET(request: NextRequest) {
@@ -55,6 +69,7 @@ export async function PUT(request: NextRequest) {
       type: input.type,
       energy: input.energy ?? null,
       journalText: input.journalText ?? null,
+      ...(input.responses ? { responses: input.responses } : {}),
     });
 
     return NextResponse.json(checkin);
