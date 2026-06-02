@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@/lib/supabase/types';
+import type { Database, Json } from '@/lib/supabase/types';
 
 type AppSupabaseClient = SupabaseClient<Database>;
 
@@ -24,12 +24,32 @@ export interface CreateCommitmentInput {
 
 export type CheckinType = 'morning' | 'evening';
 
+/**
+ * Per-station check-in answers, stored as JSONB. Flexible so stations can grow
+ * without a migration. Feeds the risk traffic light (Phase B).
+ */
+export interface CheckinResponses {
+  // 🎓 Studium
+  studied?: boolean | undefined;
+  // 💰 Finanzen & Anti-Gambling
+  clean?: boolean | undefined;
+  gamblingRisk?: number | undefined; // 1 (kein Drang) – 5 (stark)
+  // 💪 Körper
+  gym?: boolean | undefined;
+  sleep?: number | undefined; // 1–3
+  // 🧠 Fokus & Disziplin
+  focus?: number | undefined; // 1–3
+  // 🌅 Morgens
+  morningIntent?: string | undefined;
+}
+
 export interface DailyCheckin {
   id: string;
   date: string;
   type: CheckinType;
   energy: number | null;
   journalText: string | null;
+  responses: CheckinResponses;
 }
 
 export interface UpsertCheckinInput {
@@ -37,11 +57,12 @@ export interface UpsertCheckinInput {
   type: CheckinType;
   energy?: number | null;
   journalText?: string | null;
+  responses?: CheckinResponses;
 }
 
 const COMMITMENT_COLUMNS =
   'id, date, title, status, missed_reason, sort_order, created_at, resolved_at';
-const CHECKIN_COLUMNS = 'id, date, type, energy, journal_text';
+const CHECKIN_COLUMNS = 'id, date, type, energy, journal_text, responses';
 
 type CommitmentRow = {
   id: string;
@@ -60,6 +81,7 @@ type CheckinRow = {
   type: CheckinType;
   energy: number | null;
   journal_text: string | null;
+  responses: unknown;
 };
 
 function mapCommitment(row: CommitmentRow): Commitment {
@@ -82,6 +104,10 @@ function mapCheckin(row: CheckinRow): DailyCheckin {
     type: row.type,
     energy: row.energy ?? null,
     journalText: row.journal_text ?? null,
+    responses:
+      row.responses && typeof row.responses === 'object'
+        ? (row.responses as CheckinResponses)
+        : {},
   };
 }
 
@@ -246,6 +272,7 @@ export async function upsertCheckin(
         type: input.type,
         energy: input.energy ?? null,
         journal_text: input.journalText ?? null,
+        responses: (input.responses ?? {}) as unknown as Json,
       },
       { onConflict: 'user_id,date,type' }
     )
