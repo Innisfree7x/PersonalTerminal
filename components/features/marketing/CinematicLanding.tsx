@@ -14,7 +14,6 @@ import { ArrowRight, ChevronDown } from 'lucide-react';
 import { TrackedCtaLink } from './TrackedCtaLink';
 import { TerminalFrame } from './TerminalFrame';
 import { TrajectoryMockup } from './mockups/TrajectoryMockup';
-import { LucianSpriteAnimator, type LucianAnimation } from '@/components/features/lucian/LucianSpriteAnimator';
 import { TodayMockup } from './mockups/TodayMockup';
 import { CareerMockup } from './mockups/CareerMockup';
 import { InteractiveDemo } from './InteractiveDemo';
@@ -44,16 +43,6 @@ const STOP_ATMOSPHERE = [
   { color: 'rgba(220,56,56,0.09)',   position: '50% 60%',   size: '60% 50%' }, // Demo — red center lab
   { color: 'rgba(232,185,48,0.15)',  position: '50% 30%',   size: '80% 60%' }, // CTA — gold full
 ] as const;
-
-// Lucian animation per stop
-const STOP_LUCIAN_ANIMATION: LucianAnimation[] = [
-  'idle',     // 0 Hero
-  'meditate', // 1 Trajectory — deep planning
-  'idle',     // 2 Today
-  'idle',     // 3 Career
-  'panic',    // 4 Demo — at_risk vibes
-  'victory',  // 5 CTA — celebrate
-];
 
 function progress01(value: number, start: number, end: number): number {
   if (value <= start) return 0;
@@ -120,54 +109,6 @@ function AtmosphereLayer({ progress }: { progress: MotionValue<number> }) {
       ))}
     </div>
   );
-}
-
-/* ─── Lucian Overlay — reacts to stops ─── */
-
-function LucianOverlay({ activeStop }: { activeStop: number }) {
-  const reduced = useReducedMotion();
-  const animation = STOP_LUCIAN_ANIMATION[activeStop] ?? 'idle';
-  const opacity = [0.55, 0.2, 0.2, 0.2, 0.45, 0.6][activeStop] ?? 0.2;
-
-  return (
-    <motion.div
-      className="pointer-events-none fixed bottom-10 right-10 z-20"
-      animate={{ opacity, scale: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      {!reduced && (
-        <motion.div
-          key={animation}
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <LucianSpriteAnimator animation={animation} size={64} />
-        </motion.div>
-      )}
-    </motion.div>
-  );
-}
-
-/* ─── Animated Counter ─── */
-
-function AnimatedCounter({ target }: { target: number }) {
-  const countMV = useMotionValue(0);
-  const [display, setDisplay] = useState(0);
-  const hasAnimated = useRef(false);
-
-  useEffect(() => {
-    if (hasAnimated.current) return;
-    hasAnimated.current = true;
-    const controls = animate(countMV, target, {
-      duration: 1.8,
-      ease: [0.22, 1, 0.36, 1],
-      onUpdate: (v) => setDisplay(Math.round(v)),
-    });
-    return () => controls.stop();
-  }, [countMV, target]);
-
-  return <>{display}</>;
 }
 
 /* ─── Main Component ─── */
@@ -315,9 +256,6 @@ export function CinematicLanding() {
           </button>
         ))}
       </div>
-
-      {/* Lucian — lives through the story */}
-      <LucianOverlay activeStop={activeStop} />
 
       <HeroFrame progress={progressMV} onScrollDown={() => goToStop(1)} />
 
@@ -510,13 +448,6 @@ function CTAFrame({ progress }: { progress: MotionValue<number> }) {
   const opacity = useTransform(progress, (p) => easeInOutCubic(progress01(p, 4.5, 5)));
   const pointerEvents = useTransform(opacity, (o) => (o > 0.5 ? 'auto' : 'none'));
   const headlineY = useTransform(progress, (p) => 25 * (1 - easeInOutCubic(progress01(p, 4.5, 5.1))));
-  const [counterVisible, setCounterVisible] = useState(false);
-
-  useEffect(() => {
-    return opacity.on('change', (v) => {
-      if (v > 0.4) setCounterVisible(true);
-    });
-  }, [opacity]);
 
   return (
     <motion.div className="fixed inset-0 z-10 flex items-center justify-center" style={{ opacity, pointerEvents }}>
@@ -540,13 +471,13 @@ function CTAFrame({ progress }: { progress: MotionValue<number> }) {
         <div className="mt-10 flex items-center justify-center gap-4">
           <div className="flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-white/[0.03] px-4 py-1.5">
             <span className="font-mono text-[13px] font-semibold text-white/80">
-              {counterVisible ? <AnimatedCounter target={847} /> : '0'}
+              847
             </span>
             <span className="font-mono text-[11px] text-zinc-600">Studenten</span>
           </div>
           <div className="flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-white/[0.03] px-4 py-1.5">
             <span className="font-mono text-[13px] font-semibold text-white/80">
-              Ø {counterVisible ? <AnimatedCounter target={23} /> : '0'} min
+              Ø 23 min
             </span>
             <span className="font-mono text-[11px] text-zinc-600">täglich</span>
           </div>

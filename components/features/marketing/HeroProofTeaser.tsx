@@ -80,7 +80,7 @@ export function HeroProofTeaser({ source = 'hero_mini_proof' }: { source?: strin
         <div className="max-w-xl">
           <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-primary/80">Live proof</p>
           <h3 className="mt-2 text-[1.05rem] font-semibold tracking-[-0.02em] text-white sm:text-[1.15rem]">
-            Gleiche Deadline. Andere Kapazitaet. Anderer Plan.
+            Gleiche Deadline. Andere Kapazität. Anderer Plan.
           </h3>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
             Teste direkt im Hero, wann dein Startfenster eng wird und ab wann der Plan kippt.
@@ -100,7 +100,7 @@ export function HeroProofTeaser({ source = 'hero_mini_proof' }: { source?: strin
       <div className="mt-5 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-4">
           <div>
-            <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.28em] text-zinc-500">Kapazitaet</p>
+            <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.28em] text-zinc-500">Kapazität</p>
             <div className="flex flex-wrap gap-2">
               {CAPACITY_OPTIONS.map((option) => (
                 <button

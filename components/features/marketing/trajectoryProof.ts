@@ -16,7 +16,7 @@ export function buildTrajectoryProofInsight(
   prepStartLabel: string
 ) {
   if (status === 'on_track') {
-    return `Mit ${capacityHoursPerWeek}h pro Woche bleibt dein Buffer intakt. Spaetester sinnvoller Start: ${prepStartLabel}.`;
+    return `Mit ${capacityHoursPerWeek}h pro Woche bleibt dein Buffer intakt. Spätester sinnvoller Start: ${prepStartLabel}.`;
   }
 
   if (status === 'tight') {
