@@ -17,7 +17,28 @@ export function hasE2ECredentials(mode = 'default') {
   return Boolean(email && password);
 }
 
+/**
+ * Marks today's daily briefing gate (both modes) as already passed, so the
+ * full-screen gate overlay never blocks E2E interactions. Mirrors the real
+ * "gate completed" state a user would have. Runs before every document load.
+ */
+async function bypassDailyGate(page) {
+  await page.addInitScript(() => {
+    try {
+      const d = new Date();
+      const day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+        d.getDate()
+      ).padStart(2, '0')}`;
+      window.localStorage.setItem(`innis:gate:${day}:morning`, 'done');
+      window.localStorage.setItem(`innis:gate:${day}:evening`, 'done');
+    } catch {
+      /* localStorage unavailable */
+    }
+  });
+}
+
 async function submitLogin(page, email, password) {
+  await bypassDailyGate(page);
   await page.goto('/auth/login');
   await page.locator('#email').fill(email);
   await page.locator('#password').fill(password);
