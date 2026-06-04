@@ -10,7 +10,6 @@ import { useEffect, useState } from 'react';
 import { MotionConfig } from 'framer-motion';
 import PowerHotkeysProvider from '@/components/providers/PowerHotkeysProvider';
 import { ChampionProvider } from '@/components/providers/ChampionProvider';
-import { LucianBubbleProvider } from '@/components/providers/LucianBubbleProvider';
 import { useAppLanguage } from '@/components/providers/LanguageProvider';
 import DailyGate from '@/components/features/today/DailyGate';
 import { useDailyGate } from '@/lib/hooks/useDailyGate';
@@ -99,7 +98,7 @@ function DashboardLayoutInner({
   );
 }
 
-const CHAMPION_DISABLED_PREFIXES = ['/focus', '/settings', '/reflect', '/analytics'] as const;
+const CHAMPION_DISABLED_PREFIXES = ['/today', '/focus', '/settings', '/reflect', '/analytics'] as const;
 
 function isChampionDisabled(pathname: string): boolean {
   return CHAMPION_DISABLED_PREFIXES.some(
@@ -110,18 +109,15 @@ function isChampionDisabled(pathname: string): boolean {
 function DashboardRuntimeProviders({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const ready = useDeferredMount();
-  const enableLucianBubble = pathname === '/today' || pathname.startsWith('/today/');
+  // LucianBubble fully disabled: its 500ms DOM-polling (getBoundingClientRect) was a
+  // constant CPU/heat source. The companion still lives in the morning/evening DailyGate.
   const disableChampion = isChampionDisabled(pathname);
 
-  const bubbleWrapped = enableLucianBubble && ready ? (
-    <LucianBubbleProvider>{children}</LucianBubbleProvider>
-  ) : children;
-
   if (disableChampion || !ready) {
-    return <>{bubbleWrapped}</>;
+    return <>{children}</>;
   }
 
-  return <ChampionProvider>{bubbleWrapped}</ChampionProvider>;
+  return <ChampionProvider>{children}</ChampionProvider>;
 }
 
 export default function DashboardLayout({
