@@ -24,10 +24,6 @@ vi.mock('@/components/features/dashboard/StudyProgress', () => ({
   default: () => <div>Study Progress Mock</div>,
 }));
 
-vi.mock('@/components/features/today/AmbientRoomPanel', () => ({
-  default: () => <div>Ambient Room Mock</div>,
-}));
-
 vi.mock('@/lib/hooks/useNotifications', () => ({
   useNotifications: () => ({
     error: null,
@@ -169,7 +165,7 @@ describe('Today critical path integration', () => {
     expect(screen.getByText('Financial Data Science (V)')).toBeInTheDocument();
     expect(screen.getByText('Focus Tasks Mock')).toBeInTheDocument();
     expect(screen.getByText('Study Progress Mock')).toBeInTheDocument();
-    expect(screen.getByText('Ambient Room Mock')).toBeInTheDocument();
+    expect(screen.queryByText('Ambient Room Mock')).not.toBeInTheDocument();
     expect(screen.getByText(/1\/3/)).toBeInTheDocument();
     expect(screen.getByText('Streak')).toBeInTheDocument();
 

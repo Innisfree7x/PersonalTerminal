@@ -11,10 +11,6 @@ vi.mock('@/components/features/dashboard/StudyProgress', () => ({
   default: () => <div>Study Progress Mock</div>,
 }));
 
-vi.mock('@/components/features/today/AmbientRoomPanel', () => ({
-  default: () => <div>Ambient Room Mock</div>,
-}));
-
 vi.mock('@/app/actions/calendar', () => ({
   checkGoogleCalendarConnectionAction: vi.fn().mockResolvedValue(false),
   fetchTodayCalendarEventsAction: vi.fn().mockResolvedValue([]),
@@ -80,7 +76,7 @@ describe('Dashboard Integration', () => {
       );
       expect(screen.getByText('Focus Tasks Mock')).toBeInTheDocument();
       expect(screen.getByText('Study Progress Mock')).toBeInTheDocument();
-      expect(screen.getByText('Ambient Room Mock')).toBeInTheDocument();
+      expect(screen.queryByText('Ambient Room Mock')).not.toBeInTheDocument();
       expect(screen.getByText('Streak')).toBeInTheDocument();
     });
   });
