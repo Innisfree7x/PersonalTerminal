@@ -10,18 +10,13 @@ import FocusTasks from '@/components/features/dashboard/FocusTasks';
 import TrajectoryCollisionHero from '@/components/features/today/TrajectoryCollisionHero';
 import MomentumPulse from '@/components/features/today/MomentumPulse';
 import NextMovesStack from '@/components/features/today/NextMovesStack';
-import { useRoomState } from '@/lib/hooks/useRoomState';
-import { useRoomItems } from '@/lib/hooks/useRoomItems';
-import { useLucianOutfit } from '@/lib/hooks/useLucianOutfit';
 import { useAchievements } from '@/lib/hooks/useAchievements';
-import { useRoomStyle } from '@/lib/hooks/useRoomStyle';
 import {
   DASHBOARD_NEXT_TASKS_QUERY_KEY,
   fetchDashboardNextTasks,
 } from '@/lib/dashboard/nextTasksClient';
 import { checkNewAchievements } from '@/lib/achievements/checker';
 import type { AchievementCheckInput } from '@/lib/achievements/registry';
-import { getLinesForMood } from '@/lib/lucian/copy';
 import { parseOAuthCallbackParams } from '@/lib/hooks/useNotifications';
 import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
 import { dispatchChampionEvent } from '@/lib/champion/championEvents';
@@ -51,19 +46,11 @@ const AchievementUnlockOverlay = dynamic(
   { ssr: false }
 );
 
-const AmbientRoomPanel = dynamic(
-  () => import('@/components/features/today/AmbientRoomPanel'),
-  { ssr: false, loading: () => widgetSkeleton }
-);
-
 export default function TodayPage() {
   const queryClient = useQueryClient();
   const { play } = useAppSound();
   const { streak } = useStreak();
-  const { style: roomStyle } = useRoomStyle();
   const { unlockedKeys, unlock } = useAchievements();
-  const roomItems = useRoomItems();
-  const { outfit } = useLucianOutfit();
   const [pendingAchievementKey, setPendingAchievementKey] = useState<string | null>(null);
   const achievementCheckedRef = useRef(false);
 
@@ -86,12 +73,6 @@ export default function TodayPage() {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
-
-  const roomState = useRoomState(nextTasksData);
-  const momentumScore = nextTasksData?.trajectoryMorning?.momentum?.score ?? 40;
-  const morningMood = momentumScore >= 70 ? 'hype' : momentumScore >= 40 ? 'chill' : 'comfort';
-  const morningLines = getLinesForMood(morningMood);
-  const morningMessage = morningLines[0]?.text ?? 'Bereit für einen produktiven Tag!';
 
   const stats = nextTasksData?.stats;
   const studyProgress = nextTasksData?.studyProgress || [];
@@ -278,16 +259,6 @@ export default function TodayPage() {
           <LazyStudyProgress courses={studyProgress} />
         </ErrorBoundary>
       </div>
-
-      <ErrorBoundary fallbackTitle="Room Error">
-        <AmbientRoomPanel
-          roomState={roomState}
-          roomStyle={roomStyle}
-          roomItems={roomItems}
-          outfit={outfit}
-          morningMessage={morningMessage}
-        />
-      </ErrorBoundary>
 
       <div className="card-warm relative overflow-hidden rounded-xl">
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1 px-4 py-2.5">
