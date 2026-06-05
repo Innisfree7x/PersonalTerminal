@@ -6,10 +6,8 @@ import FloatingTimer from '@/components/features/focus/FloatingTimer';
 import { SidebarProvider, useSidebar } from '@/components/layout/SidebarProvider';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import { MotionConfig } from 'framer-motion';
 import PowerHotkeysProvider from '@/components/providers/PowerHotkeysProvider';
-import { ChampionProvider } from '@/components/providers/ChampionProvider';
 import { useAppLanguage } from '@/components/providers/LanguageProvider';
 import DailyGate from '@/components/features/today/DailyGate';
 import { useDailyGate } from '@/lib/hooks/useDailyGate';
@@ -18,24 +16,6 @@ function DailyGateMount() {
   const { day, mode, hydrated, passed, complete } = useDailyGate();
   if (!hydrated || passed) return null;
   return <DailyGate day={day} mode={mode} onComplete={complete} />;
-}
-
-function useDeferredMount(delay = 0): boolean {
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    const idle = (cb: () => void) => {
-      const ric = (window as unknown as {
-        requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
-      }).requestIdleCallback;
-      if (ric) {
-        ric(cb, { timeout: 1500 });
-      } else {
-        window.setTimeout(cb, delay);
-      }
-    };
-    idle(() => setReady(true));
-  }, [delay]);
-  return ready;
 }
 
 function DashboardLayoutInner({
@@ -98,27 +78,10 @@ function DashboardLayoutInner({
   );
 }
 
-const CHAMPION_DISABLED_PREFIXES = ['/today', '/focus', '/settings', '/reflect', '/analytics'] as const;
-
-function isChampionDisabled(pathname: string): boolean {
-  return CHAMPION_DISABLED_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
-  );
-}
-
-function DashboardRuntimeProviders({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const ready = useDeferredMount();
-  // LucianBubble fully disabled: its 500ms DOM-polling (getBoundingClientRect) was a
-  // constant CPU/heat source. The companion still lives in the morning/evening DailyGate.
-  const disableChampion = isChampionDisabled(pathname);
-
-  if (disableChampion || !ready) {
-    return <>{children}</>;
-  }
-
-  return <ChampionProvider>{children}</ChampionProvider>;
-}
+// Champion + LucianBubble fully disabled for performance: both ran permanent
+// animation loops / 500ms DOM-polling = constant CPU/heat. The companion lives
+// in the morning/evening DailyGate. useChampion has a localStorage fallback, so
+// /settings and /focus keep working without the provider.
 
 export default function DashboardLayout({
   children,
@@ -129,9 +92,7 @@ export default function DashboardLayout({
     <MotionConfig reducedMotion="user">
       <SidebarProvider>
         <PowerHotkeysProvider>
-          <DashboardRuntimeProviders>
-            <DashboardLayoutInner>{children}</DashboardLayoutInner>
-          </DashboardRuntimeProviders>
+          <DashboardLayoutInner>{children}</DashboardLayoutInner>
         </PowerHotkeysProvider>
       </SidebarProvider>
     </MotionConfig>
