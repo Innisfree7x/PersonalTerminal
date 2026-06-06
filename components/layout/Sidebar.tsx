@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState, useMemo, useCallback, useTransition } from 'react';
+import { useState, useMemo, useCallback, useTransition, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   LayoutDashboard,
@@ -52,6 +52,23 @@ export default function Sidebar() {
       ],
     [copy.nav, isAdmin]
   );
+
+  // Eager-prefetch all primary route chunks once, after first paint (idle), so tab
+  // switches are instant regardless of hover. Code only — data stays on hover/visit.
+  useEffect(() => {
+    const run = () => {
+      for (const item of navigation) router.prefetch(item.href);
+    };
+    const ric = (window as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+    }).requestIdleCallback;
+    if (ric) {
+      ric(run, { timeout: 2500 });
+      return undefined;
+    }
+    const t = window.setTimeout(run, 800);
+    return () => window.clearTimeout(t);
+  }, [navigation, router]);
 
   // Extract display name from user metadata or email
   const displayName = user?.user_metadata?.full_name
