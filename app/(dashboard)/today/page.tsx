@@ -10,6 +10,7 @@ import FocusTasks from '@/components/features/dashboard/FocusTasks';
 import TrajectoryCollisionHero from '@/components/features/today/TrajectoryCollisionHero';
 import MomentumPulse from '@/components/features/today/MomentumPulse';
 import NextMovesStack from '@/components/features/today/NextMovesStack';
+import LifeVitals from '@/components/features/today/LifeVitals';
 import { useAchievements } from '@/lib/hooks/useAchievements';
 import {
   DASHBOARD_NEXT_TASKS_QUERY_KEY,
@@ -235,6 +236,13 @@ export default function TodayPage() {
     <div className="space-y-5" data-testid="today-page-root">
       <ErrorBoundary fallbackTitle="Trajectory Hero Error">
         <TrajectoryCollisionHero snapshot={trajectorySnapshot ?? null} />
+      </ErrorBoundary>
+
+      <ErrorBoundary fallbackTitle="Vitals Error">
+        <LifeVitals
+          trajectoryStatus={trajectoryBriefing?.status ?? null}
+          daysUntilExam={trajectoryBriefing?.daysUntil ?? null}
+        />
       </ErrorBoundary>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[220px,1fr]">
