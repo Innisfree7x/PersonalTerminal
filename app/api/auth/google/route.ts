@@ -60,17 +60,21 @@ export async function GET(request: NextRequest) {
   const state = `${user.id}:${crypto.randomUUID()}`;
   authUrl.searchParams.set('state', state);
 
+  const isSecure =
+    request.nextUrl.protocol === 'https:' ||
+    request.headers.get('x-forwarded-proto') === 'https';
+
   const response = NextResponse.redirect(authUrl.toString());
   response.cookies.set(OAUTH_STATE_COOKIE, state, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isSecure,
     sameSite: 'lax',
     maxAge: 60 * 10, // 10 minutes
     path: '/',
   });
   response.cookies.set(OAUTH_REDIRECT_URI_COOKIE, redirectUri, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isSecure,
     sameSite: 'lax',
     maxAge: 60 * 10, // 10 minutes
     path: '/',

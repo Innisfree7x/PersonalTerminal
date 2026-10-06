@@ -55,23 +55,31 @@ export async function getValidAccessToken(
   refreshToken: string | undefined,
   expiresAt: string | undefined
 ): Promise<string | null> {
+  // If accessToken is missing but we have a refreshToken, refresh immediately
   if (!accessToken) {
+    if (refreshToken) {
+      try {
+        return await refreshAccessToken(refreshToken);
+      } catch (error) {
+        console.error('Failed to obtain new access token from refresh token:', error);
+        return null;
+      }
+    }
     return null;
   }
 
-  // Check if token is expired
+  // Check if token is expired or expiring within 5 minutes
   if (expiresAt) {
     const expires = new Date(expiresAt);
     const now = new Date();
 
-    // Refresh if token expires in less than 5 minutes
     if (expires.getTime() - now.getTime() < 5 * 60 * 1000) {
       if (refreshToken) {
         try {
           return await refreshAccessToken(refreshToken);
         } catch (error) {
-          console.error('Failed to refresh token:', error);
-          return null;
+          console.error('Failed to refresh token before expiry:', error);
+          return accessToken; // fallback to current token if refresh fails temporarily
         }
       }
       return null;
@@ -194,7 +202,7 @@ export async function fetchGoogleEventsInRange(
   refreshToken?: string | undefined,
   expiresAt?: string | undefined
 ): Promise<CalendarEvent[]> {
-  if (!accessToken) return [];
+  if (!accessToken && !refreshToken) return [];
 
   const validToken = await getValidAccessToken(accessToken, refreshToken, expiresAt);
   if (!validToken) return [];
@@ -301,7 +309,7 @@ export interface UpdateGoogleEventInput {
  */
 export async function createGoogleCalendarEvent(
   input: CreateGoogleEventInput,
-  accessToken: string,
+  accessToken: string | undefined,
   refreshToken?: string,
   expiresAt?: string
 ): Promise<CalendarEvent> {
@@ -348,7 +356,7 @@ export async function createGoogleCalendarEvent(
 export async function updateGoogleCalendarEvent(
   eventId: string,
   input: UpdateGoogleEventInput,
-  accessToken: string,
+  accessToken: string | undefined,
   refreshToken?: string,
   expiresAt?: string
 ): Promise<CalendarEvent> {
@@ -396,7 +404,7 @@ export async function updateGoogleCalendarEvent(
  */
 export async function deleteGoogleCalendarEvent(
   eventId: string,
-  accessToken: string,
+  accessToken: string | undefined,
   refreshToken?: string,
   expiresAt?: string
 ): Promise<void> {

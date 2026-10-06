@@ -64,7 +64,7 @@ export async function PATCH(
       const refreshToken = request.cookies.get('google_refresh_token')?.value;
       const expiresAt = request.cookies.get('google_token_expires_at')?.value;
 
-      if (!accessToken) {
+      if (!accessToken && !refreshToken) {
         return apiErrorResponse(401, 'UNAUTHORIZED', 'Google account not connected');
       }
 
@@ -137,7 +137,7 @@ export async function DELETE(
       const refreshToken = request.cookies.get('google_refresh_token')?.value;
       const expiresAt = request.cookies.get('google_token_expires_at')?.value;
 
-      if (!accessToken) {
+      if (!accessToken && !refreshToken) {
         return apiErrorResponse(401, 'UNAUTHORIZED', 'Google account not connected');
       }
 

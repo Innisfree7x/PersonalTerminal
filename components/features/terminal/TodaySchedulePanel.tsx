@@ -8,6 +8,7 @@ import { getLocalDateString, formatTimeShort } from '@/lib/utils/date';
 interface TodaySchedulePanelProps {
   entries: CalendarEntry[];
   isLoading: boolean;
+  googleConnected?: boolean;
   onAddEvent: (event: {
     title: string;
     startsAt: string;
@@ -22,6 +23,7 @@ interface TodaySchedulePanelProps {
 export default function TodaySchedulePanel({
   entries,
   isLoading,
+  googleConnected = false,
   onAddEvent,
   onDeleteEvent,
   onOpenCalendarView,
@@ -85,6 +87,12 @@ export default function TodaySchedulePanel({
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 font-mono border border-indigo-500/20">
             {entries.length}
           </span>
+          {googleConnected && (
+            <span className="hidden sm:inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-mono border border-emerald-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Google Sync Aktiv
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-1.5">
@@ -190,12 +198,16 @@ export default function TodaySchedulePanel({
         ) : entries.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center text-white/40 space-y-2">
             <Clock className="w-8 h-8 opacity-30 text-indigo-400" />
-            <p className="text-xs font-mono">Keine Termine mehr für heute eingetragen.</p>
+            <p className="text-xs font-mono">
+              {googleConnected
+                ? 'Google Kalender synchronisiert – keine Termine für heute.'
+                : 'Keine Termine mehr für heute eingetragen.'}
+            </p>
             <button
               onClick={() => setShowQuickAdd(true)}
               className="text-xs font-mono text-indigo-400 hover:underline pt-1"
             >
-              + Time-Block erstellen
+              + Time-Block erstellen {googleConnected ? '(inkl. Google Sync)' : ''}
             </button>
           </div>
         ) : (

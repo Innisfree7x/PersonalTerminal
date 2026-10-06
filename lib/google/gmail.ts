@@ -34,7 +34,7 @@ export async function fetchRecentGmailMessages(
   expiresAt?: string,
   maxResults = 8
 ): Promise<{ connected: boolean; messages: GmailMessageSummary[]; error?: string }> {
-  if (!accessToken) {
+  if (!accessToken && !refreshToken) {
     return { connected: false, messages: [] };
   }
 
@@ -56,11 +56,24 @@ export async function fetchRecentGmailMessages(
     });
 
     if (!listRes.ok) {
-      if (listRes.status === 401 || listRes.status === 403) {
+      if (listRes.status === 401) {
         return {
           connected: false,
           messages: [],
-          error: 'Gmail permission not granted. Please reconnect Google account.',
+          error: 'Google-Sitzung abgelaufen. Bitte neu verbinden.',
+        };
+      }
+      if (listRes.status === 403) {
+        const errText = await listRes.text();
+        const isApiDisabled =
+          errText.toLowerCase().includes('disabled') ||
+          errText.toLowerCase().includes('not been used');
+        return {
+          connected: true,
+          messages: [],
+          error: isApiDisabled
+            ? 'Gmail API im Google Cloud Projekt nicht aktiviert (Kalender ist aktiv).'
+            : 'Gmail-Berechtigung nicht erteilt (Kalender ist aktiv).',
         };
       }
       const errText = await listRes.text();

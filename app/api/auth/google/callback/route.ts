@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireApiAuth } from '@/lib/api/auth';
-import { isProduction, serverEnv } from '@/lib/env';
+import { serverEnv } from '@/lib/env';
 import { resolveGoogleOAuthRedirectUri } from '@/lib/google/oauth';
 
 const OAUTH_STATE_COOKIE = 'google_oauth_state';
@@ -119,15 +119,19 @@ export async function GET(request: NextRequest) {
     // Calculate expiration time (expires_in is in seconds)
     const expiresAt = new Date(Date.now() + (expires_in * 1000));
 
+    const isSecure =
+      request.nextUrl.protocol === 'https:' ||
+      request.headers.get('x-forwarded-proto') === 'https';
+
     // Store tokens in httpOnly cookies
     const response = NextResponse.redirect(new URL('/today?success=connected', request.url));
     response.cookies.delete(OAUTH_STATE_COOKIE);
     response.cookies.delete(OAUTH_REDIRECT_URI_COOKIE);
     
-    // Set access token cookie (httpOnly, secure in production)
+    // Set access token cookie (httpOnly, secure when on https)
     response.cookies.set('google_access_token', access_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isSecure,
       sameSite: 'lax',
       maxAge: expires_in, // seconds
       path: '/',
@@ -137,7 +141,7 @@ export async function GET(request: NextRequest) {
     if (refresh_token) {
       response.cookies.set('google_refresh_token', refresh_token, {
         httpOnly: true,
-        secure: isProduction,
+        secure: isSecure,
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 365, // 1 year
         path: '/',
@@ -147,9 +151,9 @@ export async function GET(request: NextRequest) {
     // Set expiration timestamp cookie
     response.cookies.set('google_token_expires_at', expiresAt.toISOString(), {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isSecure,
       sameSite: 'lax',
-      maxAge: expires_in,
+      maxAge: 60 * 60 * 24 * 365, // 1 year
       path: '/',
     });
 

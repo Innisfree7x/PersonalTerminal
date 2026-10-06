@@ -38,10 +38,10 @@ async function loadGoogleEntries(
   toIso: string
 ): Promise<CalendarEntry[]> {
   const accessToken = request.cookies.get('google_access_token')?.value;
-  if (!accessToken) return [];
-
   const refreshToken = request.cookies.get('google_refresh_token')?.value;
   const expiresAt = request.cookies.get('google_token_expires_at')?.value;
+
+  if (!accessToken && !refreshToken) return [];
 
   try {
     const events = await fetchGoogleEventsInRange(
@@ -114,10 +114,14 @@ export async function GET(request: NextRequest) {
     const supabase = createClient();
     const fromIso = fromDate.toISOString();
     const toIso = toDate.toISOString();
-    const [localEntries, googleEntries] = await Promise.all([
-      listCalendarEntriesInRange(supabase, user.id, fromIso, toIso),
+    const [localEntriesResult, googleEntries] = await Promise.all([
+      listCalendarEntriesInRange(supabase, user.id, fromIso, toIso).catch((err) => {
+        console.warn('Failed to load local database calendar entries:', err);
+        return [] as CalendarEntry[];
+      }),
       loadGoogleEntries(request, fromIso, toIso),
     ]);
+    const localEntries = localEntriesResult ?? [];
 
     const entries = [...localEntries, ...googleEntries].sort((a, b) =>
       a.startsAt.localeCompare(b.startsAt)
@@ -153,7 +157,7 @@ export async function POST(request: NextRequest) {
     const expiresAt = request.cookies.get('google_token_expires_at')?.value;
 
     let googleEventId: string | null = null;
-    if (body.syncWithGoogle && accessToken) {
+    if (body.syncWithGoogle && (accessToken || refreshToken)) {
       try {
         const { createGoogleCalendarEvent } = await import('@/lib/google/calendar');
         const googleEvent = await createGoogleCalendarEvent(
@@ -165,7 +169,7 @@ export async function POST(request: NextRequest) {
             endsAt: input.endsAt,
             allDay: input.allDay,
           },
-          accessToken,
+          accessToken || '',
           refreshToken,
           expiresAt
         );

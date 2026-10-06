@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { FolderKanban, Mail } from 'lucide-react';
@@ -14,10 +14,38 @@ import StartupModelCard from '@/components/features/terminal/StartupModelCard';
 import type { CalendarEntry } from '@/lib/supabase/calendarEntries';
 import type { GmailMessageSummary } from '@/lib/google/gmail';
 import { getLocalDayBounds } from '@/lib/utils/date';
+import { parseOAuthCallbackParams } from '@/lib/hooks/useNotifications';
 
 export default function TodayCommandCenter() {
   const queryClient = useQueryClient();
   const [rightPanelTab, setRightPanelTab] = useState<'projects' | 'gmail'>('projects');
+
+  // Handle OAuth callback parameters (e.g. ?success=connected or ?error=...)
+  useEffect(() => {
+    const { error, success } = parseOAuthCallbackParams();
+    if (success) {
+      toast.success(success);
+      queryClient.invalidateQueries({ queryKey: ['terminal', 'google-status'] });
+      queryClient.invalidateQueries({ queryKey: ['terminal', 'calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['terminal', 'gmail'] });
+      if (typeof window !== 'undefined' && window.history?.replaceState) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('success');
+        url.searchParams.delete('error');
+        url.searchParams.delete('oauth_source');
+        window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+      }
+    } else if (error) {
+      toast.error(error);
+      if (typeof window !== 'undefined' && window.history?.replaceState) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('success');
+        url.searchParams.delete('error');
+        url.searchParams.delete('oauth_source');
+        window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+      }
+    }
+  }, [queryClient]);
 
   // Timezone-safe local day bounds
   const { dateStr: todayStr, startIso: todayStartIso, endIso: todayEndIso } = useMemo(
@@ -89,6 +117,23 @@ export default function TodayCommandCenter() {
     staleTime: 60 * 1000,
   });
 
+  // 5. Google Workspace Connection & Scope Status
+  const { data: googleStatus } = useQuery<{
+    connected: boolean;
+    hasCalendar: boolean;
+    hasGmail: boolean;
+    email?: string | null;
+    gmailError?: string | null;
+  }>({
+    queryKey: ['terminal', 'google-status'],
+    queryFn: async () => {
+      const res = await fetch('/api/auth/google/status');
+      if (!res.ok) return { connected: false, hasCalendar: false, hasGmail: false };
+      return res.json();
+    },
+    staleTime: 60 * 1000,
+  });
+
   // Derived state with defensive array guards
   const calendarEntries = Array.isArray(calendarData?.entries)
     ? calendarData.entries
@@ -117,7 +162,11 @@ export default function TodayCommandCenter() {
   const gmailMessages: GmailMessageSummary[] = Array.isArray(gmailData?.messages)
     ? gmailData.messages
     : [];
-  const googleConnected = Boolean(gmailData?.connected || calendarEntries.some((e) => e?.source === 'google'));
+  const googleConnected = Boolean(
+    googleStatus?.connected ||
+    gmailData?.connected ||
+    calendarEntries.some((e) => e?.source === 'google')
+  );
 
   const tasksCompleted = tasks.filter((t) => t?.completed).length;
   const unreadEmailsCount = gmailMessages.filter((m) => m?.isUnread).length;
@@ -265,6 +314,7 @@ export default function TodayCommandCenter() {
   };
 
   const handleGlobalRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['terminal', 'google-status'] });
     refetchCalendar();
     refetchTasks();
     refetchProjects();
@@ -301,6 +351,7 @@ export default function TodayCommandCenter() {
           <TodaySchedulePanel
             entries={calendarEntries}
             isLoading={isCalendarLoading}
+            googleConnected={googleConnected}
             onAddEvent={handleAddEvent}
             onDeleteEvent={handleDeleteEvent}
             onOpenCalendarView={() => {
