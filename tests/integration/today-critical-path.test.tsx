@@ -152,33 +152,20 @@ describe('Today critical path integration', () => {
     } as Response);
   });
 
-  test('renders trajectory hero, momentum pulse, next moves, and secondary widgets', async () => {
+  test('renders command center terminal, schedule, tasks, projects and scratchpad', async () => {
     renderWithProviders(<TodayPage />);
 
-    await screen.findByTestId('trajectory-hero');
-
-    expect(screen.getByText('GMAT')).toBeInTheDocument();
-    expect(screen.getByTestId('momentum-pulse')).toBeInTheDocument();
-    expect(screen.getByText('57')).toBeInTheDocument();
-    expect(screen.getByText('Momentum')).toBeInTheDocument();
-    expect(screen.getByTestId('next-moves-stack')).toBeInTheDocument();
-    expect(screen.getByText('Financial Data Science (V)')).toBeInTheDocument();
-    expect(screen.getByText('Focus Tasks Mock')).toBeInTheDocument();
-    expect(screen.getByText('Study Progress Mock')).toBeInTheDocument();
-    expect(screen.queryByText('Ambient Room Mock')).not.toBeInTheDocument();
-    expect(screen.getByText(/1\/3/)).toBeInTheDocument();
-    expect(screen.getByText('Streak')).toBeInTheDocument();
-
-    const trajectoryLink = screen.getByRole('link', { name: /Öffne Trajectory/i });
-    expect(trajectoryLink).toHaveAttribute(
-      'href',
-      '/trajectory?goalId=goal_gmat&source=today_hero'
-    );
+    await waitFor(() => {
+      expect(screen.getByText(/TERMINAL LIVE/i)).toBeInTheDocument();
+      expect(screen.getByText(/Google Workspace:/i)).toBeInTheDocument();
+      expect(screen.getByText(/Tagesplan/i)).toBeInTheDocument();
+      expect(screen.getByText(/Fokus-Aufgaben/i)).toBeInTheDocument();
+      expect(screen.getByText(/Aktive Projekte/i)).toBeInTheDocument();
+      expect(screen.getByText(/Scratchpad/i)).toBeInTheDocument();
+    });
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        '/api/dashboard/next-tasks?include=trajectory_morning'
-      );
+      expect(global.fetch).toHaveBeenCalled();
     });
   });
 });

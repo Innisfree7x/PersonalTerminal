@@ -89,15 +89,38 @@ export default function TodayCommandCenter() {
     staleTime: 60 * 1000,
   });
 
-  // Derived state
-  const calendarEntries = calendarData?.entries || [];
-  const tasks = tasksData || [];
-  const projects = projectsData || [];
-  const gmailMessages = gmailData?.messages || [];
-  const googleConnected = Boolean(gmailData?.connected || calendarEntries.some((e) => e.source === 'google'));
+  // Derived state with defensive array guards
+  const calendarEntries = Array.isArray(calendarData?.entries)
+    ? calendarData.entries
+    : Array.isArray(calendarData)
+    ? (calendarData as CalendarEntry[])
+    : [];
 
-  const tasksCompleted = tasks.filter((t) => t.completed).length;
-  const unreadEmailsCount = gmailMessages.filter((m) => m.isUnread).length;
+  const rawTasks = Array.isArray(tasksData)
+    ? tasksData
+    : Array.isArray((tasksData as any)?.data)
+    ? (tasksData as any).data
+    : Array.isArray((tasksData as any)?.tasks)
+    ? (tasksData as any).tasks
+    : [];
+  const tasks: DailyTaskItem[] = rawTasks;
+
+  const rawProjects = Array.isArray(projectsData)
+    ? projectsData
+    : Array.isArray((projectsData as any)?.data)
+    ? (projectsData as any).data
+    : Array.isArray((projectsData as any)?.projects)
+    ? (projectsData as any).projects
+    : [];
+  const projects: ProjectGoalItem[] = rawProjects;
+
+  const gmailMessages: GmailMessageSummary[] = Array.isArray(gmailData?.messages)
+    ? gmailData.messages
+    : [];
+  const googleConnected = Boolean(gmailData?.connected || calendarEntries.some((e) => e?.source === 'google'));
+
+  const tasksCompleted = tasks.filter((t) => t?.completed).length;
+  const unreadEmailsCount = gmailMessages.filter((m) => m?.isUnread).length;
 
   // --- Handlers ---
 

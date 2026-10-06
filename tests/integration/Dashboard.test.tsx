@@ -60,7 +60,7 @@ describe('Dashboard Integration', () => {
     } as Response);
   });
 
-  test('renders dashboard widgets', async () => {
+  test('renders command center terminal widgets', async () => {
     renderWithProviders(
       <SoundProvider>
         <TodayPage />
@@ -68,20 +68,15 @@ describe('Dashboard Integration', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByTestId('trajectory-hero-empty')).toBeInTheDocument();
-      expect(screen.getByText('Kein aktives Trajectory-Ziel')).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: /Einrichten/i })).toHaveAttribute(
-        'href',
-        '/trajectory'
-      );
-      expect(screen.getByText('Focus Tasks Mock')).toBeInTheDocument();
-      expect(screen.getByText('Study Progress Mock')).toBeInTheDocument();
-      expect(screen.queryByText('Ambient Room Mock')).not.toBeInTheDocument();
-      expect(screen.getByText('Streak')).toBeInTheDocument();
+      expect(screen.getByText(/TERMINAL LIVE/i)).toBeInTheDocument();
+      expect(screen.getByText(/Google Workspace:/i)).toBeInTheDocument();
+      expect(screen.getByText(/Tagesplan/i)).toBeInTheDocument();
+      expect(screen.getByText(/Fokus-Aufgaben/i)).toBeInTheDocument();
+      expect(screen.getByText(/Aktive Projekte/i)).toBeInTheDocument();
     });
   });
 
-  test('loads next-tasks data from API', async () => {
+  test('loads terminal data from APIs', async () => {
     renderWithProviders(
       <SoundProvider>
         <TodayPage />
@@ -89,7 +84,10 @@ describe('Dashboard Integration', () => {
     );
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/api/dashboard/next-tasks?include=trajectory_morning');
+      expect(global.fetch).toHaveBeenCalled();
+      const calledUrls = (global.fetch as any).mock.calls.map((call: any[]) => call[0]);
+      expect(calledUrls.some((url: string) => url.includes('/api/calendar/entries'))).toBe(true);
+      expect(calledUrls.some((url: string) => url.includes('/api/daily-tasks'))).toBe(true);
     });
   });
 });

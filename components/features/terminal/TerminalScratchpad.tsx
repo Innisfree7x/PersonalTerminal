@@ -16,28 +16,42 @@ export default function TerminalScratchpad({ onConvertToTask }: TerminalScratchp
   const [isConverting, setIsConverting] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const saved = localStorage.getItem(SCRATCHPAD_KEY);
-    if (saved) setContent(saved);
+    try {
+      if (typeof window !== 'undefined' && typeof window.localStorage?.getItem === 'function') {
+        const saved = window.localStorage.getItem(SCRATCHPAD_KEY);
+        if (saved) setContent(saved);
+      }
+    } catch {
+      // storage unavailable
+    }
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
     setContent(val);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(SCRATCHPAD_KEY, val);
+    try {
+      if (typeof window !== 'undefined' && typeof window.localStorage?.setItem === 'function') {
+        window.localStorage.setItem(SCRATCHPAD_KEY, val);
+      }
+    } catch {
+      // storage unavailable
     }
   };
 
   const handleClear = () => {
     if (!content.trim()) return;
-    if (window.confirm('Scratchpad wirklich leeren?')) {
-      setContent('');
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem(SCRATCHPAD_KEY);
-      }
-      toast.success('Scratchpad geleert');
+    if (typeof window !== 'undefined' && typeof window.confirm === 'function' && !window.confirm('Scratchpad wirklich leeren?')) {
+      return;
     }
+    setContent('');
+    try {
+      if (typeof window !== 'undefined' && typeof window.localStorage?.removeItem === 'function') {
+        window.localStorage.removeItem(SCRATCHPAD_KEY);
+      }
+    } catch {
+      // storage unavailable
+    }
+    toast.success('Scratchpad geleert');
   };
 
   const handleConvertFirstLine = async () => {
