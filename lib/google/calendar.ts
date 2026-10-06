@@ -50,7 +50,7 @@ async function refreshAccessToken(refreshToken: string): Promise<string> {
 /**
  * Get valid access token (refresh if needed)
  */
-async function getValidAccessToken(
+export async function getValidAccessToken(
   accessToken: string | undefined,
   refreshToken: string | undefined,
   expiresAt: string | undefined
@@ -209,6 +209,7 @@ export async function fetchGoogleEventsInRange(
     headers: {
       Authorization: `Bearer ${validToken}`,
     },
+    signal: AbortSignal.timeout(6000),
   });
 
   if (!response.ok) {
@@ -276,3 +277,145 @@ export async function fetchWeekEvents(
 
   return events.map(mapGoogleEventToCalendarEvent);
 }
+
+export interface CreateGoogleEventInput {
+  title: string;
+  description?: string | null | undefined;
+  location?: string | null | undefined;
+  startsAt: string;
+  endsAt: string;
+  allDay?: boolean | undefined;
+}
+
+export interface UpdateGoogleEventInput {
+  title?: string | undefined;
+  description?: string | null | undefined;
+  location?: string | null | undefined;
+  startsAt?: string | undefined;
+  endsAt?: string | undefined;
+  allDay?: boolean | undefined;
+}
+
+/**
+ * Create a new event directly in Google Calendar (2-way sync)
+ */
+export async function createGoogleCalendarEvent(
+  input: CreateGoogleEventInput,
+  accessToken: string,
+  refreshToken?: string,
+  expiresAt?: string
+): Promise<CalendarEvent> {
+  const validToken = await getValidAccessToken(accessToken, refreshToken, expiresAt);
+  if (!validToken) throw new Error('No valid access token available');
+
+  const body: Record<string, unknown> = {
+    summary: input.title,
+    description: input.description ?? undefined,
+    location: input.location ?? undefined,
+  };
+
+  if (input.allDay) {
+    const startDate = input.startsAt.split('T')[0];
+    const endDate = input.endsAt.split('T')[0];
+    body.start = { date: startDate };
+    body.end = { date: endDate };
+  } else {
+    body.start = { dateTime: input.startsAt };
+    body.end = { dateTime: input.endsAt };
+  }
+
+  const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${validToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Google Calendar create failed: ${errText}`);
+  }
+
+  const created: GoogleCalendarEvent = await response.json();
+  return mapGoogleEventToCalendarEvent(created);
+}
+
+/**
+ * Update an existing event in Google Calendar
+ */
+export async function updateGoogleCalendarEvent(
+  eventId: string,
+  input: UpdateGoogleEventInput,
+  accessToken: string,
+  refreshToken?: string,
+  expiresAt?: string
+): Promise<CalendarEvent> {
+  const validToken = await getValidAccessToken(accessToken, refreshToken, expiresAt);
+  if (!validToken) throw new Error('No valid access token available');
+
+  const body: Record<string, unknown> = {};
+  if (input.title !== undefined) body.summary = input.title;
+  if (input.description !== undefined) body.description = input.description ?? '';
+  if (input.location !== undefined) body.location = input.location ?? '';
+
+  if (input.startsAt && input.endsAt) {
+    if (input.allDay) {
+      body.start = { date: input.startsAt.split('T')[0] };
+      body.end = { date: input.endsAt.split('T')[0] };
+    } else {
+      body.start = { dateTime: input.startsAt };
+      body.end = { dateTime: input.endsAt };
+    }
+  }
+
+  const response = await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(eventId)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${validToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Google Calendar update failed: ${errText}`);
+  }
+
+  const updated: GoogleCalendarEvent = await response.json();
+  return mapGoogleEventToCalendarEvent(updated);
+}
+
+/**
+ * Delete an event from Google Calendar
+ */
+export async function deleteGoogleCalendarEvent(
+  eventId: string,
+  accessToken: string,
+  refreshToken?: string,
+  expiresAt?: string
+): Promise<void> {
+  const validToken = await getValidAccessToken(accessToken, refreshToken, expiresAt);
+  if (!validToken) throw new Error('No valid access token available');
+
+  const response = await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(eventId)}`,
+    {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${validToken}`,
+      },
+    }
+  );
+
+  if (!response.ok && response.status !== 404 && response.status !== 410) {
+    const errText = await response.text();
+    throw new Error(`Google Calendar delete failed: ${errText}`);
+  }
+}
+

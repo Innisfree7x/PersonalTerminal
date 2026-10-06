@@ -7,7 +7,6 @@ import WeeklyTemplateGrid from '@/components/features/calendar/WeeklyTemplateGri
 import MonthlyGrid from '@/components/features/calendar/MonthlyGrid';
 import DayTimeline from '@/components/features/calendar/DayTimeline';
 import AddEventModal from '@/components/features/calendar/AddEventModal';
-import { Button } from '@/components/ui/Button';
 import {
   applyCalendarEntryToCachedQueries,
   removeManualCalendarEntryFromCachedQueries,
@@ -176,7 +175,7 @@ export default function CalendarPage() {
       const res = await fetch('/api/calendar/entries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ ...body, syncWithGoogle: true }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -323,39 +322,48 @@ export default function CalendarPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/[0.08] pb-5">
         <div>
-          <h1 className="text-3xl font-bold text-text-primary">Kalender</h1>
-          <p className="text-sm text-text-secondary mt-1">
-            KIT-Events synchronisiert + eigene Termine
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl font-bold font-mono tracking-tight text-white">KALENDER & ZEITBLÖCKE</h1>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-amber-500/20 bg-amber-500/10 text-amber-300 uppercase tracking-wider">
+              Google & Local Sync
+            </span>
+          </div>
+          <p className="text-xs text-white/50 mt-1 font-sans">
+            Google Calendar & KIT synchronisiert • Eigene Zeitblöcke, Deadlines & Fokus-Sessions planen.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="inline-flex rounded-lg border border-border overflow-hidden">
+          <div className="inline-flex rounded-xl border border-white/[0.08] bg-black/40 p-1">
             {(['week', 'month', 'day'] as CalendarView[]).map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`px-3 py-1.5 text-xs font-mono font-medium rounded-lg transition-all duration-150 ${
                   view === v
-                    ? 'bg-primary text-white'
-                    : 'bg-surface-hover/40 text-text-secondary hover:bg-surface-hover'
+                    ? 'bg-white/[0.08] text-white border border-white/[0.12] shadow-sm'
+                    : 'text-white/50 hover:text-white'
                 }`}
               >
                 {v === 'week' ? 'Woche' : v === 'month' ? 'Monat' : 'Tag'}
               </button>
             ))}
           </div>
-          <Button variant="primary" size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={openQuickAdd}>
-            Neu
-          </Button>
+          <button
+            onClick={openQuickAdd}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-mono font-semibold rounded-xl bg-amber-500 hover:bg-amber-400 text-black transition-all shadow-md shadow-amber-500/20"
+          >
+            <Plus className="w-4 h-4" />
+            Termin
+          </button>
         </div>
       </div>
 
-      <div className="card-warm flex items-center justify-between rounded-lg p-4">
+      <div className="rounded-2xl border border-white/[0.08] bg-[#0D1017]/90 backdrop-blur-xl p-4 flex items-center justify-between shadow-[0_4px_24px_-4px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.06)]">
         <button
           onClick={handlePrev}
-          className="w-9 h-9 rounded-lg border border-border bg-surface/70 text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors flex items-center justify-center"
+          className="w-9 h-9 rounded-xl border border-white/[0.08] bg-white/[0.03] text-white/60 hover:text-white hover:bg-white/[0.06] hover:border-white/[0.14] transition-all flex items-center justify-center shadow-sm"
           aria-label="Zurück"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -363,17 +371,17 @@ export default function CalendarPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={handleToday}
-            className="px-3 py-1.5 text-xs rounded-lg border border-primary/30 bg-primary/12 text-primary hover:bg-primary/20 transition-colors"
+            className="px-3 py-1.5 text-xs font-mono font-medium rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-all shadow-sm"
           >
             Heute
           </button>
-          <div className="text-lg font-semibold text-text-primary text-center min-w-[220px]">
+          <div className="text-sm sm:text-base font-semibold text-white text-center min-w-[200px] font-mono tracking-tight">
             {activeRangeLabel}
           </div>
         </div>
         <button
           onClick={handleNext}
-          className="w-9 h-9 rounded-lg border border-border bg-surface/70 text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors flex items-center justify-center"
+          className="w-9 h-9 rounded-xl border border-white/[0.08] bg-white/[0.03] text-white/60 hover:text-white hover:bg-white/[0.06] hover:border-white/[0.14] transition-all flex items-center justify-center shadow-sm"
           aria-label="Weiter"
         >
           <ChevronRight className="w-4 h-4" />

@@ -9,6 +9,7 @@ import {
   deleteCalendarEntry,
   type UpdateCalendarEntryInput,
 } from '@/lib/supabase/calendarEntries';
+import { updateGoogleCalendarEvent, deleteGoogleCalendarEvent } from '@/lib/google/calendar';
 
 const kindEnum = z.enum([
   'lecture',
@@ -57,6 +58,36 @@ export async function PATCH(
   if (errorResponse) return errorResponse;
 
   try {
+    if (params.id.startsWith('google-')) {
+      const googleEventId = params.id.replace(/^google-/, '');
+      const accessToken = request.cookies.get('google_access_token')?.value;
+      const refreshToken = request.cookies.get('google_refresh_token')?.value;
+      const expiresAt = request.cookies.get('google_token_expires_at')?.value;
+
+      if (!accessToken) {
+        return apiErrorResponse(401, 'UNAUTHORIZED', 'Google account not connected');
+      }
+
+      const body = await request.json();
+      const validated = updateEntrySchema.parse(body);
+
+      const updated = await updateGoogleCalendarEvent(
+        googleEventId,
+        {
+          title: validated.title,
+          description: validated.description,
+          location: validated.location,
+          startsAt: validated.startsAt,
+          endsAt: validated.endsAt,
+          allDay: validated.allDay,
+        },
+        accessToken,
+        refreshToken,
+        expiresAt
+      );
+      return NextResponse.json(updated);
+    }
+
     if (!isUuid(params.id)) {
       return apiErrorResponse(400, 'BAD_REQUEST', 'Invalid entry id');
     }
@@ -100,6 +131,25 @@ export async function DELETE(
   if (errorResponse) return errorResponse;
 
   try {
+    if (params.id.startsWith('google-')) {
+      const googleEventId = params.id.replace(/^google-/, '');
+      const accessToken = request.cookies.get('google_access_token')?.value;
+      const refreshToken = request.cookies.get('google_refresh_token')?.value;
+      const expiresAt = request.cookies.get('google_token_expires_at')?.value;
+
+      if (!accessToken) {
+        return apiErrorResponse(401, 'UNAUTHORIZED', 'Google account not connected');
+      }
+
+      await deleteGoogleCalendarEvent(
+        googleEventId,
+        accessToken,
+        refreshToken,
+        expiresAt
+      );
+      return NextResponse.json({ message: 'Google Calendar event deleted' }, { status: 200 });
+    }
+
     if (!isUuid(params.id)) {
       return apiErrorResponse(400, 'BAD_REQUEST', 'Invalid entry id');
     }

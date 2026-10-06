@@ -123,7 +123,11 @@ export async function GET(request: NextRequest) {
       a.startsAt.localeCompare(b.startsAt)
     );
 
-    return NextResponse.json({ entries });
+    const { applyPrivateSWRPolicy } = await import('@/lib/api/responsePolicy');
+    return applyPrivateSWRPolicy(NextResponse.json({ entries }), {
+      maxAgeSeconds: 10,
+      staleWhileRevalidateSeconds: 30,
+    });
   } catch (error) {
     return handleRouteError(
       error,
@@ -144,6 +148,33 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const input = createEntrySchema.parse(body);
 
+    const accessToken = request.cookies.get('google_access_token')?.value;
+    const refreshToken = request.cookies.get('google_refresh_token')?.value;
+    const expiresAt = request.cookies.get('google_token_expires_at')?.value;
+
+    let googleEventId: string | null = null;
+    if (body.syncWithGoogle && accessToken) {
+      try {
+        const { createGoogleCalendarEvent } = await import('@/lib/google/calendar');
+        const googleEvent = await createGoogleCalendarEvent(
+          {
+            title: input.title,
+            description: input.description ?? null,
+            location: input.location ?? null,
+            startsAt: input.startsAt,
+            endsAt: input.endsAt,
+            allDay: input.allDay,
+          },
+          accessToken,
+          refreshToken,
+          expiresAt
+        );
+        googleEventId = googleEvent.id;
+      } catch (syncErr) {
+        console.warn('Failed to push event directly to Google Calendar:', syncErr);
+      }
+    }
+
     const supabase = createClient();
     const entry = await createCalendarEntry(supabase, user.id, {
       title: input.title,
@@ -155,7 +186,7 @@ export async function POST(request: NextRequest) {
       kind: input.kind ?? 'custom',
     });
 
-    return NextResponse.json(entry, { status: 201 });
+    return NextResponse.json({ ...entry, googleEventId }, { status: 201 });
   } catch (error) {
     return handleRouteError(
       error,

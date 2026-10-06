@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   calculateRequiredWeeks,
   computeTrajectoryPrepWindow,
+  computeWindowOverlapRatio,
   evaluateTrajectoryRisk,
   formatTrajectoryRiskLabel,
+  simulateDualGoalCollision,
   simulateTrajectoryGoalPreview,
 } from '@/lib/trajectory/risk-model';
 
@@ -64,5 +66,74 @@ describe('trajectory risk model', () => {
     expect(preview.status).toBe('on_track');
     expect(formatTrajectoryRiskLabel(preview.status)).toBe('on track');
     expect(preview.requiredWeeks).toBeGreaterThan(0);
+  });
+});
+
+describe('window overlap ratio', () => {
+  it('returns 0 when windows do not overlap', () => {
+    const ratio = computeWindowOverlapRatio(
+      { startDate: '2026-01-01', endDate: '2026-01-11' },
+      { startDate: '2026-01-21', endDate: '2026-01-31' }
+    );
+    expect(ratio).toBe(0);
+  });
+
+  it('returns the overlap relative to the shorter window for partial overlap', () => {
+    const ratio = computeWindowOverlapRatio(
+      { startDate: '2026-01-01', endDate: '2026-01-11' },
+      { startDate: '2026-01-06', endDate: '2026-01-16' }
+    );
+    // overlap 2026-01-06..2026-01-11 = 5 days; shorter window = 10 days
+    expect(ratio).toBeCloseTo(0.5);
+  });
+
+  it('returns 1 when the shorter window is fully contained', () => {
+    const ratio = computeWindowOverlapRatio(
+      { startDate: '2026-01-01', endDate: '2026-01-31' },
+      { startDate: '2026-01-10', endDate: '2026-01-15' }
+    );
+    expect(ratio).toBe(1);
+  });
+});
+
+describe('dual-goal collision simulation', () => {
+  const baseGoal = { effortHours: 200, bufferWeeks: 2 };
+
+  it('stays on track when prep windows are far apart', () => {
+    const result = simulateDualGoalCollision({
+      goalA: { ...baseGoal, dueDate: '2026-12-01' },
+      goalB: { ...baseGoal, dueDate: '2028-06-01' },
+      capacityHoursPerWeek: 20,
+      today: '2026-01-01',
+    });
+
+    expect(result.overlapRatio).toBe(0);
+    expect(result.status).toBe('on_track');
+  });
+
+  it('flags tight when windows partially overlap (~30%)', () => {
+    const result = simulateDualGoalCollision({
+      goalA: { ...baseGoal, dueDate: '2027-03-01' },
+      goalB: { ...baseGoal, dueDate: '2027-01-11' },
+      capacityHoursPerWeek: 20,
+      today: '2026-01-01',
+    });
+
+    expect(result.overlapRatio).toBeCloseTo(0.3);
+    expect(result.status).toBe('tight');
+  });
+
+  it('flags at risk when identical goals fully collide', () => {
+    const goal = { ...baseGoal, dueDate: '2027-03-01' };
+    const result = simulateDualGoalCollision({
+      goalA: goal,
+      goalB: goal,
+      capacityHoursPerWeek: 20,
+      today: '2026-01-01',
+    });
+
+    expect(result.overlapRatio).toBe(1);
+    expect(result.status).toBe('at_risk');
+    expect(result.goalA.startDate).toBe(result.goalB.startDate);
   });
 });

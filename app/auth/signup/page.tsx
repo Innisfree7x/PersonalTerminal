@@ -66,7 +66,12 @@ export default function SignUpPage() {
         router.push('/auth/login');
       }, 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registrierung fehlgeschlagen. Bitte erneut versuchen.');
+      const rawMsg = err instanceof Error ? err.message : '';
+      if (rawMsg === 'Failed to fetch' || rawMsg.toLowerCase().includes('fetch')) {
+        setError('Verbindung zur Datenbank fehlgeschlagen: Dein Supabase-Projekt ist pausiert oder nicht erreichbar. Bitte rufe supabase.com auf und klicke auf „Restore / Unpause project“.');
+      } else {
+        setError(rawMsg || 'Registrierung fehlgeschlagen. Bitte erneut versuchen.');
+      }
     } finally {
       setLoading(false);
     }

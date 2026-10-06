@@ -25,6 +25,8 @@ import {
   Timer,
   CheckCircle2,
   AlertTriangle,
+  Mail,
+  RefreshCw,
   type LucideIcon,
 } from 'lucide-react';
 import {
@@ -179,6 +181,14 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         keywords: ['calendar', 'kalender', 'schedule', 'events'],
       },
       {
+        id: 'nav-inbox',
+        label: 'Inbox & E-Mail Triage',
+        icon: Mail,
+        action: () => router.push('/workspace/inbox'),
+        keywords: ['inbox', 'mail', 'email', 'gmail', 'posteingang', 'triage', 'nachrichten'],
+        shortcut: 'M',
+      },
+      {
         id: 'nav-analytics',
         label: copy.command.analytics,
         icon: BarChart3,
@@ -250,6 +260,16 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   const quickActions = useMemo<CommandItem[]>(
     () => [
       {
+        id: 'action-quick-capture',
+        label: 'Terminal Schnellerfassung: Task, Time-Block oder Idee',
+        icon: Zap,
+        action: () => {
+          window.dispatchEvent(new CustomEvent('terminal:quick-capture:open', { detail: { mode: 'task' } }));
+        },
+        keywords: ['quick', 'capture', 'schnell', 'erfassen', 'task', 'aufgabe', 'idee', 'scratchpad'],
+        shortcut: 'C',
+      },
+      {
         id: 'action-add-task',
         label: copy.command.addDailyTask,
         icon: Plus,
@@ -264,6 +284,23 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         action: () => triggerPageAction('/workspace/goals', 'open-new-goal'),
         keywords: ['add', 'new', 'create', 'goal', 'ziel'],
         shortcut: 'G',
+      },
+      {
+        id: 'action-add-timeblock',
+        label: 'Time-Block im Kalender erstellen',
+        icon: Calendar,
+        action: () => router.push('/workspace/calendar'),
+        keywords: ['timeblock', 'block', 'termin', 'kalender', 'calendar', 'zeit', 'planen'],
+        shortcut: 'T',
+      },
+      {
+        id: 'action-google-sync',
+        label: 'Google Workspace verbinden / neu synchronisieren',
+        icon: RefreshCw,
+        action: () => {
+          window.location.href = '/api/auth/google';
+        },
+        keywords: ['google', 'sync', 'workspace', 'calendar', 'gmail', 'verbinden', 'oauth'],
       },
       {
         id: 'action-add-application',
@@ -317,7 +354,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         keywords: ['focus', 'fokus', 'start', 'deep', '50', 'work'],
       },
     ],
-    [copy.command, setTheme, setTimerExpanded, startTimer, theme, triggerPageAction],
+    [copy.command, router, setTheme, setTimerExpanded, startTimer, theme, triggerPageAction],
   );
 
   // ── Focus timer commands ────────────────────────────────────────────────────

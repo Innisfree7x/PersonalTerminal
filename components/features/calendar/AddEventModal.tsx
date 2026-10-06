@@ -78,7 +78,8 @@ export default function AddEventModal({
   onDelete,
 }: AddEventModalProps) {
   const prevOpenRef = useRef(false);
-  const readonly = mode === 'view' || initial?.source === 'kit_webcal' || initial?.source === 'google';
+  const readonly = mode === 'view' || initial?.source === 'kit_webcal';
+  const isGoogle = initial?.source === 'google';
   const [title, setTitle] = useState(initial?.title ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [location, setLocation] = useState(initial?.location ?? '');
@@ -229,6 +230,12 @@ export default function AddEventModal({
                 {readonly && (
                   <div className="rounded-md border border-border bg-surface-hover/40 px-3 py-2 text-xs text-text-secondary">
                     KIT-Events werden aus dem WebCal synchronisiert und können hier nicht geändert werden.
+                  </div>
+                )}
+
+                {isGoogle && (
+                  <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-400 font-mono">
+                    Google Calendar Event – Änderungen werden 2-Wege synchronisiert.
                   </div>
                 )}
 

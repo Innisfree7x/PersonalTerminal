@@ -199,18 +199,6 @@ export function CinematicLandingStacked() {
                 Login
               </TrackedCtaLink>
             </div>
-            <div className="mt-8 flex items-center justify-center gap-3">
-              {[
-                { value: '847', label: 'Studenten' },
-                { value: 'Ø 23 min', label: 'täglich' },
-                { value: 'seit WS 24/25', label: '' },
-              ].map((chip) => (
-                <div key={chip.value} className="flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1">
-                  <span className="font-mono text-[11px] font-medium text-white/70">{chip.value}</span>
-                  {chip.label && <span className="font-mono text-[11px] text-zinc-600">{chip.label}</span>}
-                </div>
-              ))}
-            </div>
           </div>
         </section>
       </main>

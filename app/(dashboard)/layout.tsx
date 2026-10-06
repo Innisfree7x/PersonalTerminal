@@ -8,15 +8,8 @@ import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { usePathname } from 'next/navigation';
 import { MotionConfig } from 'framer-motion';
 import PowerHotkeysProvider from '@/components/providers/PowerHotkeysProvider';
+import QuickCaptureProvider from '@/components/providers/QuickCaptureProvider';
 import { useAppLanguage } from '@/components/providers/LanguageProvider';
-import DailyGate from '@/components/features/today/DailyGate';
-import { useDailyGate } from '@/lib/hooks/useDailyGate';
-
-function DailyGateMount() {
-  const { day, mode, hydrated, passed, complete } = useDailyGate();
-  if (!hydrated || passed) return null;
-  return <DailyGate day={day} mode={mode} onComplete={complete} />;
-}
 
 function DashboardLayoutInner({
   children,
@@ -68,11 +61,6 @@ function DashboardLayoutInner({
         <ErrorBoundary fallbackTitle="Timer Error">
           <FloatingTimer />
         </ErrorBoundary>
-
-        {/* Daily Briefing Gate — must pass before using the terminal */}
-        <ErrorBoundary fallbackTitle="Briefing Gate Error">
-          <DailyGateMount />
-        </ErrorBoundary>
       </div>
     </ErrorBoundary>
   );
@@ -92,7 +80,9 @@ export default function DashboardLayout({
     <MotionConfig reducedMotion="user">
       <SidebarProvider>
         <PowerHotkeysProvider>
-          <DashboardLayoutInner>{children}</DashboardLayoutInner>
+          <QuickCaptureProvider>
+            <DashboardLayoutInner>{children}</DashboardLayoutInner>
+          </QuickCaptureProvider>
         </PowerHotkeysProvider>
       </SidebarProvider>
     </MotionConfig>

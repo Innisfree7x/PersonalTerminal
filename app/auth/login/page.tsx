@@ -99,7 +99,14 @@ export default function LoginPage() {
         durationMs: performance.now() - flowStartedAt,
         errorCode: toLoginErrorCode(err),
       });
-      setError(err instanceof Error ? err.message : 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.');
+      const rawMsg = err instanceof Error ? err.message : '';
+      if (rawMsg === 'Failed to fetch' || rawMsg.toLowerCase().includes('fetch')) {
+        setError('Verbindung zur Datenbank fehlgeschlagen: Dein Supabase-Projekt ist pausiert oder nicht erreichbar. Bitte rufe supabase.com auf und klicke auf „Restore / Unpause project“.');
+      } else if (rawMsg.toLowerCase().includes('invalid login credentials')) {
+        setError('Ungültige Anmeldedaten: Bitte E-Mail und Passwort überprüfen.');
+      } else {
+        setError(rawMsg || 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.');
+      }
     } finally {
       setLoading(false);
     }

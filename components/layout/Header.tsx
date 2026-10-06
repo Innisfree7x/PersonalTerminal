@@ -32,13 +32,13 @@ function HeaderClock({ language }: { language: 'de' | 'en' }) {
   const datePattern = language === 'de' ? 'EEEE, d. MMMM' : 'EEEE, MMMM d';
 
   return (
-    <div className="hidden md:flex items-center gap-3 rounded-lg border border-primary/24 bg-surface/70 px-4 py-1.5 relative overflow-hidden shadow-[0_0_0_1px_rgb(var(--primary)/0.05)]">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/28 to-transparent" />
+    <div className="hidden md:flex items-center gap-3 rounded-xl border border-white/[0.08] bg-black/40 px-3.5 py-1.5 relative overflow-hidden shadow-inner">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.1] to-transparent" />
       <div className="flex flex-col">
-        <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary" suppressHydrationWarning>
+        <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-white/40" suppressHydrationWarning>
           {currentTime ? format(currentTime, datePattern, { locale }) : '\u00A0'}
         </span>
-        <span className="text-base font-bold text-text-primary font-mono tabular-nums tracking-tight leading-tight" suppressHydrationWarning>
+        <span className="text-sm font-bold text-white font-mono tabular-nums tracking-tight leading-tight" suppressHydrationWarning>
           {currentTime ? format(currentTime, 'HH:mm:ss') : '--:--:--'}
         </span>
       </div>
@@ -57,19 +57,19 @@ function FocusTimerButton() {
 
   return (
     <motion.button
-      className={`flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-mono font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+      className={`flex h-9 items-center gap-1.5 rounded-xl border px-3 text-xs font-mono font-medium transition-all ${
         sessionType === 'break'
-          ? 'bg-success/10 border-success/30 text-success'
-          : 'bg-primary/10 border-primary/30 text-primary'
+          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+          : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
       }`}
       onClick={() => setTimerExpanded(true)}
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
     >
       <motion.div
-        className={`w-1.5 h-1.5 rounded-full ${sessionType === 'break' ? 'bg-success' : 'bg-primary'}`}
+        className={`w-1.5 h-1.5 rounded-full ${sessionType === 'break' ? 'bg-emerald-400' : 'bg-amber-400'}`}
         animate={dotPulsing ? { opacity: [1, 0.3, 1] } : { opacity: 1 }}
         transition={dotPulsing ? { duration: 1.5, repeat: Infinity } : { duration: 0 }}
       />
@@ -137,25 +137,25 @@ export default function Header() {
   }, [notificationsOpen]);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border/80 bg-background/95">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent" />
+    <header className="sticky top-0 z-30 border-b border-white/[0.08] bg-[#0A0D14]/85 backdrop-blur-xl">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/20 to-transparent" />
       <div className="flex h-16 items-center justify-between px-6">
         {/* Left: Page Title + Date & Time */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
-            <h1 className="text-[1.06rem] font-semibold tracking-tight text-text-primary">
+            <h1 className="text-[1.06rem] font-semibold tracking-tight text-white font-sans">
               {currentTitle}
             </h1>
             
             {todayCompletion > 0 && pathname === '/today' && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/[0.1] border border-primary/[0.18]">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
                 <motion.div
-                  className="w-1.5 h-1.5 rounded-full bg-primary"
+                  className="w-1.5 h-1.5 rounded-full bg-amber-400"
                   animate={animationsSuspended ? { opacity: 1 } : { opacity: [1, 0.35, 1] }}
                   transition={animationsSuspended ? { duration: 0 } : { duration: 1.6, repeat: Infinity }}
-                  style={{ boxShadow: '0 0 5px currentColor' }}
+                  style={{ boxShadow: '0 0 6px rgba(245, 158, 11, 0.6)' }}
                 />
-                <span className="text-[11px] font-semibold text-primary tabular-nums">
+                <span className="text-[11px] font-mono font-semibold text-amber-300 tabular-nums">
                   {todayCompletion}%
                 </span>
               </div>
@@ -170,14 +170,14 @@ export default function Header() {
         <div className="flex items-center gap-2">
           {/* Search / Command Palette Trigger */}
           <motion.button
-            className="flex h-9 items-center gap-2 rounded-lg border border-border/80 bg-surface/65 px-3 text-text-secondary transition-colors hover:border-primary/35 hover:bg-primary/[0.08] hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="flex h-9 items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.16] px-3.5 text-white/60 hover:text-white transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={openCommandPalette}
           >
-            <Search className="w-4 h-4" />
-            <span className="hidden sm:inline text-[11px] font-medium">{copy.header.search}</span>
-            <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-surface-hover px-1.5 py-0.5 text-xs">
+            <Search className="w-4 h-4 text-white/40" />
+            <span className="hidden sm:inline text-xs font-sans font-medium">{copy.header.search}</span>
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded-md border border-white/[0.1] bg-white/[0.05] px-1.5 py-0.5 text-[10px] font-mono text-white/50">
               <Command className="w-2.5 h-2.5" />
               K
             </kbd>
@@ -188,7 +188,7 @@ export default function Header() {
 
           {/* Quick Add Button */}
           <motion.button
-            className="rounded-lg border border-primary/28 bg-primary/[0.2] p-2 text-primary transition-colors shadow-[0_0_16px_rgb(var(--primary)/0.2)] hover:bg-primary/[0.28] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="rounded-xl border border-amber-500/30 bg-amber-500/15 p-2 text-amber-300 transition-all hover:bg-amber-500/25 hover:border-amber-500/50 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={openCommandPalette}
@@ -200,7 +200,7 @@ export default function Header() {
           {/* Notifications */}
           <div ref={notificationsRef} className="relative">
             <motion.button
-              className="relative rounded-lg border border-border/80 bg-surface/65 p-2 text-text-secondary transition-colors hover:border-primary/35 hover:bg-primary/[0.08] hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="relative rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.16] p-2 text-white/60 hover:text-white transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setNotificationsOpen(!notificationsOpen)}
@@ -208,14 +208,14 @@ export default function Header() {
             >
               <Bell className="w-4 h-4" />
               {hasUrgent && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full ring-2 ring-background" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-black" />
               )}
             </motion.button>
 
             {/* Notification Dropdown (placeholder) */}
             {notificationsOpen && (
-              <div className="absolute top-full right-0 mt-2 w-80 card-warm rounded-lg p-3">
-                <div className="text-xs text-text-tertiary text-center py-4">
+              <div className="absolute top-full right-0 mt-2 w-80 rounded-2xl border border-white/[0.08] bg-[#0D1017]/95 backdrop-blur-xl p-4 shadow-2xl">
+                <div className="text-xs font-mono text-white/40 text-center py-4">
                   {copy.header.noNotifications}
                 </div>
               </div>
@@ -226,13 +226,13 @@ export default function Header() {
 
       {/* Progress Bar (for Today page) — glowing */}
       {pathname === '/today' && todayCompletion > 0 && (
-        <div className="h-[2px] bg-surface">
+        <div className="h-[2px] bg-black/40">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${todayCompletion}%` }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="h-full bg-gradient-to-r from-primary to-primary-light"
-            style={{ boxShadow: '0 0 10px var(--color-primary, #6366f1), 0 0 4px var(--color-primary, #6366f1)' }}
+            className="h-full bg-gradient-to-r from-amber-500 to-emerald-400"
+            style={{ boxShadow: '0 0 10px rgba(245, 158, 11, 0.5), 0 0 4px rgba(245, 158, 11, 0.3)' }}
           />
         </div>
       )}

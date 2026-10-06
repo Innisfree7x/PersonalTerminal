@@ -120,6 +120,82 @@ export function simulateTrajectoryGoalPreview(input: TrajectoryHeroPreviewInput)
   };
 }
 
+export interface DateWindow {
+  startDate: string;
+  endDate: string;
+}
+
+/**
+ * Overlap between two date windows, normalized by the shorter window's length.
+ * Returns 0..1: 0 = no overlap, 1 = the shorter window sits fully inside the other.
+ */
+export function computeWindowOverlapRatio(a: DateWindow, b: DateWindow): number {
+  const startA = toUtcDate(a.startDate).getTime();
+  const endA = toUtcDate(a.endDate).getTime();
+  const startB = toUtcDate(b.startDate).getTime();
+  const endB = toUtcDate(b.endDate).getTime();
+
+  const overlapMs = Math.min(endA, endB) - Math.max(startA, startB);
+  if (overlapMs <= 0) return 0;
+
+  const shorter = Math.min(endA - startA, endB - startB);
+  if (shorter <= 0) return 0;
+
+  return Math.min(1, overlapMs / shorter);
+}
+
+export interface TrajectoryGoalInput {
+  dueDate: string;
+  effortHours: number;
+  bufferWeeks: number;
+}
+
+export interface TrajectoryDualGoalInput {
+  goalA: TrajectoryGoalInput;
+  goalB: TrajectoryGoalInput;
+  capacityHoursPerWeek: number;
+  today?: string | Date;
+}
+
+export interface TrajectoryDualGoalResult extends TrajectoryRiskEvaluationResult {
+  goalA: TrajectoryPrepWindowResult;
+  goalB: TrajectoryPrepWindowResult;
+  overlapRatio: number;
+}
+
+/**
+ * Simulates two goals competing for the same weekly capacity. Each goal's prep
+ * window is planned standalone; the collision is precisely how much those windows
+ * overlap. The overlap ratio drives the shared risk thresholds.
+ */
+export function simulateDualGoalCollision(input: TrajectoryDualGoalInput): TrajectoryDualGoalResult {
+  const goalA = computeTrajectoryPrepWindow({
+    ...input.goalA,
+    capacityHoursPerWeek: input.capacityHoursPerWeek,
+  });
+  const goalB = computeTrajectoryPrepWindow({
+    ...input.goalB,
+    capacityHoursPerWeek: input.capacityHoursPerWeek,
+  });
+
+  const overlapRatio = computeWindowOverlapRatio(goalA, goalB);
+  const earlierStart = goalA.startDate <= goalB.startDate ? goalA.startDate : goalB.startDate;
+
+  const risk = evaluateTrajectoryRisk({
+    startDate: earlierStart,
+    ...(input.today ? { today: input.today } : {}),
+    overlapRatio,
+  });
+
+  return {
+    goalA,
+    goalB,
+    overlapRatio,
+    status: risk.status,
+    reasons: risk.reasons,
+  };
+}
+
 export function formatTrajectoryRiskLabel(status: TrajectoryRiskStatus): string {
   if (status === 'on_track') return 'on track';
   if (status === 'tight') return 'tight';

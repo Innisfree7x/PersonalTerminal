@@ -53,7 +53,7 @@ describe('buildTrajectoryMorningSnapshot', () => {
         id: 'goal-1',
         title: 'GMAT',
         dueDate: '2027-03-01',
-        effortHours: 520,
+        effortHours: 120,
         bufferWeeks: 2,
         status: 'active',
       },

@@ -24,7 +24,7 @@ describe('trajectoryProof', () => {
   });
 
   it('erklaert at_risk als bereits zu spaet', () => {
-    expect(buildTrajectoryProofInsight('at_risk', 18, '09.11.2026')).toContain('bereits zu spaet');
+    expect(buildTrajectoryProofInsight('at_risk', 18, '09.11.2026')).toContain('bereits zu spät');
   });
 
   it('liefert konsistente Status-Farbtoene', () => {

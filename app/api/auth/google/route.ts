@@ -40,7 +40,12 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const scope = 'https://www.googleapis.com/auth/calendar.readonly';
+  const scopes = [
+    'https://www.googleapis.com/auth/calendar.events',
+    'https://www.googleapis.com/auth/calendar.readonly',
+    'https://www.googleapis.com/auth/gmail.readonly',
+  ];
+  const scope = scopes.join(' ');
   const responseType = 'code';
   const accessType = 'offline'; // Required to get refresh_token
   const prompt = 'consent'; // Force consent screen to get refresh_token

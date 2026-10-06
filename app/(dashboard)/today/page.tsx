@@ -1,333 +1,377 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import dynamic from 'next/dynamic';
-import { CheckCircle2, GraduationCap, Flame, AlertTriangle, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
-import FocusTasks from '@/components/features/dashboard/FocusTasks';
-import TrajectoryCollisionHero from '@/components/features/today/TrajectoryCollisionHero';
-import MomentumPulse from '@/components/features/today/MomentumPulse';
-import NextMovesStack from '@/components/features/today/NextMovesStack';
-import LifeVitals from '@/components/features/today/LifeVitals';
-import { useAchievements } from '@/lib/hooks/useAchievements';
-import {
-  DASHBOARD_NEXT_TASKS_QUERY_KEY,
-  fetchDashboardNextTasks,
-} from '@/lib/dashboard/nextTasksClient';
-import { checkNewAchievements } from '@/lib/achievements/checker';
-import type { AchievementCheckInput } from '@/lib/achievements/registry';
-import { parseOAuthCallbackParams } from '@/lib/hooks/useNotifications';
-import type { DashboardNextTasksResponse } from '@/lib/dashboard/queries';
-import { dispatchChampionEvent } from '@/lib/champion/championEvents';
-import { buildTrajectoryMorningBriefing } from '@/lib/dashboard/trajectoryBriefing';
-import { useAppSound } from '@/lib/hooks/useAppSound';
-import { STORAGE_KEYS } from '@/lib/storage/keys';
-import { getTodayKey } from '@/lib/dashboard/nbaDismissals';
-import { useStreak } from '@/lib/hooks/useStreak';
+import { FolderKanban, Mail } from 'lucide-react';
+import TerminalStatusBar from '@/components/features/terminal/TerminalStatusBar';
+import TodaySchedulePanel from '@/components/features/terminal/TodaySchedulePanel';
+import TodayTasksPanel, { DailyTaskItem } from '@/components/features/terminal/TodayTasksPanel';
+import ActiveProjectsPanel, { ProjectGoalItem } from '@/components/features/terminal/ActiveProjectsPanel';
+import GmailTriagePanel from '@/components/features/terminal/GmailTriagePanel';
+import TerminalScratchpad from '@/components/features/terminal/TerminalScratchpad';
+import StartupModelCard from '@/components/features/terminal/StartupModelCard';
+import type { CalendarEntry } from '@/lib/supabase/calendarEntries';
+import type { GmailMessageSummary } from '@/lib/google/gmail';
+import { getLocalDayBounds } from '@/lib/utils/date';
 
-const LAST_MOMENTUM_SCORE_KEY = 'innis:last-momentum-score:v1';
-
-const widgetSkeleton = (
-  <div className="card-warm h-[160px] animate-pulse p-5">
-    <div className="h-4 w-28 rounded bg-white/10" />
-    <div className="mt-3 h-3 w-2/3 rounded bg-white/10" />
-    <div className="mt-2 h-3 w-1/2 rounded bg-white/10" />
-  </div>
-);
-
-const LazyStudyProgress = dynamic(
-  () => import('@/components/features/dashboard/StudyProgress'),
-  { ssr: false, loading: () => widgetSkeleton }
-);
-
-const AchievementUnlockOverlay = dynamic(
-  () => import('@/components/features/room/AchievementUnlockOverlay'),
-  { ssr: false }
-);
-
-export default function TodayPage() {
+export default function TodayCommandCenter() {
   const queryClient = useQueryClient();
-  const { play } = useAppSound();
-  const { streak } = useStreak();
-  const { unlockedKeys, unlock } = useAchievements();
-  const [pendingAchievementKey, setPendingAchievementKey] = useState<string | null>(null);
-  const achievementCheckedRef = useRef(false);
+  const [rightPanelTab, setRightPanelTab] = useState<'projects' | 'gmail'>('projects');
 
-  useEffect(() => {
-    const messages = parseOAuthCallbackParams();
-    if (messages.error) {
-      play('error');
-      toast.error(messages.error);
-    }
-    if (messages.success) {
-      toast.success(messages.success);
-      window.history.replaceState({}, '', '/today');
-    }
-  }, [play]);
+  // Timezone-safe local day bounds
+  const { dateStr: todayStr, startIso: todayStartIso, endIso: todayEndIso } = useMemo(
+    () => getLocalDayBounds(),
+    []
+  );
 
-  const { data: nextTasksData, isFetched: isNextTasksFetched, isLoading, isError, error } = useQuery<DashboardNextTasksResponse>({
-    queryKey: DASHBOARD_NEXT_TASKS_QUERY_KEY,
-    queryFn: fetchDashboardNextTasks,
-    staleTime: 2 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
+  // 1. Fetch Today's Calendar Entries (Google + Local)
+  const {
+    data: calendarData,
+    isLoading: isCalendarLoading,
+    refetch: refetchCalendar,
+  } = useQuery<{ entries: CalendarEntry[] }>({
+    queryKey: ['terminal', 'calendar', todayStr],
+    queryFn: async () => {
+      const res = await fetch(
+        `/api/calendar/entries?from=${encodeURIComponent(todayStartIso)}&to=${encodeURIComponent(
+          todayEndIso
+        )}`
+      );
+      if (!res.ok) throw new Error('Failed to load calendar');
+      return res.json();
+    },
+    staleTime: 60 * 1000,
   });
 
-  const stats = nextTasksData?.stats;
-  const studyProgress = nextTasksData?.studyProgress || [];
-  const trajectorySnapshot = nextTasksData?.trajectoryMorning;
-  const trajectoryBriefing = buildTrajectoryMorningBriefing(trajectorySnapshot?.overview);
-  const momentum = trajectorySnapshot?.momentum ?? null;
-  const kitSignals = nextTasksData?.kitSignals ?? null;
+  // 2. Fetch Today's Daily Tasks
+  const {
+    data: tasksData,
+    isLoading: isTasksLoading,
+    refetch: refetchTasks,
+  } = useQuery<DailyTaskItem[]>({
+    queryKey: ['terminal', 'tasks', todayStr],
+    queryFn: async () => {
+      const res = await fetch(`/api/daily-tasks?date=${todayStr}`);
+      if (!res.ok) throw new Error('Failed to load tasks');
+      return res.json();
+    },
+    staleTime: 30 * 1000,
+  });
 
-  // Stable prop objects so memoized children don't re-render on every parent render.
-  const nextMovesKitEvent = useMemo(
-    () =>
-      kitSignals?.nextCampusEvent
-        ? {
-            title: kitSignals.nextCampusEvent.title,
-            startsAt: kitSignals.nextCampusEvent.startsAt,
-            location: kitSignals.nextCampusEvent.location,
-          }
-        : null,
-    [kitSignals?.nextCampusEvent]
-  );
-  const nextMovesDeadline = useMemo(
-    () =>
-      stats?.nextExam?.examDate
-        ? { courseName: stats.nextExam.name, examDate: stats.nextExam.examDate, courseCode: null }
-        : null,
-    [stats?.nextExam?.examDate, stats?.nextExam?.name]
-  );
-  const focusTasksInput = useMemo(
-    () => ({
-      homeworks: nextTasksData?.homeworks ?? [],
-      goals: nextTasksData?.goals ?? [],
-      interviews: nextTasksData?.interviews ?? [],
-    }),
-    [nextTasksData?.homeworks, nextTasksData?.goals, nextTasksData?.interviews]
-  );
+  // 3. Fetch Active Projects / Goals
+  const {
+    data: projectsData,
+    isLoading: isProjectsLoading,
+    refetch: refetchProjects,
+  } = useQuery<ProjectGoalItem[]>({
+    queryKey: ['terminal', 'projects'],
+    queryFn: async () => {
+      const res = await fetch('/api/goals?status=active');
+      if (!res.ok) throw new Error('Failed to load projects');
+      return res.json();
+    },
+    staleTime: 60 * 1000,
+  });
 
-  const tasksTodayCount = stats?.tasksToday ?? 0;
-  const tasksCompletedCount = stats?.tasksCompleted ?? 0;
+  // 4. Fetch Recent Gmail Messages
+  const {
+    data: gmailData,
+    isLoading: isGmailLoading,
+    refetch: refetchGmail,
+  } = useQuery<{ connected: boolean; messages: GmailMessageSummary[]; error?: string }>({
+    queryKey: ['terminal', 'gmail'],
+    queryFn: async () => {
+      const res = await fetch('/api/google/gmail');
+      if (!res.ok) throw new Error('Failed to load emails');
+      return res.json();
+    },
+    staleTime: 60 * 1000,
+  });
 
-  useEffect(() => {
-    const days = stats?.nextExam?.daysUntilExam;
-    if (typeof days === 'number' && days <= 1) {
-      dispatchChampionEvent({ type: 'DEADLINE_WARNING', hoursLeft: Math.max(1, days * 24) });
+  // Derived state
+  const calendarEntries = calendarData?.entries || [];
+  const tasks = tasksData || [];
+  const projects = projectsData || [];
+  const gmailMessages = gmailData?.messages || [];
+  const googleConnected = Boolean(gmailData?.connected || calendarEntries.some((e) => e.source === 'google'));
+
+  const tasksCompleted = tasks.filter((t) => t.completed).length;
+  const unreadEmailsCount = gmailMessages.filter((m) => m.isUnread).length;
+
+  // --- Handlers ---
+
+  // Add Calendar Event (with Google Calendar Sync)
+  const handleAddEvent = async (input: {
+    title: string;
+    startsAt: string;
+    endsAt: string;
+    location?: string | undefined;
+    syncWithGoogle: boolean;
+  }) => {
+    try {
+      const res = await fetch('/api/calendar/entries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(input),
+      });
+
+      if (!res.ok) throw new Error('Failed to create calendar event');
+      toast.success(input.syncWithGoogle ? 'Termin in Google Kalender geblockt!' : 'Termin erstellt!');
+      await queryClient.invalidateQueries({ queryKey: ['terminal', 'calendar'] });
+    } catch {
+      toast.error('Fehler beim Erstellen des Termins');
     }
-  }, [stats?.nextExam?.daysUntilExam]);
+  };
 
-  useEffect(() => {
-    if (!isNextTasksFetched || !trajectorySnapshot) return;
-    if (typeof window === 'undefined') return;
-    const today = getTodayKey();
-    const alreadySent = window.localStorage.getItem(STORAGE_KEYS.todayMorningCheckinDate) === today;
-    if (alreadySent) return;
-
-    dispatchChampionEvent({
-      type: 'MORNING_CHECKIN',
-      ...(trajectoryBriefing?.status ? { status: trajectoryBriefing.status } : {}),
-      ...(typeof trajectoryBriefing?.daysUntil === 'number' ? { daysUntil: trajectoryBriefing.daysUntil } : {}),
-      ...(trajectoryBriefing?.title ? { title: trajectoryBriefing.title } : {}),
-    });
-    window.localStorage.setItem(STORAGE_KEYS.todayMorningCheckinDate, today);
-  }, [isNextTasksFetched, trajectoryBriefing, trajectorySnapshot]);
-
-  useEffect(() => {
-    if (!momentum || momentum.trend !== 'up') return;
-    if (typeof window === 'undefined') return;
-
-    const previousRaw = window.localStorage.getItem(LAST_MOMENTUM_SCORE_KEY);
-    const previousScore = previousRaw ? Number(previousRaw) : null;
-    if (previousScore === null || Number.isNaN(previousScore)) {
-      window.localStorage.setItem(LAST_MOMENTUM_SCORE_KEY, String(momentum.score));
-      return;
+  // Delete Calendar Event
+  const handleDeleteEvent = async (id: string) => {
+    try {
+      const res = await fetch(`/api/calendar/entries/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('Failed to delete event');
+      toast.success('Termin entfernt');
+      await queryClient.invalidateQueries({ queryKey: ['terminal', 'calendar'] });
+    } catch {
+      toast.error('Fehler beim Löschen des Termins');
     }
+  };
 
-    const increasedBy = momentum.score - previousScore;
-    if (increasedBy >= 2) {
-      play('momentum-up');
+  // Add Daily Task
+  const handleAddTask = async (title: string, timeEstimate?: number) => {
+    try {
+      const res = await fetch('/api/daily-tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          date: todayStr,
+          timeEstimate,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to create task');
+      toast.success('Aufgabe angelegt');
+      await queryClient.invalidateQueries({ queryKey: ['terminal', 'tasks'] });
+    } catch {
+      toast.error('Fehler beim Anlegen der Aufgabe');
     }
-    window.localStorage.setItem(LAST_MOMENTUM_SCORE_KEY, String(momentum.score));
-  }, [momentum, play]);
+  };
 
-  useEffect(() => {
-    if (achievementCheckedRef.current || !isNextTasksFetched || !nextTasksData) return;
-    achievementCheckedRef.current = true;
-
-    const momentum = nextTasksData.trajectoryMorning?.momentum;
-    const input: AchievementCheckInput = {
-      streakDays: streak,
-      tasksCompletedAllTime: nextTasksData.stats?.tasksCompleted ?? 0,
-      passedModulesCount: nextTasksData.studyProgress?.filter((c) => c.percentage >= 100).length ?? 0,
-      trajectoryScore: momentum?.score ?? 0,
-      focusMinutesAllTime: 0,
-    };
-
-    const newAchievements = checkNewAchievements(input, unlockedKeys);
-    if (newAchievements.length > 0) {
-      for (const a of newAchievements) {
-        unlock(a.key);
-      }
-      setPendingAchievementKey(newAchievements[0]?.key ?? null);
+  // Toggle Daily Task
+  const handleToggleTask = async (id: string, completed: boolean) => {
+    try {
+      const res = await fetch(`/api/daily-tasks/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completed }),
+      });
+      if (!res.ok) throw new Error('Failed to update task');
+      await queryClient.invalidateQueries({ queryKey: ['terminal', 'tasks'] });
+    } catch {
+      toast.error('Fehler beim Aktualisieren der Aufgabe');
     }
-  }, [isNextTasksFetched, nextTasksData, streak, unlockedKeys, unlock]);
+  };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4 md:space-y-5" data-testid="today-page-loading">
-        <div className="card-warm-accent rounded-2xl p-6 animate-pulse">
-          <div className="h-3 w-24 rounded bg-white/10" />
-          <div className="mt-3 h-6 w-64 rounded bg-white/10" />
-          <div className="mt-4 h-16 rounded-lg bg-white/[0.06]" />
+  // Delete Daily Task
+  const handleDeleteTask = async (id: string) => {
+    try {
+      const res = await fetch(`/api/daily-tasks/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('Failed to delete task');
+      await queryClient.invalidateQueries({ queryKey: ['terminal', 'tasks'] });
+    } catch {
+      toast.error('Fehler beim Löschen');
+    }
+  };
+
+  // Add Project
+  const handleAddProject = async (input: {
+    title: string;
+    category?: string | undefined;
+    description?: string | undefined;
+  }) => {
+    try {
+      const res = await fetch('/api/goals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: input.title,
+          category: input.category || 'career',
+          description: input.description,
+          status: 'active',
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to create project');
+      toast.success('Projekt angelegt');
+      await queryClient.invalidateQueries({ queryKey: ['terminal', 'projects'] });
+    } catch {
+      toast.error('Fehler beim Anlegen des Projekts');
+    }
+  };
+
+  // Schedule 60-min Deep Work block for a Project into Google Calendar
+  const handleScheduleProject = async (project: ProjectGoalItem) => {
+    try {
+      const now = new Date();
+      const startTime = new Date(now.getTime() + 15 * 60 * 1000);
+      const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+
+      await handleAddEvent({
+        title: `Fokus: ${project.title}`,
+        startsAt: startTime.toISOString(),
+        endsAt: endTime.toISOString(),
+        location: 'Command Center',
+        syncWithGoogle: true,
+      });
+      toast.success(`60 Min für „${project.title}“ im Google Kalender geblockt!`);
+    } catch {
+      toast.error('Fehler beim Planen des Projekts');
+    }
+  };
+
+  // Convert Email to Task
+  const handleConvertToTask = async (msg: GmailMessageSummary) => {
+    try {
+      await handleAddTask(`Mail: ${msg.subject}`, 15);
+      toast.success('E-Mail als Aufgabe übernommen!');
+    } catch {
+      toast.error('Fehler beim Erfassen der Aufgabe');
+    }
+  };
+
+  const handleGlobalRefresh = () => {
+    refetchCalendar();
+    refetchTasks();
+    refetchProjects();
+    refetchGmail();
+    toast.success('Terminal synchronisiert');
+  };
+
+  return (
+    <div className="space-y-5 animate-in fade-in duration-200">
+      {/* 1. Status Bar */}
+      <TerminalStatusBar
+        tasksCount={tasks.length}
+        tasksCompleted={tasksCompleted}
+        eventsCount={calendarEntries.length}
+        unreadEmailsCount={unreadEmailsCount}
+        googleConnected={googleConnected}
+        onRefresh={handleGlobalRefresh}
+        onQuickTask={() => {
+          window.dispatchEvent(
+            new CustomEvent('terminal:quick-capture:open', { detail: { mode: 'task' } })
+          );
+        }}
+        onQuickEvent={() => {
+          window.dispatchEvent(
+            new CustomEvent('terminal:quick-capture:open', { detail: { mode: 'calendar' } })
+          );
+        }}
+      />
+
+      {/* 2. Main 3-Column Terminal Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+        {/* Column 1: Today's Schedule & Google Calendar */}
+        <div className="h-[560px]">
+          <TodaySchedulePanel
+            entries={calendarEntries}
+            isLoading={isCalendarLoading}
+            onAddEvent={handleAddEvent}
+            onDeleteEvent={handleDeleteEvent}
+            onOpenCalendarView={() => {
+              window.location.href = '/workspace/calendar';
+            }}
+          />
         </div>
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[200px,1fr]">
-          <div className="card-warm h-[220px] animate-pulse rounded-2xl" />
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="card-warm h-[140px] animate-pulse rounded-2xl" />
-            ))}
-          </div>
-        </div>
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <div className="card-warm p-6 animate-pulse rounded-2xl">
-            <div className="h-5 w-20 rounded bg-white/10" />
-            <div className="mt-4 space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-14 rounded-lg bg-white/[0.06]" />
-              ))}
-            </div>
-          </div>
-          {widgetSkeleton}
-        </div>
-      </div>
-    );
-  }
 
-  if (isError) {
-    return (
-      <div className="space-y-4 md:space-y-5" data-testid="today-page-error">
-        <div className="card-warm rounded-xl p-6">
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 text-error shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-text-primary">Dashboard konnte nicht geladen werden</p>
-              <p className="text-xs text-text-tertiary mt-0.5">
-                {error instanceof Error ? error.message : 'Ein unbekannter Fehler ist aufgetreten.'}
-              </p>
-            </div>
+        {/* Column 2: Focus Tasks & Priorities */}
+        <div className="h-[560px]">
+          <TodayTasksPanel
+            tasks={tasks}
+            isLoading={isTasksLoading}
+            onAddTask={handleAddTask}
+            onToggleTask={handleToggleTask}
+            onDeleteTask={handleDeleteTask}
+          />
+        </div>
+
+        {/* Column 3: Projects & Email Triage (Tabs) */}
+        <div className="flex flex-col h-[560px] space-y-2.5">
+          {/* Linear-Style Segmented Tab Switcher */}
+          <div className="flex items-center p-1 rounded-xl bg-[#090C14]/90 border border-white/[0.08] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
             <button
-              onClick={() => queryClient.invalidateQueries({ queryKey: DASHBOARD_NEXT_TASKS_QUERY_KEY })}
-              className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-secondary hover:bg-surface-hover transition-colors"
+              onClick={() => setRightPanelTab('projects')}
+              className={`flex-1 flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg text-xs font-mono font-medium transition-all duration-150 ${
+                rightPanelTab === 'projects'
+                  ? 'bg-white/[0.08] text-white border border-white/[0.12] shadow-sm'
+                  : 'text-white/40 hover:text-white/80'
+              }`}
             >
-              <RefreshCw className="h-3.5 w-3.5" />
-              Erneut versuchen
+              <FolderKanban className="w-3.5 h-3.5 text-amber-400" />
+              <span>Projekte ({projects.length})</span>
+            </button>
+
+            <button
+              onClick={() => setRightPanelTab('gmail')}
+              className={`flex-1 flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg text-xs font-mono font-medium transition-all duration-150 ${
+                rightPanelTab === 'gmail'
+                  ? 'bg-white/[0.08] text-white border border-white/[0.12] shadow-sm'
+                  : 'text-white/40 hover:text-white/80'
+              }`}
+            >
+              <Mail className="w-3.5 h-3.5 text-rose-400" />
+              <span>Inbox ({unreadEmailsCount})</span>
             </button>
           </div>
+
+          {/* Panel Display */}
+          <div className="flex-1 min-h-0">
+            {rightPanelTab === 'projects' ? (
+              <ActiveProjectsPanel
+                projects={projects}
+                isLoading={isProjectsLoading}
+                onAddProject={handleAddProject}
+                onScheduleProject={handleScheduleProject}
+              />
+            ) : (
+              <GmailTriagePanel
+                messages={gmailMessages}
+                connected={googleConnected}
+                isLoading={isGmailLoading}
+                error={gmailData?.error}
+                onRefresh={refetchGmail}
+                onConvertToTask={handleConvertToTask}
+              />
+            )}
+          </div>
         </div>
       </div>
-    );
-  }
 
-  return (
-    <div className="space-y-5" data-testid="today-page-root">
-      <ErrorBoundary fallbackTitle="Trajectory Hero Error">
-        <TrajectoryCollisionHero snapshot={trajectorySnapshot ?? null} />
-      </ErrorBoundary>
+      {/* 3. Startup Venture Telemetry & Financial Model */}
+      <StartupModelCard
+        onScheduleSession={async (title, durationMin) => {
+          const now = new Date();
+          const startTime = new Date(now.getTime() + 15 * 60 * 1000);
+          const endTime = new Date(startTime.getTime() + durationMin * 60 * 1000);
 
-      <ErrorBoundary fallbackTitle="Vitals Error">
-        <LifeVitals
-          trajectoryStatus={trajectoryBriefing?.status ?? null}
-          daysUntilExam={trajectoryBriefing?.daysUntil ?? null}
-        />
-      </ErrorBoundary>
-
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[220px,1fr]">
-        <div className="flex justify-center lg:justify-start">
-          <MomentumPulse
-            score={momentum?.score ?? 40}
-            trend={momentum?.trend ?? 'flat'}
-          />
-        </div>
-        <NextMovesStack
-          nextKitEvent={nextMovesKitEvent}
-          nextDeadline={nextMovesDeadline}
-          nextTask={nextTasksData?.nextBestAction ?? null}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <ErrorBoundary fallbackTitle="Focus Tasks Error">
-          <FocusTasks nextTasksData={focusTasksInput} />
-        </ErrorBoundary>
-        <ErrorBoundary fallbackTitle="Study Progress Error">
-          <LazyStudyProgress courses={studyProgress} />
-        </ErrorBoundary>
-      </div>
-
-      <div className="card-warm relative overflow-hidden rounded-xl">
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1 px-4 py-2.5">
-          <StatItem
-            icon={<CheckCircle2 className="h-3.5 w-3.5 text-red-300/70" />}
-            label="Tasks"
-            value={`${tasksCompletedCount}/${tasksTodayCount}`}
-          />
-          <StatItem
-            icon={<GraduationCap className="h-3.5 w-3.5 text-amber-300/70" />}
-            label="Exercises"
-            value={`${stats?.exercisesThisWeek ?? 0}/${stats?.exercisesTotal ?? 0}`}
-          />
-          <StatItem
-            icon={<Flame className="h-3.5 w-3.5 text-orange-300/70" />}
-            label="Streak"
-            value={`${streak}d`}
-          />
-        </div>
-        <div
-          className="absolute inset-x-0 bottom-0 h-px"
-          style={{
-            background:
-              'linear-gradient(to right, rgba(248,113,113,0.45) 0%, rgba(251,191,36,0.45) 33%, rgba(251,146,60,0.45) 66%, rgba(56,189,248,0.42) 100%)',
-          }}
-        />
-      </div>
-
-      <AchievementUnlockOverlay
-        achievementKey={pendingAchievementKey}
-        onDismiss={() => setPendingAchievementKey(null)}
+          await handleAddEvent({
+            title,
+            startsAt: startTime.toISOString(),
+            endsAt: endTime.toISOString(),
+            location: 'Startup Terminal',
+            syncWithGoogle: true,
+          });
+        }}
       />
-    </div>
-  );
-}
 
-function StatItem({
-  icon,
-  label,
-  value,
-  delta,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  delta?: number;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      {icon}
-      <span className="text-[11px] text-text-secondary">{label}</span>
-      <span className="text-[13px] font-semibold tabular-nums text-text-primary">{value}</span>
-      {typeof delta === 'number' && delta !== 0 && (
-        <span
-          className={`text-[11px] font-medium tabular-nums ${
-            delta > 0 ? 'text-emerald-400' : 'text-red-400'
-          }`}
-        >
-          {delta > 0 ? `▲${delta}` : `▼${Math.abs(delta)}`}
-        </span>
-      )}
+      {/* 4. Bottom Quick Scratchpad */}
+      <TerminalScratchpad
+        onConvertToTask={async (text) => {
+          await handleAddTask(text, 25);
+        }}
+      />
     </div>
   );
 }

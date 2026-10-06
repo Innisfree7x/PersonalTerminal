@@ -322,19 +322,6 @@ function HeroFrame({ progress, onScrollDown }: { progress: MotionValue<number>; 
             </TrackedCtaLink>
           </div>
 
-          <div className="mt-6 flex items-center justify-center gap-4">
-            {[
-              { value: '847', label: 'Studenten' },
-              { value: 'Ø 23 min', label: 'täglich' },
-              { value: 'seit WS 24/25', label: '' },
-            ].map((chip) => (
-              <div key={chip.value} className="flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1">
-                <span className="font-mono text-[11px] font-medium text-white/70">{chip.value}</span>
-                {chip.label && <span className="font-mono text-[11px] text-zinc-600">{chip.label}</span>}
-              </div>
-            ))}
-          </div>
-
           <div className="mx-auto mt-10 w-full max-w-3xl">
             <HeroProofTeaser />
           </div>
@@ -467,22 +454,7 @@ function CTAFrame({ progress }: { progress: MotionValue<number> }) {
             Login
           </TrackedCtaLink>
         </div>
-        {/* Live counter chips */}
-        <div className="mt-10 flex items-center justify-center gap-4">
-          <div className="flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-white/[0.03] px-4 py-1.5">
-            <span className="font-mono text-[13px] font-semibold text-white/80">
-              847
-            </span>
-            <span className="font-mono text-[11px] text-zinc-600">Studenten</span>
-          </div>
-          <div className="flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-white/[0.03] px-4 py-1.5">
-            <span className="font-mono text-[13px] font-semibold text-white/80">
-              Ø 23 min
-            </span>
-            <span className="font-mono text-[11px] text-zinc-600">täglich</span>
-          </div>
-        </div>
-        <p className="mt-8 font-mono text-[10px] uppercase tracking-widest text-zinc-600">Secure · Public Beta · Setup &lt; 2 min</p>
+        <p className="mt-10 font-mono text-[10px] uppercase tracking-widest text-zinc-600">Secure · Public Beta · Setup &lt; 2 min</p>
       </div>
     </motion.div>
   );

@@ -30,11 +30,11 @@ interface PowerHotkeysContextValue {
 
 const PAGE_HOTKEYS: Record<string, string> = {
   '1': '/today',
-  '2': '/workspace/tasks',
-  '3': '/uni/courses',
-  '4': '/career/applications',
-  '5': '/reflect/analytics',
-  '6': '/settings',
+  '2': '/workspace/calendar',
+  '3': '/workspace/tasks',
+  '4': '/workspace/inbox',
+  '5': '/workspace/goals',
+  '6': '/focus',
 };
 
 export type SummonerSpellAction =
@@ -127,47 +127,103 @@ function ShortcutOverlay({ open, onClose }: { open: boolean; onClose: () => void
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 animate-in fade-in duration-150">
       <div
         data-hotkeys-disabled="true"
-        className="w-[min(900px,95vw)] rounded-xl border border-border bg-surface shadow-2xl"
+        className="w-[min(800px,95vw)] rounded-2xl border border-white/10 bg-[#0B0F19] shadow-2xl overflow-hidden"
       >
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
+        <div className="flex items-center justify-between border-b border-white/10 px-6 py-4 bg-white/[0.02]">
           <div className="flex items-center gap-3">
-            <Keyboard className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-semibold text-text-primary">INNIS Hotkeys</h2>
+            <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+              <Keyboard className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold font-mono tracking-wider text-white uppercase">
+                Terminal Tastaturkürzel
+              </h2>
+              <p className="text-xs text-white/50 font-mono">
+                Linear & Bloomberg-Style Power Navigation
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-md border border-border px-3 py-1.5 text-sm text-text-secondary hover:text-text-primary"
+            className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-mono text-white/60 hover:text-white hover:bg-white/5 transition-colors"
           >
-            Esc
+            Esc Schließen
           </button>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
-          <div className="rounded-lg border border-border bg-background/40 p-4">
-            <div className="mb-2 text-xs uppercase tracking-wider text-text-tertiary">Navigation</div>
-            <ul className="space-y-1.5 text-sm text-text-primary">
-              <li><span className="font-mono text-primary">1-7</span> switch pages</li>
-              <li><span className="font-mono text-primary">B</span> back to Today</li>
-              <li><span className="font-mono text-primary">P</span> open command bar</li>
-              <li><span className="font-mono text-primary">Q/W/E/R</span> page abilities</li>
-              <li><span className="font-mono text-primary">D/F</span> summoner spells</li>
-              <li><span className="font-mono text-primary">Tab (hold)</span> scoreboard</li>
-              <li><span className="font-mono text-primary">Space</span> urgent jump</li>
-              <li><span className="font-mono text-primary">?</span> open this overlay</li>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
+          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 space-y-3 font-mono">
+            <div className="text-[11px] uppercase tracking-wider text-cyan-400 font-semibold border-b border-white/5 pb-2">
+              Schnell-Aktionen & Navigation
+            </div>
+            <ul className="space-y-2 text-xs text-white/80">
+              <li className="flex items-center justify-between">
+                <span>Befehlsmenü (Palette)</span>
+                <kbd className="px-2 py-0.5 rounded bg-white/10 text-white font-semibold">Cmd + K</kbd>
+              </li>
+              <li className="flex items-center justify-between">
+                <span>Schnellerfassung (Task/Zeit/Idee)</span>
+                <kbd className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">C / Q</kbd>
+              </li>
+              <li className="flex items-center justify-between">
+                <span>Heute / Terminal</span>
+                <kbd className="px-2 py-0.5 rounded bg-white/10 text-white">1</kbd>
+              </li>
+              <li className="flex items-center justify-between">
+                <span>Kalender (Google 2-Way)</span>
+                <kbd className="px-2 py-0.5 rounded bg-white/10 text-white">2</kbd>
+              </li>
+              <li className="flex items-center justify-between">
+                <span>Aufgaben</span>
+                <kbd className="px-2 py-0.5 rounded bg-white/10 text-white">3</kbd>
+              </li>
+              <li className="flex items-center justify-between">
+                <span>Inbox (Gmail Triage)</span>
+                <kbd className="px-2 py-0.5 rounded bg-white/10 text-white">4</kbd>
+              </li>
+              <li className="flex items-center justify-between">
+                <span>Ziele & Startup Hub</span>
+                <kbd className="px-2 py-0.5 rounded bg-white/10 text-white">5</kbd>
+              </li>
+              <li className="flex items-center justify-between">
+                <span>Fokus-Modus</span>
+                <kbd className="px-2 py-0.5 rounded bg-white/10 text-white">6</kbd>
+              </li>
             </ul>
           </div>
 
-          <div className="rounded-lg border border-border bg-background/40 p-4">
-            <div className="mb-2 text-xs uppercase tracking-wider text-text-tertiary">List Control</div>
-            <ul className="space-y-1.5 text-sm text-text-primary">
-              <li><span className="font-mono text-primary">J / K</span> move focus</li>
-              <li><span className="font-mono text-primary">Enter</span> trigger focused item</li>
-              <li><span className="font-mono text-primary">Space</span> toggle focused item</li>
-              <li><span className="font-mono text-primary">G + G/V/E/F</span> ping action</li>
-              <li><span className="font-mono text-primary">Esc</span> clear focus / close overlays</li>
+          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 space-y-3 font-mono">
+            <div className="text-[11px] uppercase tracking-wider text-emerald-400 font-semibold border-b border-white/5 pb-2">
+              Listen & Terminal Steuerung
+            </div>
+            <ul className="space-y-2 text-xs text-white/80">
+              <li className="flex items-center justify-between">
+                <span>Element auswählen (hoch/runter)</span>
+                <kbd className="px-2 py-0.5 rounded bg-white/10 text-white font-semibold">J / K</kbd>
+              </li>
+              <li className="flex items-center justify-between">
+                <span>Ausführen / Öffnen</span>
+                <kbd className="px-2 py-0.5 rounded bg-white/10 text-white font-semibold">Enter</kbd>
+              </li>
+              <li className="flex items-center justify-between">
+                <span>Task abhaken / Status wechseln</span>
+                <kbd className="px-2 py-0.5 rounded bg-white/10 text-white font-semibold">Space</kbd>
+              </li>
+              <li className="flex items-center justify-between">
+                <span>Google Sync aktualisieren</span>
+                <kbd className="px-2 py-0.5 rounded bg-white/10 text-white">Cmd + R</kbd>
+              </li>
+              <li className="flex items-center justify-between">
+                <span>Abbrechen / Zurück</span>
+                <kbd className="px-2 py-0.5 rounded bg-white/10 text-white">Esc</kbd>
+              </li>
+              <li className="flex items-center justify-between">
+                <span>Dieses Hilfefenster öffnen</span>
+                <kbd className="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">?</kbd>
+              </li>
             </ul>
           </div>
         </div>
@@ -191,40 +247,51 @@ function ScoreboardOverlay({
   const weekTotal = stats?.metrics?.weekProgress?.total ?? 7;
   const tasksCompleted = nextTasks?.stats?.tasksCompleted ?? 0;
   const tasksToday = nextTasks?.stats?.tasksToday ?? 0;
-  const exercisesThisWeek = nextTasks?.stats?.exercisesThisWeek ?? 0;
   const goalsDueSoon = nextTasks?.stats?.goalsDueSoon ?? 0;
-  const interviewsUpcoming = nextTasks?.stats?.interviewsUpcoming ?? 0;
   const overdueGoals = stats?.goals?.overdue ?? 0;
 
   const taskScore = tasksToday > 0 ? Math.round((tasksCompleted / tasksToday) * 100) : 100;
   const weekScore = weekTotal > 0 ? Math.round((weekDay / weekTotal) * 100) : 0;
-  const kda = `${tasksCompleted}/${Math.max(overdueGoals, 0)}/${Math.max(goalsDueSoon, 0)}`;
-  const grade = taskScore >= 85 ? 'S-' : taskScore >= 70 ? 'A-' : taskScore >= 55 ? 'B' : 'C';
+  const executionStatus =
+    taskScore >= 80 ? 'Optimale Velocity (High Flow)' : taskScore >= 60 ? 'Auf Kurs' : 'Fokus erforderlich';
 
   return (
     <div className="fixed inset-0 z-[68] pointer-events-none flex items-start justify-center pt-20">
-      <div data-hotkeys-disabled="true" className="w-[min(860px,95vw)] rounded-xl border border-border bg-surface/95 backdrop-blur-xl shadow-2xl p-5">
-        <div className="mb-3 text-sm uppercase tracking-wider text-text-tertiary">Weekly Scoreboard</div>
+      <div data-hotkeys-disabled="true" className="w-[min(860px,95vw)] rounded-2xl border border-white/10 bg-[#0B0F19]/95 backdrop-blur-xl shadow-2xl p-5 font-mono">
+        <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
+          <div className="text-xs font-bold uppercase tracking-wider text-cyan-400">
+            Terminal Executive Scorecard
+          </div>
+          <div className="text-[11px] text-white/40">
+            Hold [Tab] to view · Release to dismiss
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          <div className="rounded-lg border border-border bg-background/40 p-3">
-            <div className="text-xs text-text-tertiary mb-1">Tasks</div>
-            <div className="text-lg font-semibold text-text-primary">{tasksCompleted}/{tasksToday || 0}</div>
-            <div className="text-xs text-text-tertiary">{taskScore}% completion</div>
+          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5 space-y-1">
+            <div className="text-[10px] uppercase text-white/40">Heutige Aufgaben</div>
+            <div className="text-xl font-bold text-white">{tasksCompleted} / {tasksToday || 0}</div>
+            <div className="text-xs text-emerald-400">{taskScore}% Erledigungsquote</div>
           </div>
-          <div className="rounded-lg border border-border bg-background/40 p-3">
-            <div className="text-xs text-text-tertiary mb-1">Week Progress</div>
-            <div className="text-lg font-semibold text-text-primary">Day {weekDay}/{weekTotal}</div>
-            <div className="text-xs text-text-tertiary">{weekScore}% through week</div>
+
+          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5 space-y-1">
+            <div className="text-[10px] uppercase text-white/40">Wochenverlauf</div>
+            <div className="text-xl font-bold text-white">Tag {weekDay} / {weekTotal}</div>
+            <div className="text-xs text-cyan-400">{weekScore}% der Woche absolviert</div>
           </div>
-          <div className="rounded-lg border border-border bg-background/40 p-3">
-            <div className="text-xs text-text-tertiary mb-1">Execution Signals</div>
-            <div className="text-sm text-text-primary">Exercises: {exercisesThisWeek} · Interviews: {interviewsUpcoming}</div>
-            <div className="text-xs text-text-tertiary">Goals due soon: {goalsDueSoon}</div>
+
+          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5 space-y-1">
+            <div className="text-[10px] uppercase text-white/40">Strategische Ziele</div>
+            <div className="text-sm font-semibold text-white">
+              {goalsDueSoon} fällig demnächst · {overdueGoals} im Verzug
+            </div>
+            <div className="text-xs text-white/40">Top-Down Roadmap Tracking</div>
           </div>
-          <div className="rounded-lg border border-border bg-background/40 p-3">
-            <div className="text-xs text-text-tertiary mb-1">KDA / Grade</div>
-            <div className="text-lg font-semibold text-text-primary">{kda}</div>
-            <div className="text-xs text-text-tertiary">Grade: {grade}</div>
+
+          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5 space-y-1">
+            <div className="text-[10px] uppercase text-white/40">Execution Momentum</div>
+            <div className="text-sm font-semibold text-emerald-400">{executionStatus}</div>
+            <div className="text-xs text-white/40">Linear & Bloomberg Standard</div>
           </div>
         </div>
       </div>

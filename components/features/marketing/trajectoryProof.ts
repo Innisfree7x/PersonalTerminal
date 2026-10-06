@@ -20,10 +20,10 @@ export function buildTrajectoryProofInsight(
   }
 
   if (status === 'tight') {
-    return `Ab ${prepStartLabel} wird es eng. Ein weiterer Parallelblock oder weniger Wochenkapazitaet kippt den Plan schnell.`;
+    return `Ab ${prepStartLabel} wird es eng. Ein weiterer Parallelblock oder weniger Wochenkapazität kippt den Plan schnell.`;
   }
 
-  return 'Der Start liegt bereits zu spaet. Scope senken, frueher anfangen oder zuerst einen anderen Block aufloesen.';
+  return 'Der Start liegt bereits zu spät. Scope senken, früher anfangen oder zuerst einen anderen Block auflösen.';
 }
 
 export function getTrajectoryProofStatusTone(status: TrajectoryRiskStatus) {

@@ -35,6 +35,7 @@ export const appLanguageCopy = {
       sync: 'KIT Sync',
       applications: 'Bewerbungen',
       momentum: 'Momentum',
+      inbox: 'Inbox',
     },
     header: {
       search: 'Suche',
@@ -156,6 +157,7 @@ export const appLanguageCopy = {
       sync: 'KIT Sync',
       applications: 'Applications',
       momentum: 'Momentum',
+      inbox: 'Inbox',
     },
     header: {
       search: 'Search',
